@@ -1,0 +1,47 @@
+isCaution;isBlack;isRed;description
+1;0;0;CAUTION: Rule 5.1 To block or attempt to block with the boot when an opponent is kicking the ball from the hand(s).
+1;0;0;CAUTION: Rule 5.2 To prevent or attempt to prevent an opponent from lifting or kicking the ball off the ground by striking an opponent’s hand, arm, foot or leg with the boot.
+1;0;0;CAUTION: Rule 5.3 To engage in any other form of rough play.
+1;0;0;CAUTION: Rule 5.4 To attempt to achieve an advantage by feigning a foul or injury.
+1;0;0;CAUTION: Rule 5.5 (Repeat Infraction)  To hold an opponent with the hand(s).
+1;0;0;CAUTION: Rule 5.6 (Repeat Infraction)  To use the fist on or around the body of an opponent for the purpose of dispossessing him of the ball 
+1;0;0;CAUTION: Rule 5.7a (Repeat Infraction)  To charge an opponent in the back or to the front.
+1;0;0;CAUTION: Rule 5.7b (Repeat Infraction)  To charge an opponent (i) who is not in possession of the ball, or (ii) is in the act of kicking the ball, or (iii) If both players are not moving in the direction of the ball to play it. 
+1;0;0;CAUTION: Rule 5.7c (Repeat Infraction)  To charge an opponent for the purpose of giving an advantage to a team-mate.
+1;0;0;CAUTION: Rule 5.8 (Repeat Infraction)  To push an opponent with the hand(s).
+1;0;0;CAUTION: Rule 5.9a (Repeat Infraction) To charge (in a manner otherwise permissible on an opponent ) the Goalkeeper in his small rectangle.
+1;0;0;CAUTION: Rule 5.9b (Repeat Infraction) For a player in possession of the ball to charge an opponent.
+1;0;0;CAUTION: Rule 6.1 To challenge the authority of a Referee, Umpire, Linesman or Sideline Official.
+1;0;0;CAUTION: Rule 6.2 To fail to comply with a Referee’s instruction to use a mouth guard.
+1;0;0;CAUTION: Rule 6.3 To refuse to leave the field of play, on the instruction of the Referee, for attention, after an injury involving bleeding.
+1;0;0;CAUTION: Rule 6.4 To show dissent with the Referee’s decision to award a free kick to the opposing team. (After awarding a 13m advantage - Rule 6.1)
+0;1;0;BLACK CARD: Rule 5.10 To deliberately pull down an opponent.
+0;1;0;BLACK CARD: Rule 5.11 To deliberately trip an opponent with hand(s), arm, leg or foot.
+0;1;0;BLACK CARD: Rule 5.12 To deliberately collide with an opponent after he has played the ball away or for the purpose of taking him out of the movement of play.
+0;1;0;BLACK CARD: Rule 5.13 To remonstrate in an aggressive manner with a Match Official.
+0;1;0;BLACK CARD: Rule 5.14 To threaten or to use abusive or provocative language or gestures to an opponent or teammate.
+0;0;1;ORDER OFF: On foot of two cautions or caution plus black card as previously stated
+0;0;1;ORDER OFF: Rule 5.15 To strike or to attempt to strike an opponent with arm, elbow, hand or knee with minimal force. 
+0;0;1;ORDER OFF: Rule 5.16 To kick or attempt to kick an opponent, with minimal force.
+0;0;1;ORDER OFF: Rule 5.17 To behave in any way which is dangerous to an opponent
+0;0;1;ORDER OFF: Rule 5.18 To spit at an opponent.
+0;0;1;ORDER OFF: Rule 5.19 To contribute to a melee.
+0;0;1;ORDER OFF: Rule 5.20 To use abusive language to a Referee, Umpire, Linesman or Sideline Official.
+0;0;1;ORDER OFF: Rule 5.21 To interfere with an Opposing Team Official by minor physical interference e.g. laying a hand on, pushing, pulling or jostling, on or off the Field of Play.
+0;0;1;"ORDER OFF: Rule 5.22 To commit any of the fouls listed in 5.15 to 5.18 (inclusive) against a team-mate.
+"
+0;0;1;ORDER OFF: Rule 5.23 To commit any of the fouls listed in 5.15 to 5.18 (inclusive) on an opponent on the field prior to the start of a game or at half - time.
+0;0;1;ORDER OFF: Rule 5.24 To strike or attempt to strike an opponent by arm, elbow, hand or know with force or causing injury
+0;0;1;ORDER OFF: Rule 5.25 To strike or attempt to strike an opponent with the head.
+0;0;1;ORDER OFF: Rule 5.26 To kick an opponent either with force or causing injury.
+0;0;1;ORDER OFF: Rule 5.27 To attempt to kick an opponent with force.
+0;0;1;ORDER OFF: Rule 5.28 To stamp on an opponent.
+0;0;1;ORDER OFF: Rule 5.29 To inflict an injury recklessly on an opponent by means other than those stated above.
+0;0;1;ORDER OFF: Rule 5.30 To assault an opposing Team Official.
+0;0;1;ORDER OFF: Rule 5.31 To act by deed, word or gesture of a racist, sectarian or anti-inclusion / diversity nature against an opponent or match official.
+0;0;1;ORDER OFF: Rule 5.32 To commit any of the fouls listed in 5.24 to 5.29 (inclusive) against a team-mate.
+0;0;1;ORDER OFF: Rule 5.33 To commit any of the fouls listed in 5.24 to 5.29 (inclusive) on an opponent on the field prior to the start of a game or at half–time.
+0;0;1;ORDER OFF: Rule 5.34 To interfere with a Referee, Umpire, Linesman or Sideline Official – minor physical interference e.g. laying a hand on, pushing, pulling or jostling.
+0;0;1;ORDER OFF: Rule 5.35 To use threatening language to a Referee, Umpire, Linesman or Sideline Official.
+0;0;1;ORDER OFF: Rule 5.36 To use threatening or abusive conduct towards a Referee, Umpire, Linesman or Sideline Official.
+0;0;1;ORDER OFF: Rule 5.37 To strike or attempt to strike, or any type of assault on, a Referee, Umpire, Linesman or Sideline Official.

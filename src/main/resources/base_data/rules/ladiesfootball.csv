@@ -1,0 +1,43 @@
+isCaution;isBlack;isRed;description
+1;0;0;CAUTION: Rule 415a (Repeat Infraction) Pushing or holding an opponent
+1;0;0;CAUTION: Rule 415b (Repeat Infraction) Bringing the hand into contact with the body of an opponent for the purpose of dispossessing her of the ball
+1;0;0;CAUTION: Rule 415c (Repeat Infraction) Third player tackle including body checking an opponent
+1;0;0;CAUTION: Rule 415d (Repeat Infraction) Impeding an opponent
+1;0;0;CAUTION: Rule 415e (Repeat Infraction) Diving on the ball as another player is about to pick it up
+1;0;0;CAUTION: Rule 415f (Repeat Infraction) A player in possession of the ball leading with her elbow
+1;0;0;CAUTION: Rule 415g (Repeat Infraction) Frontal pushing of a player
+1;0;0;CAUTION: Rule 415h (Repeat Infraction) Chopping down on the arms of an opponent
+1;0;0;CAUTION: Rule 415i (Repeat Infraction) Provoking or intimidating players by verbal or physical actions
+1;0;0;CAUTION: Rule 415j (Repeat Infraction) Preventing an opponent getting up from the ground
+1;0;0;CAUTION: Rule 415k (Repeat Infraction) Pulling an opponent’s jersey
+1;0;0;CAUTION: Rule 415l (Repeat Infraction) Interfering with a free taker by jumping up and down, waving or clapping hands, or any other physical or verbal interference aimed at distracting the free taker
+1;0;0;CAUTION: Rule 415m (Repeat Infraction) Deliberately delaying the kick out or a free-kick
+1;0;0;CAUTION: Rule 415n (Repeat Infraction) Deliberately not moving back to allow a quick free to be taken
+1;0;0;CAUTION: Rule 415o (Repeat Infraction) Kicking the ball away when a free is awarded against the team in possession of the ball
+1;0;0;CAUTION: Rule 415p (Repeat Infraction) Not releasing the ball when a free is awarded against the player in possession of the ball
+1;0;0;CAUTION: Rule 415q (Repeat Infraction) Use of foul or improper language
+1;0;0;CAUTION: Rule 415r (Repeat Infraction) Charging of an opponent
+1;0;0;CAUTION: Rule 416a Deliberate pulling down or tripping by hand or foot
+1;0;0;CAUTION: Rule 416b High tackle
+1;0;0;CAUTION: Rule 416c Charging of an opponent with the shoulder to the upper body
+1;0;0;CAUTION: Rule 416d Threatening or using abusive language or gestures towards an opponent or colleague
+1;0;0;CAUTION: Rule 416e Blocking or attempting to block an opponent with the boot as that player is about to kick the ball from her hands
+1;0;0;CAUTION: Rule 416f A sliding tackle
+1;0;0;CAUTION: Rule 416g Kicking the ball with intent as an opposing player is about to pick it up
+1;0;0;CAUTION: Rule 416h Bringing the fist into contact with the body of an opponent for the purpose of dispossessing her of the ball
+1;0;0;CAUTION: Rule 416i Dissenting or challenging the authority of a match official
+1;0;0;CAUTION: Rule 416j Persistent fouling
+1;0;0;CAUTION: Rule 416k Feigning injury, or diving to gain a free kick or penalty or to get an opponent Cautioned or Sent Off
+0;0;1;ORDER OFF: On foot of two cautions as previously stated
+0;0;1;ORDER OFF: Rule 417a Striking or making a striking action towards an opponent or colleague with the hand, fist, arm, elbow, head, knee or an object
+0;0;1;ORDER OFF: Rule 417b Kicking an opponent or colleague
+0;0;1;ORDER OFF: Rule 417c Striking, threatening, using abusive language to, or interfering with a match official
+0;0;1;ORDER OFF: Rule 417d Deliberate high tackle
+0;0;1;ORDER OFF: Rule 417e Deliberate sliding tackle
+0;0;1;ORDER OFF: Rule 417f Deliberate charge, including frontal charge, or jumping at an opponent, colleague or official
+0;0;1;ORDER OFF: Rule 417g Spitting at an opponent, colleague or official
+0;0;1;ORDER OFF: Rule 417h Deliberate pulling of an opponent or colleagues hair
+0;0;1;ORDER OFF: Rule 417i Biting an opponent or colleague
+0;0;1;ORDER OFF: Rule 417j Stamping on an opponent or colleague
+0;0;1;ORDER OFF: Rule 417k Using racist, sectarian or homophobic language or gestures towards an opponent, colleague, mentor, match official or spectator
+0;0;1;ORDER OFF: Rule 417l Inciting colleagues or opponents to cause or take part in any type of affray while on the pitch

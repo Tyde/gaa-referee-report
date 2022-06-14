@@ -1,11 +1,8 @@
 package eu.gaelicgames.referee.data
 
-import eu.gaelicgames.referee.data.PitchGoalpostsOptions.default
-import eu.gaelicgames.referee.data.User.Companion.referrersOn
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.javatime.date
@@ -97,13 +94,13 @@ class GameType(id:EntityID<Long>):LongEntity(id) {
     var name by GameTypes.name
 }
 
-object ExtraTimeReasons : LongIdTable() {
+object ExtraTimeOptions : LongIdTable() {
     val name = varchar("name", 60)
 }
 
-class ExtraTimeReason(id:EntityID<Long>):LongEntity(id) {
-    companion object : LongEntityClass<ExtraTimeReason>(ExtraTimeReasons)
-    var name by ExtraTimeReasons.name
+class ExtraTimeOption(id:EntityID<Long>):LongEntity(id) {
+    companion object : LongEntityClass<ExtraTimeOption>(ExtraTimeOptions)
+    var name by ExtraTimeOptions.name
 }
 
 object GameReports : LongIdTable() {
@@ -116,7 +113,7 @@ object GameReports : LongIdTable() {
     val teamAPoints = integer("team_a_points")
     val teamBGoals = integer("team_b_goals")
     val teamBPoints = integer("team_b_points")
-    val extraTime = reference("extra_time",ExtraTimeReasons).nullable()
+    val extraTime = reference("extra_time",ExtraTimeOptions).nullable()
 }
 
 class GameReport(id:EntityID<Long>):LongEntity(id) {
@@ -130,7 +127,7 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var teamAPoints by GameReports.teamAPoints
     var teamBGoals by GameReports.teamBGoals
     var teamBPoints by GameReports.teamBPoints
-    var extraTime by ExtraTimeReason optionalReferencedOn GameReports.extraTime
+    var extraTime by ExtraTimeOption optionalReferencedOn GameReports.extraTime
 }
 
 object Rules : LongIdTable() {

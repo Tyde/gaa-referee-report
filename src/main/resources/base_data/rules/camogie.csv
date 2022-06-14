@@ -1,0 +1,30 @@
+isCaution;isBlack;isRed;description
+1;0;0;CAUTION: Rule 10.2a Deliberately shoulder an opponent
+1;0;0;CAUTION: Rule 10.2b Trip, catch, hold or pull down an opponent
+1;0;0;CAUTION: Rule 10.2c Charge (pushing or moving into an opponent’s body or failing to avoid full frontal contact with an opponent), back into or obstruct an opponent
+1;0;0;CAUTION: Rule 10.2d Reach from behind with the hurley or around the body of an opponent which is not consistent with an attempt to play the sliotar
+1;0;0;CAUTION: Rule 10.2e Throw the hurley
+1;0;0;CAUTION: Rule 10.2f Engage in any form of rough play
+1;0;0;CAUTION: Rule 10.2g Show dissent with any decisions of the Referee and/or match officials
+1;0;0;CAUTION: Rule 10.2h Attempt to strike an opponent with or without hurley
+1;0;0;CAUTION: Rule 10.2i Attempt to kick an opponent
+1;0;0;CAUTION: Rule 10.2j Play without a helmet
+1;0;0;CAUTION: Rule 10.2k Use a hurley of incorrect size
+1;0;0;CAUTION: Rule 10.2l Use the hurley to obstruct an opponent.
+1;0;0;CAUTION: Rule 7.1b Playing with a hurley with a bas that is greater than 13cm in width with the exception of the goalkeeper on goalkeeping duties. 
+1;0;0;CAUTION: Rule 7.2 To not play with a NSAI Standard IS355 approved  helmet/facial guard that has not been modified. 
+1;0;0;CAUTION: Rule 7.4 To wear additional protective gear deemed by the Referee to be dangerous to others
+1;0;0;CAUTION: Rule 7.5 To wear jewellery of any kind
+0;0;1;ORDER OFF: On foot of two cautions are previously stated
+0;0;1;ORDER OFF: Rule 10.3a Strike an opponent with the hurley
+0;0;1;ORDER OFF: Rule 10.3b Strike an opponent with the arm, elbow, hand, knee or head
+0;0;1;ORDER OFF: Rule 10.3c Punch an opponent
+0;0;1;ORDER OFF: Rule 10.3d Kick an opponent
+0;0;1;ORDER OFF: Rule 10.3e Stomp on an opponent
+0;0;1;ORDER OFF: Rule 10.3f Spit at an opponent or official
+0;0;1;ORDER OFF: Rule 10.3g Contribute to a melee
+0;0;1;ORDER OFF: Rule 10.3h Assault any official
+0;0;1;ORDER OFF: Rule 10.3i Interfere with the faceguard of an opponent’s helmet
+0;0;1;ORDER OFF: Rule 10.3j Use abusive or threatening language or gestures to a Referee, match officials, players or mentors
+0;0;1;ORDER OFF: Rule 10.3k Use the hurley to ‘dig’ an opponent
+0;0;1;ORDER OFF: Rule 10.3l Interfere with an opponent’s helmet.

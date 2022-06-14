@@ -58,6 +58,7 @@ fun Application.configureSecurity() {
                 }
             }
             challenge {
+                println("Challenge")
                 call.respondRedirect("/login")
             }
         }

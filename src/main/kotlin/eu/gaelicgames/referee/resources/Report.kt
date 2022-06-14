@@ -5,14 +5,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Resource("/report")
-class Report {
+class Report() {
+
     @Serializable
     @Resource("new")
-    class New()
+    class New(val parent:Report)
 
     @Serializable
     @Resource("edit/{id}")
-    class Edit(val id:Long){
+    class Edit(val parent:Report, val id:Long){
 
         @Serializable
         @Resource("game/{gameId}")
