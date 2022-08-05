@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
-import type Team from "@/types";
+import type {Team} from "@/types";
 
 const props = defineProps<{
   rough_team_name?:string
@@ -36,8 +36,8 @@ async function send_new_team_to_server() {
 
 <template>
   <label for="new_team_name">Name of new team:</label><br>
-  <input id="new_team_name" :disabled="is_loading" v-model="new_team_name"><br>
-  <button @click="send_new_team_to_server">Send</button>
+  <InputText id="new_team_name" :disabled="is_loading" v-model="new_team_name" /><br>
+  <Button @click="send_new_team_to_server">Send</Button>
 </template>
 
 

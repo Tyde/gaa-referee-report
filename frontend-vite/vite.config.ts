@@ -13,6 +13,7 @@ export default defineConfig({
     }
   },
   build: {
+    sourcemap: true,
     outDir: '../src/main/resources/static',
     rollupOptions: {
       input: {

@@ -33,6 +33,8 @@ dependencies {
     implementation("io.ktor:ktor-server-freemarker-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-resources:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
+
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
@@ -55,7 +57,7 @@ tasks.register("buildNPM") {
     doLast {
         exec {
             workingDir = File("./frontend-vite/")
-            commandLine = listOf("npm", "run","build")
+            commandLine = listOf("npm", "run","mybuild")
         }
     }
 }

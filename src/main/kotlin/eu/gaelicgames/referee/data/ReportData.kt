@@ -103,6 +103,8 @@ class ExtraTimeOption(id:EntityID<Long>):LongEntity(id) {
     var name by ExtraTimeOptions.name
 }
 
+
+
 object GameReports : LongIdTable() {
     val report = reference("report_id", TournamentReports)
     val teamA = reference("team_a", Teams)
@@ -114,6 +116,8 @@ object GameReports : LongIdTable() {
     val teamBGoals = integer("team_b_goals")
     val teamBPoints = integer("team_b_points")
     val extraTime = reference("extra_time",ExtraTimeOptions).nullable()
+    val umpirePresentOnTime = bool("umpire_present_on_time").default(true)
+    val umpireNotes = text("umpire_notes").nullable()
 }
 
 class GameReport(id:EntityID<Long>):LongEntity(id) {
@@ -128,6 +132,8 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var teamBGoals by GameReports.teamBGoals
     var teamBPoints by GameReports.teamBPoints
     var extraTime by ExtraTimeOption optionalReferencedOn GameReports.extraTime
+    var umpirePresentOnTime by GameReports.umpirePresentOnTime
+    var umpireNotes by GameReports.umpireNotes
 }
 
 object Rules : LongIdTable() {
@@ -149,7 +155,7 @@ class Rule(id:EntityID<Long>):LongEntity(id) {
 
 object DisciplinaryActions : LongIdTable() {
     val game = reference("game",GameReports)
-    val isTeamA = bool("is_team_a")
+    val team = reference("team",Teams)
     val firstName = varchar("first_name",80)
     val lastName = varchar("last_name", 80)
     val number = integer("number")
@@ -160,7 +166,7 @@ object DisciplinaryActions : LongIdTable() {
 class DisciplinaryAction(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<DisciplinaryAction>(DisciplinaryActions)
     var game by GameReport referencedOn DisciplinaryActions.game
-    var isTeamA by DisciplinaryActions.isTeamA
+    var team by Team referencedOn DisciplinaryActions.team
     var firstName by DisciplinaryActions.firstName
     var lastName by DisciplinaryActions.lastName
     var number by DisciplinaryActions.number

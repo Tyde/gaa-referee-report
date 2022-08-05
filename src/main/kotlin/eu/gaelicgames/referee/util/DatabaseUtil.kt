@@ -8,6 +8,8 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.time.LocalDate
+import java.time.Month
 
 
 object DatabaseHandler {
@@ -93,6 +95,7 @@ object DatabaseHandler {
         )
 
         populate_rules()
+
     }
 
     private fun populate_name_only_table_from_csv(table: LongIdTable, filename: String, nameColumn: Column<String>) {

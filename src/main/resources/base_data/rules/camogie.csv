@@ -1,7 +1,7 @@
 isCaution;isBlack;isRed;description
 1;0;0;CAUTION: Rule 10.2a Deliberately shoulder an opponent
 1;0;0;CAUTION: Rule 10.2b Trip, catch, hold or pull down an opponent
-1;0;0;CAUTION: Rule 10.2c Charge (pushing or moving into an opponent’s body or failing to avoid full frontal contact with an opponent), back into or obstruct an opponent
+1;0;0;CAUTION: Rule 10.2c Charge (pushing or moving into an opponent's body or failing to avoid full frontal contact with an opponent), back into or obstruct an opponent
 1;0;0;CAUTION: Rule 10.2d Reach from behind with the hurley or around the body of an opponent which is not consistent with an attempt to play the sliotar
 1;0;0;CAUTION: Rule 10.2e Throw the hurley
 1;0;0;CAUTION: Rule 10.2f Engage in any form of rough play
@@ -24,7 +24,7 @@ isCaution;isBlack;isRed;description
 0;0;1;ORDER OFF: Rule 10.3f Spit at an opponent or official
 0;0;1;ORDER OFF: Rule 10.3g Contribute to a melee
 0;0;1;ORDER OFF: Rule 10.3h Assault any official
-0;0;1;ORDER OFF: Rule 10.3i Interfere with the faceguard of an opponent’s helmet
+0;0;1;ORDER OFF: Rule 10.3i Interfere with the faceguard of an opponent's helmet
 0;0;1;ORDER OFF: Rule 10.3j Use abusive or threatening language or gestures to a Referee, match officials, players or mentors
-0;0;1;ORDER OFF: Rule 10.3k Use the hurley to ‘dig’ an opponent
-0;0;1;ORDER OFF: Rule 10.3l Interfere with an opponent’s helmet.
+0;0;1;ORDER OFF: Rule 10.3k Use the hurley to "dig" an opponent
+0;0;1;ORDER OFF: Rule 10.3l Interfere with an opponent's helmet.

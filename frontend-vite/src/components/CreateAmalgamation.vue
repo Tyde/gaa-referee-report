@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import TeamSelectField from "@/components/TeamSelectField.vue";
-import type Team from "@/types";
+import type {Team} from "@/types";
 
 const props = defineProps<{
   rough_amalgamation_name?:string

@@ -3,7 +3,10 @@ import {onMounted, ref} from "vue";
 import type Team from "@/types";
 import TeamSelectField from "@/components/TeamSelectField.vue";
 
-defineEmits(['submit-teams'])
+const emit = defineEmits(['submit-teams'])
+const props = defineProps<{
+  alreadySelectedTeams:Array<Team>
+}>()
 
 enum TeamSelectorModal {
   NoModal,
@@ -19,8 +22,8 @@ const teams_added = ref(<Team[]>[])
 
 function add_team(team: Team) {
 
-  console.log("addded on team " + team.name)
   teams_added.value.push(team)
+  emit('submit-teams',teams_added.value)
 }
 
 function create_team() {
@@ -43,6 +46,11 @@ async function fetch_available_teams() {
 }
 
 onMounted(() => {
+  teams_added.value.length = 0
+  console.log("already selected: ")
+  console.log(props.alreadySelectedTeams)
+  teams_added.value = teams_added.value.concat(props.alreadySelectedTeams)
+  console.log(teams_added.value)
   fetch_available_teams()
 })
 </script>
@@ -51,19 +59,7 @@ onMounted(() => {
   <Card>
     <template #title>Select the clubs, that will be part of this report</template>
     <template #content>
-      <template v-if="teams_added.length>0">
-        Selected:
-        <ul class="selected-teams-list">
-          <li v-for="team in teams_added">
-            <Button
-                class="p-button-rounded p-button-secondary p-button-sm"
-                @click="teams_added = teams_added.filter(lteam => { return lteam !== team })"
-            >
-              {{team.name}}  <i class="pi pi-times"></i>
-            </Button>
-          </li>
-        </ul>
-      </template>
+
       <!--
       <select v-model="selected">
         <option v-for="team in teams_available" :value="team">
@@ -80,7 +76,21 @@ onMounted(() => {
           @team_selected="add_team"
       />
 
-      <Button label="submit" @click="$emit('submit-teams',teams_added)">Submit</Button>
+      <template v-if="teams_added.length>0">
+        Selected:
+        <ul class="selected-teams-list">
+          <li v-for="team in teams_added">
+            <Button
+                class="p-button-rounded p-button-secondary p-button-sm"
+                @click="teams_added = teams_added.filter(lteam => { return lteam !== team })"
+            >
+              {{team.name}}  <i class="pi pi-times"></i>
+            </Button>
+          </li>
+        </ul>
+      </template>
+
+      <!--<Button label="submit" @click="$emit('submit-teams',teams_added)">Submit</Button>-->
       <!--
           <button v-on:click="add_team">Add</button>
           <br>

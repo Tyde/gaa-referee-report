@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from "vue";
-import type Team from "@/types";
+import type {Team} from "@/types";
 import CreateTeam from "@/components/CreateTeam.vue";
 import CreateAmalgamation from "@/components/CreateAmalgamation.vue";
 import Card from 'primevue/card';
@@ -62,7 +62,9 @@ onMounted(() => {
 
 
 const filtered_list = computed(() => {
-  let preparedlist = teams_available.value
+  let preparedlist = teams_available.value.sort((a, b) => {
+    return a.name.localeCompare(b.name)
+  })
   if (props.exclude_team_list !== undefined) {
     let excludelist = props.exclude_team_list
     console.log("Checking excludes")

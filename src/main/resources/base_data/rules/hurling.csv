@@ -3,32 +3,32 @@ isCaution;isBlack;isRed;description
 1;0;0;CAUTION: Rule 5.2 To trip an opponent with hand(s), arm, leg, foot, or hurley.
 1;0;0;CAUTION: Rule 5.3 To threaten or to use abusive or provocative language or gestures to an opponent.
 1;0;0;CAUTION: Rule 5.4 To engage in any form of rough play.
-1;0;0;CAUTION: Rule 5.5 To make “a pull” with the hurley from behind and around the body of an opponent that is not consistent with an attempt to play the ball.
+1;0;0;CAUTION: Rule 5.5 To make "a pull" with the hurley from behind and around the body of an opponent that is not consistent with an attempt to play the ball.
 1;0;0;CAUTION: Rule 5.6 To use the hurley in a careless manner.
 1;0;0;CAUTION: Rule 5.7 To throw the hurley in a manner which constitutes a danger to another player(s).
 1;0;0;CAUTION: Rule 5.8 To attempt to achieve an advantage by feigning a foul or injury.
-1;0;0;CAUTION: Rule 5.9 To threaten or to use abusive or provocative language or gestures to a team – mate.
+1;0;0;CAUTION: Rule 5.9 To threaten or to use abusive or provocative language or gestures to a team-mate.
 1;0;0;CAUTION: Rule 5.10 (Repeat Infraction) To hold an opponent with the hand(s).
 1;0;0;CAUTION: Rule 5.11a (Repeat Infraction) To charge an opponent in the back or to the front.
 1;0;0;CAUTION: Rule 5.11b (Repeat Infraction) To charge an opponent unless: (i) he is in possession of the ball, or (ii) he is playing the ball, or (iii) both players are moving in the direction of the ball to play it.
-1;0;0;CAUTION: Rule 5.11c (Repeat Infraction) To charge an opponent for the purpose of giving an advantage to a team – mate.
+1;0;0;CAUTION: Rule 5.11c (Repeat Infraction) To charge an opponent for the purpose of giving an advantage to a team-mate.
 1;0;0;CAUTION: Rule 5.12a (Repeat Infraction) To push an opponent with the hand(s) or hurley.
-1;0;0;CAUTION: Rule 5.12b (Repeat Infraction) To hold an opponent’s hurley or to pull it from his hands.
+1;0;0;CAUTION: Rule 5.12b (Repeat Infraction) To hold an opponent's hurley or to pull it from his hands.
 1;0;0;CAUTION: Rule 5.13a (Repeat Infraction) To charge (in a manner otherwise permissible on an opponent) the Goalkeeper in his small rectangle.
 1;0;0;CAUTION: Rule 5.13b (Repeat Infraction) For a player in possession of the ball to charge an opponent.
 1;0;0;CAUTION: Rule 5.14 (Repeat Infraction) To use the hurley to obstruct an opponent.
-1;0;0;CAUTION: Rule 5.15 (Repeat Infraction) To strike an opponent’s hurley unless both players are in the act of playing the ball.
+1;0;0;CAUTION: Rule 5.15 (Repeat Infraction) To strike an opponent's hurley unless both players are in the act of playing the ball.
 0;0;1;ORDER OFF: On foot of two cautions as previously stated
 0;0;1;ORDER OFF: Rule 5.16 To strike or to attempt to strike an opponent with arm, elbow, hand or knee.
 0;0;1;ORDER OFF: Rule 5.17 To strike or attempt to strike an opponent with a hurley, with minimal force.
 0;0;1;ORDER OFF: Rule 5.18 To kick or attempt to kick an opponent, with minimal force.
-0;0;1;ORDER OFF: Rule 5.19 To behave in any way which is dangerous to an opponent, including to deliberately pull on or take hold of a faceguard or any other part of an opponent’s helmet.
+0;0;1;ORDER OFF: Rule 5.19 To behave in any way which is dangerous to an opponent, including to deliberately pull on or take hold of a faceguard or any other part of an opponent's helmet.
 0;0;1;ORDER OFF: Rule 5.20 To spit at an opponent.
 0;0;1;ORDER OFF: Rule 5.21 To contribute to a melee.
 0;0;1;ORDER OFF: Rule 5.22 To use abusive language to a Referee, Umpire, Linesman or Sideline Official
 0;0;1;ORDER OFF: Rule 5.23 To commit any of the fouls listed in 5.16 to 5.20 (inclusive) against a team-mate.
 0;0;1;ORDER OFF: Rule 5.24 To interfere with an Opposing Team Official by minor physical interference e.g. laying a hand on, pushing, pulling or jostling, on or off the Field of Play.
-0;0;1;ORDER OFF: Rule 5.25 To commit any of the fouls listed in 5.16 to 5.20 (inclusive) on an opponent on the field prior to the start of a game or at half - time.
+0;0;1;ORDER OFF: Rule 5.25 To commit any of the fouls listed in 5.16 to 5.20 (inclusive) on an opponent on the field prior to the start of a game or at half-time.
 0;0;1;ORDER OFF: Rule 5.26 To strike or attempt to strike an opponent with the head.
 0;0;1;ORDER OFF: Rule 5.27 To strike an opponent with a hurley, either with force or causing injury.
 0;0;1;ORDER OFF: Rule 5.28 To attempt to strike an opponent with a hurley, with force.
@@ -39,7 +39,7 @@ isCaution;isBlack;isRed;description
 0;0;1;ORDER OFF: Rule 5.33 To assault an opposing Team Official.
 0;0;1;ORDER OFF: Rule 5.34 To act by deed, word or gesture of a racist, sectarian or anti-inclusion / diversity nature against an opponent.
 0;0;1;ORDER OFF: Rule 5.35 To commit any of the fouls listed in 5.25 to 5.31 (inclusive) against a team-mate.
-0;0;1;ORDER OFF: Rule 5.36 To commit any of the fouls listed in 5.25 to 5.31 (inclusive) on an opponent on the field prior to the start of a game or at half–time.
+0;0;1;ORDER OFF: Rule 5.36 To commit any of the fouls listed in 5.25 to 5.31 (inclusive) on an opponent on the field prior to the start of a game or at half-time.
 0;0;1;ORDER OFF: Rule 5.37 To interfere with a Referee, Umpire, Linesman or Sideline Official – minor physical interference e.g. laying a hand on, pushing, pulling or jostling.
 0;0;1;ORDER OFF: Rule 5.38 To use threatening language to a Referee, Umpire, Linesman or Sideline Official.
 0;0;1;ORDER OFF: Rule 5.39 To use threatening or abusive conduct towards a Referee, Umpire, Linesman or Sideline Official.
