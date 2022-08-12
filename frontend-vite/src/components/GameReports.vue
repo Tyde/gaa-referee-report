@@ -4,7 +4,7 @@ import SingleGameReport from "@/components/SingleGameReport.vue";
 import type {ExtraTimeOption, GameReport, GameType, Report, Rule, Team} from "@/types";
 import {computed, onBeforeMount, onMounted, onUpdated, ref, watch} from "vue";
 import { DateTime } from "luxon";
-import {checkGameReportMinimal, checkGameReportSuggestion} from "@/utils/gobal_functions";
+import {checkGameReportNecessary, checkGameReportSuggestion} from "@/utils/gobal_functions";
 
 const props = defineProps<{
   report:Report,
@@ -83,7 +83,7 @@ onBeforeMount(()=> {
         <vue-feather
             type="alert-octagon"
             class="text-red-600 p-1"
-            v-if="!checkGameReportMinimal(slotProps.option)"/>
+            v-if="!checkGameReportNecessary(slotProps.option)"/>
         <vue-feather
             type="circle"
             class="text-yellow-200 p-1"

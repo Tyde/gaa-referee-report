@@ -18,31 +18,34 @@ object DatabaseHandler {
         db = Database.connect("jdbc:sqlite:data.db", "org.sqlite.JDBC")
     }
 
-
+    val tables = listOf(
+        Users,
+        Sessions,
+        Teams,
+        Amalgamations,
+        Tournaments,
+        GameCodes,
+        TournamentReports,
+        TournamentReportTeamPreSelections,
+        GameTypes,
+        ExtraTimeOptions,
+        GameReports,
+        Rules,
+        DisciplinaryActions,
+        Injuries,
+        PitchSurfaceOptions,
+        PitchLengthOptions,
+        PitchWidthOptions,
+        PitchMarkingsOptions,
+        PitchGoalpostsOptions,
+        PitchGoalDimensionOptions,
+        Pitches,
+    )
     fun createSchema() {
         transaction {
-            SchemaUtils.create(Users)
-            SchemaUtils.create(Sessions)
-
-            SchemaUtils.create(Teams)
-            SchemaUtils.create(Amalgamations)
-            SchemaUtils.create(Tournaments)
-            SchemaUtils.create(GameCodes)
-            SchemaUtils.create(TournamentReports)
-            SchemaUtils.create(TournamentReportTeamPreSelections)
-            SchemaUtils.create(GameTypes)
-            SchemaUtils.create(ExtraTimeOptions)
-            SchemaUtils.create(GameReports)
-            SchemaUtils.create(Rules)
-            SchemaUtils.create(DisciplinaryActions)
-            SchemaUtils.create(Injuries)
-            SchemaUtils.create(PitchSurfaceOptions)
-            SchemaUtils.create(PitchLengthOptions)
-            SchemaUtils.create(PitchWidthOptions)
-            SchemaUtils.create(PitchMarkingsOptions)
-            SchemaUtils.create(PitchGoalpostsOptions)
-            SchemaUtils.create(PitchGoalDimensionOptions)
-            SchemaUtils.create(Pitches)
+            for (table in tables) {
+                SchemaUtils.create(table)
+            }
 
         }
     }

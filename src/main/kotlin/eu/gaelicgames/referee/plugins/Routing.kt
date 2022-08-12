@@ -1,6 +1,7 @@
 package eu.gaelicgames.referee.plugins
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.resources.Report
 import io.ktor.http.*
@@ -19,9 +20,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull.content
+import org.jetbrains.exposed.dao.load
+import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.time.Duration
@@ -97,12 +103,12 @@ fun Application.configureRouting() {
             call.respond(transaction {
                 Team.all().map {
                     if (!it.isAmalgamation) {
-                        TeamDEO.createFromTeam(it)
+                        TeamDEO.fromTeam(it)
                     } else {
                         val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
-                            TeamDEO.createFromTeam(amlgm.addedTeam)
+                            TeamDEO.fromTeam(amlgm.addedTeam)
                         }
-                        TeamDEO.createFromTeam(it, addedTeams)
+                        TeamDEO.fromTeam(it, addedTeams)
                     }
                 }
             })
@@ -117,21 +123,28 @@ fun Application.configureRouting() {
             get("/") {
                 val user = call.principal<UserPrincipal>()?.user
                 if (user != null) {
-                    val nonSubmittedReports = transaction {
-                        TournamentReport.find {
+                    val content = transaction {
+                        val nonSubmittedReports = TournamentReports.innerJoin(Tournaments).select {
                             TournamentReports.referee eq user.id and (
                                     TournamentReports.isSubmitted eq false
                                     )
-                        }.map { it }
-                    }
-                    val submittedReports = transaction {
-                        TournamentReport.find {
-                            TournamentReports.referee eq user.id and (
-                                    TournamentReports.isSubmitted eq true
-                                    )
-                        }.map { it }
-                    }
-                    call.respond(
+                        }.map { row ->
+                            val tournament = Tournament.wrapRow(row)
+                            TournamentReport.wrapRow(row) to tournament
+                        }
+
+
+                        val submittedReports =
+                            TournamentReports.innerJoin(Tournaments).select {
+                                TournamentReports.referee eq user.id and (
+                                        TournamentReports.isSubmitted eq true
+                                        )
+                            }.map { row ->
+                                val tournament = Tournament.wrapRow(row)
+                                TournamentReport.wrapRow(row) to tournament
+                            }
+
+
                         FreeMarkerContent(
                             "main_page.ftl",
                             mapOf(
@@ -139,11 +152,17 @@ fun Application.configureRouting() {
                                 "submittedReports" to submittedReports
                             )
                         )
+                    }
+
+                    call.respond(
+                        content
+
                     )
                 } else {
                     call.respond(HttpStatusCode.InternalServerError)
                 }
             }
+
 
 
             get<Report.New> {
@@ -158,6 +177,37 @@ fun Application.configureRouting() {
 
             }
 
+            get<Report.Edit> { edit ->
+                val reportExists = transaction {
+                    TournamentReport.findById(edit.id) != null
+                }
+                val resource =
+                    this.javaClass.classLoader.getResource("static/edit_report.html")?.toURI()
+                if (resource != null && reportExists) {
+                    val file = File(resource)
+                    call.respondFile(file)
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+
+            }
+
+            get<Api.Reports.Get> { get ->
+                val reportId = get.id
+                if (reportId >= 0) {
+                    call.respond(transaction {
+                        val report = TournamentReport.findById(reportId)
+                        if (report != null) {
+                            CompleteReportDEO.fromTournamentReport(report)
+                        } else {
+                            ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found")
+                        }
+                    })
+                } else {
+                    call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report id must be positive"))
+                }
+            }
+
             post<Api.NewTeam> {
                 val newTeam = call.receiveOrNull<NewTeamDEO>()
                 if (newTeam != null) {
@@ -167,7 +217,7 @@ fun Application.configureRouting() {
                             isAmalgamation = false
                         }
                     }
-                    call.respond(TeamDEO.createFromTeam(newTeamDB))
+                    call.respond(TeamDEO.fromTeam(newTeamDB))
                 } else {
                     call.respond(HttpStatusCode.BadRequest)
                 }
@@ -191,7 +241,7 @@ fun Application.configureRouting() {
                         }
                         amalgamation_base
                     }
-                    call.respond(TeamDEO.createFromTeam(newAmalgamationDB))
+                    call.respond(TeamDEO.fromTeam(newAmalgamationDB))
                 } else {
                     call.respond(HttpStatusCode.BadRequest)
                 }
@@ -201,7 +251,7 @@ fun Application.configureRouting() {
                 val date = LocalDate.parse(findByDate.date)
                 val tournaments = transaction {
                     Tournament.find { Tournaments.date eq date }.map {
-                        TournamentDEO.createFromTournament(it)
+                        TournamentDEO.fromTournament(it)
                     }
                 }
                 call.respond(tournaments)
@@ -215,7 +265,7 @@ fun Application.configureRouting() {
                             name = tournamentDraft.name
                             location = tournamentDraft.location
                             date = tournamentDraft.date
-                        }.let { TournamentDEO.createFromTournament(it) }
+                        }.let { TournamentDEO.fromTournament(it) }
                     }
                     call.respond(databaseTournament)
                 } else {
@@ -258,40 +308,32 @@ fun Application.configureRouting() {
             }
 
             post<Api.GameReports.New> {
-                val gameReport = call.receiveOrNull<GameReportDEO>()
-                if (gameReport != null) {
-                    val createdReport = gameReport.createInDatabase()
-                    if (createdReport.isSuccess) {
-                        call.respond(GameReportDEO.fromGameReport(createdReport.getOrThrow()))
-                    } else {
-                        call.respond(
-                            UpdateError(
-                                UpdateErrorOptions.INSERTION_FAILED,
-                                createdReport.exceptionOrNull()?.message?: "Unknown error"
-                            )
-                        )
-                    }
-                } else {
-                    call.respond(HttpStatusCode.BadRequest)
-                }
+                handleGameReportInput(doUpdate = false)
             }
 
             post<Api.GameReports.Update> {
-                val gameReport = call.receiveOrNull<GameReportDEO>()
-                if (gameReport != null) {
-                    val updatedReport = gameReport.updateInDatabase()
-                    if (updatedReport != null) {
-                        call.respond(GameReportDEO.fromGameReport(updatedReport))
-                    } else {
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
-                } else {
-                    call.respond(HttpStatusCode.BadRequest)
-                }
+                handleGameReportInput(doUpdate = true)
             }
 
             post<Api.GameReports.DisciplinaryAction.New> {
-                TODO()
+                handleDisciplinaryActionInput(doUpdate = false)
+            }
+            post<Api.GameReports.DisciplinaryAction.Update> {
+                handleDisciplinaryActionInput(doUpdate = true)
+            }
+
+            post<Api.GameReports.Injury.New> {
+                handleInjuryInput(doUpdate = false)
+            }
+            post<Api.GameReports.Injury.Update> {
+                handleInjuryInput(doUpdate = true)
+            }
+
+            post<Api.Pitch.New> {
+                handlePitchReportInput(doUpdate = false)
+            }
+            post<Api.Pitch.Update> {
+                handlePitchReportInput(doUpdate = true)
             }
 
             get<Api.Rules> {
@@ -322,6 +364,10 @@ fun Application.configureRouting() {
             get<Api.GameReportVariables> {
                 call.respond(GameReportClasses.load())
             }
+
+            get<Api.PitchVariables> {
+                call.respond(PitchVariablesDEO.load())
+            }
             /*post<Report.New> {
 
         }
@@ -337,6 +383,140 @@ fun Application.configureRouting() {
         }
     }
 
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInput(doUpdate: Boolean) {
+    val reportDraft = call.receiveOrNull<PitchReportDEO>()
+    if (reportDraft != null) {
+        val user = call.principal<UserPrincipal>()?.user
+        val updatedReport = if(doUpdate) {
+            reportDraft.updateInDatabase()
+        } else {
+            reportDraft.createInDatabase()
+        }
+        if (updatedReport.isSuccess) {
+            call.respond(
+                PitchReportDEO.fromPitchReport(
+                    updatedReport.getOrThrow()
+                )
+            )
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    updatedReport.exceptionOrNull()?.message ?: "Unknown error"
+                )
+            )
+        }
+    } else {
+        call.respond(
+            ApiError(
+                ApiErrorOptions.INSERTION_FAILED,
+                "Not able to parse pitch report"
+            )
+        )
+    }
+}
+
+
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleGameReportInput(doUpdate: Boolean) {
+    val gameReport = call.receiveOrNull<GameReportDEO>()
+    if (gameReport != null) {
+
+        val updatedReport = if(doUpdate) {
+            gameReport.updateInDatabase()
+        } else {
+            gameReport.createInDatabase()
+        }
+        if (updatedReport.isSuccess) {
+            call.respond(
+                GameReportDEO.fromGameReport(
+                    updatedReport.getOrThrow()
+                )
+            )
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    updatedReport.exceptionOrNull()?.message ?: "Unknown error"
+                )
+            )
+        }
+    } else {
+        call.respond(
+            ApiError(
+                ApiErrorOptions.INSERTION_FAILED,
+                "Not able to parse game report"
+            )
+        )
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleDisciplinaryActionInput(doUpdate:Boolean) {
+    val dAction = call.receiveOrNull<DisciplinaryActionDEO>()
+    if (dAction != null) {
+
+        val newDisciplinaryAction = if(doUpdate) {
+            dAction.updateInDatabase()
+        } else {
+            dAction.createInDatabase()
+        }
+        if (newDisciplinaryAction.isSuccess) {
+            call.respond(
+                DisciplinaryActionDEO.fromDisciplinaryAction(
+                    newDisciplinaryAction.getOrThrow()
+                )
+            )
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    newDisciplinaryAction.exceptionOrNull()?.message ?: "Unknown error"
+                )
+            )
+        }
+    } else {
+        call.respond(
+            ApiError(
+                ApiErrorOptions.INSERTION_FAILED,
+                "Could not parse disciplinary action"
+            )
+        )
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doUpdate:Boolean) {
+    val injury = call.receiveOrNull<InjuryDEO>()
+    if (injury != null) {
+
+        val newInjury = if(doUpdate) {
+            injury.updateInDatabase()
+        } else {
+            injury.createInDatabase()
+        }
+        if (newInjury.isSuccess) {
+            call.respond(
+                InjuryDEO.fromInjury(
+                    newInjury.getOrThrow()
+                )
+            )
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    newInjury.exceptionOrNull()?.message ?: "Unknown error"
+                )
+            )
+        }
+    } else {
+        call.respond(
+            ApiError(
+                ApiErrorOptions.INSERTION_FAILED,
+                "Could not parse injury"
+            )
+        )
+    }
 }
 
 class AuthenticationException : RuntimeException()

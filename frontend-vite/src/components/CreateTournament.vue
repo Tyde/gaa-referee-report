@@ -1,8 +1,10 @@
 <script setup lang="ts">
 
 import {computed, onMounted, ref} from "vue";
-import type {DatabaseTournament, Tournament} from "@/types";
+import type { Tournament} from "@/types";
 import {fromDateToDateString} from "@/utils/gobal_functions";
+import {DatabaseTournament} from "@/types";
+import {DateTime} from "luxon";
 
 const props = defineProps<{
   preselectedDate: Date,
@@ -13,12 +15,12 @@ const emit = defineEmits<{
   (e: 'canceled') :void
 }>()
 const editedTournament = ref<Tournament>({
-  date: new Date(), location: "", name: ""
+  date: DateTime.now(), location: "", name: ""
 })
 const allowChangeDate = ref<Boolean>(false)
 const isLoading = ref<Boolean>(true)
 onMounted(() => {
-  editedTournament.value.date = props.preselectedDate
+  editedTournament.value.date = DateTime.fromJSDate( props.preselectedDate)
 })
 
 async function save_tournament() {
@@ -31,20 +33,25 @@ async function save_tournament() {
       body: JSON.stringify({
         name:editedTournament.value.name,
         location: editedTournament.value.location,
-        date:fromDateToDateString(editedTournament.value.date)
+        date:editedTournament.value.date.toISODate()
       })
     };
     isLoading.value = true
     const response = await fetch("/api/tournament/new",requestOptions)
     const data = await response.json()
-    data.date = new Date(data.date)
+    let parseResult = DatabaseTournament.safeParse(data)
+    if (parseResult.success) {
+      emit('tournament_created',parseResult.data)
+    } else {
+      console.error(parseResult.error)
+    }
     isLoading.value = false
-    emit('tournament_created',data as DatabaseTournament)
+
   }
 }
 
 const dateString = computed(() => {
-  return fromDateToDateString(editedTournament.value.date)
+  return editedTournament.value.date.toISODate()
 })
 </script>
 
@@ -55,7 +62,10 @@ const dateString = computed(() => {
     </template>
     <template #content>
       <template v-if="allowChangeDate">
-        <Calendar id="dateformat" v-model="editedTournament.date" dateFormat="yy-mm-dd"/>
+        <Calendar id="dateformat"
+                  :model-value="editedTournament.date.toJSDate()"
+                  @update:model-value="(newDate) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
+                  dateFormat="yy-mm-dd"/>
       </template>
       <template v-else> Date: {{ dateString }}
         <Button @click="allowChangeDate = true">Change</Button>

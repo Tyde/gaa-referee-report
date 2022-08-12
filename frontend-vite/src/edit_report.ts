@@ -17,6 +17,8 @@ import Checkbox from "primevue/checkbox";
 import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
+
+
 const app = createApp(App);
 app.use(PrimeVue)
 app.component('Card',Card)

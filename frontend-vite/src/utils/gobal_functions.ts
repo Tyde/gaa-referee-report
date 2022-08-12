@@ -13,8 +13,12 @@ export const fromDateToDateString = (date:Date|undefined) => {
 export function checkGameReportMinimal(gameReport:GameReport): boolean {
     return gameReport!=undefined && gameReport.teamAReport?.team != undefined &&
         gameReport.teamBReport?.team != undefined &&
-        gameReport.startTime != undefined &&
-        gameReport.gameType != undefined
+        gameReport.startTime != undefined
+}
+export function checkGameReportNecessary(gameReport:GameReport): boolean {
+    return checkGameReportMinimal(gameReport) &&
+        gameReport.gameType != undefined &&
+        gameReport.extraTime != undefined
 }
 export function checkGameReportSuggestion(gameReport:GameReport): boolean {
     let sumGoals = (gameReport.teamBReport.goals ?? 0) + (gameReport.teamAReport.goals ?? 0)

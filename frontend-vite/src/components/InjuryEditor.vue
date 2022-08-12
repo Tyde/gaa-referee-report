@@ -1,17 +1,30 @@
 <script lang="ts" setup>
-import type {Injury} from "@/types";
+import type {Injury, Team} from "@/types";
 import {computed, onUpdated, watch} from "vue";
+import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
+import {uploadInjury} from "@/utils/api/injuries_api";
 
 const props = defineProps<{
   visible: boolean
   modelValue: Array<Injury>
-  teamName?: string
+  team?: Team
+  gameReportId?: number
 }>()
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
   (e: 'update:modelValue', value: Array<Injury>): void
 }>()
 
+async function uploadInjuriesToServer() {
+  if(props.gameReportId != undefined) {
+    for (let injury of props.modelValue) {
+      console.log(injury)
+      await uploadInjury(injury, props.gameReportId)
+    }
+  } else {
+    console.log("No report id - deferring upload")
+  }
+}
 
 const localVisible = computed({
   get() {
@@ -22,11 +35,14 @@ const localVisible = computed({
   }
 })
 function closeDialog() {
+
   emits('update:modelValue',props.modelValue)
+  uploadInjuriesToServer()
   emits('update:visible', false)
+
 }
 const injuryDialogTitle = computed(() => {
-  return "Injuries for " + props.teamName
+  return "Injuries for " + props.team?.name
 })
 watch(props.modelValue, (newInjuries) => {
   generateEmptyInjury()
@@ -47,6 +63,7 @@ function addEmptyInjury() {
     firstName: "",
     lastName: "",
     details: "",
+    team: props.team
   } as Injury)
 }
 

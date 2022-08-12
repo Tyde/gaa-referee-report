@@ -43,8 +43,12 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-dao", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-java-time", exposed_version)
+
+
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("com.h2database:h2:2.1.212")
+
+    implementation("org.flywaydb:flyway-core:9.1.3")
 
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import type {Team} from "@/types";
+import {createTeam} from "@/utils/api/teams_api";
 
 const props = defineProps<{
   rough_team_name?:string
@@ -17,17 +18,12 @@ onMounted(()=> {
 const new_team_name = ref("")
 const is_loading = ref(false)
 async function send_new_team_to_server() {
-  if (new_team_name) {
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-      },
-      body: JSON.stringify({ "name": new_team_name.value})
-    };
+  if (new_team_name.value != "") {
+
     is_loading.value = true
-    const response = await fetch("/api/new_team",requestOptions)
-    const data = await response.json()
+    let data = await createTeam(new_team_name.value).catch(e => {
+      console.log(e)
+    })
     is_loading.value = false
     emit('on_new_team',data as Team)
   }

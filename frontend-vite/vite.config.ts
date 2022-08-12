@@ -20,6 +20,7 @@ export default defineConfig({
         editReport: resolve(__dirname, 'edit_report.html')
       },
     },
-    emptyOutDir: true
+    emptyOutDir: true,
+    minify: false
   },
 })

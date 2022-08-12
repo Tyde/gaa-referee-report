@@ -1,104 +1,121 @@
-<script setup lang="ts">
-import {computed, onMounted, ref, watch} from "vue";
+<script lang="ts" setup>
+import {onMounted, onUpdated, ref, watch} from "vue";
 import {fromDateToDateString} from "@/utils/gobal_functions";
 import CreateTournament from "@/components/CreateTournament.vue";
 import type {DatabaseTournament, Tournament} from "@/types";
+import {loadTournamentsOnDate} from "@/utils/api/tournament_api";
+import {DateTime} from "luxon";
+
 const emit = defineEmits<{
-  (e:'tournament_selected', tournament:Tournament): void
+  (e: 'update:modelValue', tournament: Tournament): void
 }>()
 
 const props = defineProps<{
-  alreadySelectedTournament?:DatabaseTournament
+  modelValue?: DatabaseTournament
 }>()
 
 const date = ref<Date>()
 const found_tournaments = ref(<DatabaseTournament[]>[])
-const selected_tournament = ref<DatabaseTournament|undefined>()
+//const selected_tournament = ref<DatabaseTournament | undefined>()
 const show_create_new_tournament = ref(false)
+const loading = ref(false)
+
+/*
 const dateString = computed(() => {
   let newdate = date.value
   return fromDateToDateString(newdate)
   //return Intl.DateTimeFormat('en-US',{calendar: "iso8601"}).format(date.value)
-})
+})*/
 
-function select_tournament(tournament:DatabaseTournament) {
-  selected_tournament.value = tournament
-  emit('tournament_selected',tournament)
-}
-async function loadTournamenmentsOnDate() {
-  const res = await(fetch("/api/tournament/find_by_date/"+dateString.value))
-  let tempResponse:Array<{id:number,name:string,location:string,date:string }> = await res.json()
-  found_tournaments.value = tempResponse.map(value => {
-    return {
-      id:value.id,
-      name:value.name,
-      date:new Date(value.date),
-      location:value.location
-    } as DatabaseTournament
-  })
-
-}
-watch(dateString, async (newDateString,oldDateString) => {
-  loadTournamenmentsOnDate()
-})
-
-function on_tournament_created(tournament:DatabaseTournament) {
-  selected_tournament.value = tournament
-  date.value = tournament.date
-  show_create_new_tournament.value = false
-  loadTournamenmentsOnDate()
+function select_tournament(tournament: DatabaseTournament) {
+  //selected_tournament.value = tournament
+  emit('update:modelValue', tournament)
 }
 
-onMounted(()=> {
-  if(props.alreadySelectedTournament) {
-    selected_tournament.value = props.alreadySelectedTournament
-    console.log(selected_tournament)
-    console.log(selected_tournament.value.date)
-    date.value = selected_tournament.value.date
+watch(date, async () => {
+  if (date.value) {
+    loading.value = true
+    found_tournaments.value = await loadTournamentsOnDate(DateTime.fromJSDate(date.value))
+    loading.value = false
   }
 })
+
+function on_tournament_created(tournament: DatabaseTournament) {
+  select_tournament(tournament)
+  date.value = tournament.date.toJSDate()
+  show_create_new_tournament.value = false
+  loadTournamentsOnDate(DateTime.fromJSDate(date.value))
+}
+
+/*
+watch(() => props.alreadySelectedTournament, () => {
+  if (props.alreadySelectedTournament) {
+    selected_tournament.value = props.alreadySelectedTournament
+    console.log("Taking selected Tournament")
+    console.log(selected_tournament)
+    console.log(selected_tournament.value.date)
+    date.value = selected_tournament.value.date.toJSDate()
+  }
+})
+
+onUpdated(() => {
+  console.log("tournamentSelected")
+  console.log(selected_tournament.value)
+  console.log("prop selected")
+  console.log(props.alreadySelectedTournament)
+})
+
+onMounted(()=> {
+  console.log("Selector mounted")
+})*/
 </script>
 <template>
   <template v-if="!show_create_new_tournament">
-  <Card>
-    <template #content>
-      <template v-if="selected_tournament">
+    <Card>
+      <template #content>
+        <template v-if="modelValue">
 
-        Selected tournament: {{selected_tournament.name}} - {{selected_tournament.location}} - {{selected_tournament.date}}
+          Selected tournament: {{ modelValue.name }} - {{ modelValue.location }} -
+          {{ modelValue.date.toISODate() }}
+        </template>
+
+        <div class="field col-12 md:col-4">
+          <label for="dateformat">Date of Tournament:</label>
+          <Calendar id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
+        </div>
+        <div v-if="date" class="p-listbox">
+          <ul class="p-listbox-list">
+            <li
+                v-if="loading"
+                class="p-listbox-item">
+              Loading...
+            </li>
+            <li
+                v-for="tournament in found_tournaments"
+                :class="{
+                'selected-tournament': modelValue && tournament.id === modelValue.id
+              }"
+                class="p-listbox-item"
+                @click="select_tournament(tournament)"
+            >
+              {{ tournament.name }} - {{ tournament.location }} - {{ fromDateToDateString(tournament.date) }}
+            </li>
+            <li
+                v-if="date"
+                class="p-listbox-item tournamentselect-add-option"
+                @click="show_create_new_tournament=true"
+
+            >
+              Tournament not in list? Create new ...
+            </li>
+          </ul>
+        </div>
+      </template>
+      <template #title>
+        Select a tournament
       </template>
 
-      <div class="field col-12 md:col-4">
-        <label for="dateformat">Date of Tournament:</label>
-        <Calendar id="dateformat" v-model="date"  dateFormat="yy-mm-dd" />
-      </div>
-      <div class="p-listbox" v-if="dateString">
-        <ul class="p-listbox-list">
-          <li
-              v-for="tournament in found_tournaments"
-              class="p-listbox-item"
-              @click="select_tournament(tournament)"
-              :class="{
-                'selected-tournament': selected_tournament && tournament.id === selected_tournament.id
-              }"
-          >
-            {{tournament.name}} - {{tournament.location}} - {{fromDateToDateString(tournament.date)}}
-          </li>
-          <li
-              class="p-listbox-item tournamentselect-add-option"
-              v-if="dateString"
-              @click="show_create_new_tournament=true"
-
-          >
-            Tournament not in list? Create new ...
-          </li>
-        </ul>
-      </div>
-    </template>
-    <template #title>
-      Select a tournament
-    </template>
-
-  </Card>
+    </Card>
   </template>
   <CreateTournament
       v-else
@@ -114,6 +131,7 @@ onMounted(()=> {
   font-weight: bold;
   color: darkcyan !important;
 }
+
 .selected-tournament {
   background-color: cornflowerblue;
 }

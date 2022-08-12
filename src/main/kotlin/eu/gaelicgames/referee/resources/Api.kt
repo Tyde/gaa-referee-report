@@ -21,11 +21,11 @@ class Api() {
 
     @Serializable
     @Resource("tournament")
-    class Tournaments(val parent:Api) {
+    class Tournaments(val parent: Api) {
 
         @Serializable
         @Resource("find_by_date/{date}")
-        class FindByDate(val parent: Tournaments, val date:String)
+        class FindByDate(val parent: Tournaments, val date: String)
 
         @Serializable
         @Resource("new")
@@ -45,25 +45,33 @@ class Api() {
     class GameReportVariables(val parent: Api)
 
     @Serializable
+    @Resource("pitch_variables")
+    class PitchVariables(val parent: Api)
+
+    @Serializable
     @Resource("rules/{code}")
     class RulesForCode(val parent: Api, val code: Int?)
 
     @Serializable
     @Resource("report")
-    class Reports(val parent:Api) {
+    class Reports(val parent: Api) {
 
         @Serializable
         @Resource("new")
-        class New(val parent:Reports)
+        class New(val parent: Reports)
 
         @Serializable
         @Resource("update")
-        class Update(val parent:Reports)
+        class Update(val parent: Reports)
+
+        @Serializable
+        @Resource("get/{id}")
+        class Get(val parent: Reports, val id: Long)
     }
 
     @Serializable
     @Resource("gamereport")
-    class GameReports(val parent:Api) {
+    class GameReports(val parent: Api) {
 
         @Serializable
         @Resource("new")
@@ -71,7 +79,7 @@ class Api() {
 
         @Serializable
         @Resource("update")
-        class Update(val parent:GameReports)
+        class Update(val parent: GameReports)
 
         @Serializable
         @Resource("disciplinaryAction")
@@ -82,7 +90,33 @@ class Api() {
 
             @Serializable
             @Resource("update")
-            class Update(val parent:DisciplinaryAction)
+            class Update(val parent: DisciplinaryAction)
         }
+
+        @Serializable
+        @Resource("injury")
+        class Injury(val parent: GameReports) {
+            @Serializable
+            @Resource("new")
+            class New(val parent: Injury)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Injury)
+        }
+
+
+    }
+
+    @Serializable
+    @Resource("pitch")
+    class Pitch(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: Pitch)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: Pitch)
     }
 }

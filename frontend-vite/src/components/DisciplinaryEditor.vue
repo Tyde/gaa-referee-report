@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import {DisciplinaryAction, Rule, Team} from "@/types";
-import {computed, onUpdated, watch} from "vue";
+import {computed, onBeforeUnmount, onUpdated, watch} from "vue";
+import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 
 const props = defineProps<{
   visible: boolean,
   modelValue: Array<DisciplinaryAction>,
   team: Team,
-  rules: Array<Rule>
+  gameReportId?: number,
+  rules: Array<Rule>,
 }>()
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
@@ -23,47 +25,16 @@ const localVisible = computed({
   }
 })
 
-function checkActionReadyForUpload(dAction: DisciplinaryAction) {
-  return dAction.rule != undefined &&
-      (dAction.firstName != "" ||
-          dAction.lastName != "") &&
-      dAction.details != "" &&
-      dAction.number != undefined
-}
+
 
 
 async function uploadActionsToServer() {
-  for (let action of props.modelValue) {
-    if (checkActionReadyForUpload(action)) {
-      const requestOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({
-          "id": action.id,
-          "team": action.team?.id,
-          "firstName": action.firstName,
-          "lastName": action.lastName,
-          "number": action.number,
-          "details": action.details,
-          "rule": action.rule?.id,
-        })
-      }
-      let nexturl = ""
-      if (action.id != undefined) {
-        nexturl = `/api/gamereport/disciplinaryAction/update`
-      } else {
-        nexturl = `/api/gamereport/disciplinaryAction/new`
-      }
-      const response = await fetch(nexturl, requestOptions)
-      const data = await response.json()
-      if (data.id) {
-        console.log("Update complete")
-      } else {
-        console.log(data)
-      }
+  if(props.gameReportId != undefined) {
+    for (let action of props.modelValue) {
+      await uploadDisciplinaryAction(action, props.gameReportId)
     }
+  } else {
+    console.log("No report id - deferring upload")
   }
 }
 
@@ -79,6 +50,7 @@ const disciplinaryDialogTitle = computed(() => {
 watch(props.modelValue, (newActions) => {
   generateEmptydAFields()
 })
+
 
 function generateEmptydAFields() {
   let newActions = props.modelValue
@@ -175,7 +147,7 @@ onUpdated(() => {
       </Dropdown>
       <div>
         <InputText
-            v-model="dAction.description"
+            v-model="dAction.details"
 
             placeholder="Description"
         />

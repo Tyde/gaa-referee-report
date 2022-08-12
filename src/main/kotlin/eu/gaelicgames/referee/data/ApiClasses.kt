@@ -21,7 +21,7 @@ data class TeamDEO(
     val amalgamationTeams: List<TeamDEO>?
 ) {
     companion object {
-        fun createFromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
+        fun fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
             return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
         }
 
@@ -43,7 +43,7 @@ data class TournamentDEO(
     val date: LocalDate
 ) {
     companion object {
-        fun createFromTournament(input: Tournament): TournamentDEO {
+        fun fromTournament(input: Tournament): TournamentDEO {
             return TournamentDEO(
                 input.id.value,
                 input.name,
@@ -125,7 +125,7 @@ data class NewTournamentReportDEO(
 ) {
     fun storeInDatabase(user: User): TournamentReport? {
         return transaction {
-            val reportTournament = Tournament.findById(tournament.toLong())
+            val reportTournament = Tournament.findById(tournament)
             val reportGameCode = GameCode.findById(gameCode)
             if (reportTournament != null &&
                 reportGameCode != null
@@ -152,30 +152,20 @@ data class NewTournamentReportDEO(
     }
 }
 
-@Serializable
-enum class UpdateCommand {
-    @SerialName("updateGameReport")
-    UPDATE_GAME_REPORT,
-    @SerialName("updateTournamentReport")
-    UPDATE_TOURNAMENT_REPORT,
-}
+
+
 
 @Serializable
-data class ReportUpdate(
-    val command: UpdateCommand,
-    val report: TournamentReportDEO,
-    val gameReport: GameReportDEO
-)
-
-@Serializable
-enum class UpdateErrorOptions {
+enum class ApiErrorOptions {
     @SerialName("insertionFailed")
     INSERTION_FAILED,
+    @SerialName("notFound")
+    NOT_FOUND,
 }
 
 @Serializable
-data class UpdateError(
-    val error: UpdateErrorOptions,
+data class ApiError(
+    val error: ApiErrorOptions,
     val message: String
 )
 
@@ -270,209 +260,4 @@ data class TournamentReportDEO(
     }
 
 
-}
-
-@Serializable
-data class GameReportDEO(
-    val id: Long? = null,
-    val report: Long? = null,
-    val teamA: Long? = null,
-    val teamB: Long? = null,
-    val teamAGoals: Int? = null,
-    val teamBGoals: Int? = null,
-    val teamAPoints: Int? = null,
-    val teamBPoints: Int? = null,
-    @Serializable(with = LocalDateTimeSerializer::class)
-    val startTime: LocalDateTime? = null,
-    val gameType: Long? = null,
-    val extraTime: Long? = null,
-    val umpirePresentOnTime: Boolean? = null,
-    val umpireNotes: String? = null,
-) {
-    companion object {
-        fun fromGameReport(report: GameReport): GameReportDEO {
-            return transaction {
-                 GameReportDEO(
-                    report.id.value,
-                    report.report.id.value,
-                    report.teamA.id.value,
-                    report.teamB.id.value,
-                    report.teamAGoals,
-                    report.teamBGoals,
-                    report.teamAPoints,
-                    report.teamBPoints,
-                    report.startTime,
-                    report.gameType.id.value,
-                    report.extraTime?.id?.value,
-                    report.umpirePresentOnTime,
-                    report.umpireNotes
-                )
-            }
-        }
-    }
-
-    fun createInDatabase(): Result<GameReport> {
-        val grUpdate = this
-        if (grUpdate.id == null &&
-            grUpdate.report != null &&
-            grUpdate.teamA != null &&
-            grUpdate.teamB != null &&
-            grUpdate.startTime != null &&
-            grUpdate.teamAGoals != null &&
-            grUpdate.teamBGoals != null &&
-            grUpdate.teamAPoints != null &&
-            grUpdate.teamBPoints != null &&
-            grUpdate.gameType != null
-        ) {
-
-            return transaction {
-
-
-                val report = TournamentReport.findById(grUpdate.report)
-                val teamA = Team.findById(grUpdate.teamA)
-                val teamB = Team.findById(grUpdate.teamB)
-                val gameType = GameType.findById(grUpdate.gameType)
-                val extraTime = grUpdate.extraTime?.let {
-                    ExtraTimeOption.findById(it)
-                }
-                if (report != null && teamA != null && teamB != null && gameType != null) {
-                    val reportCreated = GameReport.new {
-                        this.report = report
-                        this.teamA = teamA
-                        this.teamB = teamB
-                        this.startTime = grUpdate.startTime
-                        this.teamAGoals = grUpdate.teamAGoals
-                        this.teamBGoals = grUpdate.teamBGoals
-                        this.teamAPoints = grUpdate.teamAPoints
-                        this.teamBPoints = grUpdate.teamBPoints
-                        this.gameType = gameType
-                        extraTime?.let {
-                            this.extraTime = it
-                        }
-                        grUpdate.umpirePresentOnTime?.let {
-                            this.umpirePresentOnTime = it
-                        }
-                        grUpdate.umpireNotes?.let {
-                            this.umpireNotes = it
-                        }
-                    }
-
-                    Result.success(reportCreated)
-                } else {
-
-                    Result.failure(
-                        IllegalArgumentException(
-                            "Trying to insert a game report with either an invalid " +
-                                    "Team A $(teamA) B $(teamB) or invalid report $(report) or" +
-                                    "invalid game type $(gameType)"
-                        )
-                    )
-                }
-            }
-        }
-        return Result.failure(
-            IllegalArgumentException("Trying to insert a game report with missing fields")
-        )
-    }
-
-    fun updateInDatabase(): GameReport? {
-        if (this.id != null) {
-            return transaction {
-                val grUpdate = this@GameReportDEO
-                GameReport.findById(this@GameReportDEO.id)?.let {
-                    if (grUpdate.report != null) {
-                        //Dont act here as moving to another report is unsupported
-                    }
-                    grUpdate.teamA?.let { teamA ->
-                        Team.findById(teamA)?.let { team ->
-                            it.teamA = team
-                        }
-                    }
-                    grUpdate.teamB?.let { teamB ->
-                        Team.findById(teamB)?.let { team ->
-                            it.teamB = team
-                        }
-                    }
-                    grUpdate.teamAGoals?.let { goals ->
-                        it.teamAGoals = goals
-                    }
-                    grUpdate.teamBGoals?.let { goals ->
-                        it.teamBGoals = goals
-                    }
-                    grUpdate.teamAPoints?.let { points ->
-                        it.teamAPoints = points
-                    }
-                    grUpdate.teamBPoints?.let { points ->
-                        it.teamBPoints = points
-                    }
-                    grUpdate.startTime?.let { startTime ->
-                        it.startTime = startTime
-                    }
-                    grUpdate.extraTime?.let { extraTime ->
-                        ExtraTimeOption.findById(extraTime)?.let { eto ->
-                            it.extraTime = eto
-                        }
-                    }
-                    grUpdate.umpirePresentOnTime?.let { present ->
-                        it.umpirePresentOnTime = present
-                    }
-                    grUpdate.umpireNotes?.let { notes ->
-                        it.umpireNotes = notes
-                    }
-                    it
-                }
-            }
-        }
-        return null
-    }
-}
-
-@Serializable
-data class GameReportClasses(
-    val extraTimeOptions: List<ExtraTimeOptionDAO>,
-    val gameTypes: List<GameTypeDAO>,
-) {
-    companion object {
-        fun load():GameReportClasses {
-            return transaction {
-                val etos = ExtraTimeOption.all().map {
-                    ExtraTimeOptionDAO.fromExtraTimeOption(it)
-                }
-                val gts = GameType.all().map {
-                    GameTypeDAO.fromGameType(it)
-                }
-                GameReportClasses(etos, gts)
-            }
-        }
-    }
-}
-
-@Serializable
-data class ExtraTimeOptionDAO(
-    val id: Long,
-    val name: String
-) {
-    companion object {
-        fun fromExtraTimeOption(extraTimeOption: ExtraTimeOption): ExtraTimeOptionDAO {
-            return ExtraTimeOptionDAO(
-                extraTimeOption.id.value,
-                extraTimeOption.name
-            )
-        }
-    }
-}
-
-@Serializable
-data class GameTypeDAO(
-    val id: Long,
-    val name: String
-) {
-    companion object {
-        fun fromGameType(gameType: GameType): GameTypeDAO {
-            return GameTypeDAO(
-                gameType.id.value,
-                gameType.name
-            )
-        }
-    }
 }

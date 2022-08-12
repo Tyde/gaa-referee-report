@@ -1,12 +1,19 @@
 package eu.gaelicgames.referee.data
 
+import eu.gaelicgames.referee.data.Team.Companion.optionalBackReferencedOn
+import eu.gaelicgames.referee.data.Team.Companion.referrersOn
+import eu.gaelicgames.referee.data.api.PitchPropertyDEO
+import eu.gaelicgames.referee.resources.Api
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
 
@@ -72,6 +79,10 @@ class TournamentReport(id:EntityID<Long>):LongEntity(id) {
     var additionalInformation by TournamentReports.additionalInformation
     var isSubmitted by TournamentReports.isSubmitted
     var submitDate by TournamentReports.submitDate
+
+    val selectedTeams by Team via TournamentReportTeamPreSelections
+    val gameReports by GameReport referrersOn GameReports.report
+    val pitches by Pitch referrersOn Pitches.report
 }
 
 object TournamentReportTeamPreSelections : LongIdTable() {
@@ -109,8 +120,8 @@ object GameReports : LongIdTable() {
     val report = reference("report_id", TournamentReports)
     val teamA = reference("team_a", Teams)
     val teamB = reference("team_b", Teams)
-    val startTime = datetime("start_time")
-    val gameType = reference("game_type", GameTypes)
+    val startTime = datetime("start_time").nullable()
+    val gameType = reference("game_type", GameTypes).nullable()
     val teamAGoals = integer("team_a_goals")
     val teamAPoints = integer("team_a_points")
     val teamBGoals = integer("team_b_goals")
@@ -126,7 +137,7 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var teamA by Team referencedOn GameReports.teamA
     var teamB by Team referencedOn GameReports.teamB
     var startTime by GameReports.startTime
-    var gameType by GameType referencedOn GameReports.gameType
+    var gameType by GameType optionalReferencedOn GameReports.gameType
     var teamAGoals by GameReports.teamAGoals
     var teamAPoints by GameReports.teamAPoints
     var teamBGoals by GameReports.teamBGoals
@@ -134,6 +145,45 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var extraTime by ExtraTimeOption optionalReferencedOn GameReports.extraTime
     var umpirePresentOnTime by GameReports.umpirePresentOnTime
     var umpireNotes by GameReports.umpireNotes
+    val injuries by Injury referrersOn Injuries.game
+    val disciplinaryActions by DisciplinaryAction referrersOn DisciplinaryActions.game
+
+
+    fun teamADisciplinaryActions():SizedIterable<DisciplinaryAction> {
+        return transaction {
+            DisciplinaryAction.find {
+                (DisciplinaryActions.game eq this@GameReport.id) and
+                        (DisciplinaryActions.team eq teamA.id)
+            }
+        }
+    }
+    fun teamBDisciplinaryActions():SizedIterable<DisciplinaryAction> {
+        return transaction {
+            DisciplinaryAction.find {
+                (DisciplinaryActions.game eq this@GameReport.id) and
+                        (DisciplinaryActions.team eq teamB.id)
+            }
+        }
+    }
+
+
+    fun teamAInjuries():SizedIterable<Injury> {
+        return transaction {
+            Injury.find {
+                (Injuries.game eq this@GameReport.id) and
+                        (Injuries.team eq teamA.id)
+            }
+        }
+    }
+    fun teamBInjuries():SizedIterable<Injury> {
+        return transaction {
+            Injury.find {
+                (Injuries.game eq this@GameReport.id) and
+                        (Injuries.team eq teamB.id)
+            }
+        }
+    }
+
 }
 
 object Rules : LongIdTable() {
@@ -176,7 +226,7 @@ class DisciplinaryAction(id:EntityID<Long>):LongEntity(id) {
 
 object Injuries : LongIdTable() {
     val game = reference("game", GameReports)
-    val isTeamA = bool("is_team_a")
+    val team = reference("team", Teams)
     val firstName = varchar("first_name",80)
     val lastName = varchar("last_name", 80)
     val details = text("details")
@@ -185,7 +235,7 @@ object Injuries : LongIdTable() {
 class Injury(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<Injury>(Injuries)
     var game by GameReport referencedOn Injuries.game
-    var isTeamA by Injuries.isTeamA
+    var team by Team referencedOn Injuries.team
     var firstName by Injuries.firstName
     var lastName by Injuries.lastName
     var details by Injuries.details
@@ -193,11 +243,17 @@ class Injury(id:EntityID<Long>):LongEntity(id) {
 
 object PitchSurfaceOptions : LongIdTable() {
     val name = varchar("name",80)
+
+
 }
 
 class PitchSurfaceOption(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<PitchSurfaceOption>(PitchSurfaceOptions)
     var name by PitchSurfaceOptions.name
+
+    fun toPitchPropertyDEO():PitchPropertyDEO {
+        return PitchPropertyDEO(id.value, name)
+    }
 }
 
 object PitchLengthOptions : LongIdTable() {
@@ -207,6 +263,10 @@ object PitchLengthOptions : LongIdTable() {
 class PitchLengthOption(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<PitchLengthOption>(PitchLengthOptions)
     var name by PitchLengthOptions.name
+
+    fun toPitchPropertyDEO():PitchPropertyDEO {
+        return PitchPropertyDEO(id.value, name)
+    }
 }
 
 object PitchWidthOptions : LongIdTable() {
@@ -216,6 +276,10 @@ object PitchWidthOptions : LongIdTable() {
 class PitchWidthOption(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<PitchWidthOption>(PitchWidthOptions)
     var name by PitchWidthOptions.name
+
+    fun toPitchPropertyDEO():PitchPropertyDEO {
+        return PitchPropertyDEO(id.value, name)
+    }
 }
 
 object PitchMarkingsOptions : LongIdTable() {
@@ -225,6 +289,10 @@ object PitchMarkingsOptions : LongIdTable() {
 class PitchMarkingsOption(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<PitchMarkingsOption>(PitchMarkingsOptions)
     var name by PitchMarkingsOptions.name
+
+    fun toPitchPropertyDEO():PitchPropertyDEO {
+        return PitchPropertyDEO(id.value, name)
+    }
 }
 
 object PitchGoalpostsOptions : LongIdTable() {
@@ -234,6 +302,10 @@ object PitchGoalpostsOptions : LongIdTable() {
 class PitchGoalpostsOption(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<PitchGoalpostsOption>(PitchGoalpostsOptions)
     var name by PitchGoalpostsOptions.name
+
+    fun toPitchPropertyDEO():PitchPropertyDEO {
+        return PitchPropertyDEO(id.value, name)
+    }
 }
 
 object PitchGoalDimensionOptions : LongIdTable() {
@@ -243,21 +315,25 @@ object PitchGoalDimensionOptions : LongIdTable() {
 class PitchGoalDimensionOption(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<PitchGoalDimensionOption>(PitchGoalDimensionOptions)
     var name by PitchGoalDimensionOptions.name
+
+    fun toPitchPropertyDEO():PitchPropertyDEO {
+        return PitchPropertyDEO(id.value, name)
+    }
 }
 
 object Pitches : LongIdTable() {
     val report = reference("report",TournamentReports)
     val name = varchar("name",80)
-    val surface = reference("surface", PitchSurfaceOptions)
-    val length = reference("length", PitchLengthOptions)
-    val width = reference("width",PitchWidthOptions)
-    val smallSquareMarkings = reference("small_square_markings",PitchMarkingsOptions)
-    val penaltySquareMarkings = reference("penalty_square_markings",PitchMarkingsOptions)
-    val thirteenMeterMarkings = reference("thirteen_meter_markings",PitchMarkingsOptions)
-    val twentyMeterMarkings = reference("twenty_meter_markings",PitchMarkingsOptions)
-    val longMeterMarkings = reference("long_meter_markings",PitchMarkingsOptions)
-    val goalPosts = reference("goal_posts",PitchGoalpostsOptions)
-    val goalDimensions = reference("goal_dimensions", PitchGoalDimensionOptions)
+    val surface = optReference("surface", PitchSurfaceOptions)
+    val length = optReference("length", PitchLengthOptions)
+    val width = optReference("width",PitchWidthOptions)
+    val smallSquareMarkings = optReference("small_square_markings",PitchMarkingsOptions)
+    val penaltySquareMarkings = optReference("penalty_square_markings",PitchMarkingsOptions)
+    val thirteenMeterMarkings = optReference("thirteen_meter_markings",PitchMarkingsOptions)
+    val twentyMeterMarkings = optReference("twenty_meter_markings",PitchMarkingsOptions)
+    val longMeterMarkings = optReference("long_meter_markings",PitchMarkingsOptions)
+    val goalPosts = optReference("goal_posts",PitchGoalpostsOptions)
+    val goalDimensions = optReference("goal_dimensions", PitchGoalDimensionOptions)
     val additionalInformation = text("additional_information")
 }
 
@@ -265,15 +341,15 @@ class Pitch(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<Pitch>(Pitches)
     var report by TournamentReport referencedOn Pitches.report
     var name by Pitches.name
-    var surface by PitchSurfaceOption referencedOn Pitches.surface
-    var length by PitchLengthOption referencedOn Pitches.length
-    var width by PitchWidthOption referencedOn Pitches.width
-    var smallSquareMarkings by PitchMarkingsOption referencedOn Pitches.smallSquareMarkings
-    var penaltySquareMarkings by PitchMarkingsOption referencedOn Pitches.penaltySquareMarkings
-    var thirteenMeterMarkings by  PitchMarkingsOption referencedOn Pitches.thirteenMeterMarkings
-    var twentyMeterMarkings by PitchMarkingsOption referencedOn  Pitches.twentyMeterMarkings
-    var longMeterMarkings by PitchMarkingsOption referencedOn Pitches.longMeterMarkings
-    var goalPosts by PitchGoalpostsOption referencedOn  Pitches.goalPosts
-    var goalDimensions by PitchGoalDimensionOption referencedOn Pitches.goalDimensions
+    var surface by PitchSurfaceOption optionalReferencedOn  Pitches.surface
+    var length by PitchLengthOption optionalReferencedOn Pitches.length
+    var width by PitchWidthOption optionalReferencedOn Pitches.width
+    var smallSquareMarkings by PitchMarkingsOption optionalReferencedOn Pitches.smallSquareMarkings
+    var penaltySquareMarkings by PitchMarkingsOption optionalReferencedOn Pitches.penaltySquareMarkings
+    var thirteenMeterMarkings by  PitchMarkingsOption optionalReferencedOn Pitches.thirteenMeterMarkings
+    var twentyMeterMarkings by PitchMarkingsOption optionalReferencedOn  Pitches.twentyMeterMarkings
+    var longMeterMarkings by PitchMarkingsOption optionalReferencedOn Pitches.longMeterMarkings
+    var goalPosts by PitchGoalpostsOption optionalReferencedOn  Pitches.goalPosts
+    var goalDimensions by PitchGoalDimensionOption optionalReferencedOn Pitches.goalDimensions
     var additionalInformation by Pitches.additionalInformation
 }

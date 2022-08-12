@@ -8,11 +8,14 @@ import DisciplinaryEditor from "@/components/DisciplinaryEditor.vue";
 const props = defineProps<{
   modelValue: SingleTeamGameReport,
   selectedTeams: Array<Team>,
-  rules: Array<Rule>
+  rules: Array<Rule>,
+  reportId?: number,
+  reportPassesMinimalRequirements: boolean,
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: SingleTeamGameReport): void
+  (e: 'update:modelValue', value: SingleTeamGameReport): void,
+  (e: 'triggerUpdate'): void
 }>()
 
 const displayDisciplinary = ref(false)
@@ -22,6 +25,7 @@ const displayInjuries = ref(false)
 
 
 function openDisciplinaryDialog() {
+  emit('triggerUpdate')
   displayDisciplinary.value = true;
 }
 
@@ -30,6 +34,7 @@ function closeDisciplinaryDialog() {
 }
 
 function openInjuryDialog() {
+  emit('triggerUpdate')
   displayInjuries.value = true;
 }
 
@@ -91,28 +96,40 @@ function closeInjuryDialog() {
         Total: {{ modelValue.goals * 3 + modelValue.points }}
       </div>
 
-      <Button class="col-span-2 p-2" @click="openDisciplinaryDialog">
+      <Button
+          class="col-span-2 p-2"
+          @click="openDisciplinaryDialog"
+          :disabled="!props.reportPassesMinimalRequirements"
+      >
         Edit Disciplinary Actions ({{ modelValue.disciplinaryActions.length - 1 }})
       </Button>
-      <Button class="col-span-2 p-2" @click="openInjuryDialog">
+      <Button
+          class="col-span-2 p-2"
+          @click="openInjuryDialog"
+          :disabled="!props.reportPassesMinimalRequirements"
+      >
         Edit Injuries ({{ modelValue.injuries.length - 1 }})
       </Button>
 
     </template>
+    <DisciplinaryEditor
+        v-model:visible="displayDisciplinary"
+        v-model="modelValue.disciplinaryActions"
+        :team="modelValue.team"
+        :rules="rules"
+        :game-report-id="reportId"
+
+    />
+    <InjuryEditor
+        v-model:visible="displayInjuries"
+        v-model="modelValue.injuries"
+        :team="modelValue.team"
+        :game-report-id="reportId"
+    />
   </div>
 
 
-  <DisciplinaryEditor
-      v-model:visible="displayDisciplinary"
-      v-model="modelValue.disciplinaryActions"
-      :team="modelValue.team"
-      :rules="rules"
-      />
-  <InjuryEditor
-      v-model:visible="displayInjuries"
-      v-model="modelValue.injuries"
-      :team-name="modelValue.team?.name"
-  />
+
 </template>
 
 
