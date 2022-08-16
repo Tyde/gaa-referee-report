@@ -223,6 +223,10 @@ async function waitForAllVariablesPresent() {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 }
+async function waitForLoadingComplete() {
+  await waitForAllVariablesPresent()
+  isLoading.value = false
+}
 onMounted(() => {
   isLoading.value = true
   get_codes()
@@ -231,7 +235,7 @@ onMounted(() => {
   load_pitch_variables()
   let loc = new URL(location.href)
   if (loc.pathname.startsWith("/report/new")) {
-
+    waitForLoadingComplete()
   } else if (loc.pathname.startsWith("/report/edit/")) {
     let id = Number(loc.pathname.split("/")[3])
     if (id) {
