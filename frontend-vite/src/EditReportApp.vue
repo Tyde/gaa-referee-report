@@ -23,6 +23,7 @@ import {
 } from "@/utils/api/report_api";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
+import SubmitReport from "@/components/SubmitReport.vue";
 
 enum ReportEditStage {
   SelectTournament,
@@ -288,6 +289,12 @@ onMounted(() => {
       :pitch-report-options="pitchVariables"
       :report="currentReport"
   />
+
+  <SubmitReport
+      v-if="current_stage === ReportEditStage.Submit"
+      :game-reports="allGameReports"
+      :tournament="currentReport.tournament"
+      />
   <template v-if="readyStartReport">
     Code:
     <SelectButton
