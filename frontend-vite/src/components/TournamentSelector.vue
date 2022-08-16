@@ -47,27 +47,6 @@ function on_tournament_created(tournament: DatabaseTournament) {
   loadTournamentsOnDate(DateTime.fromJSDate(date.value))
 }
 
-/*
-watch(() => props.alreadySelectedTournament, () => {
-  if (props.alreadySelectedTournament) {
-    selected_tournament.value = props.alreadySelectedTournament
-    console.log("Taking selected Tournament")
-    console.log(selected_tournament)
-    console.log(selected_tournament.value.date)
-    date.value = selected_tournament.value.date.toJSDate()
-  }
-})
-
-onUpdated(() => {
-  console.log("tournamentSelected")
-  console.log(selected_tournament.value)
-  console.log("prop selected")
-  console.log(props.alreadySelectedTournament)
-})
-
-onMounted(()=> {
-  console.log("Selector mounted")
-})*/
 </script>
 <template>
   <template v-if="!show_create_new_tournament">

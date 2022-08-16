@@ -6,6 +6,7 @@ import SingleGameReportSingleTeam from "@/components/SingleGameReportSingleTeam.
 import {DateTime} from "luxon";
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
 import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
+import GameTypeEditor from "@/components/GameTypeEditor.vue";
 
 
 const props = defineProps<{
@@ -42,11 +43,17 @@ async function sendGameReport(gameReport: GameReport) {
     }
   }
 }
+const gameTypeEditorVisible = ref(false)
+function showGameTypeDialog() {
+  gameTypeEditorVisible.value = true
+}
+
 
 const sendingCreateRequest = ref(false)
 watch(props.modelValue, (newVal, odlVal) => {
   emit('update:modelValue', props.modelValue)
 })
+
 
 watch(()=>props.modelValue,(value,oldValue)=> {
   console.log("Switched report, oldReport is ")
@@ -122,7 +129,13 @@ onMounted(() => {
             }"
         >
 
+
         </Dropdown>
+
+      </div>
+      <div class="field p-2 mt-6">
+        <Button @click="showGameTypeDialog" class="p-button-success">
+          <i class="pi pi-plus"></i> </Button>
       </div>
     </div>
     <SingleGameReportSingleTeam
@@ -143,6 +156,15 @@ onMounted(() => {
         @trigger-update="()=> sendGameReport(modelValue)"
         :report-id="modelValue.id"
         :report-passes-minimal-requirements="checkGameReportMinimal(modelValue)"
+    />
+    <GameTypeEditor
+        v-model:visible = "gameTypeEditorVisible"
+        :game-types = "gameTypes"
+        @new-game-type="(gameType)=> {
+          gameTypes.push(gameType)
+          props.modelValue.gameType = gameType
+        }"
+
     />
   </div>
 </template>

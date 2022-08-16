@@ -109,6 +109,17 @@ class Api() {
     }
 
     @Serializable
+    @Resource("gametype")
+    class GameType(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: GameType)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: GameType)
+    }
+    @Serializable
     @Resource("pitch")
     class Pitch(val parent: Api) {
         @Serializable

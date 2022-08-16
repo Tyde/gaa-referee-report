@@ -16,7 +16,6 @@ enum TeamSelectorModal {
 }
 
 
-const show_modal = ref(<TeamSelectorModal>TeamSelectorModal.NoModal)
 const selected = ref(<Team>{})
 const teams_added = ref(<Team[]>[])
 const isLoading = ref(false)
@@ -26,13 +25,10 @@ function addTeam(team: Team) {
   emit('submit-teams',teams_added.value)
 }
 
-function createTeam() {
-  show_modal.value = TeamSelectorModal.CreateTeamModal
-}
 
-function newTeamCreated(newTeam: Team) {
-  teams_added.value.push(newTeam)
-  show_modal.value = TeamSelectorModal.NoModal
+function removeTeam(team:Team) {
+  teams_added.value = teams_added.value.filter(lteam => { return lteam !== team })
+  emit('submit-teams',teams_added.value)
 }
 
 
@@ -63,10 +59,10 @@ onMounted(() => {
       <template v-if="teams_added.length>0">
         Selected teams:<br>
         <ul class="selected-teams-list">
-          <li v-for="team in teams_added">
+          <li v-for="team in teams_added.sort((a,b) => a.name.localeCompare(b.name))">
             <Button
                 class="p-button-rounded p-button-secondary p-button-sm"
-                @click="teams_added = teams_added.filter(lteam => { return lteam !== team })"
+                @click="removeTeam(team)"
             >
               {{team.name}}  <i class="pi pi-times"></i>
             </Button>

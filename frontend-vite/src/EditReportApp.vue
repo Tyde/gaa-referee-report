@@ -15,9 +15,14 @@ import type {
 import TournamentSelector from "./components/TournamentSelector.vue";
 import GameReports from "@/components/GameReports.vue";
 import PitchReports from "@/components/PitchReports.vue";
-import {completeReportDEOToReport, extractGameReportsFromCompleteReportDEO, loadReport} from "@/utils/api/report_api";
-import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
+import {
+  completeReportDEOToReport,
+  extractGameReportsFromCompleteReportDEO,
+  loadReport,
+  uploadReport
+} from "@/utils/api/report_api";
 import type {PitchVariables} from "@/utils/api/pitch_api";
+import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
 
 enum ReportEditStage {
   SelectTournament,
@@ -77,7 +82,8 @@ const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
 const currentReport = ref<Report>({} as Report)
 const allGameReports = ref<Array<GameReport>>([])
 const allPitchReports = ref<Array<Pitch>>([])
-const pitchVariables = ref<PitchVariables|undefined>()
+const pitchVariables = ref<PitchVariables | undefined>()
+const baseReportJustUploaded = ref(false)
 currentReport.value.selectedTeams = []
 
 function submit_teams(teams_added: Array<Team>) {
@@ -86,11 +92,12 @@ function submit_teams(teams_added: Array<Team>) {
 }
 
 
-watch(() => currentReport.value.tournament,() => {
-    if (currentReport.value.tournament) {
-      current_stage.value = ReportEditStage.SelectTeams
-    }
+watch(() => currentReport.value.tournament, () => {
+  if (currentReport.value.tournament) {
+    current_stage.value = ReportEditStage.SelectTeams
+  }
 })
+
 function select_tournament(tournament: DatabaseTournament) {
   currentReport.value.tournament = tournament
   current_stage.value = ReportEditStage.SelectTeams
@@ -125,24 +132,28 @@ async function load_pitch_variables() {
 
 
 async function start_report() {
-  const requestOptions = {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8'
-    },
-    body: JSON.stringify({
-      tournament: currentReport.value.tournament.id,
-      selectedTeams: currentReport.value.selectedTeams.map(value => value.id),
-      gameCode: currentReport.value.gameCode.id
-    })
-  };
   isLoading.value = true
-  const response = await fetch("/api/report/new", requestOptions)
-  const id = await response.json()
-  currentReport.value.id = id
-  reportStarted.value = true
-  current_stage.value = ReportEditStage.EditGameReports
-  isLoading.value = false
+  try {
+    currentReport.value.id = await uploadReport(currentReport.value)
+    reportStarted.value = true
+    baseReportJustUploaded.value = true
+    current_stage.value = ReportEditStage.EditGameReports
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function updateReport() {
+  isLoading.value = true
+  try {
+    await uploadReport(currentReport.value)
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoading.value = false
+  }
 }
 
 
@@ -161,7 +172,11 @@ async function loadAndHandleReport(id: number) {
     )
 
     allPitchReports.value = report.pitches?.map(pitch => {
-      return pitchDEOtoPitch(pitch, currentReport.value)
+      let pdtp = pitchDEOtoPitch(pitch, currentReport.value, pitchVariables.value)
+      console.log(`Pitch now id: ${pitch.id}`)
+      console.log(pdtp)
+      return pdtp
+
     }) || []
 
 
@@ -174,6 +189,19 @@ async function loadAndHandleReport(id: number) {
   }
 
 }
+
+watch(current_stage, (new_stage, old_stage) => {
+  if (old_stage === ReportEditStage.SelectTeams ||
+      old_stage === ReportEditStage.SelectTournament) {
+    if (baseReportJustUploaded.value) {
+      baseReportJustUploaded.value = false
+    } else {
+      if (currentReport.value.id) {
+        updateReport()
+      }
+    }
+  }
+})
 
 onMounted(() => {
   get_codes()
@@ -199,7 +227,6 @@ onMounted(() => {
 </script>
 
 <template>
-
 
   <SelectButton
       v-model="current_stage"
@@ -232,9 +259,9 @@ onMounted(() => {
 
   <PitchReports
       v-if="current_stage === ReportEditStage.EditPitchReports"
-      :pitch-report-options ="pitchVariables"
-      :report="currentReport"
       v-model="allPitchReports"
+      :pitch-report-options="pitchVariables"
+      :report="currentReport"
   />
   <template v-if="readyStartReport">
     Code:

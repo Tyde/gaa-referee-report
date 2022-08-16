@@ -81,23 +81,35 @@ type PitchDEO = z.infer<typeof PitchDEO>;
 export function pitchDEOtoPitch(
     pitchDEO:PitchDEO,
     report: Report,
+    pitchVariables:PitchVariables
 ):Pitch {
-    console.log("pitch incoming")
-    console.log(pitchDEO)
+
+    let surfaceValue = pitchVariables.surfaces.find(p => p.id == pitchDEO.surface)
+    let widthValue = pitchVariables.widths.find(p => p.id == pitchDEO.width)
+    console.log("sdwd width")
+    console.log(widthValue)
+    let lengthValue = pitchVariables.lengths.find(p => p.id == pitchDEO.length)
+    let penaltyValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.penaltySquareMarkings)
+    let smallSquareValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.smallSquareMarkings)
+    let thirteenMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.thirteenMeterMarkings)
+    let twentyMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.twentyMeterMarkings)
+    let longMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.longMeterMarkings)
+    let goalPostsValue = pitchVariables.goalPosts.find(p => p.id == pitchDEO.goalPosts)
+    let goalDimensionsValue = pitchVariables.goalDimensions.find(p => p.id == pitchDEO.goalDimensions)
     return <Pitch>{
         id: pitchDEO.id,
         report: report,
         name: pitchDEO.name,
-        surface: pitchDEO.surface,
-        length: pitchDEO.length,
-        width: pitchDEO.width,
-        smallSquareMarkings: pitchDEO.smallSquareMarkings,
-        penaltySquareMarkings: pitchDEO.penaltySquareMarkings,
-        thirteenMeterMarkings: pitchDEO.thirteenMeterMarkings,
-        twentyMeterMarkings: pitchDEO.twentyMeterMarkings,
-        longMeterMarkings: pitchDEO.longMeterMarkings,
-        goalPosts: pitchDEO.goalPosts,
-        goalDimensions: pitchDEO.goalDimensions,
+        surface: surfaceValue,
+        length: lengthValue,
+        width: widthValue,
+        smallSquareMarkings: smallSquareValue,
+        penaltySquareMarkings: penaltyValue,
+        thirteenMeterMarkings: thirteenMeterValue,
+        twentyMeterMarkings: twentyMeterValue,
+        longMeterMarkings: longMeterValue,
+        goalPosts: goalPostsValue,
+        goalDimensions: goalDimensionsValue,
         additionalInformation: pitchDEO.additionalInformation
     }
 }

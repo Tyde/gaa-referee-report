@@ -5,8 +5,8 @@ val exposed_version: String by project
 
 plugins {
     application
-    kotlin("jvm") version "1.6.21"
-    kotlin("plugin.serialization") version "1.6.21"
+    kotlin("jvm") version "1.7.10"
+    kotlin("plugin.serialization") version "1.7.10"
 }
 
 group = "eu.gaelicgames"
@@ -14,7 +14,7 @@ version = "0.0.1"
 application {
     mainClass.set("eu.gaelicgames.ApplicationKt")
 
-    val isDevelopment: Boolean = project.ext.has("development")
+    val isDevelopment: Boolean = true
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
@@ -66,7 +66,7 @@ tasks.register("buildNPM") {
     }
 }
 
-
+/*
 tasks.classes {
     dependsOn("buildNPM")
-}
+}*/

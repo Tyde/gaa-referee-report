@@ -26,3 +26,4 @@ export function checkGameReportSuggestion(gameReport:GameReport): boolean {
     return checkGameReportMinimal(gameReport) &&
         sumGoals + sumPoints > 0
 }
+

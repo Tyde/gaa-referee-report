@@ -1,17 +1,18 @@
-import {z} from "zod";
+import {number, z} from "zod";
 import {
     ApiError,
     DatabaseTournament,
-    DisciplinaryActionDEO, ExtraTimeOption,
-    GameReport,
-    GameType,
+    DisciplinaryActionDEO,
     InjuryDEO,
-    PitchDEO, Rule,
-    Team
+    PitchDEO,
+    Team, Tournament,
+    Report
 } from "@/types";
-import type {GameCode, Report} from "@/types";
+import type {ExtraTimeOption,GameReport, GameType, Rule} from "@/types";
+import type {GameCode } from "@/types";
 import {DateTime} from "luxon";
 import {CompleteGameReportDEO, GameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
+
 
 
 
@@ -29,7 +30,10 @@ export const CompleteReportDEO = z.object({
 export type CompleteReportDEO = z.infer<typeof CompleteReportDEO>;
 
 export function completeReportDEOToReport(cReport: CompleteReportDEO, availableCodes: Array<GameCode>): Report {
+    console.log("completeReportDEOToReport");
+    console.log(cReport)
     let code = availableCodes.find(code => code.id === cReport.code)
+    console.log("code: ", code)
     if (code != undefined) {
         return {
             tournament: cReport.tournament,
@@ -79,3 +83,41 @@ export async function loadReport(id: number): Promise<CompleteReportDEO> {
 
 }
 
+const NewReportDEO = z.object({
+    id: z.number().nullable().optional(),
+    tournament: number(),
+    gameCode: number(),
+    selectedTeams: number().array(),
+});
+
+export async function uploadReport(
+    report:Report
+):Promise<number> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(NewReportDEO.parse({
+            id: report.id,
+            tournament: report.tournament.id,
+            selectedTeams: report.selectedTeams.map(value => value.id),
+            gameCode: report.gameCode.id
+        }))
+    };
+    let address = ""
+    if(report.id != undefined) {
+        address = "/api/report/update"
+    } else {
+        address = "/api/report/new"
+    }
+    const response = await fetch(address, requestOptions)
+    const dbReport = await response.json()
+    const parseResponse = NewReportDEO.safeParse(dbReport)
+    if(parseResponse.success) {
+        report.id = parseResponse.data.id
+        return (parseResponse.data.id || -1)
+    } else {
+        return Promise.reject("Server did not return a valid report")
+    }
+}

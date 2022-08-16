@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {DisciplinaryAction, Rule, Team} from "@/types";
-import {computed, onBeforeUnmount, onUpdated, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, onUpdated, watch} from "vue";
 import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 
 const props = defineProps<{
@@ -85,6 +85,10 @@ function deleteDAction(dAction: DisciplinaryAction) {
 }
 
 onUpdated(() => {
+  generateEmptydAFields()
+})
+
+onMounted(() => {
   generateEmptydAFields()
 })
 </script>

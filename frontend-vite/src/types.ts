@@ -1,5 +1,5 @@
 import {DateTime} from "luxon";
-import {string, z} from "zod";
+import {number, string, z} from "zod";
 
 export interface Team {
     name: string,
@@ -33,34 +33,29 @@ export const DatabaseTournament = Tournament.extend({
 })
 export type DatabaseTournament = z.infer<typeof DatabaseTournament>
 
-/*
-export interface Tournament {
-    name: string
-    location: string
-    date: Date
-}
-export interface DatabaseTournament extends Tournament{
-    id: number
-}*/
+export const GameCode = z.object({
+    id: z.number(),
+    name: z.string().min(1),
+})
+
+export type GameCode = z.infer<typeof GameCode>
+
+export const Report = z.object({
+    id: number().optional().nullable(),
+    tournament: DatabaseTournament,
+    selectedTeams: Team.array(),
+    gameCode: GameCode
+})
+
+export type Report = z.infer<typeof Report>
 
 
+export const GameType =  z.object({
+    id: z.number(),
+    name: z.string().min(1),
+})
+export type GameType = z.infer<typeof GameType>
 
-export interface Report {
-    tournament:DatabaseTournament
-    selectedTeams:Array<Team>
-    gameCode:GameCode
-    id?:number
-}
-
-export interface GameCode {
-    id: number,
-    name:string
-}
-
-export interface GameType {
-    id: number,
-    name:string
-}
 
 export interface ExtraTimeOption {
     id: number,

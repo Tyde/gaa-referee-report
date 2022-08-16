@@ -15,10 +15,7 @@ import java.time.format.DateTimeFormatter
 
 @Serializable
 data class TeamDEO(
-    val name: String,
-    val id: Long,
-    val isAmalgamation: Boolean,
-    val amalgamationTeams: List<TeamDEO>?
+    val name: String, val id: Long, val isAmalgamation: Boolean, val amalgamationTeams: List<TeamDEO>?
 ) {
     companion object {
         fun fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
@@ -39,16 +36,12 @@ data class TournamentDEO(
     val id: Long,
     val name: String,
     val location: String,
-    @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate
+    @Serializable(with = LocalDateSerializer::class) val date: LocalDate
 ) {
     companion object {
         fun fromTournament(input: Tournament): TournamentDEO {
             return TournamentDEO(
-                input.id.value,
-                input.name,
-                input.location,
-                input.date
+                input.id.value, input.name, input.location, input.date
             )
         }
     }
@@ -57,10 +50,7 @@ data class TournamentDEO(
 
 @Serializable
 data class NewTournamentDEO(
-    val name: String,
-    val location: String,
-    @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate
+    val name: String, val location: String, @Serializable(with = LocalDateSerializer::class) val date: LocalDate
 )
 
 object LocalDateSerializer : KSerializer<LocalDate> {
@@ -91,8 +81,7 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
 
 @Serializable
 data class GameCodeDEO(
-    val name: String,
-    val id: Long
+    val name: String, val id: Long
 ) {
     constructor(gameCode: GameCode) : this(gameCode.name, gameCode.id.value)
 
@@ -108,28 +97,32 @@ data class RuleDEO(
     val description: String
 ) {
     constructor(rule: Rule) : this(
-        rule.id.value,
-        rule.code.id.value,
-        rule.isCaution,
-        rule.isBlack,
-        rule.isRed,
-        rule.description
+        rule.id.value, rule.code.id.value, rule.isCaution, rule.isBlack, rule.isRed, rule.description
     )
 }
 
 @Serializable
 data class NewTournamentReportDEO(
-    val tournament: Long,
-    val selectedTeams: List<Long>,
-    val gameCode: Long
+    val id: Long? = null, val tournament: Long, val selectedTeams: List<Long>, val gameCode: Long
 ) {
+    companion object {
+        fun fromTournamentReport(input: TournamentReport): NewTournamentReportDEO {
+            return transaction {
+                NewTournamentReportDEO(
+                    input.id.value,
+                    input.tournament.id.value,
+                    input.selectedTeams.map { it.id.value },
+                    input.code.id.value
+                )
+            }
+        }
+    }
+
     fun storeInDatabase(user: User): TournamentReport? {
         return transaction {
             val reportTournament = Tournament.findById(tournament)
             val reportGameCode = GameCode.findById(gameCode)
-            if (reportTournament != null &&
-                reportGameCode != null
-            ) {
+            if (reportTournament != null && reportGameCode != null) {
                 val report = TournamentReport.new {
                     tournament = reportTournament
                     code = reportGameCode
@@ -150,23 +143,71 @@ data class NewTournamentReportDEO(
             }
         }
     }
+
+    fun updateInDatabase(): Result<TournamentReport> {
+        val trUpdate = this
+        if (trUpdate.id != null) {
+            return transaction {
+                val report = TournamentReport.findById(trUpdate.id)
+                val tournament = Tournament.findById(trUpdate.tournament)
+                val gameCode = GameCode.findById(trUpdate.gameCode)
+                if (report != null && tournament != null && gameCode != null) {
+                    report.tournament = tournament
+                    report.code = gameCode
+                    val connections = TournamentReportTeamPreSelection.find {
+                        (TournamentReportTeamPreSelections.report eq report.id)
+                    }
+
+                    // Add teams selection that cannot be found in the database
+                    trUpdate.selectedTeams.forEach { updateTeamId ->
+                        val matches = connections.count { connection ->
+                            connection.team.id.value == updateTeamId
+                        }
+                        if (matches == 0) {
+                            val dbTeam = Team.findById(updateTeamId)
+                            if (dbTeam != null) {
+                                TournamentReportTeamPreSelection.new {
+                                    this.report = report
+                                    this.team = dbTeam
+                                }
+                            }
+                        }
+                    }
+                    // Remove teams selection that are not in the update
+                    TournamentReportTeamPreSelection.find { TournamentReportTeamPreSelections.report eq trUpdate.id }
+                        .forEach {
+                            if (!trUpdate.selectedTeams.contains(it.team.id.value)) {
+                                it.delete()
+                            }
+                        }
+                    Result.success(report)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException("TournamentReport or Tournament or GameCode not found")
+                    )
+                }
+            }
+        } else {
+            return Result.failure(
+                IllegalArgumentException("TournamentReport id not found")
+            )
+        }
+    }
 }
-
-
 
 
 @Serializable
 enum class ApiErrorOptions {
     @SerialName("insertionFailed")
     INSERTION_FAILED,
+
     @SerialName("notFound")
     NOT_FOUND,
 }
 
 @Serializable
 data class ApiError(
-    val error: ApiErrorOptions,
-    val message: String
+    val error: ApiErrorOptions, val message: String
 )
 
 @Serializable
@@ -176,8 +217,7 @@ data class TournamentReportDEO(
     val code: Long? = null,
     val additionalInformation: String? = null,
     val isSubmitted: Boolean? = null,
-    @Serializable(with = LocalDateTimeSerializer::class)
-    val submitDate: LocalDateTime? = null,
+    @Serializable(with = LocalDateTimeSerializer::class) val submitDate: LocalDateTime? = null,
 ) {
 
     companion object {
@@ -196,10 +236,7 @@ data class TournamentReportDEO(
     @Deprecated("Use NewTournamentReportDEO instead")
     fun createInDatabase(referee: User): TournamentReport? {
         val rUpdate = this
-        if (rUpdate.id == null &&
-            rUpdate.tournament != null &&
-            rUpdate.code != null
-        ) {
+        if (rUpdate.id == null && rUpdate.tournament != null && rUpdate.code != null) {
             val tournament = Tournament.findById(rUpdate.tournament)
             val code = GameCode.findById(rUpdate.code)
             if (tournament != null && code != null) {
@@ -260,4 +297,56 @@ data class TournamentReportDEO(
     }
 
 
+}
+
+
+@Serializable
+data class GameTypeDEO(
+    val id: Long? = null,
+    val name: String,
+) {
+    companion object {
+        fun fromGameType(gameType: GameType): GameTypeDEO {
+            return transaction {
+                GameTypeDEO(
+                    gameType.id.value,
+                    gameType.name
+                )
+            }
+        }
+    }
+
+    fun createInDatabase(): Result<GameType> {
+        val gUpdate = this
+        if (gUpdate.id == null && gUpdate.name.isNotBlank()) {
+            return Result.success(transaction {
+                GameType.new {
+                    this.name = gUpdate.name
+                }
+            })
+        }
+        return Result.failure(
+            IllegalArgumentException("GameType name not found or already has an id")
+        )
+    }
+
+    fun updateInDatabase(): Result<GameType> {
+        val gUpdate = this
+        if (gUpdate.id != null) {
+            return transaction {
+                val gameType = GameType.findById(gUpdate.id)
+                if (gameType != null) {
+                    gameType.name = gUpdate.name
+                    Result.success(gameType)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException("GameType not found")
+                    )
+                }
+            }
+        }
+        return Result.failure(
+            IllegalArgumentException("GameType id not found")
+        )
+    }
 }

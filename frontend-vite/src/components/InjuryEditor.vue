@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type {Injury, Team} from "@/types";
-import {computed, onUpdated, watch} from "vue";
+import {computed, onMounted, onUpdated, watch} from "vue";
 import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {uploadInjury} from "@/utils/api/injuries_api";
 
@@ -71,6 +71,9 @@ function deleteInjury(injury:Injury) {
   props.modelValue.splice(props.modelValue.indexOf(injury), 1)
 }
 onUpdated(() => {
+  generateEmptyInjury()
+})
+onMounted(() => {
   generateEmptyInjury()
 })
 </script>

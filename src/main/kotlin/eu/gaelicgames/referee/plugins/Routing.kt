@@ -62,10 +62,10 @@ fun Application.configureRouting() {
     }
     install(Resources)
     install(StatusPages) {
-        exception<AuthenticationException> { call, cause ->
+        exception<AuthenticationException> { call, _ ->
             call.respond(HttpStatusCode.Unauthorized)
         }
-        exception<AuthorizationException> { call, cause ->
+        exception<AuthorizationException> { call, _ ->
             call.respond(HttpStatusCode.Forbidden)
         }
         status(HttpStatusCode.NotFound) { call, status ->
@@ -84,12 +84,12 @@ fun Application.configureRouting() {
             post("/login") {
                 val this_user = call.principal<UserPrincipal>()
                 println(this_user)
-                this_user?.let { it ->
+                this_user?.let { userPrincipal ->
                     println("redirect!")
                     val genereatedUUID = UUID.randomUUID()
                     transaction {
                         Session.new {
-                            user = it.user
+                            user = userPrincipal.user
                             uuid = genereatedUUID
                             expires = LocalDateTime.now().plusDays(1)
                         }
@@ -288,21 +288,58 @@ fun Application.configureRouting() {
                         reportDraft.storeInDatabase(it)
                     }
                     if (report != null) {
-                        call.respond(report.id.value)
+                        call.respond(NewTournamentReportDEO.fromTournamentReport(report))
                     } else {
-                        call.respond(HttpStatusCode.InternalServerError)
+                        call.respond(
+                            ApiError(
+                                ApiErrorOptions.INSERTION_FAILED,
+                                "Report could not be stored in database"
+                            )
+                        )
                     }
                 } else {
-                    call.respond(HttpStatusCode.BadRequest)
+                    call.respond(
+                        ApiError(
+                            ApiErrorOptions.INSERTION_FAILED,
+                            "Could not parse report input"
+                        )
+                    )
                 }
             }
 
             post<Api.Reports.Update> {
+                /*
                 val newReport = call.receiveOrNull<TournamentReportDEO>()?.updateInDatabase()
                 if (newReport != null) {
                     call.respond(TournamentReportDEO.fromTournamentReport(newReport))
                 } else {
                     call.respond(HttpStatusCode.BadRequest)
+                }*/
+                val reportDraft = call.receiveOrNull<NewTournamentReportDEO>()
+                if (reportDraft!= null) {
+                    val updatedReport = reportDraft.updateInDatabase()
+                    val report = updatedReport.getOrNull()
+                    if(updatedReport.isSuccess && report != null) {
+                        call.respond(
+                            NewTournamentReportDEO.fromTournamentReport(
+                                report
+                            )
+                        )
+                    } else {
+                        call.respond(
+                            ApiError(
+                                ApiErrorOptions.INSERTION_FAILED,
+                                updatedReport.exceptionOrNull()?.message?: "Could not update report"
+                            )
+                        )
+                    }
+                } else {
+                    call.respond(
+                        ApiError(
+                            ApiErrorOptions.INSERTION_FAILED,
+                            "Could not parse report input"
+                        )
+                    )
                 }
 
             }
@@ -368,15 +405,27 @@ fun Application.configureRouting() {
             get<Api.PitchVariables> {
                 call.respond(PitchVariablesDEO.load())
             }
-            /*post<Report.New> {
 
-        }
-            get<Report.Edit> { edit ->
 
+            post<Api.GameType.New> {
+                val gameType = call.receiveOrNull<GameTypeDEO>()
+                if (gameType != null) {
+                    val newGameType = gameType.createInDatabase()
+                    if (newGameType.isSuccess) {
+                        call.respond(GameTypeDEO.fromGameType(newGameType.getOrThrow()))
+                    } else {
+                        call.respond(
+                            ApiError(
+                                ApiErrorOptions.INSERTION_FAILED,
+                                newGameType.exceptionOrNull()?.message?: "Could not create game type"
+                            )
+                        )
+                    }
+                } else {
+                    call.respond(HttpStatusCode.BadRequest)
+                }
             }
-            get<Report.Edit.Game> { game ->
 
-            }*/
         }
         get("/*") {
             call.respondText("Catchall")
@@ -388,7 +437,6 @@ fun Application.configureRouting() {
 private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInput(doUpdate: Boolean) {
     val reportDraft = call.receiveOrNull<PitchReportDEO>()
     if (reportDraft != null) {
-        val user = call.principal<UserPrincipal>()?.user
         val updatedReport = if(doUpdate) {
             reportDraft.updateInDatabase()
         } else {
@@ -412,7 +460,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInpu
         call.respond(
             ApiError(
                 ApiErrorOptions.INSERTION_FAILED,
-                "Not able to parse pitch report"
+                "Not able to parse pitch reports"
             )
         )
     }

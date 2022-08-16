@@ -1,5 +1,5 @@
-import type {ExtraTimeOption, GameReport, GameType, Report, Rule, SingleTeamGameReport} from "@/types";
-import {DisciplinaryActionDEO, InjuryDEO} from "@/types";
+import type {ExtraTimeOption, GameReport, Report, Rule, SingleTeamGameReport} from "@/types";
+import {DisciplinaryActionDEO, InjuryDEO, GameType, ApiError} from "@/types";
 import {z} from "zod"
 import {DateTime} from "luxon";
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
@@ -38,6 +38,7 @@ export function gameReportDEOToGameReport(
     rules: Array<Rule>
 ): GameReport | undefined {
     let gameReportDEO = cGameReportDEO.gameReport;
+    console.log("This is the gamerprt")
     console.log(gameReportDEO)
     let gameTypeVal = gameTypes.find(gameType => gameType.id === gameReportDEO.gameType);
     let extraTimeVal = extraTimeOptions.find(extraTime => extraTime.id === gameReportDEO.extraTime);
@@ -145,4 +146,28 @@ export async function createGameReport(gameReport: GameReport): Promise<number> 
     }
     return -1
 
+}
+
+export async function uploadNewGameType(gameTypeName: string):Promise<GameType> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({name: gameTypeName})
+    };
+    const response = await fetch("/api/gametype/new", requestOptions)
+    const data = await response.json()
+    const parseResult = GameType.safeParse(data)
+    if (parseResult.success) {
+        console.log("Game type created")
+        return parseResult.data
+    } else {
+        const apiErrorParse = ApiError.safeParse(data)
+        if (apiErrorParse.success) {
+            return Promise.reject(apiErrorParse.data.message)
+        } else {
+            return Promise.reject("Unknown error")
+        }
+    }
 }
