@@ -161,6 +161,7 @@ async function loadAndHandleReport(id: number) {
   isLoading.value = true
   try {
     const report = await loadReport(id)
+    await waitForAllVariablesPresent()
     console.log(report)
     currentReport.value = completeReportDEOToReport(report, codes.value)
     allGameReports.value = extractGameReportsFromCompleteReportDEO(
@@ -203,7 +204,27 @@ watch(current_stage, (new_stage, old_stage) => {
   }
 })
 
+async function waitForAllVariablesPresent() {
+  var start_time = new Date().getTime()
+  while (true) {
+    if (
+        codes.value.length > 0 &&
+        rules.value.length > 0 &&
+        gameTypes.value.length > 0 &&
+        extraTimeOptions.value.length > 0 &&
+        pitchVariables.value
+    ) {
+      break
+    }
+    if ((new Date()).getTime() > start_time + 3000) {
+      throw new Error("Timeout waiting for variables")
+    }
+    console.log("Waiting for data")
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
 onMounted(() => {
+  isLoading.value = true
   get_codes()
   get_rules()
   get_game_report_variables()
@@ -278,7 +299,25 @@ onMounted(() => {
     </Button>
   </template>
 
+
+  <Dialog
+      v-model:visible="isLoading"
+      :closable="false"
+      :close-on-escape="false"
+      :modal="true"
+      content-class="loading-dialog"
+  ><div class="shrink">Loading ... </div></Dialog>
+
 </template>
+<style>
+.loading-dialog {
+  @apply w-80;
+  @apply h-64;
+  @apply flex;
+  @apply justify-center;
+  @apply content-center;
+}
+</style>
 
 <style scoped>
 
