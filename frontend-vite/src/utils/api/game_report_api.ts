@@ -44,19 +44,19 @@ export function gameReportDEOToGameReport(
     let extraTimeVal = extraTimeOptions.find(extraTime => extraTime.id === gameReportDEO.extraTime);
     let teamAVal = report.selectedTeams.find(team => team.id === gameReportDEO.teamA);
     let teamBVal = report.selectedTeams.find(team => team.id === gameReportDEO.teamB);
-    if (teamAVal && teamBVal) {
+    if (teamAVal != undefined && teamBVal != undefined) {
         let teamAinjuries = cGameReportDEO.injuries
             ?.filter(injury => injury.team === gameReportDEO.teamA)
-            ?.map(injury => injuryDEOToInjury(injury, teamAVal));
+            ?.map(injury => injuryDEOToInjury(injury, teamAVal!!));
         let teamAdisciplinaryActions = cGameReportDEO.disciplinaryActions
             ?.filter(disciplinaryAction => disciplinaryAction.team === gameReportDEO.teamA)
-            ?.map(disciplinaryAction => fromDisciplinaryActionDEOToDisciplinaryAction(disciplinaryAction, rules, teamAVal));
+            ?.map(disciplinaryAction => fromDisciplinaryActionDEOToDisciplinaryAction(disciplinaryAction, rules, teamAVal!!));
         let teamBinjuries = cGameReportDEO.injuries
             ?.filter(injury => injury.team === gameReportDEO.teamB)
-            ?.map(injury => injuryDEOToInjury(injury, teamBVal));
+            ?.map(injury => injuryDEOToInjury(injury, teamBVal!!));
         let teamBdisciplinaryActions = cGameReportDEO.disciplinaryActions
             ?.filter(disciplinaryAction => disciplinaryAction.team === gameReportDEO.teamB)
-            ?.map(disciplinaryAction => fromDisciplinaryActionDEOToDisciplinaryAction(disciplinaryAction, rules, teamBVal));
+            ?.map(disciplinaryAction => fromDisciplinaryActionDEOToDisciplinaryAction(disciplinaryAction, rules, teamBVal!!));
         let teamAReport = {
             team: teamAVal,
             goals: gameReportDEO.teamAGoals,
