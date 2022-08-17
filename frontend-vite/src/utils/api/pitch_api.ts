@@ -57,13 +57,13 @@ export async function getPitchVariables():Promise<PitchVariables> {
 }
 
 function checkPitchReadForUpload(pitch:Pitch):boolean {
-    return pitch.name!=undefined
+    return pitch.name!=undefined && pitch.name.trim().length > 0
 }
 
 const PitchDEO = z.object({
     id: z.number().nullable().optional(),
     report: z.number(),
-    name: z.string().min(1),
+    name: z.string(),
     surface: z.number().nullable().optional(),
     length: z.number().nullable().optional(),
     width: z.number().nullable().optional(),
@@ -116,27 +116,29 @@ export function pitchDEOtoPitch(
 
 export async function uploadPitch(pitch:Pitch) {
     if(checkPitchReadForUpload(pitch)) {
+        let data = {
+            id: pitch.id,
+            report: pitch.report.id,
+            name: pitch.name,
+            surface: pitch.surface?.id,
+            length: pitch.length?.id,
+            width: pitch.width?.id,
+            smallSquareMarkings: pitch.smallSquareMarkings?.id,
+            penaltySquareMarkings: pitch.penaltySquareMarkings?.id,
+            thirteenMeterMarkings: pitch.thirteenMeterMarkings?.id,
+            twentyMeterMarkings: pitch.twentyMeterMarkings?.id,
+            longMeterMarkings: pitch.longMeterMarkings?.id,
+            goalPosts: pitch.goalPosts?.id,
+            goalDimensions: pitch.goalDimensions?.id,
+            additionalInformation: pitch.additionalInformation
+        }
+        console.log(data)
         let requestOpions =  {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(PitchDEO.parse({
-                id: pitch.id,
-                report: pitch.report.id,
-                name: pitch.name,
-                surface: pitch.surface?.id,
-                length: pitch.length?.id,
-                width: pitch.width?.id,
-                smallSquareMarkings: pitch.smallSquareMarkings?.id,
-                penaltySquareMarkings: pitch.penaltySquareMarkings?.id,
-                thirteenMeterMarkings: pitch.thirteenMeterMarkings?.id,
-                twentyMeterMarkings: pitch.twentyMeterMarkings?.id,
-                longMeterMarkings: pitch.longMeterMarkings?.id,
-                goalPosts: pitch.goalPosts?.id,
-                goalDimensions: pitch.goalDimensions?.id,
-                additionalInformation: pitch.additionalInformation
-            }))
+            body: JSON.stringify(PitchDEO.parse(data))
         }
         let nexturl = ""
         if (pitch.id != undefined) {
