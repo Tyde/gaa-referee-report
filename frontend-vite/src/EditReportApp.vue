@@ -287,12 +287,14 @@ onMounted(() => {
       v-if="current_stage === ReportEditStage.EditPitchReports"
       v-model="allPitchReports"
       :pitch-report-options="pitchVariables"
+
       :report="currentReport"
   />
 
   <SubmitReport
       v-if="current_stage === ReportEditStage.Submit"
       :game-reports="allGameReports"
+      :pitches="allPitchReports"
       :tournament="currentReport.tournament"
       />
   <template v-if="readyStartReport">

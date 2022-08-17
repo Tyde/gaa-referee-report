@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 
-import type {DatabaseTournament, GameReport} from "@/types";
+import type {DatabaseTournament, GameReport, Pitch} from "@/types";
 import {computed, ref} from "vue";
 import {DateTime} from "luxon";
 
 const props = defineProps<{
   tournament: DatabaseTournament,
   gameReports: Array<GameReport>,
+  pitches: Array<Pitch>,
 }>()
 const isUploadingToServer = ref(false)
 
@@ -57,6 +58,42 @@ const gameReportIssues = computed(() => {
   }).filter(([gameReport, issues]) => issues.length > 0)
 })
 
+enum PitchReportIssue {
+  NoName,
+  NoSurface,
+  MissingDimension,
+  MarkingsIncomplete,
+  GoalInfoIncomplete,
+}
+
+const pitchReportIssues = computed(() => {
+  return props.pitches.map((pitch) => {
+    let issues: Array<PitchReportIssue> = []
+    if (pitch.name.trim().length == 0) {
+      issues.push(PitchReportIssue.NoName)
+    }
+    if (pitch.surface == undefined) {
+      issues.push(PitchReportIssue.NoSurface)
+    }
+    if (pitch.length == undefined || pitch.width == undefined) {
+      issues.push(PitchReportIssue.MissingDimension)
+    }
+    if (pitch.smallSquareMarkings == undefined ||
+        pitch.penaltySquareMarkings == undefined ||
+        pitch.thirteenMeterMarkings == undefined ||
+        pitch.twentyMeterMarkings == undefined ||
+        pitch.longMeterMarkings == undefined
+    ) {
+      issues.push(PitchReportIssue.MarkingsIncomplete)
+    }
+    if (pitch.goalPosts == undefined ||
+        pitch.goalDimensions == undefined
+    ) {
+      issues.push(PitchReportIssue.GoalInfoIncomplete)
+    }
+    return ([pitch, issues] as [Pitch, Array<PitchReportIssue>])
+  }).filter(([pitch, issues]) => issues.length > 0)
+})
 
 </script>
 
@@ -99,6 +136,33 @@ const gameReportIssues = computed(() => {
             </template>
             <template v-else-if="issue==GameReportIssue.NoScores">
               No scores entered - This might be correct if the game was a draw.
+            </template>
+          </li>
+        </ul>
+      </div>
+
+      <div
+          v-for="prTuple in pitchReportIssues"
+          class="bg-red-300 rounded-lg p-4 m-4">
+        <span v-if="prTuple[0].name">{{ prTuple[0].name }}</span>
+        <span v-else>Unnamed pitch</span>
+        &nbsp;has the following issues:
+        <ul>
+          <li v-for="issue in prTuple[1]">
+            <template v-if="issue==PitchReportIssue.NoName">
+              No name entered
+            </template>
+            <template v-else-if="issue==PitchReportIssue.NoSurface">
+              No surface selected
+            </template>
+            <template v-else-if="issue==PitchReportIssue.MissingDimension">
+              At least one pitch dimension is missing
+            </template>
+            <template v-else-if="issue==PitchReportIssue.MarkingsIncomplete">
+              Markings incomplete
+            </template>
+            <template v-else-if="issue==PitchReportIssue.GoalInfoIncomplete">
+              Goal information incomplete
             </template>
           </li>
         </ul>
