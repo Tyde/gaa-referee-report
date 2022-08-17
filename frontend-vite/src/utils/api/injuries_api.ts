@@ -48,7 +48,7 @@ export async function uploadInjury(injury: Injury, gameReportId: number):Promise
         const data = await response.json()
         if (data.id) {
             console.log("Update complete")
-            if(injury.id == undefined) {
+            if(injury.id === undefined) {
                 injury.id = data.id
             }
             return data.id

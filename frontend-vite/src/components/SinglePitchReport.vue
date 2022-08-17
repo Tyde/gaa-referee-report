@@ -28,7 +28,7 @@ onBeforeUnmount(() => {
   <div class="flex flex-col">
     <div class="rounded-xl border border-amber-400
             bg-amber-200 text-center text-lg font-sans text-gray-700
-            p-4 m-4" v-if="props.modelValue.name.trim().length==0">
+            p-4 m-4" v-if="props.modelValue.name.trim().length===0">
       Please enter a name for the pitch! Otherwise the data wont be stored
     </div>
     <div class="flex-col flex grow">
@@ -37,7 +37,7 @@ onBeforeUnmount(() => {
           <label for="pitchName">Name:</label><br>
           <div
               :class="{
-                'to-be-filled':props.modelValue.name.trim().length==0
+                'to-be-filled':props.modelValue.name.trim().length===0
             }"
           >
             <InputText
@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
               id="surfaceSelect"
               v-model="props.modelValue.surface"
               :class="{
-                'to-be-filled':props.modelValue.surface==undefined
+                'to-be-filled':props.modelValue.surface===undefined
             }"
               :options="props.pitchReportOptions.surfaces"
               option-label="name"
@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
               id="lengthSelect"
               v-model="props.modelValue.length"
               :class="{
-                'to-be-filled':props.modelValue.length==undefined
+                'to-be-filled':props.modelValue.length===undefined
             }"
               :options="props.pitchReportOptions.lengths"
               option-label="name"
@@ -87,7 +87,7 @@ onBeforeUnmount(() => {
               id="widthSelect"
               v-model="props.modelValue.width"
               :class="{
-                'to-be-filled':props.modelValue.width==undefined
+                'to-be-filled':props.modelValue.width===undefined
             }"
               :options="props.pitchReportOptions.widths"
               option-label="name"
@@ -104,7 +104,7 @@ onBeforeUnmount(() => {
               id="smallSquareSelect"
               v-model="props.modelValue.smallSquareMarkings"
               :class="{
-                'to-be-filled':props.modelValue.smallSquareMarkings==undefined
+                'to-be-filled':props.modelValue.smallSquareMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
               option-label="name"
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
               id="penaltySquareSelect"
               v-model="props.modelValue.penaltySquareMarkings"
               :class="{
-                'to-be-filled':props.modelValue.penaltySquareMarkings==undefined
+                'to-be-filled':props.modelValue.penaltySquareMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
               option-label="name"
@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
               id="thirteenMarkignsSelect"
               v-model="props.modelValue.thirteenMeterMarkings"
               :class="{
-                'to-be-filled':props.modelValue.thirteenMeterMarkings==undefined
+                'to-be-filled':props.modelValue.thirteenMeterMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
               option-label="name"
@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
               id="twentyMarkignsSelect"
               v-model="props.modelValue.twentyMeterMarkings"
               :class="{
-                'to-be-filled':props.modelValue.twentyMeterMarkings==undefined
+                'to-be-filled':props.modelValue.twentyMeterMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
               option-label="name"
@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
               id="longMarkingsSelect"
               v-model="props.modelValue.longMeterMarkings"
               :class="{
-                'to-be-filled':props.modelValue.longMeterMarkings==undefined
+                'to-be-filled':props.modelValue.longMeterMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
               option-label="name"
@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
               id="goalpostsSelect"
               v-model="props.modelValue.goalPosts"
               :class="{
-                'to-be-filled':props.modelValue.goalPosts==undefined
+                'to-be-filled':props.modelValue.goalPosts===undefined
             }"
               :options="props.pitchReportOptions.goalPosts"
               option-label="name"
@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
               id="goalDimsSelect"
               v-model="props.modelValue.goalDimensions"
               :class="{
-                'to-be-filled':props.modelValue.goalDimensions==undefined
+                'to-be-filled':props.modelValue.goalDimensions===undefined
             }"
               :options="props.pitchReportOptions.goalDimensions"
               option-label="name"

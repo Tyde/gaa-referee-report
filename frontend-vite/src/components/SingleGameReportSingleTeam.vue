@@ -68,7 +68,8 @@ function closeInjuryDialog() {
               id="goals_team"
               v-model="modelValue.goals"
               :step="1"
-              buttonLayout="vertical" class="w-16 text-sm" decrement-button-class="score-button-base"
+              buttonLayout="vertical" class="w-16 text-sm"
+              decrement-button-class="score-button-base"
               increment-button-class="score-button-base"
               input-class="text-sm"
               showButtons
@@ -83,7 +84,8 @@ function closeInjuryDialog() {
               id="points_team"
               v-model="modelValue.points"
               :step="1"
-              buttonLayout="vertical" class="w-16 text-sm" decrement-button-class="score-button-base"
+              buttonLayout="vertical" class="w-16 text-sm"
+              decrement-button-class="score-button-base"
               increment-button-class="score-button-base"
               input-class="text-sm"
               showButtons
