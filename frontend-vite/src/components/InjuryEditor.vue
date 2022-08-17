@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type {Injury, Team} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
-import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
 
 const props = defineProps<{
@@ -16,7 +15,7 @@ const emits = defineEmits<{
 }>()
 
 async function uploadInjuriesToServer() {
-  if(props.gameReportId != undefined) {
+  if (props.gameReportId != undefined) {
     for (let injury of props.modelValue) {
       console.log(injury)
       await uploadInjury(injury, props.gameReportId)
@@ -34,19 +33,22 @@ const localVisible = computed({
     emits('update:visible', newValue)
   }
 })
+
 function closeDialog() {
 
-  emits('update:modelValue',props.modelValue)
+  emits('update:modelValue', props.modelValue)
   uploadInjuriesToServer()
   emits('update:visible', false)
 
 }
+
 const injuryDialogTitle = computed(() => {
   return "Injuries for " + props.team?.name
 })
 watch(props.modelValue, (newInjuries) => {
   generateEmptyInjury()
 })
+
 function generateEmptyInjury() {
   let newInjury = props.modelValue
   if (newInjury.length == 0) {
@@ -65,9 +67,10 @@ function addEmptyInjury() {
   } as Injury)
 }
 
-function deleteInjury(injury:Injury) {
+function deleteInjury(injury: Injury) {
   props.modelValue.splice(props.modelValue.indexOf(injury), 1)
 }
+
 onUpdated(() => {
   generateEmptyInjury()
 })
@@ -79,45 +82,43 @@ onMounted(() => {
 
   <Dialog
       v-model:visible="localVisible"
-      :header="injuryDialogTitle"
-      :modal="true"
       :closable="false"
       :close-on-escape="false"
+      :header="injuryDialogTitle"
+      :modal="true"
   >
-    <div v-for="injury in props.modelValue" class="flex flex-row">
-      <div>
-        <InputText
-            v-model="injury.firstName"
-            placeholder="First name"
-        />
-      </div>
-      <div>
-        <InputText
-            v-model="injury.lastName"
-            placeholder="Last name"
-        />
-      </div>
-
-
-      <!-- Rule: {{dAction.rule?.id}}-->
-
-
-      <div>
-        <InputText
-            v-model="injury.details"
-
-            placeholder="Description"
-        />
-      </div>
-      <div v-if="!injuryIsBlank(injury)">
-        <Button @click="deleteInjury(injury)"
-                class="p-button-danger p-button-text">
-          <vue-feather
-              class="p-1"
-              type="x"
+    <div v-for="injury in props.modelValue">
+      <div class="flex flex-row flex-wrap">
+        <div class="p-2">
+          <InputText
+              v-model="injury.firstName"
+              placeholder="First name"
           />
-        </Button>
+        </div>
+        <div class="p-2">
+          <InputText
+              v-model="injury.lastName"
+              placeholder="Last name"
+          />
+        </div>
+        <div class="p-2">
+          <InputText
+              v-model="injury.details"
+
+              placeholder="Description"
+          />
+        </div>
+        <div class="p-2" v-if="!injuryIsBlank(injury)">
+          <Button class="p-button-danger p-button-text"
+                  @click="deleteInjury(injury)">
+            <vue-feather
+                class="p-1"
+                type="x"
+            />
+          </Button>
+        </div>
       </div>
+      <div class="flex-grow h-px bg-gray-300 m-4"></div>
     </div>
     <template #footer>
 
