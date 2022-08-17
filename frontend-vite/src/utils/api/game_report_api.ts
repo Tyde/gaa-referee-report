@@ -105,7 +105,7 @@ function gameReportToGameReportDEO(gameReport: GameReport) {
     }
 }
 
-export async function updateGameReport(gameReport: GameReport) {
+export async function updateGameReport(gameReport: GameReport): Promise<number> {
     const requestOptions = {
         method: "POST",
         headers: {
@@ -119,9 +119,13 @@ export async function updateGameReport(gameReport: GameReport) {
     const data = await response.json()
     const parseResult = GameReportDEO.safeParse(data)
     if (parseResult.success) {
-        console.log("Update complete")
+        return parseResult.data.id
     } else {
-        console.log(data)
+        let errorParse = ApiError.safeParse(data)
+        if (errorParse.success) {
+            return Promise.reject(errorParse.data)
+        }
+        return Promise.reject("Error updating game report")
     }
 
 }

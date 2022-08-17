@@ -59,3 +59,7 @@ export async function uploadInjury(injury: Injury, gameReportId: number):Promise
     }
     return -1;
 }
+
+export function injuryIsBlank(injury: Injury) {
+    return injury.firstName.trim().length == 0 && injury.lastName.trim().length == 0 && injury.details.trim().length == 0
+}

@@ -2,7 +2,7 @@
 import type {Injury, Team} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
 import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
-import {uploadInjury} from "@/utils/api/injuries_api";
+import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
 
 const props = defineProps<{
   visible: boolean
@@ -55,9 +55,7 @@ function generateEmptyInjury() {
     addEmptyInjury()
   }
 }
-function injuryIsBlank(injury: Injury) {
-  return injury.firstName.trim().length == 0 && injury.lastName.trim().length == 0 && injury.details.trim().length == 0
-}
+
 function addEmptyInjury() {
   props.modelValue.push({
     firstName: "",

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {DisciplinaryAction, Rule, Team} from "@/types";
 import {computed, onBeforeUnmount, onMounted, onUpdated, watch} from "vue";
-import {uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
+import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 
 const props = defineProps<{
   visible: boolean,
@@ -61,13 +61,7 @@ function generateEmptydAFields() {
   }
 }
 
-function disciplinaryActionIsBlank(disciplinaryAction: DisciplinaryAction) {
-  return disciplinaryAction.firstName.trim().length == 0 &&
-      disciplinaryAction.lastName.trim().length == 0 &&
-      !disciplinaryAction.number &&
-      !disciplinaryAction.rule &&
-      disciplinaryAction.details.trim().length == 0
-}
+
 
 function addEmptyDisciplinaryAction() {
   props.modelValue.push({

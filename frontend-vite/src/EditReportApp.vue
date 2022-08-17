@@ -147,13 +147,13 @@ async function start_report() {
 }
 
 async function updateReport() {
-  isLoading.value = true
+  //isLoading.value = true
   try {
     await uploadReport(currentReport.value)
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading.value = false
+    //isLoading.value = false
   }
 }
 

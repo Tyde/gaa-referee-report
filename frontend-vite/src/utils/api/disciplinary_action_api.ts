@@ -67,3 +67,10 @@ export async function uploadDisciplinaryAction(action: DisciplinaryAction, gameR
     }
 
 }
+export function disciplinaryActionIsBlank(disciplinaryAction: DisciplinaryAction) {
+    return disciplinaryAction.firstName.trim().length == 0 &&
+        disciplinaryAction.lastName.trim().length == 0 &&
+        !disciplinaryAction.number &&
+        !disciplinaryAction.rule &&
+        disciplinaryAction.details.trim().length == 0
+}

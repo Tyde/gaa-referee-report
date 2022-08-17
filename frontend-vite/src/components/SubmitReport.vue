@@ -1,8 +1,12 @@
 <script lang="ts" setup>
 
 import type {DatabaseTournament, GameReport, Pitch} from "@/types";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {DateTime} from "luxon";
+import {uploadPitch} from "@/utils/api/pitch_api";
+import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
+import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
+import {injuryIsBlank} from "@/utils/api/injuries_api";
 
 const props = defineProps<{
   tournament: DatabaseTournament,
@@ -10,7 +14,7 @@ const props = defineProps<{
   pitches: Array<Pitch>,
 }>()
 const isUploadingToServer = ref(false)
-
+const uploadComplete = ref(false)
 
 const tournamentIssues = computed(() => {
   if (props.tournament == undefined) {
@@ -26,7 +30,9 @@ enum GameReportIssue {
   NoExtraTimeOption,
   NoTeamA,
   NoTeamB,
-  NoScores
+  NoScores,
+  InjuriesIncomplete,
+  DisciplinaryActionsIncomplete,
 }
 
 const gameReportIssues = computed(() => {
@@ -53,6 +59,36 @@ const gameReportIssues = computed(() => {
         (gameReport.teamBReport?.points || 0) == 0) {
       issues.push(GameReportIssue.NoScores)
     }
+    gameReport.teamAReport.injuries.concat(
+        gameReport.teamBReport.injuries
+    ).map((injury) => {
+      if (!injuryIsBlank(injury)) {
+        let fullName = injury.firstName + " " + injury.lastName
+        if (injury.details.trim().length == 0 ||
+            fullName.trim().length == 0) {
+          console.log("incomplete injury:")
+          console.log(injury)
+          issues.push(GameReportIssue.InjuriesIncomplete)
+        }
+      }
+    })
+    gameReport.teamAReport.disciplinaryActions.concat(
+        gameReport.teamBReport.disciplinaryActions
+    ).map((disciplinaryAction) => {
+      let fullName = disciplinaryAction.firstName + " " + disciplinaryAction.lastName
+      if (!disciplinaryActionIsBlank(disciplinaryAction)) {
+        if (disciplinaryAction.details.trim().length == 0 ||
+            fullName.trim().length == 0 ||
+            disciplinaryAction.number === undefined ||
+            disciplinaryAction.rule === undefined
+        ) {
+          console.log("incomplete disciplinary action:")
+          console.log(disciplinaryAction)
+          issues.push(GameReportIssue.DisciplinaryActionsIncomplete)
+        }
+      }
+    })
+
     console.log(issues)
     return ([gameReport, issues] as [GameReport, Array<GameReportIssue>])
   }).filter(([gameReport, issues]) => issues.length > 0)
@@ -95,12 +131,56 @@ const pitchReportIssues = computed(() => {
   }).filter(([pitch, issues]) => issues.length > 0)
 })
 
+const reportReadyForUpload = computed(() => {
+  return gameReportIssues.value.filter(([gameReport, issues]) =>
+          gameReportIssuesAreSerious(issues)
+      ).length == 0 &&
+      pitchReportIssues.value.length == 0 &&
+      tournamentIssues.value.trim().length == 0
+})
+
+async function uploadAllData() {
+  isUploadingToServer.value = true
+  let promisesPitch = props.pitches.map((pitch) => {
+    return uploadPitch(pitch)
+  })
+  let promisesReports = props.gameReports.map((gameReport) => {
+    if (gameReport.id === undefined) {
+      return createGameReport(gameReport)
+    } else {
+      return updateGameReport(gameReport)
+    }
+  })
+  await Promise.all(promisesPitch)
+  await Promise.all(promisesReports)
+  isUploadingToServer.value = false
+  uploadComplete.value = true
+}
+
+onMounted(() => {
+  if (reportReadyForUpload.value) {
+    uploadAllData()
+  }
+})
+
+function submitReport() {
+
+}
+
+function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
+  return !(issues.includes(GameReportIssue.NoScores) && issues.length == 1)
+}
 </script>
 
 <template>
   <div class="flex justify-center content-center">
     <div class="flex flex-col w-280 p-4 m-4">
-
+      <div
+          v-if="isUploadingToServer"
+          class="bg-blue-200 rounded p-4 text-center">
+        <i class="pi pi-spin pi-spinner"></i>
+        &nbsp;Updating Database
+      </div>
       <div
           v-if="tournamentIssues.trim().length > 0"
           class="bg-red-300 rounded-lg p-4">
@@ -109,7 +189,12 @@ const pitchReportIssues = computed(() => {
 
       <div
           v-for="grTuple in gameReportIssues"
-          class="bg-red-300 rounded-lg p-4 m-4">
+          :class="{
+            'bg-red-300': gameReportIssuesAreSerious(grTuple[1]),
+            'bg-amber-200': !gameReportIssuesAreSerious(grTuple[1]),
+          }"
+
+          class="rounded-lg p-4 m-4">
       <span
           v-if="grTuple[0].startTime">{{ grTuple[0].startTime.toLocaleString(DateTime.TIME_24_SIMPLE) }} -&nbsp;</span>
         <span v-if="grTuple[0].teamAReport.team">{{ grTuple[0].teamAReport.team.name }}</span>
@@ -136,6 +221,12 @@ const pitchReportIssues = computed(() => {
             </template>
             <template v-else-if="issue==GameReportIssue.NoScores">
               No scores entered - This might be correct if the game was a draw.
+            </template>
+            <template v-else-if="issue==GameReportIssue.InjuriesIncomplete">
+              One or more injuries are incomplete
+            </template>
+            <template v-else-if="issue==GameReportIssue.DisciplinaryActionsIncomplete">
+              One or more disciplinary actions are incomplete
             </template>
           </li>
         </ul>
@@ -167,13 +258,14 @@ const pitchReportIssues = computed(() => {
           </li>
         </ul>
       </div>
+      <Button
+          v-if="reportReadyForUpload && uploadComplete"
+          @click="submitReport">
+        Submit report
+      </Button>
+
       <!--
-          <div
-              class="bg-blue-200 rounded p-4"
-              v-if="isUploadingToServer"
-          >
-            <span>Updating Database</span>
-          </div>
+
           <div
               class="bg-green-200 rounded p-4"
               v-else
