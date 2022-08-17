@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {DisciplinaryAction, Rule, Team} from "@/types";
-import {computed, onBeforeUnmount, onMounted, onUpdated, watch} from "vue";
+import {computed, onMounted, onUpdated, watch} from "vue";
 import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 
 const props = defineProps<{
@@ -26,10 +26,8 @@ const localVisible = computed({
 })
 
 
-
-
 async function uploadActionsToServer() {
-  if(props.gameReportId != undefined) {
+  if (props.gameReportId != undefined) {
     for (let action of props.modelValue) {
       await uploadDisciplinaryAction(action, props.gameReportId)
     }
@@ -60,7 +58,6 @@ function generateEmptydAFields() {
     addEmptyDisciplinaryAction()
   }
 }
-
 
 
 function addEmptyDisciplinaryAction() {
@@ -94,71 +91,79 @@ onMounted(() => {
       :header="disciplinaryDialogTitle"
       :modal="true"
   >
-    <div v-for="dAction in modelValue" class="flex flex-row">
-      <div>
-        <InputText
-            v-model="dAction.firstName"
-            placeholder="First name"
-        />
-      </div>
-      <div>
-        <InputText
-            v-model="dAction.lastName"
-            placeholder="Last name"
-        />
-      </div>
-
-      <div>
-        <InputNumber
-            v-model="dAction.number"
-            placeholder="Player number"
-        />
-      </div>
-
-      <!-- Rule: {{dAction.rule?.id}}-->
-
-      <Dropdown
-          v-model="dAction.rule"
-          :options="rules"
-          :show-clear="true"
-          class="dropdown-disciplinary"
-          placeholder="Rule:"
-      >
-        <template #value="slotProps">
-          <div v-if="slotProps.value" class="p-disciplinary">
-            <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
-            <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
-            <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-            {{ slotProps.value.description }}
-          </div>
-          <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
-        </template>
-        <template #option="slotProps">
-
-          <div>
-            <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
-            <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
-            <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-            {{ slotProps.option.description }}
-          </div>
-        </template>
-      </Dropdown>
-      <div>
-        <InputText
-            v-model="dAction.details"
-
-            placeholder="Description"
-        />
-      </div>
-      <div v-if="!disciplinaryActionIsBlank(dAction)">
-        <Button class="p-button-danger p-button-text"
-                @click="deleteDAction(dAction)">
-          <vue-feather
-              class="p-1"
-              type="x"
+    <div v-for="dAction in modelValue">
+      <div class="flex flex-row flex-wrap">
+        <div class="p-2">
+          <InputText
+              v-model="dAction.firstName"
+              class="w-52"
+              placeholder="First name"
           />
-        </Button>
+        </div>
+        <div class="p-2">
+          <InputText
+              v-model="dAction.lastName"
+              class="w-52"
+              placeholder="Last name"
+          />
+        </div>
+
+        <div class="p-2">
+          <InputNumber
+              v-model="dAction.number"
+              class="w-20"
+              input-class="w-20"
+              placeholder="Number"
+          />
+        </div>
+
+        <!-- Rule: {{dAction.rule?.id}}-->
+
+        <Dropdown
+            v-model="dAction.rule"
+            :options="rules"
+            :show-clear="true"
+            class="dropdown-disciplinary m-2"
+            input-class="dropdown-disciplinary"
+            placeholder="Rule:"
+        >
+          <template #value="slotProps">
+            <div v-if="slotProps.value" class="p-disciplinary">
+              <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
+              <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
+              <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
+              {{ slotProps.value.description }}
+            </div>
+            <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
+          </template>
+          <template #option="slotProps">
+
+            <div>
+              <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
+              <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
+              <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
+              {{ slotProps.option.description }}
+            </div>
+          </template>
+        </Dropdown>
+        <div class="p-2">
+          <InputText
+              v-model="dAction.details"
+
+              placeholder="Description"
+          />
+        </div>
+        <div v-if="!disciplinaryActionIsBlank(dAction)">
+          <Button class="p-button-danger p-button-text"
+                  @click="deleteDAction(dAction)">
+            <vue-feather
+                class="p-1"
+                type="x"
+            />
+          </Button>
+        </div>
       </div>
+      <div class="flex-grow h-px bg-gray-300 m-4"></div>
     </div>
     <template #footer>
 

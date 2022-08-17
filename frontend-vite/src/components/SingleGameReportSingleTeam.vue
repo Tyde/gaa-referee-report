@@ -22,8 +22,6 @@ const displayDisciplinary = ref(false)
 const displayInjuries = ref(false)
 
 
-
-
 function openDisciplinaryDialog() {
   emit('triggerUpdate')
   displayDisciplinary.value = true;
@@ -49,15 +47,15 @@ function closeInjuryDialog() {
 
     <Dropdown
         v-model="modelValue.team"
+        :class="{
+                'to-be-filled':modelValue.team==undefined
+            }"
         :filter="true"
         :options="selectedTeams"
         :show-clear="true"
         class="col-span-4"
         option-label="name"
         placeholder="Select a Team"
-        :class="{
-                'to-be-filled':modelValue.team==undefined
-            }"
     >
     </Dropdown>
     <template v-if="modelValue.team">
@@ -94,42 +92,48 @@ function closeInjuryDialog() {
           />
         </div>
       </div>
-      <div class="text-lg col-span-2 p-2">
-        Total: {{ modelValue.goals * 3 + modelValue.points }}
+      <div class="text-xl col-span-2 p-2 flex flex-col justify-center place-content-center">
+        <div class="flex-shrink">Total: {{ modelValue.goals * 3 + modelValue.points }}</div>
       </div>
 
-      <Button
-          class="col-span-2 p-2"
-          @click="openDisciplinaryDialog"
-          :disabled="!props.reportPassesMinimalRequirements"
-      >
-        Edit Disciplinary Actions ({{ modelValue.disciplinaryActions.length - 1 }})
-      </Button>
-      <Button
-          class="col-span-2 p-2"
-          @click="openInjuryDialog"
-          :disabled="!props.reportPassesMinimalRequirements"
-      >
-        Edit Injuries ({{ modelValue.injuries.length - 1 }})
-      </Button>
+
+      <div class="col-span-2 p-1 flex">
+        <Button
+            :disabled="!props.reportPassesMinimalRequirements"
+            @click="openDisciplinaryDialog"
+            class="flex-grow"
+        >
+          Edit Disciplinary Actions ({{ modelValue.disciplinaryActions.length - 1 }})
+        </Button>
+      </div>
+
+      <div class="col-span-2 p-1 flex">
+        <Button
+            :disabled="!props.reportPassesMinimalRequirements"
+            class="flex-grow"
+            @click="openInjuryDialog"
+        >
+          Edit Injuries ({{ modelValue.injuries.length - 1 }})
+        </Button>
+      </div>
+
 
     </template>
     <DisciplinaryEditor
-        v-model:visible="displayDisciplinary"
         v-model="modelValue.disciplinaryActions"
-        :team="modelValue.team"
-        :rules="rules"
+        v-model:visible="displayDisciplinary"
         :game-report-id="reportId"
+        :rules="rules"
+        :team="modelValue.team"
 
     />
     <InjuryEditor
-        v-model:visible="displayInjuries"
         v-model="modelValue.injuries"
-        :team="modelValue.team"
+        v-model:visible="displayInjuries"
         :game-report-id="reportId"
+        :team="modelValue.team"
     />
   </div>
-
 
 
 </template>
@@ -146,11 +150,11 @@ function closeInjuryDialog() {
 }
 
 .rule-card {
-  margin-top: .2rem;
-  margin-right: .2rem;
+  margin-top: .25rem;
+  margin-right: .3rem;
   float: left;
-  height: 0.5rem;
-  width: 0.3rem;
+  height: 1rem;
+  width: 0.5rem;
   clear: both;
 }
 

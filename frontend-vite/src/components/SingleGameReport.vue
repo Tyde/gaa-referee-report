@@ -138,25 +138,29 @@ onMounted(() => {
           <i class="pi pi-plus"></i> </Button>
       </div>
     </div>
+    <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
+      <div>Home team:</div>
     <SingleGameReportSingleTeam
         v-model="modelValue.teamAReport"
         :rules="rules"
         :selected-teams="modelValue.report.selectedTeams"
         @trigger-update="()=> sendGameReport(modelValue)"
-        class="p-4"
         :report-id="modelValue.id"
         :report-passes-minimal-requirements="checkGameReportMinimal(modelValue)"
     />
-
+    </div>
+    <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
+      <div>Away team:</div>
     <SingleGameReportSingleTeam
         v-model="modelValue.teamBReport"
         :rules="rules"
         :selected-teams="modelValue.report.selectedTeams"
-        class="p-4"
+
         @trigger-update="()=> sendGameReport(modelValue)"
         :report-id="modelValue.id"
         :report-passes-minimal-requirements="checkGameReportMinimal(modelValue)"
     />
+    </div>
     <GameTypeEditor
         v-model:visible = "gameTypeEditorVisible"
         :game-types = "gameTypes"
