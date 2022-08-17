@@ -11,6 +11,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "debounce": "^1.2.1",
     "feather-icons": "^4.29.0",
     "luxon": "^3.0.1",
     "primeicons": "^5.0.0",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.0",
+    "@types/debounce": "^1.2.1",
     "@types/luxon": "^3.0.0",
     "@types/node": "^16.11.36",
     "@vitejs/plugin-vue": "^2.3.3",

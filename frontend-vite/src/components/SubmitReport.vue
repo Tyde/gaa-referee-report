@@ -1,20 +1,22 @@
 <script lang="ts" setup>
 
-import type {DatabaseTournament, GameReport, Pitch} from "@/types";
-import {computed, onMounted, ref} from "vue";
+import type {DatabaseTournament, GameReport, Pitch, Report} from "@/types";
+import {computed, onMounted, ref, watch} from "vue";
 import {DateTime} from "luxon";
 import {uploadPitch} from "@/utils/api/pitch_api";
 import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
 import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
 import {injuryIsBlank} from "@/utils/api/injuries_api";
+import {updateReportAdditionalInformation} from "@/utils/api/report_api";
+import debounce from "debounce"
 
 const props = defineProps<{
   tournament: DatabaseTournament,
   gameReports: Array<GameReport>,
   pitches: Array<Pitch>,
+  report: Report
 }>()
-const isUploadingToServer = ref(false)
-const uploadComplete = ref(false)
+
 
 const tournamentIssues = computed(() => {
   if (props.tournament == undefined) {
@@ -138,6 +140,8 @@ const reportReadyForUpload = computed(() => {
       pitchReportIssues.value.length == 0 &&
       tournamentIssues.value.trim().length == 0
 })
+const isUploadingToServer = ref(false);
+const uploadComplete = ref(false);
 
 async function uploadAllData() {
   isUploadingToServer.value = true
@@ -156,6 +160,13 @@ async function uploadAllData() {
   isUploadingToServer.value = false
   uploadComplete.value = true
 }
+const debouncedUpload = debounce(() => {
+  updateReportAdditionalInformation(props.report)
+}, 2000)
+watch(() => props.report.additionalInformation,() => {
+  debouncedUpload()
+
+})
 
 onMounted(() => {
   if (reportReadyForUpload.value) {
@@ -164,7 +175,7 @@ onMounted(() => {
 })
 
 function submitReport() {
-
+    console.log("submit report")
 }
 
 function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
@@ -257,6 +268,18 @@ function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
             </template>
           </li>
         </ul>
+      </div>
+      <div class="field p-2 justify-center flex-col text-center">
+        <label for="additionalInfo">Additional comments for the report:</label><br>
+
+        <Textarea
+            id="additionalInfo"
+            v-model="report.additionalInformation"
+            rows="4"
+            cols="40"
+            class="w-280"
+            placeholder=""
+        />
       </div>
       <Button
           v-if="reportReadyForUpload && uploadComplete"

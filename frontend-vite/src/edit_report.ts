@@ -17,6 +17,7 @@ import Checkbox from "primevue/checkbox";
 import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
+import Textarea from "primevue/textarea";
 
 
 const app = createApp(App);
@@ -32,5 +33,6 @@ app.component('InputNumber',InputNumber)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)
+app.component('Textarea', Textarea)
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')

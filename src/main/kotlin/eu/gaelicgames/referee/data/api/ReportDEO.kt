@@ -1,6 +1,7 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import io.netty.util.concurrent.Promise
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -101,6 +102,44 @@ data class PitchDEO(
                     additionalInformation = pitch.additionalInformation
                 )
             }
+        }
+    }
+}
+
+@Serializable
+data class UpdateReportAdditionalInformationDEO(
+    val id: Long,
+    val additionalInformation: String
+) {
+    companion object {
+        fun fromTournamentReportReport(report: TournamentReport): UpdateReportAdditionalInformationDEO {
+            return transaction {
+                UpdateReportAdditionalInformationDEO(
+                    id = report.id.value,
+                    additionalInformation = report.additionalInformation
+                )
+            }
+        }
+    }
+
+    fun updateInDatabase(): Result<TournamentReport> {
+        val update = this
+        if(update.id != null && update.additionalInformation.isNotBlank()) {
+            return transaction {
+                val report = TournamentReport.findById(update.id)
+                if (report != null) {
+                    report.additionalInformation = update.additionalInformation
+                    Result.success(report)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException("Report with id ${update.id} not found")
+                    )
+                }
+            }
+        } else {
+            return Result.failure(
+                IllegalArgumentException("Id and additional information must be set")
+            )
         }
     }
 }

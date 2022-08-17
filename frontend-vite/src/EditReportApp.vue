@@ -296,6 +296,7 @@ onMounted(() => {
       :game-reports="allGameReports"
       :pitches="allPitchReports"
       :tournament="currentReport.tournament"
+      :report="currentReport"
       />
   <template v-if="readyStartReport">
     Code:

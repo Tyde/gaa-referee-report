@@ -44,7 +44,8 @@ export const Report = z.object({
     id: number().optional().nullable(),
     tournament: DatabaseTournament,
     selectedTeams: Team.array(),
-    gameCode: GameCode
+    gameCode: GameCode,
+    additionalInformation: z.string().optional().nullable(),
 })
 
 export type Report = z.infer<typeof Report>

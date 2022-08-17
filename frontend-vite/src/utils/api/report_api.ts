@@ -40,6 +40,7 @@ export function completeReportDEOToReport(cReport: CompleteReportDEO, availableC
             selectedTeams: cReport.selectedTeams,
             gameCode: code,
             id: cReport.id,
+            additionalInformation: cReport.additionalInformation,
         }
     } else {
         throw new Error("Could not find game code")
@@ -119,5 +120,37 @@ export async function uploadReport(
         return (parseResponse.data.id || -1)
     } else {
         return Promise.reject("Server did not return a valid report")
+    }
+}
+
+export const UpdateReportAdditionalInformationDEO = z.object({
+    id: z.number(),
+    additionalInformation: z.string()
+})
+
+export type UpdateReportAdditionalInformationDEO = z.infer<typeof UpdateReportAdditionalInformationDEO>;
+export async function updateReportAdditionalInformation(report:Report):Promise<number> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(UpdateReportAdditionalInformationDEO.parse({
+            id: report.id,
+            additionalInformation: report.additionalInformation
+        }))
+    };
+    let address = ""
+
+    address = "/api/report/updateAdditionalInformation"
+
+    const response = await fetch(address, requestOptions)
+    const dbReport = await response.json()
+    const parseResponse = UpdateReportAdditionalInformationDEO.safeParse(dbReport)
+    if(parseResponse.success) {
+        report.id = parseResponse.data.id
+        return (parseResponse.data.id || -1)
+    } else {
+        return Promise.reject("Server did not return a valid response")
     }
 }

@@ -208,6 +208,27 @@ fun Application.configureRouting() {
                 }
             }
 
+            post<Api.Reports.UpdateAdditionalInformation> {
+                val update = call.receiveOrNull<UpdateReportAdditionalInformationDEO>()
+                if(update!= null) {
+                    val updateResult = update.updateInDatabase()
+                    if(updateResult.isSuccess) {
+                        call.respond(
+                            UpdateReportAdditionalInformationDEO.fromTournamentReportReport(
+                                updateResult.getOrThrow()
+                            )
+                        )
+                    } else {
+                        call.respond(
+                            ApiError(
+                                ApiErrorOptions.INSERTION_FAILED,
+                                updateResult.exceptionOrNull()?.message ?: "Unknown error"))
+                    }
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
+
             post<Api.NewTeam> {
                 val newTeam = call.receiveOrNull<NewTeamDEO>()
                 if (newTeam != null) {
