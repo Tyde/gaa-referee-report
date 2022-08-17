@@ -26,9 +26,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="flex flex-col">
-    <div class="rounded-xl border border-amber-400
+    <div v-if="props.modelValue.name.trim().length===0" class="rounded-xl border border-amber-400
             bg-amber-200 text-center text-lg font-sans text-gray-700
-            p-4 m-4" v-if="props.modelValue.name.trim().length===0">
+            p-4 m-4">
       Please enter a name for the pitch! Otherwise the data wont be stored
     </div>
     <div class="flex-col flex grow">
@@ -204,6 +204,18 @@ onBeforeUnmount(() => {
           >
           </Dropdown>
         </div>
+      </div>
+      <div class="flex-row flex-wrap flex">
+        <div class="field p-2">
+          <label for="additionalInfo">Additional info:</label><br>
+
+          <InputText
+              id="additionalInfo"
+              v-model="modelValue.additionalInformation"
+              placeholder=""
+          />
+        </div>
+
       </div>
     </div>
   </div>
