@@ -20,12 +20,7 @@ const found_tournaments = ref(<DatabaseTournament[]>[])
 const show_create_new_tournament = ref(false)
 const loading = ref(false)
 
-/*
-const dateString = computed(() => {
-  let newdate = date.value
-  return fromDateToDateString(newdate)
-  //return Intl.DateTimeFormat('en-US',{calendar: "iso8601"}).format(date.value)
-})*/
+
 
 function select_tournament(tournament: DatabaseTournament) {
   //selected_tournament.value = tournament
@@ -77,7 +72,7 @@ function on_tournament_created(tournament: DatabaseTournament) {
                 class="p-listbox-item"
                 @click="select_tournament(tournament)"
             >
-              {{ tournament.name }} - {{ tournament.location }} - {{ fromDateToDateString(tournament.date) }}
+              {{ tournament.name }} - {{ tournament.location }} - {{ tournament.date.toISODate()}}
             </li>
             <li
                 v-if="date"
