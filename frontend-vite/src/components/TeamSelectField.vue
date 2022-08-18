@@ -184,7 +184,7 @@ const filtered_list = computed(() => {
 
 <style scoped>
 .team-selector-box {
-  max-height: 14em;
+  height: 20em;
   overflow: scroll;
 }
 

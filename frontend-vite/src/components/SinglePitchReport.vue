@@ -32,7 +32,7 @@ onBeforeUnmount(() => {
       Please enter a name for the pitch! Otherwise the data wont be stored
     </div>
     <div class="flex-col flex grow">
-      <div class="flex-row flex-wrap flex">
+      <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
           <label for="pitchName">Name:</label><br>
           <div
@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
           </Dropdown>
         </div>
       </div>
-      <div class="flex-row flex-wrap flex">
+      <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
           <label for="lengthSelect">Length:</label><br>
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
           </Dropdown>
         </div>
       </div>
-      <div class="flex-row flex-wrap flex">
+      <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
           <label for="smallSquareSelect">Small square markings:</label><br>
@@ -107,6 +107,7 @@ onBeforeUnmount(() => {
                 'to-be-filled':props.modelValue.smallSquareMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
+              class="markings-options"
               option-label="name"
               placeholder="Small square markings"
           >
@@ -122,6 +123,7 @@ onBeforeUnmount(() => {
                 'to-be-filled':props.modelValue.penaltySquareMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
+              class="markings-options"
               option-label="name"
               placeholder="Penalty square markings"
           >
@@ -137,6 +139,7 @@ onBeforeUnmount(() => {
                 'to-be-filled':props.modelValue.thirteenMeterMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
+              class="markings-options"
               option-label="name"
               placeholder="13m markings"
           >
@@ -152,6 +155,7 @@ onBeforeUnmount(() => {
                 'to-be-filled':props.modelValue.twentyMeterMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
+              class="markings-options"
               option-label="name"
               placeholder="20m markings"
           >
@@ -167,13 +171,14 @@ onBeforeUnmount(() => {
                 'to-be-filled':props.modelValue.longMeterMarkings===undefined
             }"
               :options="props.pitchReportOptions.markingsOptions"
+              class="markings-options"
               option-label="name"
               placeholder="45m/65m markings"
           >
           </Dropdown>
         </div>
       </div>
-      <div class="flex-row flex-wrap flex">
+      <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
           <label for="goalpostsSelect">Goalposts:</label><br>
@@ -205,13 +210,14 @@ onBeforeUnmount(() => {
           </Dropdown>
         </div>
       </div>
-      <div class="flex-row flex-wrap flex">
+      <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
           <label for="additionalInfo">Additional info:</label><br>
 
           <InputText
               id="additionalInfo"
               v-model="modelValue.additionalInformation"
+              class="w-80"
               placeholder=""
           />
         </div>
@@ -223,5 +229,7 @@ onBeforeUnmount(() => {
 
 
 <style scoped>
-
+.markings-options {
+  @apply min-w-[13rem]
+}
 </style>
