@@ -19,7 +19,19 @@ const emit = defineEmits<{
 }>()
 
 
-
+const sortedGameReports = computed(() => {
+  return props.gameReports.sort((a, b) => {
+    if(a.startTime) {
+      if(b.startTime) {
+        return a.startTime > b.startTime ? 1 : -1
+      } else {
+        return -1
+      }
+    } else {
+      return 0
+    }
+  })
+})
 const selectedGameReport = ref<GameReport | undefined>(undefined)
 const filteredRules = computed(() => {
   return props.rules.filter(rule => rule.code == props.report.gameCode.id)
@@ -70,6 +82,8 @@ onBeforeMount(()=> {
   }
 })
 
+////// DELETE REPORT //////
+
 const deleteReportDialogVisible = ref(false)
 const reportToDelete = ref<GameReport | undefined>(undefined)
 function startDeleteReport(gReport:GameReport) {
@@ -100,7 +114,7 @@ async function deleteReport() {
 <template>
 <Toolbar>
   <template #start>
-    <SelectButton v-model="selectedGameReport" :options="gameReports" >
+    <SelectButton v-model="selectedGameReport" :options="sortedGameReports" >
       <template #option="slotProps">
         <span v-if="slotProps.option.startTime">{{slotProps.option.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
         <span v-if="slotProps.option.teamAReport.team">{{slotProps.option.teamAReport.team.name}}</span>
