@@ -126,6 +126,8 @@ onMounted(() => {
             class="dropdown-disciplinary m-2"
             input-class="dropdown-disciplinary"
             placeholder="Rule:"
+            :filter="true"
+            :filter-fields="['description']"
         >
           <template #value="slotProps">
             <div v-if="slotProps.value" class="p-disciplinary">
