@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 
 
-const selectedGameReport = ref<SingleGameReport | undefined>(undefined)
+const selectedGameReport = ref<GameReport | undefined>(undefined)
 const filteredRules = computed(() => {
   return props.rules.filter(rule => rule.code == props.report.gameCode.id)
 })
