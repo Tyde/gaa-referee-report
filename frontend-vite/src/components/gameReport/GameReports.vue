@@ -5,6 +5,7 @@ import type {ExtraTimeOption, GameReport, GameType, Report, Rule, Team} from "@/
 import {computed, onBeforeMount, onMounted, onUpdated, ref, watch} from "vue";
 import { DateTime } from "luxon";
 import {checkGameReportNecessary, checkGameReportSuggestion} from "@/utils/gobal_functions";
+import {deleteGameReportOnServer} from "@/utils/api/game_report_api";
 
 const props = defineProps<{
   report:Report,
@@ -56,7 +57,9 @@ watch(props.gameReports, () => {
 }, {deep: true})
 const currentReportIndex = ref<number>(0)
 watch(selectedGameReport, () => {
-  currentReportIndex.value = props.gameReports.indexOf(selectedGameReport.value)
+  if(selectedGameReport.value) {
+    currentReportIndex.value = props.gameReports.indexOf(selectedGameReport.value)
+  }
 })
 onBeforeMount(()=> {
   console.log("Just before mount GameReports is "+props.gameReports)
@@ -66,6 +69,31 @@ onBeforeMount(()=> {
     selectedGameReport.value = props.gameReports[0]
   }
 })
+
+const deleteReportDialogVisible = ref(false)
+const reportToDelete = ref<GameReport | undefined>(undefined)
+function startDeleteReport(gReport:GameReport) {
+  reportToDelete.value = gReport
+  deleteReportDialogVisible.value = true
+}
+
+function cancelDeleteReport() {
+  deleteReportDialogVisible.value = false
+  reportToDelete.value = undefined
+}
+
+async function deleteReport() {
+  if(reportToDelete.value != undefined) {
+    if(reportToDelete.value.id != undefined) {
+      await deleteGameReportOnServer(reportToDelete.value)
+    }
+    let index = props.gameReports.indexOf(reportToDelete.value)
+    props.gameReports.splice(index, 1)
+    selectedGameReport.value = props.gameReports[Math.min(index, props.gameReports.length - 1)]
+    cancelDeleteReport()
+  }
+
+}
 
 </script>
 
@@ -113,7 +141,29 @@ onBeforeMount(()=> {
       :extra-time-options="props.extraTimeOptions"
       :game-types="props.gameTypes"
       :index="currentReportIndex"
+      @delete-this-report="(report) => startDeleteReport(report)"
   />
+
+  <Dialog
+      v-model:visible="deleteReportDialogVisible"
+      :modal="true"
+  >
+    <template #header>
+      <span>Delete Game Report</span>
+    </template>
+
+      <p>Are you sure you want to delete this game report?</p>
+      <span v-if="reportToDelete.startTime">{{reportToDelete.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
+      <span v-if="reportToDelete.teamAReport.team">{{reportToDelete.teamAReport.team.name}}</span>
+      <span v-else>...</span>&nbsp;vs.&nbsp;
+      <span v-if="reportToDelete.teamBReport.team">{{reportToDelete.teamBReport.team.name}}</span>
+      <span v-else>...</span>
+
+    <template #footer>
+      <Button @click="deleteReport" class="p-button-danger">Delete</Button>
+      <Button @click="cancelDeleteReport" class="p-button-secondary">Cancel</Button>
+    </template>
+  </Dialog>
 
 </template>
 

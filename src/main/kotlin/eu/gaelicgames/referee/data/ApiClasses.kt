@@ -201,6 +201,9 @@ enum class ApiErrorOptions {
     @SerialName("insertionFailed")
     INSERTION_FAILED,
 
+    @SerialName("deleteFailed")
+    DELETE_FAILED,
+
     @SerialName("notFound")
     NOT_FOUND,
 }

@@ -86,6 +86,10 @@ class Api() {
         class Update(val parent: GameReports)
 
         @Serializable
+        @Resource("delete")
+        class Delete(val parent: GameReports)
+
+        @Serializable
         @Resource("disciplinaryAction")
         class DisciplinaryAction(val parent: GameReports) {
             @Serializable

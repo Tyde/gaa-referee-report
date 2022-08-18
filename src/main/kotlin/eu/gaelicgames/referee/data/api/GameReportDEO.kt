@@ -106,97 +106,133 @@ data class GameReportDEO(
                 }
             }
 
-    }
-    return Result.failure(
-    IllegalArgumentException("Trying to insert a game report with missing fields")
-    )
-}
-
-fun updateInDatabase(): Result<GameReport> {
-    if (this.id != null) {
-        return transaction {
-            val grUpdate = this@GameReportDEO
-            val originalGameReport = GameReport.findById(this@GameReportDEO.id)
-            if (originalGameReport != null) {
-
-                /*
-                if (grUpdate.report != null) {
-                    //Dont act here as moving to another report is unsupported
-                }*/
-                grUpdate.teamA?.let { teamA ->
-                    Team.findById(teamA)?.let { team ->
-                        if (team != originalGameReport.teamA) {
-                            originalGameReport.teamADisciplinaryActions().map {
-                                it.team = team
-                            }
-                            originalGameReport.teamAInjuries().map {
-                                it.team = team
-                            }
-                        }
-                        originalGameReport.teamA = team
-                    }
-                }
-                grUpdate.teamB?.let { teamB ->
-                    Team.findById(teamB)?.let { team ->
-                        if (team != originalGameReport.teamB) {
-                            originalGameReport.teamBDisciplinaryActions().map {
-                                it.team = team
-                            }
-                            originalGameReport.teamBInjuries().map {
-                                it.team = team
-                            }
-                        }
-                        originalGameReport.teamB = team
-                    }
-                }
-                grUpdate.teamAGoals?.let { goals ->
-                    originalGameReport.teamAGoals = goals
-                }
-                grUpdate.teamBGoals?.let { goals ->
-                    originalGameReport.teamBGoals = goals
-                }
-                grUpdate.teamAPoints?.let { points ->
-                    originalGameReport.teamAPoints = points
-                }
-                grUpdate.teamBPoints?.let { points ->
-                    originalGameReport.teamBPoints = points
-                }
-                grUpdate.startTime?.let { startTime ->
-                    originalGameReport.startTime = startTime
-                }
-                grUpdate.extraTime?.let { extraTime ->
-                    ExtraTimeOption.findById(extraTime)?.let { eto ->
-                        originalGameReport.extraTime = eto
-                    }
-                }
-                grUpdate.gameType?.let { gameType ->
-                    GameType.findById(gameType)?.let { gt ->
-                        originalGameReport.gameType = gt
-                    }
-                }
-                grUpdate.umpirePresentOnTime?.let { present ->
-                    originalGameReport.umpirePresentOnTime = present
-                }
-                grUpdate.umpireNotes?.let { notes ->
-                    originalGameReport.umpireNotes = notes
-                }
-                Result.success(originalGameReport)
-            } else {
-                Result.failure(
-                    IllegalArgumentException(
-                        "Trying to update a game report with an invalid id"
-                    )
-                )
-            }
         }
-    } else {
         return Result.failure(
-            IllegalArgumentException(
-                "Trying to update a game report with no id"
-            )
+            IllegalArgumentException("Trying to insert a game report with missing fields")
         )
     }
+
+    fun updateInDatabase(): Result<GameReport> {
+        if (this.id != null) {
+            return transaction {
+                val grUpdate = this@GameReportDEO
+                val originalGameReport = GameReport.findById(this@GameReportDEO.id)
+                if (originalGameReport != null) {
+
+                    /*
+                    if (grUpdate.report != null) {
+                        //Dont act here as moving to another report is unsupported
+                    }*/
+                    grUpdate.teamA?.let { teamA ->
+                        Team.findById(teamA)?.let { team ->
+                            if (team != originalGameReport.teamA) {
+                                originalGameReport.teamADisciplinaryActions().map {
+                                    it.team = team
+                                }
+                                originalGameReport.teamAInjuries().map {
+                                    it.team = team
+                                }
+                            }
+                            originalGameReport.teamA = team
+                        }
+                    }
+                    grUpdate.teamB?.let { teamB ->
+                        Team.findById(teamB)?.let { team ->
+                            if (team != originalGameReport.teamB) {
+                                originalGameReport.teamBDisciplinaryActions().map {
+                                    it.team = team
+                                }
+                                originalGameReport.teamBInjuries().map {
+                                    it.team = team
+                                }
+                            }
+                            originalGameReport.teamB = team
+                        }
+                    }
+                    grUpdate.teamAGoals?.let { goals ->
+                        originalGameReport.teamAGoals = goals
+                    }
+                    grUpdate.teamBGoals?.let { goals ->
+                        originalGameReport.teamBGoals = goals
+                    }
+                    grUpdate.teamAPoints?.let { points ->
+                        originalGameReport.teamAPoints = points
+                    }
+                    grUpdate.teamBPoints?.let { points ->
+                        originalGameReport.teamBPoints = points
+                    }
+                    grUpdate.startTime?.let { startTime ->
+                        originalGameReport.startTime = startTime
+                    }
+                    grUpdate.extraTime?.let { extraTime ->
+                        ExtraTimeOption.findById(extraTime)?.let { eto ->
+                            originalGameReport.extraTime = eto
+                        }
+                    }
+                    grUpdate.gameType?.let { gameType ->
+                        GameType.findById(gameType)?.let { gt ->
+                            originalGameReport.gameType = gt
+                        }
+                    }
+                    grUpdate.umpirePresentOnTime?.let { present ->
+                        originalGameReport.umpirePresentOnTime = present
+                    }
+                    grUpdate.umpireNotes?.let { notes ->
+                        originalGameReport.umpireNotes = notes
+                    }
+                    Result.success(originalGameReport)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException(
+                            "Trying to update a game report with an invalid id"
+                        )
+                    )
+                }
+            }
+        } else {
+            return Result.failure(
+                IllegalArgumentException(
+                    "Trying to update a game report with no id"
+                )
+            )
+        }
+    }
 }
+@Serializable
+data class DeleteGameReportDEO(
+    val id: Long? = null
+) {
+    fun deleteFromDatabase(): Result<Boolean> {
+        val deleteId = this.id
+        if (deleteId != null) {
+            return transaction {
+                val originalGameReport = GameReport.findById(deleteId)
+
+                if (originalGameReport != null) {
+                    DisciplinaryAction.find { DisciplinaryActions.game eq originalGameReport.id }.forEach {
+                        it.delete()
+                    }
+                    Injury.find { Injuries.game eq originalGameReport.id }.forEach {
+                        it.delete()
+                    }
+                    originalGameReport.delete()
+                    Result.success(true)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException(
+                            "Trying to delete a game report with an invalid id"
+                        )
+                    )
+                }
+            }
+        } else {
+            return Result.failure(
+                IllegalArgumentException(
+                    "Trying to delete a game report with no id"
+                )
+            )
+        }
+    }
 }
 
 @Serializable

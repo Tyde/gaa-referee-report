@@ -19,10 +19,12 @@ const props = defineProps<{
 
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: GameReport): void
+  (e: 'update:modelValue', value: GameReport): void,
+  (e: 'deleteThisReport', value: GameReport): void,
 }>()
 
 const isLoading = ref(false)
+
 
 
 
@@ -161,6 +163,13 @@ onMounted(() => {
         :report-passes-minimal-requirements="checkGameReportMinimal(modelValue)"
     />
     </div>
+
+    <div class="col-span-2 p-4 flex justify-center">
+      <Button
+          @click="emit('deleteThisReport', props.modelValue)"
+          class="p-button-danger"
+        >Delete this game report</Button>
+    </div>
     <GameTypeEditor
         v-model:visible = "gameTypeEditorVisible"
         :game-types = "gameTypes"
@@ -171,6 +180,8 @@ onMounted(() => {
 
     />
   </div>
+
+
 </template>
 
 

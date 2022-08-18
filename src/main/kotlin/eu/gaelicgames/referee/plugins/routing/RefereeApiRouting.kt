@@ -202,6 +202,23 @@ fun Route.refereeApiRouting() {
         handleGameReportInput(doUpdate = true)
     }
 
+    post<Api.GameReports.Delete> {
+        val gameReport = call.receiveOrNull<DeleteGameReportDEO>()
+        if(gameReport!= null) {
+            val res = gameReport.deleteFromDatabase()
+            if(res.isSuccess) {
+                call.respond(gameReport)
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.DELETE_FAILED,
+                        res.exceptionOrNull()?.message ?: "Could not delete game report"
+                    )
+                )
+            }
+        }
+    }
+
     post<Api.GameReports.DisciplinaryAction.New> {
         handleDisciplinaryActionInput(doUpdate = false)
     }

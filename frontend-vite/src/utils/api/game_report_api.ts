@@ -175,3 +175,28 @@ export async function uploadNewGameType(gameTypeName: string):Promise<GameType> 
         }
     }
 }
+
+export async function deleteGameReportOnServer(gameReport: GameReport): Promise<boolean> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({id: gameReport.id})
+    };
+    const response = await fetch("/api/gamereport/delete", requestOptions)
+    const data = await response.json()
+    const parseResult = z.object({
+        id: z.number(),
+    }).safeParse(data)
+    if (parseResult.success) {
+        return true
+    } else {
+        const epR = ApiError.safeParse(data)
+        if (epR.success) {
+            return Promise.reject(epR.data.message)
+        } else {
+            return Promise.reject("Unknown error")
+        }
+    }
+}
