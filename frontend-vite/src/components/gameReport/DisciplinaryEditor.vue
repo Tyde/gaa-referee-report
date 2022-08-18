@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {DisciplinaryAction, Rule, Team} from "@/types";
+import type { DisciplinaryAction, Rule, Team} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
 import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 
@@ -45,13 +45,16 @@ function closeDialog() {
 const disciplinaryDialogTitle = computed(() => {
   return "Disciplinary Action for " + props.team?.name
 })
-watch(props.modelValue, (newActions) => {
-  generateEmptydAFields()
-})
 
+
+
+watch(()=>props.modelValue, () => {
+  generateEmptydAFields()
+},{deep:true,immediate:true})
 
 function generateEmptydAFields() {
   let newActions = props.modelValue
+
   if (newActions.length == 0) {
     addEmptyDisciplinaryAction()
   } else if (!disciplinaryActionIsBlank(newActions[newActions.length - 1])) {
@@ -75,9 +78,11 @@ function deleteDAction(dAction: DisciplinaryAction) {
   props.modelValue.splice(props.modelValue.indexOf(dAction), 1)
 }
 
+/*
 onUpdated(() => {
+  console.log("DA model value:",props.modelValue)
   generateEmptydAFields()
-})
+})*/
 
 onMounted(() => {
   generateEmptydAFields()

@@ -53,6 +53,7 @@ onMounted(() => {
           :show_amalgamate="true"
           :exclude_team_list="teams_added"
           @team_selected="addTeam"
+          :force_hide_exclude_team_list="false"
       />
 
 

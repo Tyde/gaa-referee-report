@@ -18,10 +18,12 @@ import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
-
+// @ts-ignore
+import { Vue3Mq } from "vue3-mq";
 
 const app = createApp(App);
 app.use(PrimeVue)
+app.use(Vue3Mq);
 app.component('Card',Card)
 app.component('Button',Button)
 app.component('Listbox',Listbox)

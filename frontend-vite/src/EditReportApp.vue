@@ -21,8 +21,7 @@ import {
   loadReport,
   uploadReport
 } from "@/utils/api/report_api";
-import type {PitchVariables} from "@/utils/api/pitch_api";
-import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
+import {getPitchVariables, pitchDEOtoPitch, type PitchVariables} from "@/utils/api/pitch_api";
 import SubmitReport from "@/components/SubmitReport.vue";
 
 enum ReportEditStage {
@@ -49,6 +48,7 @@ translateStageToName.set(ReportEditStage.EditGameReports, "Edit Game Reports")
 translateStageToName.set(ReportEditStage.EditPitchReports, "Edit Pitch Reports")
 translateStageToName.set(ReportEditStage.Submit, "Submit")
 const reportStarted = ref(false)
+
 
 const calcStageOptions = computed(() => {
   return allStages.value.map(stage => {

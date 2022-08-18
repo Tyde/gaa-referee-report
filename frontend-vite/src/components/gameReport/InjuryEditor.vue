@@ -45,9 +45,9 @@ function closeDialog() {
 const injuryDialogTitle = computed(() => {
   return "Injuries for " + props.team?.name
 })
-watch(props.modelValue, (newInjuries) => {
+watch(()=>props.modelValue, (newInjuries) => {
   generateEmptyInjury()
-})
+},{deep:true,immediate:true})
 
 function generateEmptyInjury() {
   let newInjury = props.modelValue

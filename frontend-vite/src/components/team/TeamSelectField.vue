@@ -15,6 +15,7 @@ const props = defineProps<{
   show_amalgamate: Boolean
   show_add_new_team: Boolean
   exclude_team_list?: Team[]
+  force_hide_exclude_team_list: Boolean
 }>()
 
 const emit = defineEmits<{
@@ -29,8 +30,10 @@ const teamsAvailable = ref(<Team[]>[])
 const isLoading = ref(false)
 
 function on_team_click(team: Team) {
-  emit("team_selected", team)
-  searchTerm.value = ""
+  if(!thisTeamInExludedList(team)) {
+    emit("team_selected", team)
+    searchTerm.value = ""
+  }
 }
 
 function on_add_team_click() {
@@ -67,14 +70,20 @@ onMounted(() => {
   fetch_available_teams()
 })
 
+function thisTeamInExludedList(team: Team):boolean {
+  return !!props.exclude_team_list?.find(t => t.id === team.id)
+}
+function classForTeam(team: Team):string {
+  return thisTeamInExludedList(team) ? "already-selected-item" : "p-listbox-item"
+}
 
 const filtered_list = computed(() => {
   let preparedlist = teamsAvailable.value.sort((a, b) => {
     return a.name.localeCompare(b.name)
   })
-  if (props.exclude_team_list !== undefined) {
+  if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {
     let excludelist = props.exclude_team_list
-    console.log("Checking excludes")
+    //console.log("Checking excludes")
     preparedlist = preparedlist.filter(value => {
       return excludelist.findIndex(exclude_val => {
         return exclude_val.id == value.id
@@ -102,6 +111,8 @@ const filtered_list = computed(() => {
     })
   }
 })
+
+
 
 </script>
 
@@ -144,20 +155,26 @@ const filtered_list = computed(() => {
             <li
                 v-for="srt in filtered_list"
                 :key="srt.search_score"
-                :class="{
-                  amalgamation_item: srt.team.isAmalgamation
-                }"
-                class="p-listbox-item"
+                :class="[{
+                  amalgamation_item: srt.team.isAmalgamation,
+                },classForTeam(srt.team)]"
                 @click="on_team_click(srt.team)"
             >
               <template v-if="srt.team.isAmalgamation">
                 {{ srt.team.name }} - Amalgamation
+                <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
+                  Already in selection
+                </p>
                 <p v-if="srt.team.amalgamationTeams" class="amalgamation_subtitle">
                   {{ srt.team.amalgamationTeams.map(value => value.name).join(" - ") }}
                 </p>
+
               </template>
               <template v-else>
                 {{ srt.team.name }}
+                <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
+                  Already in selection
+                </p>
               </template>
             </li>
           </ul>
@@ -198,9 +215,25 @@ const filtered_list = computed(() => {
   margin-bottom: 0px;
 }
 
+.already-selected-subtitle {
+  @apply float-right;
+  @apply text-sm;
+  @apply mt-1;
+}
+
 .teamselect-add-option {
   font-style: italic;
   font-weight: bold;
   color: darkcyan !important;
+}
+
+.already-selected-item {
+  margin: 0;
+  padding: .75rem 1rem;
+  border: 0 none;
+  @apply text-gray-600;
+  transition: none;
+  border-radius: 0;
+  @apply bg-gray-200
 }
 </style>

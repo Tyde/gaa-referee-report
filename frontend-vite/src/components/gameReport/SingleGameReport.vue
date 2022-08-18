@@ -30,9 +30,7 @@ const isLoading = ref(false)
 
 
 async function sendGameReport(gameReport: GameReport) {
-  console.log("Sending game report?")
   if (checkGameReportMinimal(gameReport)) {
-    console.log("Sending game report!")
     if (gameReport.id) {
       await updateGameReport(gameReport)
     } else {
@@ -129,6 +127,9 @@ onMounted(() => {
             :class="{
                 'to-be-filled':props.modelValue.gameType==undefined
             }"
+            class="w-60"
+            :filter="true"
+            :filter-fields="['name']"
         >
 
 

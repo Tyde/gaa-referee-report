@@ -107,7 +107,8 @@ function disciplinaryActionIssuesForGameReport(gameReport: GameReport): Array<Di
     } else {
       return undefined
     }
-  }).filter((dai): dai is DisciplinaryActionIssues => !!dai)
+  }).filter((dai)=> (dai?.issues.length || 0) > 0)
+      .filter((dai): dai is DisciplinaryActionIssues => !!dai)
 }
 
 function injuryIssuesForGameReport(gameReport: GameReport): Array<InjuriesIssues> {
@@ -127,7 +128,8 @@ function injuryIssuesForGameReport(gameReport: GameReport): Array<InjuriesIssues
     } else {
       return undefined
     }
-  }).filter((ii): ii is InjuriesIssues => !!ii)
+  }).filter((ii)=> (ii?.issues.length || 0) > 0)
+      .filter((ii): ii is InjuriesIssues => (!!ii))
 }
 
 const gameReportIssues = computed(() => {

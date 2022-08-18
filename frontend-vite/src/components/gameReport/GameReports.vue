@@ -64,7 +64,6 @@ function newGameReport() {
 }
 
 watch(props.gameReports, () => {
-  console.log("Updating all GameReports")
   emit('update:gameReports',props.gameReports)
 }, {deep: true})
 const currentReportIndex = ref<number>(0)
@@ -74,7 +73,6 @@ watch(selectedGameReport, () => {
   }
 })
 onBeforeMount(()=> {
-  console.log("Just before mount GameReports is "+props.gameReports)
   if(props.gameReports.length==0){
     newGameReport()
   } else {
