@@ -2,8 +2,8 @@
 
 import type {DisciplinaryAction, Injury, Rule, SingleTeamGameReport, Team} from "@/types";
 import {computed, onMounted, onUpdated, ref, watch} from "vue";
-import InjuryEditor from "@/components/InjuryEditor.vue";
-import DisciplinaryEditor from "@/components/DisciplinaryEditor.vue";
+import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
+import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 
 const props = defineProps<{
   modelValue: SingleTeamGameReport,

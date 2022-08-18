@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import TeamSelector from './components/TeamSelector.vue'
+import TeamSelector from './components/team/TeamSelector.vue'
 import {computed, onMounted, ref, watch} from "vue";
 import type {
   DatabaseTournament,
@@ -12,9 +12,9 @@ import type {
   Rule,
   Team
 } from "@/types";
-import TournamentSelector from "./components/TournamentSelector.vue";
-import GameReports from "@/components/GameReports.vue";
-import PitchReports from "@/components/PitchReports.vue";
+import TournamentSelector from "./components/tournament/TournamentSelector.vue";
+import GameReports from "@/components/gameReport/GameReports.vue";
+import PitchReports from "@/components/pitch/PitchReports.vue";
 import {
   completeReportDEOToReport,
   extractGameReportsFromCompleteReportDEO,

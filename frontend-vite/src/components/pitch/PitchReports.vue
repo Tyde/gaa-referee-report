@@ -3,7 +3,7 @@
 import type {Pitch, Report} from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {onMounted, ref} from "vue";
-import SinglePitchReport from "@/components/SinglePitchReport.vue";
+import SinglePitchReport from "@/components/pitch/SinglePitchReport.vue";
 
 const props = defineProps<{
   modelValue: Array<Pitch>,

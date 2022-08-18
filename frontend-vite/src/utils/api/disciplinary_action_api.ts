@@ -20,7 +20,6 @@ export function  checkActionReadyForUpload(dAction: DisciplinaryAction) {
     return dAction.rule != undefined &&
         (dAction.firstName != "" ||
             dAction.lastName != "") &&
-        dAction.details != "" &&
         dAction.number != undefined
 }
 
@@ -37,7 +36,7 @@ export async function uploadDisciplinaryAction(action: DisciplinaryAction, gameR
                 "firstName": action.firstName,
                 "lastName": action.lastName,
                 "number": action.number,
-                "details": action.details,
+                "details": action.details || "",
                 "rule": action.rule?.id,
                 "game": gameReportId
             })

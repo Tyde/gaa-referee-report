@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import type {Team} from "@/types";
-import TeamSelectField from "@/components/TeamSelectField.vue";
+import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import {allTeams} from "@/utils/api/teams_api";
 
 const emit = defineEmits(['submit-teams'])

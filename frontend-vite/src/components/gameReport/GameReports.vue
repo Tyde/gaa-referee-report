@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import SingleGameReport from "@/components/SingleGameReport.vue";
+import SingleGameReport from "@/components/gameReport/SingleGameReport.vue";
 import type {ExtraTimeOption, GameReport, GameType, Report, Rule, Team} from "@/types";
 import {computed, onBeforeMount, onMounted, onUpdated, ref, watch} from "vue";
 import { DateTime } from "luxon";

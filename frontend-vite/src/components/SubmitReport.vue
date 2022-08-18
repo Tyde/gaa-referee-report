@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import type {DatabaseTournament, GameReport, Pitch, Report} from "@/types";
+import type {DatabaseTournament, DisciplinaryAction, GameReport, Injury, Pitch, Report} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
 import {DateTime} from "luxon";
 import {uploadPitch} from "@/utils/api/pitch_api";
@@ -37,6 +37,99 @@ enum GameReportIssue {
   DisciplinaryActionsIncomplete,
 }
 
+enum DisciplinaryActionIssue {
+  NoRule,
+  NoName,
+  NoNumber,
+  NoDetails
+}
+
+class DisciplinaryActionIssues {
+  issues: Array<DisciplinaryActionIssue>
+  action: DisciplinaryAction
+
+  constructor(issues: Array<DisciplinaryActionIssue>, action: DisciplinaryAction) {
+    this.issues = issues
+    this.action = action
+  }
+}
+
+class InjuriesIssues {
+  issues: Array<InjuryIssue>
+  action: Injury
+
+  constructor(issues: Array<InjuryIssue>, action: Injury) {
+    this.issues = issues
+    this.action = action
+  }
+}
+
+class GameReportIssues {
+  issues: Array<GameReportIssue> = []
+  disciplinaryActionIssues = new Array<DisciplinaryActionIssues>()
+  injuriesIssues = new Array<InjuriesIssues>()
+  gameReport: GameReport
+
+  constructor(gameReport: GameReport, issues: Array<GameReportIssue>, disciplinaryActionIssues: Array<DisciplinaryActionIssues>, injuriesIssues: Array<InjuriesIssues>) {
+    this.gameReport = gameReport
+    this.issues = issues
+    this.disciplinaryActionIssues = disciplinaryActionIssues
+    this.injuriesIssues = injuriesIssues
+  }
+}
+
+enum InjuryIssue {
+  NoName,
+  NoDetails
+}
+
+
+function disciplinaryActionIssuesForGameReport(gameReport: GameReport): Array<DisciplinaryActionIssues> {
+  return gameReport.teamAReport.disciplinaryActions.concat(
+      gameReport.teamBReport.disciplinaryActions
+  ).map((disciplinaryAction) => {
+    let issues: Array<DisciplinaryActionIssue> = []
+    let fullName = disciplinaryAction.firstName + " " + disciplinaryAction.lastName
+    if (!disciplinaryActionIsBlank(disciplinaryAction)) {
+      if (disciplinaryAction.details.trim().length == 0) {
+        issues.push(DisciplinaryActionIssue.NoDetails)
+      }
+      if (fullName.trim().length == 0) {
+        issues.push(DisciplinaryActionIssue.NoName)
+      }
+      if (disciplinaryAction.number === undefined) {
+        issues.push(DisciplinaryActionIssue.NoNumber)
+      }
+      if (disciplinaryAction.rule === undefined) {
+        issues.push(DisciplinaryActionIssue.NoRule)
+      }
+      return new DisciplinaryActionIssues(issues, disciplinaryAction)
+    } else {
+      return undefined
+    }
+  }).filter((dai): dai is DisciplinaryActionIssues => !!dai)
+}
+
+function injuryIssuesForGameReport(gameReport: GameReport): Array<InjuriesIssues> {
+  return gameReport.teamAReport.injuries.concat(
+      gameReport.teamBReport.injuries
+  ).map((injury) => {
+    if (!injuryIsBlank(injury)) {
+      let fullName = injury.firstName + " " + injury.lastName
+      let issues: Array<InjuryIssue> = []
+      if (fullName.trim().length == 0) {
+        issues.push(InjuryIssue.NoName)
+      }
+      if (injury.details.trim().length == 0) {
+        issues.push(InjuryIssue.NoDetails)
+      }
+      return new InjuriesIssues(issues, injury)
+    } else {
+      return undefined
+    }
+  }).filter((ii): ii is InjuriesIssues => !!ii)
+}
+
 const gameReportIssues = computed(() => {
   return props.gameReports.map((gameReport) => {
     let issues: Array<GameReportIssue> = []
@@ -61,39 +154,14 @@ const gameReportIssues = computed(() => {
         (gameReport.teamBReport?.points || 0) == 0) {
       issues.push(GameReportIssue.NoScores)
     }
-    gameReport.teamAReport.injuries.concat(
-        gameReport.teamBReport.injuries
-    ).map((injury) => {
-      if (!injuryIsBlank(injury)) {
-        let fullName = injury.firstName + " " + injury.lastName
-        if (injury.details.trim().length == 0 ||
-            fullName.trim().length == 0) {
-          console.log("incomplete injury:")
-          console.log(injury)
-          issues.push(GameReportIssue.InjuriesIncomplete)
-        }
-      }
-    })
-    gameReport.teamAReport.disciplinaryActions.concat(
-        gameReport.teamBReport.disciplinaryActions
-    ).map((disciplinaryAction) => {
-      let fullName = disciplinaryAction.firstName + " " + disciplinaryAction.lastName
-      if (!disciplinaryActionIsBlank(disciplinaryAction)) {
-        if (disciplinaryAction.details.trim().length == 0 ||
-            fullName.trim().length == 0 ||
-            disciplinaryAction.number === undefined ||
-            disciplinaryAction.rule === undefined
-        ) {
-          console.log("incomplete disciplinary action:")
-          console.log(disciplinaryAction)
-          issues.push(GameReportIssue.DisciplinaryActionsIncomplete)
-        }
-      }
-    })
+    let daIssues = disciplinaryActionIssuesForGameReport(gameReport)
+    let inIssues = injuryIssuesForGameReport(gameReport)
 
-    console.log(issues)
-    return ([gameReport, issues] as [GameReport, Array<GameReportIssue>])
-  }).filter(([gameReport, issues]) => issues.length > 0)
+
+    return new GameReportIssues(gameReport, issues, daIssues, inIssues)
+  }).filter((gris) => (gris.issues.length +
+      gris.injuriesIssues.length +
+      gris.disciplinaryActionIssues.length) > 0)
 })
 
 enum PitchReportIssue {
@@ -134,8 +202,8 @@ const pitchReportIssues = computed(() => {
 })
 
 const reportReadyForUpload = computed(() => {
-  return gameReportIssues.value.filter(([gameReport, issues]) =>
-          gameReportIssuesAreSerious(issues)
+  return gameReportIssues.value.filter((gris) =>
+          gameReportIssuesAreSerious(gris)
       ).length == 0 &&
       pitchReportIssues.value.length == 0 &&
       tournamentIssues.value.trim().length == 0
@@ -160,10 +228,11 @@ async function uploadAllData() {
   isUploadingToServer.value = false
   uploadComplete.value = true
 }
+
 const debouncedUpload = debounce(() => {
   updateReportAdditionalInformation(props.report)
 }, 2000)
-watch(() => props.report.additionalInformation,() => {
+watch(() => props.report.additionalInformation, () => {
   debouncedUpload()
 
 })
@@ -175,11 +244,16 @@ onMounted(() => {
 })
 
 function submitReport() {
-    console.log("submit report")
+  console.log("submit report")
 }
 
-function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
-  return !(issues.includes(GameReportIssue.NoScores) && issues.length == 1)
+function gameReportIssuesAreSerious(gris: GameReportIssues) {
+  return !(
+      gris.issues.includes(GameReportIssue.NoScores) &&
+      gris.issues.length == 1 &&
+      gris.injuriesIssues.length == 0 &&
+      gris.disciplinaryActionIssues.length == 0
+  )
 }
 </script>
 
@@ -199,22 +273,22 @@ function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
       </div>
 
       <div
-          v-for="grTuple in gameReportIssues"
+          v-for="gris in gameReportIssues"
           :class="{
-            'bg-red-300': gameReportIssuesAreSerious(grTuple[1]),
-            'bg-amber-200': !gameReportIssuesAreSerious(grTuple[1]),
+            'bg-red-300': gameReportIssuesAreSerious(gris),
+            'bg-amber-200': !gameReportIssuesAreSerious(gris),
           }"
 
           class="rounded-lg p-4 m-4">
       <span
-          v-if="grTuple[0].startTime">{{ grTuple[0].startTime.toLocaleString(DateTime.TIME_24_SIMPLE) }} -&nbsp;</span>
-        <span v-if="grTuple[0].teamAReport.team">{{ grTuple[0].teamAReport.team.name }}</span>
+          v-if="gris.gameReport.startTime">{{ gris.gameReport.startTime.toLocaleString(DateTime.TIME_24_SIMPLE) }} -&nbsp;</span>
+        <span v-if="gris.gameReport.teamAReport.team">{{ gris.gameReport.teamAReport.team.name }}</span>
         <span v-else>...</span>&nbsp;vs.&nbsp;
-        <span v-if="grTuple[0].teamBReport.team">{{ grTuple[0].teamBReport.team.name }}</span>
+        <span v-if="gris.gameReport.teamBReport.team">{{ gris.gameReport.teamBReport.team.name }}</span>
         <span v-else>...</span>
         &nbsp;has the following issues:
         <ul>
-          <li v-for="issue in grTuple[1]">
+          <li v-for="issue in gris.issues">
             <template v-if="issue==GameReportIssue.NoGameType">
               No game type selected
             </template>
@@ -233,13 +307,33 @@ function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
             <template v-else-if="issue==GameReportIssue.NoScores">
               No scores entered - This might be correct if the game was a draw.
             </template>
-            <template v-else-if="issue==GameReportIssue.InjuriesIncomplete">
-              One or more injuries are incomplete
-            </template>
-            <template v-else-if="issue==GameReportIssue.DisciplinaryActionsIncomplete">
-              One or more disciplinary actions are incomplete
-            </template>
           </li>
+          <template v-for="inIssues in gris.injuriesIssues">
+            <li v-for="issue in inIssues.issues">
+              <template v-if="issue==InjuryIssue.NoDetails">
+                No details entered for Injury of {{ inIssues.action.firstName}} {{inIssues.action.lastName }}
+              </template>
+              <template v-if="issue==InjuryIssue.NoName">
+                Missing name for Injury with details: {{ inIssues.action.details }}
+              </template>
+            </li>
+          </template>
+          <template v-for="disIssues in gris.disciplinaryActionIssues">
+            <li v-for="issue in disIssues.issues">
+              <template v-if="issue==DisciplinaryActionIssue.NoName">
+                Missing name for disciplinary action with details: {{ disIssues.action.details }}
+              </template>
+              <template v-if="issue==DisciplinaryActionIssue.NoDetails">
+                No details entered for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
+              </template>
+              <template v-if="issue==DisciplinaryActionIssue.NoNumber">
+                Missing number for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
+              </template>
+              <template v-if="issue==DisciplinaryActionIssue.NoRule">
+                Missing rule for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
+              </template>
+            </li>
+          </template>
         </ul>
       </div>
 
@@ -275,10 +369,10 @@ function gameReportIssuesAreSerious(issues: Array<GameReportIssue>) {
         <Textarea
             id="additionalInfo"
             v-model="report.additionalInformation"
-            rows="4"
-            cols="40"
             class="w-280"
+            cols="40"
             placeholder=""
+            rows="4"
         />
       </div>
       <Button

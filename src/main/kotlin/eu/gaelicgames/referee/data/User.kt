@@ -7,12 +7,17 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.javatime.datetime
 import java.util.*
+enum class UserRole {
+    ADMIN,
+    REFEREE
+}
 
 object Users : LongIdTable() {
     val firstName = varchar("first_name",60)
     val lastName = varchar("last_name",60)
     val password = binary("password", 60)
     val mail = varchar("mail", 100)
+    val role = enumeration("role", UserRole::class)
 }
 
 class User(id: EntityID<Long>) : LongEntity(id) {
@@ -21,6 +26,7 @@ class User(id: EntityID<Long>) : LongEntity(id) {
     var lastName by Users.lastName
     var password by Users.password
     var mail by Users.mail
+    var role by Users.role
 }
 
 object Sessions : LongIdTable() {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {onMounted, onUpdated, ref, watch} from "vue";
 import {fromDateToDateString} from "@/utils/gobal_functions";
-import CreateTournament from "@/components/CreateTournament.vue";
+import CreateTournament from "@/components/tournament/CreateTournament.vue";
 import type {DatabaseTournament, Tournament} from "@/types";
 import {loadTournamentsOnDate} from "@/utils/api/tournament_api";
 import {DateTime} from "luxon";

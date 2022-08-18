@@ -2,6 +2,7 @@ package eu.gaelicgames.referee
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import eu.gaelicgames.referee.data.User
+import eu.gaelicgames.referee.data.UserRole
 import eu.gaelicgames.referee.data.Users
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -36,6 +37,7 @@ fun main() {
                 this.lastName = lastName
                 this.mail = mail
                 this.password = BCrypt.withDefaults().hash(12, password.toCharArray())
+                this.role = UserRole.ADMIN
             }
             println("Saved")
         }

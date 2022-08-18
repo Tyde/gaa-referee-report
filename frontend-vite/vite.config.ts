@@ -17,7 +17,8 @@ export default defineConfig({
     outDir: '../src/main/resources/static',
     rollupOptions: {
       input: {
-        editReport: resolve(__dirname, 'edit_report.html')
+        editReport: resolve(__dirname, 'edit_report.html'),
+        admin: resolve(__dirname, 'admin.html')
       },
     },
     emptyOutDir: true,

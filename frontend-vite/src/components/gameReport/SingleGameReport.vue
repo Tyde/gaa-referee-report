@@ -2,11 +2,11 @@
 
 import {onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
 import type {ExtraTimeOption, GameReport, GameType, Rule} from "@/types";
-import SingleGameReportSingleTeam from "@/components/SingleGameReportSingleTeam.vue";
+import SingleGameReportSingleTeam from "@/components/gameReport/SingleGameReportSingleTeam.vue";
 import {DateTime} from "luxon";
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
 import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
-import GameTypeEditor from "@/components/GameTypeEditor.vue";
+import GameTypeEditor from "@/components/gameReport/GameTypeEditor.vue";
 
 
 const props = defineProps<{

@@ -15,7 +15,7 @@ export function injuryDEOToInjury(injuryDEO:InjuryDEO, team:Team):Injury {
         id: injuryDEO.id,
         firstName: injuryDEO.firstName,
         lastName: injuryDEO.lastName,
-        details: injuryDEO.details,
+        details: injuryDEO.details || "",
         team: team
     } as Injury
 }
@@ -25,8 +25,7 @@ export function injuryDEOToInjury(injuryDEO:InjuryDEO, team:Team):Injury {
 function checkInjuryReadyForUpload(injury: Injury) {
     return injury.team != undefined &&
         (injury.firstName != "" ||
-            injury.lastName != "") &&
-        injury.details != "";
+            injury.lastName != "");
 }
 
 export async function uploadInjury(injury: Injury, gameReportId: number):Promise<number> {

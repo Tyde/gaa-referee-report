@@ -2,14 +2,14 @@ package eu.gaelicgames.referee.plugins
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import eu.gaelicgames.referee.data.*
-import io.ktor.server.auth.*
-import io.ktor.util.*
-import io.ktor.server.sessions.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
+import io.ktor.util.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.collections.first
+import kotlin.collections.set
 
 fun Application.configureSecurity() {
 
@@ -31,14 +31,14 @@ fun Application.configureSecurity() {
                 val user = transaction {
                     val foundUser = User.find { Users.mail eq credentials.name }
                     var loginUser: User? = null
-                    for(user in foundUser) {
-                        if(BCrypt.verifyer().verify(pw.toCharArray(),user.password).verified) {
+                    for (user in foundUser) {
+                        if (BCrypt.verifyer().verify(pw.toCharArray(), user.password).verified) {
                             loginUser = user
                         }
                     }
                     loginUser
                 }
-                if(user!=null) {
+                if (user != null) {
                     UserPrincipal(user)
                 } else {
                     null
@@ -49,7 +49,7 @@ fun Application.configureSecurity() {
             validate { session ->
                 transaction {
                     val foundSessions = Session.find { eu.gaelicgames.referee.data.Sessions.uuid eq session.uuid }
-                    if(!foundSessions.empty()) {
+                    if (!foundSessions.empty()) {
                         val foundSession = foundSessions.first()
                         UserPrincipal(foundSession.user)
                     } else {
@@ -62,5 +62,27 @@ fun Application.configureSecurity() {
                 call.respondRedirect("/login")
             }
         }
+        session<UserSession>("admin-session") {
+            validate { session ->
+                transaction {
+                    val foundSessions = Session.find { eu.gaelicgames.referee.data.Sessions.uuid eq session.uuid }
+                    if (!foundSessions.empty()) {
+                        val foundSession = foundSessions.first()
+                        if (foundSession.user.role == UserRole.ADMIN) {
+                            UserPrincipal(foundSession.user)
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+            }
+            challenge {
+                println("Challenge")
+                call.respondRedirect("/login")
+            }
+        }
     }
 }
+

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import TeamSelectField from "@/components/TeamSelectField.vue";
+import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types";
 
 const props = defineProps<{

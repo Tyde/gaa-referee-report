@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import {computed, onMounted, ref} from "vue";
 import type {Team} from "@/types";
-import CreateTeam from "@/components/CreateTeam.vue";
-import CreateAmalgamation from "@/components/CreateAmalgamation.vue";
+import CreateTeam from "@/components/team/CreateTeam.vue";
+import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
 import Card from 'primevue/card';
 import {allTeams} from "@/utils/api/teams_api";
 
