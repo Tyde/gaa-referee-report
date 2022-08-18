@@ -37,7 +37,6 @@ function removeTeam(team:Team) {
 onMounted(() => {
   teams_added.value.length = 0
   teams_added.value = teams_added.value.concat(props.alreadySelectedTeams)
-  console.log("onMount")
 })
 </script>
 

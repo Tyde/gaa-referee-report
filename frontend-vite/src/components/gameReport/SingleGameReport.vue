@@ -56,7 +56,6 @@ watch(props.modelValue, (newVal, odlVal) => {
 
 
 watch(()=>props.modelValue,(value,oldValue)=> {
-  console.log("Switched report, oldReport is ")
   sendGameReport(oldValue)
 })
 onBeforeUnmount(() => {
@@ -66,7 +65,6 @@ onBeforeUnmount(() => {
 
 onMounted(() => {
 
-  console.log(props.modelValue)
   //updateInternalDateStart()
 })
 </script>

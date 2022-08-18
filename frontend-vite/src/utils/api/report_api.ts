@@ -30,10 +30,8 @@ export const CompleteReportDEO = z.object({
 export type CompleteReportDEO = z.infer<typeof CompleteReportDEO>;
 
 export function completeReportDEOToReport(cReport: CompleteReportDEO, availableCodes: Array<GameCode>): Report {
-    console.log("completeReportDEOToReport");
-    console.log(cReport)
+
     let code = availableCodes.find(code => code.id === cReport.code)
-    console.log("code: ", code)
     if (code != undefined) {
         return {
             tournament: cReport.tournament,

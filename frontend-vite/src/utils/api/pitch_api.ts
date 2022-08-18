@@ -42,9 +42,7 @@ export async function getPitchVariables():Promise<PitchVariables> {
     let json = await res.json()
     let parseResult = PitchVariablesDEO.safeParse(json)
     if (parseResult.success) {
-        console.log("Parsed pitch variables")
         let variables = pitchVariablesDEOtoPitchVariables(parseResult.data)
-        console.log(variables)
         return variables
     } else {
         const errorParse = ApiError.safeParse(json)
@@ -86,8 +84,6 @@ export function pitchDEOtoPitch(
 
     let surfaceValue = pitchVariables.surfaces.find(p => p.id == pitchDEO.surface)
     let widthValue = pitchVariables.widths.find(p => p.id == pitchDEO.width)
-    console.log("sdwd width")
-    console.log(widthValue)
     let lengthValue = pitchVariables.lengths.find(p => p.id == pitchDEO.length)
     let penaltyValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.penaltySquareMarkings)
     let smallSquareValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.smallSquareMarkings)
@@ -132,7 +128,6 @@ export async function uploadPitch(pitch:Pitch) {
             goalDimensions: pitch.goalDimensions?.id,
             additionalInformation: pitch.additionalInformation
         }
-        console.log(data)
         let requestOpions =  {
             method: "POST",
             headers: {
@@ -151,8 +146,6 @@ export async function uploadPitch(pitch:Pitch) {
 
         let parseResult = PitchDEO.safeParse(res)
         if (parseResult.success) {
-            console.log("Parsed pitch")
-            console.log(parseResult.data)
             if(pitch.id == undefined && parseResult.data.id) {
                 pitch.id = parseResult.data.id
             }

@@ -38,8 +38,6 @@ export function gameReportDEOToGameReport(
     rules: Array<Rule>
 ): GameReport | undefined {
     let gameReportDEO = cGameReportDEO.gameReport;
-    console.log("This is the gamerprt")
-    console.log(gameReportDEO)
     let gameTypeVal = gameTypes.find(gameType => gameType.id === gameReportDEO.gameType);
     let extraTimeVal = extraTimeOptions.find(extraTime => extraTime.id === gameReportDEO.extraTime);
     let teamAVal = report.selectedTeams.find(team => team.id === gameReportDEO.teamA);

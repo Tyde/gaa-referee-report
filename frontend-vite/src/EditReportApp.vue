@@ -16,6 +16,7 @@ import TournamentSelector from "./components/tournament/TournamentSelector.vue";
 import GameReports from "@/components/gameReport/GameReports.vue";
 import PitchReports from "@/components/pitch/PitchReports.vue";
 import {
+  CompleteReportDEO,
   completeReportDEOToReport,
   extractGameReportsFromCompleteReportDEO,
   loadReport,
@@ -161,9 +162,8 @@ async function updateReport() {
 async function loadAndHandleReport(id: number) {
   isLoading.value = true
   try {
-    const report = await loadReport(id)
+    const report:CompleteReportDEO = await loadReport(id)
     await waitForAllVariablesPresent()
-    console.log(report)
     currentReport.value = completeReportDEOToReport(report, codes.value)
     allGameReports.value = extractGameReportsFromCompleteReportDEO(
         report,
@@ -172,11 +172,9 @@ async function loadAndHandleReport(id: number) {
         extraTimeOptions.value,
         rules.value
     )
-
     allPitchReports.value = report.pitches?.map(pitch => {
+
       let pdtp = pitchDEOtoPitch(pitch, currentReport.value, pitchVariables.value)
-      console.log(`Pitch now id: ${pitch.id}`)
-      console.log(pdtp)
       return pdtp
 
     }) || []
@@ -247,7 +245,6 @@ onMounted(() => {
 
 
   }
-  console.log()
 
 })
 </script>
