@@ -186,3 +186,21 @@ data class PitchReportDEO(
         }
     }
 }
+
+@Serializable
+data class DeletePitchReportDEO(
+    val id:Long
+) {
+    fun deleteFromDatabase(): Result<Boolean> {
+        val deleteId = this.id
+        return transaction {
+            val pitch = Pitch.findById(deleteId)
+            if (pitch != null) {
+                pitch.delete()
+                Result.success(true)
+            } else {
+                Result.failure(IllegalArgumentException("Pitch not found"))
+            }
+        }
+    }
+}

@@ -156,3 +156,28 @@ export async function uploadPitch(pitch:Pitch) {
     }
 
 }
+
+export async function deletePitchOnServer(pitch:Pitch):Promise<boolean> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({id: pitch.id})
+    };
+    const response = await fetch("/api/pitch/delete", requestOptions)
+    const data = await response.json()
+    const parseResult = z.object({
+        id: z.number(),
+    }).safeParse(data)
+    if (parseResult.success) {
+        return true
+    } else {
+        const epR = ApiError.safeParse(data)
+        if (epR.success) {
+            return Promise.reject(epR.data.message)
+        } else {
+            return Promise.reject("Unknown error")
+        }
+    }
+}

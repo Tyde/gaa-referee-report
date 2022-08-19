@@ -20,6 +20,7 @@ import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
 // @ts-ignore
 import { Vue3Mq } from "vue3-mq";
+import Tooltip from "primevue/tooltip";
 
 const app = createApp(App);
 app.use(PrimeVue)
@@ -36,5 +37,6 @@ app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)
 app.component('Textarea', Textarea)
+app.directive('tooltip', Tooltip)
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')

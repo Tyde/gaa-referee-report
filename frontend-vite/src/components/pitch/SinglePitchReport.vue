@@ -12,6 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Pitch): void
+  (e: 'deleteThisReport', value: Pitch): void
 }>()
 
 watch(() => props.modelValue, (value, oldValue) => {
@@ -222,6 +223,12 @@ onBeforeUnmount(() => {
           />
         </div>
 
+      </div>
+      <div class="flex-row flex justify-center mt-4">
+        <Button
+            @click="emit('deleteThisReport',props.modelValue)"
+            class="p-button-danger"
+          >Delete this pitch report</Button>
       </div>
     </div>
   </div>

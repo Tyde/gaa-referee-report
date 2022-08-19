@@ -239,6 +239,22 @@ fun Route.refereeApiRouting() {
     post<Api.Pitch.Update> {
         handlePitchReportInput(doUpdate = true)
     }
+    post<Api.Pitch.Delete> {
+        val pitchReport = call.receiveOrNull<DeletePitchReportDEO>()
+        if(pitchReport!= null) {
+            val res = pitchReport.deleteFromDatabase()
+            if(res.isSuccess) {
+                call.respond(pitchReport)
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.DELETE_FAILED,
+                        res.exceptionOrNull()?.message ?: "Could not delete pitch report"
+                    )
+                )
+            }
+        }
+    }
 
     get<Api.Rules> {
         val rules = transaction {
