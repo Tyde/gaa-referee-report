@@ -31,7 +31,6 @@ fun main() {
             val mail = readLine()!!
             println("Password:")
             val password = readLine()!!
-
             User.new {
                 this.firstName = firstName
                 this.lastName = lastName
@@ -45,7 +44,7 @@ fun main() {
 
 
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0", watchPaths = listOf("gaa-referee-report")) {
         configureTemplating()
         configureSerialization()
         configureRouting()

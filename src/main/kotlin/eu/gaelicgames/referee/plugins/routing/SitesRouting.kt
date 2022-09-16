@@ -119,7 +119,7 @@ fun Route.sites() {
         }
     }
     authenticate ("admin-session") {
-        get("/admin") {
+        get("/admin/{...}") {
             val user = call.principal<UserPrincipal>()?.user
             val resource =
                 this.javaClass.classLoader.getResource("static/admin.html")?.toURI()

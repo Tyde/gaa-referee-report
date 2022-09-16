@@ -18,10 +18,24 @@ import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
+import {createRouter,createWebHashHistory} from "vue-router";
+
+import {createPinia} from "pinia";
+import {routes} from "@/router/admin_router";
+import MegaMenu from "primevue/megamenu";
+import Menubar from "primevue/menubar";
+
+const router = createRouter({
+    history: createWebHashHistory(),
+    routes: routes
+})
 
 
+const pinia = createPinia()
 const app = createApp(App);
 app.use(PrimeVue)
+app.use(pinia)
+app.use(router)
 app.component('Card',Card)
 app.component('Button',Button)
 app.component('Listbox',Listbox)
@@ -34,5 +48,8 @@ app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)
 app.component('Textarea', Textarea)
+app.component('MegaMenu', MegaMenu)
+app.component('Menubar', Menubar)
+
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')

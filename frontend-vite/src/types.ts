@@ -166,6 +166,13 @@ export enum PitchPropertyType {
     goalPosts,
     goalDimensions,
 }
+const PitchPropertyTypeEnum = z.nativeEnum(PitchPropertyType)
+
+export const PitchPropertyDEO = z.object({
+    id: z.number().nullable().optional(),
+    name: z.string(),
+    type: PitchPropertyTypeEnum
+})
 
 export interface PitchProperty {
     id: number,
