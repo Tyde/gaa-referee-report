@@ -53,3 +53,5 @@ Thumbs.db
 hs_err_pid*
 src/main/resources/static
 data.db
+data.db.BAK
+*.db
