@@ -246,6 +246,7 @@ onMounted(() => {
 })
 
 function submitReport() {
+
   console.log("submit report")
 }
 

@@ -194,6 +194,34 @@ fun Route.refereeApiRouting() {
 
     }
 
+    post<Api.Reports.Submit> {
+        val submitReport = call.receiveOrNull<SubmitTournamentDEO>()
+        if (submitReport != null) {
+            val report = submitReport.submitInDatabase()
+            if (report.isSuccess) {
+                call.respond(
+                    SubmitTournamentDEO.fromTournamentReport(
+                        report.getOrThrow()
+                    )
+                )
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        report.exceptionOrNull()?.message?:"Unknown error"
+                    )
+                )
+            }
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    "Could not parse submit input"
+                )
+            )
+        }
+    }
+
     post<Api.GameReports.New> {
         handleGameReportInput(doUpdate = false)
     }

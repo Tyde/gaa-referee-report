@@ -98,7 +98,8 @@ fun Route.sites() {
                 val file = File(resource)
                 call.respondFile(file)
             } else {
-                call.respond(HttpStatusCode.InternalServerError)
+                call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
+
             }
 
         }
@@ -112,6 +113,29 @@ fun Route.sites() {
             if (resource != null && reportExists) {
                 val file = File(resource)
                 call.respondFile(file)
+            } else {
+                call.respond(HttpStatusCode.InternalServerError)
+            }
+
+        }
+
+        get<Report.Show> { show ->
+            val reportExists = transaction {
+                TournamentReport.findById(show.id) != null
+            }
+            val resource =
+                this.javaClass.classLoader.getResource("static/show_report.html")?.toURI()
+            if(resource != null) {
+                if(reportExists) {
+                    val file = File(resource)
+                    call.respondFile(file)
+                } else {
+                    call.respondText(
+                        "Tried to show a report that does not exist",
+                        status = HttpStatusCode.NotFound
+                    )
+                }
+
             } else {
                 call.respond(HttpStatusCode.InternalServerError)
             }

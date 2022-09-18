@@ -18,7 +18,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         editReport: resolve(__dirname, 'edit_report.html'),
-        admin: resolve(__dirname, 'admin.html')
+        admin: resolve(__dirname, 'admin.html'),
+        showReport: resolve(__dirname, 'show_report.html'),
       },
     },
     emptyOutDir: true,

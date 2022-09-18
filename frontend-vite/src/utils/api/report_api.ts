@@ -6,7 +6,7 @@ import {
     InjuryDEO,
     PitchDEO,
     Team, Tournament,
-    Report
+    Report, Referee
 } from "@/types";
 import type {ExtraTimeOption,GameReport, GameType, Rule} from "@/types";
 import type {GameCode } from "@/types";
@@ -25,7 +25,8 @@ export const CompleteReportDEO = z.object({
     submitDate: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
     selectedTeams: Team.array(),
     gameReports: CompleteGameReportDEO.array(),
-    pitches: PitchDEO.array().nullable()
+    pitches: PitchDEO.array().nullable(),
+    referee: Referee
 })
 export type CompleteReportDEO = z.infer<typeof CompleteReportDEO>;
 
@@ -39,6 +40,9 @@ export function completeReportDEOToReport(cReport: CompleteReportDEO, availableC
             gameCode: code,
             id: cReport.id,
             additionalInformation: cReport.additionalInformation,
+            isSubmitted: cReport.isSubmitted,
+            submitDate: cReport.submitDate,
+            referee: cReport.referee
         }
     } else {
         throw new Error("Could not find game code")

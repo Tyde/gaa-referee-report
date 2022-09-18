@@ -39,6 +39,14 @@ export const GameCode = z.object({
 })
 
 export type GameCode = z.infer<typeof GameCode>
+export type Report = z.infer<typeof Report>
+
+export const Referee = z.object({
+    id: z.number(),
+    firstName: z.string(),
+    lastName: z.string(),
+    mail: z.string(),
+})
 
 export const Report = z.object({
     id: number().optional().nullable(),
@@ -46,10 +54,20 @@ export const Report = z.object({
     selectedTeams: Team.array(),
     gameCode: GameCode,
     additionalInformation: z.string().optional().nullable(),
+    isSubmitted: z.boolean().optional().nullable(),
+    submitDate: z.string().optional().nullable().transform((value) => {
+        if(value){
+            return DateTime.fromISO(value)
+        } else {
+            return null
+        }
+    }),
+    referee: Referee
 })
 
-export type Report = z.infer<typeof Report>
 
+
+export type Referee = z.infer<typeof Referee>
 
 export const GameType =  z.object({
     id: z.number(),

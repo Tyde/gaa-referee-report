@@ -103,7 +103,10 @@ data class RuleDEO(
 
 @Serializable
 data class NewTournamentReportDEO(
-    val id: Long? = null, val tournament: Long, val selectedTeams: List<Long>, val gameCode: Long
+    val id: Long? = null,
+    val tournament: Long,
+    val selectedTeams: List<Long>,
+    val gameCode: Long
 ) {
     companion object {
         fun fromTournamentReport(input: TournamentReport): NewTournamentReportDEO {
@@ -191,6 +194,33 @@ data class NewTournamentReportDEO(
             return Result.failure(
                 IllegalArgumentException("TournamentReport id not found")
             )
+        }
+    }
+}
+
+data class SubmitTournamentDEO(
+    val id:Long
+) {
+    companion object {
+        fun fromTournamentReport(tournamentReport: TournamentReport) {
+            return transaction {
+                SubmitTournamentDEO(
+                    tournamentReport.id.value
+                )
+            }
+        }
+    }
+    fun submitInDatabase():Result<TournamentReport> {
+        val stdeo = this
+        return transaction {
+            val report = TournamentReport.findById(stdeo.id)
+            if (report != null) {
+                report.isSubmitted = true
+                report.submitDate = LocalDateTime.now()
+                Result.success(report)
+            } else {
+                Result.failure(IllegalArgumentException("TournamentReport not found"))
+            }
         }
     }
 }

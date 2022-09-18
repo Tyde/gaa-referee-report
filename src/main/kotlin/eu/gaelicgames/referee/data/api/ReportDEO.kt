@@ -16,7 +16,8 @@ data class CompleteReportDEO(
     @Serializable(with = LocalDateTimeSerializer::class) val submitDate: LocalDateTime?,
     val selectedTeams: List<TeamDEO>,
     val gameReports: List<CompleteGameReportDEO>,
-    val pitches: List<PitchDEO>
+    val pitches: List<PitchDEO>,
+    val referee: RefereeDEO,
 ) {
     companion object {
         fun fromTournamentReport(tournamentReport: TournamentReport): CompleteReportDEO {
@@ -36,9 +37,29 @@ data class CompleteReportDEO(
                     },
                     pitches = tournamentReport.pitches.map {
                         PitchDEO.fromPitch(it)
-                    }
+                    },
+                    referee = RefereeDEO.fromReferee(tournamentReport.referee)
                 )
             }
+        }
+    }
+}
+
+@Serializable
+data class RefereeDEO(
+    val id: Long,
+    val firstName: String,
+    val lastName: String,
+    val mail: String,
+) {
+    companion object {
+        fun fromReferee(referee: User): RefereeDEO {
+            return RefereeDEO(
+                id = referee.id.value,
+                firstName = referee.firstName,
+                lastName = referee.lastName,
+                mail = referee.mail,
+            )
         }
     }
 }

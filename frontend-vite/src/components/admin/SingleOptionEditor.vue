@@ -37,7 +37,8 @@ async function showInputFor(option:PitchProperty) {
 }
 
 async function storeOption(option:PitchProperty) {
-
+  store.updatePitchVariable(option, props.type)
+  editingOption.value = undefined
 }
 
 </script>
