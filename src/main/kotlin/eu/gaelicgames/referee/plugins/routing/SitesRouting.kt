@@ -42,7 +42,10 @@ fun Route.sites() {
             }
         }
     }
-
+    static("/static") {
+        staticBasePackage = "files_static"
+        resources(".")
+    }
     authenticate("auth-session") {
         static("assets") {
             staticBasePackage = "static/assets"
@@ -71,7 +74,6 @@ fun Route.sites() {
                             val tournament = Tournament.wrapRow(row)
                             TournamentReport.wrapRow(row) to tournament
                         }
-
 
                     FreeMarkerContent(
                         "main_page.ftl",
