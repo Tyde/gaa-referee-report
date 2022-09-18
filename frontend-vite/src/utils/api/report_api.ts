@@ -156,3 +156,34 @@ export async function updateReportAdditionalInformation(report:Report):Promise<n
         return Promise.reject("Server did not return a valid response")
     }
 }
+
+
+const SubmitReportDEO = z.object({
+    id: z.number(),
+})
+
+export async function submitReportToServer(report:Report):Promise<number> {
+    let submitReportObj = SubmitReportDEO.parse({
+        id: report.id
+    })
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(submitReportObj)
+    };
+    let address = ""
+
+    address = "/api/report/submit"
+
+    const response = await fetch(address, requestOptions)
+    const dbReport = await response.json()
+    const parseResponse = SubmitReportDEO.safeParse(dbReport)
+    if(parseResponse.success) {
+        report.id = parseResponse.data.id
+        return (parseResponse.data.id || -1)
+    } else {
+        return Promise.reject("Server did not return a valid report")
+    }
+}

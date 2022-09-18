@@ -199,10 +199,13 @@ fun Route.refereeApiRouting() {
         if (submitReport != null) {
             val report = submitReport.submitInDatabase()
             if (report.isSuccess) {
+
+
+                val response = SubmitTournamentDEO.fromTournamentReport(
+                    report.getOrThrow()
+                )
                 call.respond(
-                    SubmitTournamentDEO.fromTournamentReport(
-                        report.getOrThrow()
-                    )
+                    response
                 )
             } else {
                 call.respond(

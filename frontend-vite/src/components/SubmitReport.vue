@@ -7,7 +7,7 @@ import {uploadPitch} from "@/utils/api/pitch_api";
 import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
 import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
 import {injuryIsBlank} from "@/utils/api/injuries_api";
-import {updateReportAdditionalInformation} from "@/utils/api/report_api";
+import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
 
 const props = defineProps<{
@@ -245,8 +245,14 @@ onMounted(() => {
   }
 })
 
-function submitReport() {
-
+async function submitReport() {
+  if (uploadComplete.value) {
+    submitReportToServer(props.report).then(() => {
+      location.href= "/report/show/" + props.report.id
+    }).catch((e) => {
+      console.log(e)
+    })
+  }
   console.log("submit report")
 }
 

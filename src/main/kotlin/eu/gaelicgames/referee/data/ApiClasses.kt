@@ -197,12 +197,12 @@ data class NewTournamentReportDEO(
         }
     }
 }
-
+@Serializable
 data class SubmitTournamentDEO(
     val id:Long
 ) {
     companion object {
-        fun fromTournamentReport(tournamentReport: TournamentReport) {
+        fun fromTournamentReport(tournamentReport: TournamentReport):SubmitTournamentDEO {
             return transaction {
                 SubmitTournamentDEO(
                     tournamentReport.id.value
