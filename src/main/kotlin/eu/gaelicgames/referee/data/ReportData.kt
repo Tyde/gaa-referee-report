@@ -8,9 +8,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.SizedIterable
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -83,11 +82,30 @@ class TournamentReport(id:EntityID<Long>):LongEntity(id) {
     val selectedTeams by Team via TournamentReportTeamPreSelections
     val gameReports by GameReport referrersOn GameReports.report
     val pitches by Pitch referrersOn Pitches.report
+
+    fun deleteComplete() {
+        val report = this
+        transaction {
+            TournamentReportTeamPreSelections.deleteWhere {
+                TournamentReportTeamPreSelections.report eq report.id
+            }
+            Pitches.deleteWhere {
+                Pitches.report eq report.id
+            }
+            GameReport.find { GameReports.report eq report.id }.forEach {
+                it.deleteComplete()
+            }
+            report.delete()
+        }
+    }
 }
 
 object TournamentReportTeamPreSelections : LongIdTable() {
     val report = reference("report", TournamentReports)
     val team = reference("team", Teams)
+
+
+
 }
 
 class TournamentReportTeamPreSelection(id:EntityID<Long>):LongEntity(id) {
@@ -181,6 +199,19 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
                 (Injuries.game eq this@GameReport.id) and
                         (Injuries.team eq teamB.id)
             }
+        }
+    }
+
+    fun deleteComplete() {
+        val game = this
+        transaction {
+            Injuries.deleteWhere {
+                Injuries.game eq game.id
+            }
+            DisciplinaryActions.deleteWhere {
+                DisciplinaryActions.game eq game.id
+            }
+            game.delete()
         }
     }
 

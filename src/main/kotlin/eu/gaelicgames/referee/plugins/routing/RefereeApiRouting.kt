@@ -130,6 +130,7 @@ fun Route.refereeApiRouting() {
         }
         call.respond(allCodes)
     }
+
     post<Api.Reports.New> {
         val reportDraft = call.receiveOrNull<NewTournamentReportDEO>()
         if (reportDraft != null) {

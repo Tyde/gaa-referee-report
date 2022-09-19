@@ -236,6 +236,9 @@ enum class ApiErrorOptions {
 
     @SerialName("notFound")
     NOT_FOUND,
+
+    @SerialName("notAuthorized")
+    NOT_AUTHORIZED
 }
 
 @Serializable

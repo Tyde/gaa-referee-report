@@ -4,6 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt
 import eu.gaelicgames.referee.data.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
@@ -58,8 +59,15 @@ fun Application.configureSecurity() {
                 }
             }
             challenge {
-                println("Challenge")
-                call.respondRedirect("/login")
+                if(this.call.request.uri.startsWith("/api")) {
+                    //We don't want to redirect when this is an api request. We just throw an api error
+                    call.respond(ApiError(
+                        error = ApiErrorOptions.NOT_AUTHORIZED,
+                        message = "You are not authorized to call this api"
+                    ))
+                } else {
+                    call.respondRedirect("/login")
+                }
             }
         }
         session<UserSession>("admin-session") {
