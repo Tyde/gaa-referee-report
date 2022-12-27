@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.Amalgamation
 import eu.gaelicgames.referee.data.Amalgamations
 import eu.gaelicgames.referee.data.Team
 import eu.gaelicgames.referee.data.TeamDEO
+import eu.gaelicgames.referee.plugins.routing.adminApiRouting
 import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
 import eu.gaelicgames.referee.plugins.routing.sites
 import eu.gaelicgames.referee.resources.Api
@@ -83,6 +84,10 @@ fun Application.configureRouting() {
 
         authenticate("auth-session") {
             refereeApiRouting()
+        }
+
+        authenticate("admin-session") {
+            adminApiRouting()
         }
         get("/*") {
             call.respondText("Catchall")

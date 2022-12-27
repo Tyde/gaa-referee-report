@@ -4,6 +4,7 @@ import {PitchProperty, PitchPropertyType} from "@/types";
 import {useAdminStore} from "@/utils/admin_store";
 import {ComponentPublicInstance, computed, ref, watch} from "vue";
 import InputText from "primevue/inputtext";
+import {useConfirm} from "primevue/useconfirm";
 
 const props = defineProps<{
   type: PitchPropertyType
@@ -11,6 +12,7 @@ const props = defineProps<{
 
 const store = useAdminStore()
 const editingOption = ref<PitchProperty|undefined>()
+const confirm = useConfirm()
 
 const options = computed(() => {
   return store.getVariablesByType(props.type)
@@ -36,6 +38,30 @@ async function showInputFor(option:PitchProperty) {
   }
 }
 
+const dialogOption = computed(() => {
+  return "option_"+props.type
+})
+
+async function deleteOption(option:PitchProperty) {
+  confirm.require({
+    group: dialogOption.value,
+    message: `Are you sure you want to delete this option (${option.name})?`,
+    header: 'Delete Confirmation',
+    icon: 'pi pi-info-circle',
+    acceptClass: 'p-button-danger',
+    accept: () => {
+      //Confirmed delete
+    },
+    reject: () => {
+      //Rejected delete
+
+    }
+
+  })
+}
+
+
+
 async function storeOption(option:PitchProperty) {
   store.updatePitchVariable(option, props.type)
   editingOption.value = undefined
@@ -55,6 +81,7 @@ async function storeOption(option:PitchProperty) {
                 <InputText class="m-1" ref="optionEditInput" v-model="option.name"/>
               </div>
               <div class="p-2">
+
                 <vue-feather type="x" @click="editingOption = undefined"/>
               </div>
             </div>
@@ -65,12 +92,13 @@ async function storeOption(option:PitchProperty) {
           <template v-else>
             {{ option.name }}
             <div class="group-hover:visible invisible float-right">
+              <vue-feather type="trash" @click="deleteOption(option)"/>
               <vue-feather type="edit" @click="showInputFor(option)"/>
             </div>
           </template>
         </div>
       </div>
-
+    <ConfirmDialog :group="dialogOption"></ConfirmDialog>
   </div>
 </template>
 

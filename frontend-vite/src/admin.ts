@@ -15,6 +15,8 @@ import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
 import Dialog from "primevue/dialog";
+import ConfirmDialog from "primevue/confirmdialog";
+import ConfirmationService from 'primevue/confirmationservice';
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
@@ -36,6 +38,7 @@ const app = createApp(App);
 app.use(PrimeVue)
 app.use(pinia)
 app.use(router)
+app.use(ConfirmationService)
 app.component('Card',Card)
 app.component('Button',Button)
 app.component('Listbox',Listbox)
@@ -50,6 +53,7 @@ app.component('Toolbar',Toolbar)
 app.component('Textarea', Textarea)
 app.component('MegaMenu', MegaMenu)
 app.component('Menubar', Menubar)
+app.component('ConfirmDialog', ConfirmDialog)
 
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')

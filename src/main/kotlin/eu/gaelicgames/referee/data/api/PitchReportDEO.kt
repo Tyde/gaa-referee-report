@@ -1,7 +1,19 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.IdTable
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
@@ -30,6 +42,71 @@ data class PitchVariablesDEO(
                     goalPosts = PitchGoalpostsOption.all().map { it.toPitchPropertyDEO() },
                     goalDimensions = PitchGoalDimensionOption.all().map { it.toPitchPropertyDEO() },
                 )
+            }
+        }
+    }
+}
+
+//PitchPropertyType Enum
+enum class PitchPropertyType(val id: Long) {
+    SURFACE(0),
+    LENGTH(1),
+    WIDTH(2),
+    MARKINGS(3),
+    GOALPOSTS(4),
+    GOALDIMENSIONS(5);
+
+    companion object {
+        private val map = values().associateBy(PitchPropertyType::id)
+        fun fromLong(longValue: Long): PitchPropertyType? {
+            return map[longValue]
+        }
+    }
+
+    fun toDBClass() :LongEntityClass<LongEntity> {
+        return when (this) {
+            SURFACE -> PitchSurfaceOption
+            LENGTH -> PitchLengthOption
+            WIDTH -> PitchWidthOption
+            MARKINGS -> PitchMarkingsOption
+            GOALPOSTS -> PitchGoalpostsOption
+            GOALDIMENSIONS -> PitchGoalDimensionOption
+        }
+
+    }
+}
+
+//PitchPropertyType serializer by id
+@Serializer(forClass = PitchPropertyType::class)
+object PitchPropertyTypeSerializer : KSerializer<PitchPropertyType> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PitchPropertyType", PrimitiveKind.LONG)
+
+    override fun deserialize(decoder: Decoder): PitchPropertyType {
+        val id = decoder.decodeLong()
+        return PitchPropertyType.fromLong(id) ?: throw IllegalArgumentException("Unknown PitchPropertyType id: $id")
+    }
+
+    override fun serialize(encoder: Encoder, value: PitchPropertyType) {
+        encoder.encodeLong(value.id)
+    }
+}
+
+@Serializable
+data class PitchVariableUpdateDEO(
+    val id: Long,
+    val name: String,
+    @Serializable(with = PitchPropertyTypeSerializer::class) val type: PitchPropertyType
+) {
+    fun updateInDatabase(): Result<PitchPropertyEntity> {
+        var pvUpdate = this
+        return transaction {
+            val obj = pvUpdate.type.toDBClass()
+                .findById(pvUpdate.id)
+            if (obj is PitchPropertyEntity) {
+                obj.name = pvUpdate.name
+                Result.success(obj)
+            } else {
+                Result.failure(Exception("Could not find Pitch Property"))
             }
         }
     }

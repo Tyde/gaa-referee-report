@@ -1,7 +1,7 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
 import type {PitchVariables} from "@/utils/api/pitch_api";
-import {getPitchVariables} from "@/utils/api/pitch_api";
+import {getPitchVariables, updatePitchPropertyOnServer} from "@/utils/api/pitch_api";
 import type {PitchProperty} from "@/types";
 import {PitchPropertyType} from "@/types";
 
@@ -37,10 +37,11 @@ export const useAdminStore = defineStore('admin', () => {
         return []
     }
 
-    function updatePitchVariable(option: PitchProperty, type: PitchPropertyType) {
+    async function updatePitchVariable(option: PitchProperty, type: PitchPropertyType) {
         let prop = getVariablesByType(type).find(it => it.id === option.id)
         if (prop) {
             prop.name = option.name
+            await updatePitchPropertyOnServer(prop)
         }
     }
 

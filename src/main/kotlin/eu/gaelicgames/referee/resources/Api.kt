@@ -148,4 +148,20 @@ class Api() {
     }
 
 
+    @Serializable
+    @Resource("pitch_property")
+    class PitchProperty(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: PitchProperty)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: PitchProperty)
+
+        @Serializable
+        @Resource("delete")
+        class Delete(val parent: PitchProperty)
+    }
+
 }

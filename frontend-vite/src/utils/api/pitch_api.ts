@@ -1,6 +1,6 @@
 import {z} from "zod";
 import type {Pitch, PitchProperty, Report} from "@/types";
-import {ApiError, PitchPropertyType} from "@/types";
+import {ApiError, PitchPropertyDEO, PitchPropertyType} from "@/types";
 
 const PitchProperyDEO = z.object({
     id: z.number(),
@@ -172,6 +172,58 @@ export async function deletePitchOnServer(pitch:Pitch):Promise<boolean> {
     }).safeParse(data)
     if (parseResult.success) {
         return true
+    } else {
+        const epR = ApiError.safeParse(data)
+        if (epR.success) {
+            return Promise.reject(epR.data.message)
+        } else {
+            return Promise.reject("Unknown error")
+        }
+    }
+}
+
+export async function deletePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<boolean> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({id: pitchProperty.id})
+    };
+    const response = await fetch("/api/pitch_property/delete", requestOptions)
+    const data = await response.json()
+    const parseResult = z.object({
+        id: z.number(),
+    }).safeParse(data)
+    if (parseResult.success) {
+        return true
+    } else {
+        const epR = ApiError.safeParse(data)
+        if (epR.success) {
+            return Promise.reject(epR.data.message)
+        } else {
+            return Promise.reject("Unknown error")
+        }
+    }
+}
+
+export async function updatePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<number> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(pitchProperty)
+    };
+    const response = await fetch("/api/pitch_property/update", requestOptions)
+    const data = await response.json()
+    const parseResult = PitchPropertyDEO.safeParse(data)
+    if (parseResult.success) {
+        if (parseResult.data.id) {
+            return parseResult.data.id
+        } else {
+            return Promise.reject("Server did not respond with id while updating pitch property")
+        }
     } else {
         const epR = ApiError.safeParse(data)
         if (epR.success) {

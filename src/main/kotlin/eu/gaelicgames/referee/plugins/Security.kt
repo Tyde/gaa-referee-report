@@ -91,6 +91,8 @@ fun Application.configureSecurity() {
                 call.respondRedirect("/login")
             }
         }
+
+
     }
 }
 

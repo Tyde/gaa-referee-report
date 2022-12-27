@@ -47,8 +47,9 @@ fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", watchPaths = listOf("gaa-referee-report")) {
         configureTemplating()
         configureSerialization()
-        configureRouting()
         configureSecurity()
+        configureRouting()
+
 
     }.start(wait = true)
 }

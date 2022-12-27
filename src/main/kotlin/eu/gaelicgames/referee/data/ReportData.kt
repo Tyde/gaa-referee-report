@@ -272,17 +272,22 @@ class Injury(id:EntityID<Long>):LongEntity(id) {
     var details by Injuries.details
 }
 
+interface PitchPropertyEntity {
+    var name:String
+    fun toPitchPropertyDEO():PitchPropertyDEO
+}
+
 object PitchSurfaceOptions : LongIdTable() {
     val name = varchar("name",80)
 
 
 }
 
-class PitchSurfaceOption(id:EntityID<Long>):LongEntity(id) {
+class PitchSurfaceOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchSurfaceOption>(PitchSurfaceOptions)
-    var name by PitchSurfaceOptions.name
+    override var name by PitchSurfaceOptions.name
 
-    fun toPitchPropertyDEO():PitchPropertyDEO {
+    override fun toPitchPropertyDEO():PitchPropertyDEO {
         return PitchPropertyDEO(id.value, name)
     }
 }
@@ -291,11 +296,11 @@ object PitchLengthOptions : LongIdTable() {
     val name = varchar("name",80)
 }
 
-class PitchLengthOption(id:EntityID<Long>):LongEntity(id) {
+class PitchLengthOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchLengthOption>(PitchLengthOptions)
-    var name by PitchLengthOptions.name
+    override var name by PitchLengthOptions.name
 
-    fun toPitchPropertyDEO():PitchPropertyDEO {
+    override fun toPitchPropertyDEO():PitchPropertyDEO {
         return PitchPropertyDEO(id.value, name)
     }
 }
@@ -304,11 +309,11 @@ object PitchWidthOptions : LongIdTable() {
     val name = varchar("name",80)
 }
 
-class PitchWidthOption(id:EntityID<Long>):LongEntity(id) {
+class PitchWidthOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchWidthOption>(PitchWidthOptions)
-    var name by PitchWidthOptions.name
+    override var name by PitchWidthOptions.name
 
-    fun toPitchPropertyDEO():PitchPropertyDEO {
+    override fun toPitchPropertyDEO():PitchPropertyDEO {
         return PitchPropertyDEO(id.value, name)
     }
 }
@@ -317,11 +322,11 @@ object PitchMarkingsOptions : LongIdTable() {
     val name = varchar("name",80)
 }
 
-class PitchMarkingsOption(id:EntityID<Long>):LongEntity(id) {
+class PitchMarkingsOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchMarkingsOption>(PitchMarkingsOptions)
-    var name by PitchMarkingsOptions.name
+    override var name by PitchMarkingsOptions.name
 
-    fun toPitchPropertyDEO():PitchPropertyDEO {
+    override fun toPitchPropertyDEO():PitchPropertyDEO {
         return PitchPropertyDEO(id.value, name)
     }
 }
@@ -330,11 +335,11 @@ object PitchGoalpostsOptions : LongIdTable() {
     val name = varchar("name",80)
 }
 
-class PitchGoalpostsOption(id:EntityID<Long>):LongEntity(id) {
+class PitchGoalpostsOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchGoalpostsOption>(PitchGoalpostsOptions)
-    var name by PitchGoalpostsOptions.name
+    override var name by PitchGoalpostsOptions.name
 
-    fun toPitchPropertyDEO():PitchPropertyDEO {
+    override fun toPitchPropertyDEO():PitchPropertyDEO {
         return PitchPropertyDEO(id.value, name)
     }
 }
@@ -343,11 +348,11 @@ object PitchGoalDimensionOptions : LongIdTable() {
     val name = varchar("name",80)
 }
 
-class PitchGoalDimensionOption(id:EntityID<Long>):LongEntity(id) {
+class PitchGoalDimensionOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchGoalDimensionOption>(PitchGoalDimensionOptions)
-    var name by PitchGoalDimensionOptions.name
+    override var name by PitchGoalDimensionOptions.name
 
-    fun toPitchPropertyDEO():PitchPropertyDEO {
+    override fun toPitchPropertyDEO():PitchPropertyDEO {
         return PitchPropertyDEO(id.value, name)
     }
 }
