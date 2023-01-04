@@ -18,8 +18,9 @@ async function uploadInjuriesToServer() {
   if (props.gameReportId != undefined) {
     for (let injury of props.modelValue) {
       console.log(injury)
-      await uploadInjury(injury, props.gameReportId)
+      injury.id = await uploadInjury(injury, props.gameReportId)
     }
+    emits('update:modelValue', props.modelValue)
   } else {
     console.log("No report id - deferring upload")
   }
@@ -36,8 +37,8 @@ const localVisible = computed({
 
 function closeDialog() {
 
-  emits('update:modelValue', props.modelValue)
   uploadInjuriesToServer()
+  emits('update:modelValue', props.modelValue)
   emits('update:visible', false)
 
 }
@@ -46,6 +47,7 @@ const injuryDialogTitle = computed(() => {
   return "Injuries for " + props.team?.name
 })
 watch(()=>props.modelValue, (newInjuries) => {
+  //Always add empty injury if there is no empty row
   generateEmptyInjury()
 },{deep:true,immediate:true})
 
@@ -59,12 +61,17 @@ function generateEmptyInjury() {
 }
 
 function addEmptyInjury() {
-  props.modelValue.push({
-    firstName: "",
-    lastName: "",
-    details: "",
-    team: props.team
-  } as Injury)
+  if(props.team) {
+    console.log("Adding empty injury with team id " + props.team?.id)
+    props.modelValue.push({
+      firstName: "",
+      lastName: "",
+      details: "",
+      team: props.team
+    } as Injury)
+  } else {
+    console.log("Cant add empty injury - no team")
+  }
 }
 
 function deleteInjury(injury: Injury) {
@@ -72,9 +79,11 @@ function deleteInjury(injury: Injury) {
 }
 
 onUpdated(() => {
+  //Always add empty injury if there is no empty row
   generateEmptyInjury()
 })
 onMounted(() => {
+  //Always add empty injury if there is no empty row
   generateEmptyInjury()
 })
 </script>
