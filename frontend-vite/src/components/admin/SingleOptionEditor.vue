@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 
-import {PitchProperty, PitchPropertyType} from "@/types";
+import type {PitchProperty, PitchPropertyType} from "@/types";
 import {useAdminStore} from "@/utils/admin_store";
-import {ComponentPublicInstance, computed, ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
+import type {ComponentPublicInstance} from "vue";
 import InputText from "primevue/inputtext";
 import {useConfirm} from "primevue/useconfirm";
 
@@ -63,7 +64,7 @@ async function deleteOption(option:PitchProperty) {
 
 
 async function storeOption(option:PitchProperty) {
-  store.updatePitchVariable(option, props.type)
+  await store.updatePitchVariable(option, props.type)
   editingOption.value = undefined
 }
 

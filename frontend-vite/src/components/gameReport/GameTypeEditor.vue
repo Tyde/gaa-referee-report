@@ -26,8 +26,8 @@ function storeGameType() {
 
   let gtDB = uploadNewGameType(newGameType.value).catch((err) => {
     console.log(err)
-  }).then((gt:GameType) => {
-    emits('newGameType', gt)
+  }).then((gt) => {
+    emits('newGameType', gt as GameType)
   })
 
   emits('update:visible', false)

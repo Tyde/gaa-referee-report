@@ -38,7 +38,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function updatePitchVariable(option: PitchProperty, type: PitchPropertyType) {
-        let prop = getVariablesByType(type).find(it => it.id === option.id)
+        const prop = getVariablesByType(type).find(it => it.id === option.id)
         if (prop) {
             prop.name = option.name
             await updatePitchPropertyOnServer(prop)

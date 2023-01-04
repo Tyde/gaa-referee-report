@@ -1,26 +1,15 @@
 import {number, z} from "zod";
-import {
-    ApiError,
-    DatabaseTournament,
-    DisciplinaryActionDEO,
-    InjuryDEO,
-    PitchDEO,
-    Team, Tournament,
-    Report, Referee
-} from "@/types";
-import type {ExtraTimeOption,GameReport, GameType, Rule} from "@/types";
-import type {GameCode } from "@/types";
+import type {ExtraTimeOption, GameCode, GameReport, GameType, Rule} from "@/types";
+import {ApiError, DatabaseTournament, PitchDEO, Referee, Report, Team} from "@/types";
 import {DateTime} from "luxon";
-import {CompleteGameReportDEO, GameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
-
-
+import {CompleteGameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
 
 
 export const CompleteReportDEO = z.object({
     id: z.number(),
     tournament: DatabaseTournament,
     code: z.number(),
-    additionalInformation: z.string().nullable(),
+    additionalInformation: z.string().optional(),
     isSubmitted: z.boolean(),
     submitDate: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
     selectedTeams: Team.array(),
@@ -32,7 +21,7 @@ export type CompleteReportDEO = z.infer<typeof CompleteReportDEO>;
 
 export function completeReportDEOToReport(cReport: CompleteReportDEO, availableCodes: Array<GameCode>): Report {
 
-    let code = availableCodes.find(code => code.id === cReport.code)
+    const code = availableCodes.find(code => code.id === cReport.code)
     if (code != undefined) {
         return {
             tournament: cReport.tournament,
@@ -57,7 +46,7 @@ export function extractGameReportsFromCompleteReportDEO(
     rules: Array<Rule>
 ): Array<GameReport> {
     // @ts-ignore
-    let out:Array<GameReport> = cReport.gameReports.map((gameReportDEO:CompleteGameReportDEO) => {
+    return cReport.gameReports.map((gameReportDEO: CompleteGameReportDEO) => {
         return gameReportDEOToGameReport(
             gameReportDEO,
             report,
@@ -66,7 +55,6 @@ export function extractGameReportsFromCompleteReportDEO(
             rules
         )
     }).filter(gameReport => gameReport != undefined)
-    return out
 }
 
 export async function loadReport(id: number): Promise<CompleteReportDEO> {

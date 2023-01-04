@@ -24,7 +24,6 @@ import {
 } from "@/utils/api/report_api";
 import {getPitchVariables, pitchDEOtoPitch, type PitchVariables} from "@/utils/api/pitch_api";
 import SubmitReport from "@/components/SubmitReport.vue";
-import {useRoute, useRouter} from "vue-router";
 
 enum ReportEditStage {
   SelectTournament,
@@ -174,12 +173,14 @@ async function loadAndHandleReport(id: number) {
         extraTimeOptions.value,
         rules.value
     )
-    allPitchReports.value = report.pitches?.map(pitch => {
+    const pV = pitchVariables.value
+    if (pV) {
+      allPitchReports.value = report.pitches?.map(pitch => {
 
-      let pdtp = pitchDEOtoPitch(pitch, currentReport.value, pitchVariables.value)
-      return pdtp
+        return pitchDEOtoPitch(pitch, currentReport.value, pV)
 
-    }) || []
+      }) || []
+    }
 
 
     reportStarted.value = true
@@ -206,7 +207,7 @@ watch(current_stage, (new_stage, old_stage) => {
 })
 
 async function waitForAllVariablesPresent() {
-  var start_time = new Date().getTime()
+  const start_time = new Date().getTime()
   while (true) {
     if (
         codes.value.length > 0 &&
@@ -279,11 +280,11 @@ onMounted(() => {
       :gameTypes="gameTypes"
       :report="currentReport"
       :rules="rules"
-      @update:gameReports="newReports => allGameReports.value = newReports"
+      @update:gameReports="newReports => allGameReports = newReports"
   />
 
   <PitchReports
-      v-if="current_stage === ReportEditStage.EditPitchReports"
+      v-if="current_stage === ReportEditStage.EditPitchReports && pitchVariables"
       v-model="allPitchReports"
       :pitch-report-options="pitchVariables"
 

@@ -16,7 +16,7 @@ const props = defineProps<{
             v-for="action in props.teamReport.disciplinaryActions"
             class="border-t-2 border-gray-500"
         >
-          {{action.number}} - {{action.firstName}} {{action.lastName}}: {{action.rule.description}}<br>
+          {{action.number}} - {{action.firstName}} {{action.lastName}}: {{action.rule?.description || ''}}<br>
           {{action.details}}
         </li>
       </ul>

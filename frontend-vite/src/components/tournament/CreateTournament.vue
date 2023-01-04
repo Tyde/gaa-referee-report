@@ -64,7 +64,7 @@ const dateString = computed(() => {
       <template v-if="allowChangeDate">
         <Calendar id="dateformat"
                   :model-value="editedTournament.date.toJSDate()"
-                  @update:model-value="(newDate) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
+                  @update:model-value="(newDate:Date) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
                   dateFormat="yy-mm-dd"/>
       </template>
       <template v-else> Date: {{ dateString }}

@@ -12,5 +12,6 @@ export const routes = [
     },
     {
         path: "/pitch-report-options",
+        redirect:  "/pitch-options"
     }
 ]

@@ -8,6 +8,7 @@ import type {PitchVariables} from "@/utils/api/pitch_api"
 import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
 import {DateTime} from "luxon";
 import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisciplinaryActionsAndInjuries.vue";
+
 const isLoading = ref(false)
 const loadingComplete = ref(false)
 const codes = ref<Array<GameCode>>([])
@@ -47,7 +48,7 @@ async function load_pitch_variables() {
 
 }
 async function waitForAllVariablesPresent() {
-  var start_time = new Date().getTime()
+  const start_time = new Date().getTime()
   while (true) {
     if (
         codes.value.length > 0 &&
@@ -78,11 +79,17 @@ async function downloadReport(id: number) {
         extraTimeOptions.value,
         rules.value
     )
-    console.log(allGameReports.value)
-    allPitchReports.value = report.pitches?.map(pitch => {
-      let pdtp = pitchDEOtoPitch(pitch, currentReport.value, pitchVariables.value)
-      return pdtp
-    }) || []
+
+
+    let pitches = report.pitches
+    const pV = pitchVariables.value
+    if (pitches && pV) {
+
+      allPitchReports.value = pitches.map(pitch => {
+        return pitchDEOtoPitch(pitch, currentReport.value, pV)
+      }) || []
+    }
+
   } catch (e) {
     console.log(e)
 
@@ -144,19 +151,19 @@ function print() {
         <div>Code: {{currentReport.gameCode.name}}</div>
         <h2>Game Reports</h2>
         <div v-for="gr in gameReportsByTime" class="game-report-style">
-          <h3>{{gr.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}}</h3>
+          <h3>{{gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE)}}</h3>
           <h3>
           <template v-if="gr.umpirePresentOnTime">Umpires present on time</template>
           <template v-else>Umpires not present on time. Note: {{gr.umpireNotes}}</template>
           </h3>
           <h3>
-            {{gr.gameType.name}}
+            {{gr.gameType?.name}}
           </h3>
           <div class="flex flex-row">
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
                 <div class="flex flex-row">
-                  <div class="flex-1">{{ gr.teamAReport.team.name }}</div>
+                  <div class="flex-1">{{ gr.teamAReport.team?.name }}</div>
                   <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }}</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamAReport"/>
@@ -166,7 +173,7 @@ function print() {
               <div class="flex flex-col flex-grow">
                 <div class="flex flex-row">
                   <div class="flex-1 text-right">{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }}</div>
-                  <div class="flex-1 text-right">{{ gr.teamBReport.team.name }}</div>
+                  <div class="flex-1 text-right">{{ gr.teamBReport.team?.name }}</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamBReport"/>
               </div>

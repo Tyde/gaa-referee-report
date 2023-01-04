@@ -1,7 +1,7 @@
-import type {PitchPropertyType} from "@/types";
+
 import {PitchPropertyDEO} from "@/types";
 import type {PitchProperty} from '@/types'
-import {ApiError, GameType} from "@/types";
+import {ApiError} from "@/types";
 
 
 

@@ -149,6 +149,7 @@ async function deleteReport() {
 
   <SingleGameReport
       v-model="selectedGameReport"
+      v-if="selectedGameReport"
       :rules="filteredRules"
       :extra-time-options="props.extraTimeOptions"
       :game-types="props.gameTypes"
@@ -165,10 +166,10 @@ async function deleteReport() {
     </template>
 
       <p>Are you sure you want to delete this game report?</p>
-      <span v-if="reportToDelete.startTime">{{reportToDelete.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
-      <span v-if="reportToDelete.teamAReport.team">{{reportToDelete.teamAReport.team.name}}</span>
+      <span v-if="reportToDelete?.startTime">{{reportToDelete.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
+      <span v-if="reportToDelete?.teamAReport.team">{{reportToDelete.teamAReport.team.name}}</span>
       <span v-else>...</span>&nbsp;vs.&nbsp;
-      <span v-if="reportToDelete.teamBReport.team">{{reportToDelete.teamBReport.team.name}}</span>
+      <span v-if="reportToDelete?.teamBReport.team">{{reportToDelete.teamBReport.team.name}}</span>
       <span v-else>...</span>
 
     <template #footer>

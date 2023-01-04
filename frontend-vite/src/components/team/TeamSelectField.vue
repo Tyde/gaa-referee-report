@@ -91,7 +91,7 @@ const filtered_list = computed(() => {
     })
   }
   if (searchTerm.value) {
-    let foundList = preparedlist.filter(value => {
+    return preparedlist.filter(value => {
       let isInName = value.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
       let isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
         let isInLocalName = cv.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
@@ -104,7 +104,6 @@ const filtered_list = computed(() => {
         search_score: 1
       } as SearchResultTeam
     })
-    return foundList
   } else {
     return preparedlist.map(value => {
       return {team: value, search_score: 1} as SearchResultTeam
@@ -145,7 +144,7 @@ const filtered_list = computed(() => {
               ...
             </li>
             <li
-                v-if="isLoading && filtered_list.length == 0"
+                v-if="isLoading && filtered_list.length === 0"
                 class="p-listbox-item"
             >
               <i

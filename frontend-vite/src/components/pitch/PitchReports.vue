@@ -105,7 +105,7 @@ async function deletePitch() {
       </template>
 
       <p>Are you sure you want to delete this pitch report?</p>
-      <span v-if="pitchToDelete.name">{{ pitchToDelete.name }}</span>
+      <span v-if="pitchToDelete?.name">{{ pitchToDelete.name }}</span>
 
       <template #footer>
         <Button class="p-button-danger" @click="deletePitch">Delete</Button>

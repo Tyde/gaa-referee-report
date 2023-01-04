@@ -93,7 +93,7 @@ function on_tournament_created(tournament: DatabaseTournament) {
   </template>
   <CreateTournament
       v-else
-      :preselected-date="date"
+      :preselected-date="date || new Date()"
       @tournament_created="on_tournament_created"
   />
 </template>

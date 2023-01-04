@@ -298,47 +298,47 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
         &nbsp;has the following issues:
         <ul>
           <li v-for="issue in gris.issues">
-            <template v-if="issue==GameReportIssue.NoGameType">
+            <template v-if="issue===GameReportIssue.NoGameType">
               No game type selected
             </template>
-            <template v-else-if="issue==GameReportIssue.NoStartingTime">
+            <template v-else-if="issue===GameReportIssue.NoStartingTime">
               No starting time selected
             </template>
-            <template v-else-if="issue==GameReportIssue.NoExtraTimeOption">
+            <template v-else-if="issue===GameReportIssue.NoExtraTimeOption">
               No extra time option selected
             </template>
-            <template v-else-if="issue==GameReportIssue.NoTeamA">
+            <template v-else-if="issue===GameReportIssue.NoTeamA">
               No home team selected
             </template>
-            <template v-else-if="issue==GameReportIssue.NoTeamB">
+            <template v-else-if="issue===GameReportIssue.NoTeamB">
               No away team selected
             </template>
-            <template v-else-if="issue==GameReportIssue.NoScores">
+            <template v-else-if="issue===GameReportIssue.NoScores">
               No scores entered - This might be correct if the game was a draw.
             </template>
           </li>
           <template v-for="inIssues in gris.injuriesIssues">
             <li v-for="issue in inIssues.issues">
-              <template v-if="issue==InjuryIssue.NoDetails">
+              <template v-if="issue===InjuryIssue.NoDetails">
                 No details entered for Injury of {{ inIssues.action.firstName}} {{inIssues.action.lastName }}
               </template>
-              <template v-if="issue==InjuryIssue.NoName">
+              <template v-if="issue===InjuryIssue.NoName">
                 Missing name for Injury with details: {{ inIssues.action.details }}
               </template>
             </li>
           </template>
           <template v-for="disIssues in gris.disciplinaryActionIssues">
             <li v-for="issue in disIssues.issues">
-              <template v-if="issue==DisciplinaryActionIssue.NoName">
+              <template v-if="issue===DisciplinaryActionIssue.NoName">
                 Missing name for disciplinary action with details: {{ disIssues.action.details }}
               </template>
-              <template v-if="issue==DisciplinaryActionIssue.NoDetails">
+              <template v-if="issue===DisciplinaryActionIssue.NoDetails">
                 No details entered for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
               </template>
-              <template v-if="issue==DisciplinaryActionIssue.NoNumber">
+              <template v-if="issue===DisciplinaryActionIssue.NoNumber">
                 Missing number for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
               </template>
-              <template v-if="issue==DisciplinaryActionIssue.NoRule">
+              <template v-if="issue===DisciplinaryActionIssue.NoRule">
                 Missing rule for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
               </template>
             </li>
@@ -354,19 +354,19 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
         &nbsp;has the following issues:
         <ul>
           <li v-for="issue in prTuple[1]">
-            <template v-if="issue==PitchReportIssue.NoName">
+            <template v-if="issue===PitchReportIssue.NoName">
               No name entered
             </template>
-            <template v-else-if="issue==PitchReportIssue.NoSurface">
+            <template v-else-if="issue===PitchReportIssue.NoSurface">
               No surface selected
             </template>
-            <template v-else-if="issue==PitchReportIssue.MissingDimension">
+            <template v-else-if="issue===PitchReportIssue.MissingDimension">
               At least one pitch dimension is missing
             </template>
-            <template v-else-if="issue==PitchReportIssue.MarkingsIncomplete">
+            <template v-else-if="issue===PitchReportIssue.MarkingsIncomplete">
               Markings incomplete
             </template>
-            <template v-else-if="issue==PitchReportIssue.GoalInfoIncomplete">
+            <template v-else-if="issue===PitchReportIssue.GoalInfoIncomplete">
               Goal information incomplete
             </template>
           </li>

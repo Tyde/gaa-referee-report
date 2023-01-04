@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
+import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import type {ExtraTimeOption, GameReport, GameType, Rule} from "@/types";
 import SingleGameReportSingleTeam from "@/components/gameReport/SingleGameReportSingleTeam.vue";
 import {DateTime} from "luxon";
@@ -36,8 +36,7 @@ async function sendGameReport(gameReport: GameReport) {
     } else {
       if (!sendingCreateRequest.value) {
         sendingCreateRequest.value = true
-        let id = await createGameReport(gameReport)
-        gameReport.id = id
+        gameReport.id = await createGameReport(gameReport)
         sendingCreateRequest.value = false
       }
     }
@@ -76,13 +75,13 @@ onMounted(() => {
         <label for="timeStartGame">Throw in time:</label><br>
         <Calendar
             :model-value="modelValue.startTime?.toJSDate()"
-            @update:model-value="(nD) => {modelValue.startTime = DateTime.fromJSDate(nD)}"
+            @update:model-value="(nD:Date) => {modelValue.startTime = DateTime.fromJSDate(nD)}"
             id="timeStartGame"
             :showSeconds="false"
             :showTime="true"
             :time-only="true"
             :class="{
-                'to-be-filled':modelValue.startTime==undefined
+                'to-be-filled':modelValue.startTime===undefined
             }"
         />
 
@@ -108,7 +107,7 @@ onMounted(() => {
             option-label="name"
             placeholder="Extra Time"
             :class="{
-                'to-be-filled':props.modelValue.extraTime==undefined
+                'to-be-filled':props.modelValue.extraTime===undefined
             }"
         >
 
@@ -123,7 +122,7 @@ onMounted(() => {
             option-label="name"
             placeholder="Game Type"
             :class="{
-                'to-be-filled':props.modelValue.gameType==undefined
+                'to-be-filled':props.modelValue.gameType===undefined
             }"
             class="w-60"
             :filter="true"

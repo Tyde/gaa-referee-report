@@ -1,6 +1,6 @@
 import {z} from "zod";
 import type {Pitch, PitchProperty, Report} from "@/types";
-import {ApiError, PitchPropertyDEO, PitchPropertyType} from "@/types";
+import {ApiError, PitchDEO, PitchPropertyDEO, PitchPropertyType} from "@/types";
 
 const PitchProperyDEO = z.object({
     id: z.number(),
@@ -38,12 +38,11 @@ function pitchVariablesDEOtoPitchVariables(pV:PitchVariablesDEO):PitchVariables 
 }
 
 export async function getPitchVariables():Promise<PitchVariables> {
-    let res = await fetch("/api/pitch_variables")
-    let json = await res.json()
-    let parseResult = PitchVariablesDEO.safeParse(json)
+    const res = await fetch("/api/pitch_variables")
+    const json = await res.json()
+    const parseResult = PitchVariablesDEO.safeParse(json)
     if (parseResult.success) {
-        let variables = pitchVariablesDEOtoPitchVariables(parseResult.data)
-        return variables
+        return pitchVariablesDEOtoPitchVariables(parseResult.data)
     } else {
         const errorParse = ApiError.safeParse(json)
         if (errorParse.success) {
@@ -58,23 +57,7 @@ function checkPitchReadForUpload(pitch:Pitch):boolean {
     return pitch.name!=undefined && pitch.name.trim().length > 0
 }
 
-const PitchDEO = z.object({
-    id: z.number().nullable().optional(),
-    report: z.number(),
-    name: z.string(),
-    surface: z.number().nullable().optional(),
-    length: z.number().nullable().optional(),
-    width: z.number().nullable().optional(),
-    smallSquareMarkings: z.number().nullable().optional(),
-    penaltySquareMarkings: z.number().nullable().optional(),
-    thirteenMeterMarkings: z.number().nullable().optional(),
-    twentyMeterMarkings: z.number().nullable().optional(),
-    longMeterMarkings: z.number().nullable().optional(),
-    goalPosts: z.number().nullable().optional(),
-    goalDimensions: z.number().nullable().optional(),
-    additionalInformation: z.string().nullable().optional()
-})
-type PitchDEO = z.infer<typeof PitchDEO>;
+
 
 export function pitchDEOtoPitch(
     pitchDEO:PitchDEO,
@@ -82,16 +65,16 @@ export function pitchDEOtoPitch(
     pitchVariables:PitchVariables
 ):Pitch {
 
-    let surfaceValue = pitchVariables.surfaces.find(p => p.id == pitchDEO.surface)
-    let widthValue = pitchVariables.widths.find(p => p.id == pitchDEO.width)
-    let lengthValue = pitchVariables.lengths.find(p => p.id == pitchDEO.length)
-    let penaltyValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.penaltySquareMarkings)
-    let smallSquareValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.smallSquareMarkings)
-    let thirteenMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.thirteenMeterMarkings)
-    let twentyMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.twentyMeterMarkings)
-    let longMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.longMeterMarkings)
-    let goalPostsValue = pitchVariables.goalPosts.find(p => p.id == pitchDEO.goalPosts)
-    let goalDimensionsValue = pitchVariables.goalDimensions.find(p => p.id == pitchDEO.goalDimensions)
+    const surfaceValue = pitchVariables.surfaces.find(p => p.id == pitchDEO.surface)
+    const widthValue = pitchVariables.widths.find(p => p.id == pitchDEO.width)
+    const lengthValue = pitchVariables.lengths.find(p => p.id == pitchDEO.length)
+    const penaltyValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.penaltySquareMarkings)
+    const smallSquareValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.smallSquareMarkings)
+    const thirteenMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.thirteenMeterMarkings)
+    const twentyMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.twentyMeterMarkings)
+    const longMeterValue = pitchVariables.markingsOptions.find(p => p.id == pitchDEO.longMeterMarkings)
+    const goalPostsValue = pitchVariables.goalPosts.find(p => p.id == pitchDEO.goalPosts)
+    const goalDimensionsValue = pitchVariables.goalDimensions.find(p => p.id == pitchDEO.goalDimensions)
     return <Pitch>{
         id: pitchDEO.id,
         report: report,
@@ -112,7 +95,7 @@ export function pitchDEOtoPitch(
 
 export async function uploadPitch(pitch:Pitch) {
     if(checkPitchReadForUpload(pitch)) {
-        let data = {
+        const data = {
             id: pitch.id,
             report: pitch.report.id,
             name: pitch.name,
@@ -128,7 +111,7 @@ export async function uploadPitch(pitch:Pitch) {
             goalDimensions: pitch.goalDimensions?.id,
             additionalInformation: pitch.additionalInformation
         }
-        let requestOpions =  {
+        const requestOpions =  {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -144,7 +127,7 @@ export async function uploadPitch(pitch:Pitch) {
         const response = await fetch(nexturl, requestOpions)
         const res = await response.json()
 
-        let parseResult = PitchDEO.safeParse(res)
+        const parseResult = PitchDEO.safeParse(res)
         if (parseResult.success) {
             if(pitch.id == undefined && parseResult.data.id) {
                 pitch.id = parseResult.data.id

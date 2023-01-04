@@ -53,7 +53,7 @@ export const Report = z.object({
     tournament: DatabaseTournament,
     selectedTeams: Team.array(),
     gameCode: GameCode,
-    additionalInformation: z.string().optional().nullable(),
+    additionalInformation: z.string().optional(),
     isSubmitted: z.boolean().optional().nullable(),
     submitDate: z.string().optional().nullable().transform((value) => {
         if(value){

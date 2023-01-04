@@ -48,7 +48,7 @@ function closeInjuryDialog() {
     <Dropdown
         v-model="modelValue.team"
         :class="{
-                'to-be-filled':modelValue.team==undefined
+                'to-be-filled':modelValue.team===undefined
             }"
         :filter="true"
         :options="selectedTeams"
@@ -124,6 +124,7 @@ function closeInjuryDialog() {
         v-model:visible="displayDisciplinary"
         :game-report-id="reportId"
         :rules="rules"
+        v-if="modelValue.team"
         :team="modelValue.team"
 
     />
