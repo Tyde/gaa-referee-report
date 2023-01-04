@@ -64,14 +64,16 @@ function generateEmptydAFields() {
 
 
 function addEmptyDisciplinaryAction() {
-  props.modelValue.push({
-    team: props.team,
-    firstName: "",
-    lastName: "",
-    number: undefined,
-    rule: undefined,
-    details: ""
-  })
+  if(props.team) {
+    props.modelValue.push({
+      team: props.team,
+      firstName: "",
+      lastName: "",
+      number: undefined,
+      rule: undefined,
+      details: ""
+    })
+  }
 }
 
 function deleteDAction(dAction: DisciplinaryAction) {
