@@ -263,6 +263,7 @@ onMounted(() => {
   />
 
 
+
   <TournamentSelector
       v-if="current_stage === ReportEditStage.SelectTournament"
       v-model="currentReport.tournament"

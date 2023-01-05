@@ -93,30 +93,35 @@ export function pitchDEOtoPitch(
     }
 }
 
+function pitchToPitchDEO(pitch: Pitch):PitchDEO {
+    const data = {
+        id: pitch.id,
+        report: pitch.report.id,
+        name: pitch.name,
+        surface: pitch.surface?.id,
+        length: pitch.length?.id,
+        width: pitch.width?.id,
+        smallSquareMarkings: pitch.smallSquareMarkings?.id,
+        penaltySquareMarkings: pitch.penaltySquareMarkings?.id,
+        thirteenMeterMarkings: pitch.thirteenMeterMarkings?.id,
+        twentyMeterMarkings: pitch.twentyMeterMarkings?.id,
+        longMeterMarkings: pitch.longMeterMarkings?.id,
+        goalPosts: pitch.goalPosts?.id,
+        goalDimensions: pitch.goalDimensions?.id,
+        additionalInformation: pitch.additionalInformation
+    }
+    return PitchDEO.parse(data);
+}
+
 export async function uploadPitch(pitch:Pitch) {
     if(checkPitchReadForUpload(pitch)) {
-        const data = {
-            id: pitch.id,
-            report: pitch.report.id,
-            name: pitch.name,
-            surface: pitch.surface?.id,
-            length: pitch.length?.id,
-            width: pitch.width?.id,
-            smallSquareMarkings: pitch.smallSquareMarkings?.id,
-            penaltySquareMarkings: pitch.penaltySquareMarkings?.id,
-            thirteenMeterMarkings: pitch.thirteenMeterMarkings?.id,
-            twentyMeterMarkings: pitch.twentyMeterMarkings?.id,
-            longMeterMarkings: pitch.longMeterMarkings?.id,
-            goalPosts: pitch.goalPosts?.id,
-            goalDimensions: pitch.goalDimensions?.id,
-            additionalInformation: pitch.additionalInformation
-        }
+        const data = pitchToPitchDEO(pitch);
         const requestOpions =  {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(PitchDEO.parse(data))
+            body: JSON.stringify(data)
         }
         let nexturl = ""
         if (pitch.id != undefined) {

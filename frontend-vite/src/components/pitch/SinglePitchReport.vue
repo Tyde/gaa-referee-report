@@ -15,12 +15,17 @@ const emit = defineEmits<{
   (e: 'deleteThisReport', value: Pitch): void
 }>()
 
+async function asyncUpload(pitch:Pitch) {
+  await uploadPitch(pitch)
+  emit('update:modelValue', pitch)
+}
+
 watch(() => props.modelValue, (value, oldValue) => {
   console.log("Switched report, oldReport is ")
-  uploadPitch(oldValue)
+  asyncUpload(value)
 })
 onBeforeUnmount(() => {
-  uploadPitch(props.modelValue)
+  asyncUpload(props.modelValue)
 })
 
 </script>
