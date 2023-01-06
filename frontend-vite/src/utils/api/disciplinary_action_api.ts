@@ -1,6 +1,7 @@
-import type {DisciplinaryAction, DisciplinaryActionDEO, Team} from "@/types";
-import {ApiError, Rule} from "@/types";
+import type {DisciplinaryAction, Team} from "@/types";
+import {ApiError, Rule,DisciplinaryActionDEO} from "@/types";
 import z from "zod";
+import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 export async function getRules():Promise<Rule[]> {
     return fetch("/api/rules")
@@ -30,6 +31,22 @@ export function fromDisciplinaryActionDEOToDisciplinaryAction(
     } as DisciplinaryAction
 }
 
+export function fromDisciplinaryActionToDisciplinaryActionDEO(
+    dA:DisciplinaryAction,
+    gameReportId:number
+):DisciplinaryActionDEO {
+    return {
+        id: dA.id,
+        team: dA.team?.id,
+        firstName: dA.firstName,
+        lastName: dA.lastName,
+        number: dA.number,
+        rule: dA.rule?.id,
+        details: dA.details ?? "",
+        game: gameReportId
+    } as DisciplinaryActionDEO
+}
+
 export function  checkActionReadyForUpload(dAction: DisciplinaryAction) {
     return dAction.rule != undefined &&
         (dAction.firstName != "" ||
@@ -38,46 +55,24 @@ export function  checkActionReadyForUpload(dAction: DisciplinaryAction) {
 }
 
 export async function uploadDisciplinaryAction(action: DisciplinaryAction, gameReportId:number):Promise<number> {
+
     if (checkActionReadyForUpload(action)) {
-        const requestOptions = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify({
-                "id": action.id,
-                "team": action.team?.id,
-                "firstName": action.firstName,
-                "lastName": action.lastName,
-                "number": action.number,
-                "details": action.details || "",
-                "rule": action.rule?.id,
-                "game": gameReportId
-            })
-        }
         let nexturl: string
         if (action.id != undefined) {
             nexturl = `/api/gamereport/disciplinaryAction/update`
         } else {
             nexturl = `/api/gamereport/disciplinaryAction/new`
         }
-        const response = await fetch(nexturl, requestOptions)
-        const data = await response.json()
-        if (data.id) {
-            console.log("Update complete")
-            if (action.id == undefined) {
-                action.id = data.id
-            }
-            return data.id
-        } else {
-            console.log(data)
-            return -1
-        }
+        return makePostRequest(
+            nexturl,
+            fromDisciplinaryActionToDisciplinaryActionDEO(action, gameReportId)
+        )
+            .then(data => parseAndHandleDEO(data, DisciplinaryActionDEO))
+            .then(dADEO => dADEO.id)
     } else {
-        console.log("Action not ready for upload")
-        console.log(action)
-        return -2
+        return -1 //We don't throw an error here, because we always get one empty disciplinary action
     }
+
 
 }
 export function disciplinaryActionIsBlank(disciplinaryAction: DisciplinaryAction) {
@@ -89,26 +84,14 @@ export function disciplinaryActionIsBlank(disciplinaryAction: DisciplinaryAction
 }
 
 export async function deleteDisciplinaryActionOnServer(disciplinaryAction:DisciplinaryAction):Promise<boolean> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({id: disciplinaryAction.id})
-    };
-    const response = await fetch("/api/gamereport/disciplinaryAction/delete", requestOptions)
-    const data = await response.json()
-    const parseResult = z.object({
-        id: z.number(),
-    }).safeParse(data)
-    if (parseResult.success) {
-        return true
-    } else {
-        const epR = ApiError.safeParse(data)
-        if (epR.success) {
-            return Promise.reject(epR.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
+    return makePostRequest(
+        "/api/gamereport/disciplinaryAction/delete",
+        {id: disciplinaryAction.id}
+    )
+        .then(data => {
+            return parseAndHandleDEO(data, z.object({id: z.number()}))
+                .then(() => {
+                    return true
+                })
+        })
 }

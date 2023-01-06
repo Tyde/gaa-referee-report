@@ -1,8 +1,9 @@
-import type {Injury, InjuryDEO, Team} from "@/types";
-import {ApiError} from "@/types";
+import type {Injury, Team} from "@/types";
+import {ApiError, InjuryDEO} from "@/types";
 import {z} from "zod";
+import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
-function injuryToInjuryDAO(injury: Injury, gameReportId: number) {
+function injuryToInjuryDEO(injury: Injury, gameReportId: number) {
     return {
         id: injury.id,
         team: injury.team?.id,
@@ -10,7 +11,7 @@ function injuryToInjuryDAO(injury: Injury, gameReportId: number) {
         lastName: injury.lastName,
         details: injury.details,
         game: gameReportId
-    };
+    } as InjuryDEO
 }
 export function injuryDEOToInjury(injuryDEO:InjuryDEO, team:Team):Injury {
     return {
@@ -32,59 +33,31 @@ function checkInjuryReadyForUpload(injury: Injury) {
 
 export async function uploadInjury(injury: Injury, gameReportId: number):Promise<number> {
     if(checkInjuryReadyForUpload(injury)) {
-        const requestOptions = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(injuryToInjuryDAO(injury, gameReportId))
-        }
         let nexturl: string
         if(injury.id != undefined) {
             nexturl = `/api/gamereport/injury/update`
         } else  {
             nexturl = `/api/gamereport/injury/new`
         }
-        const response = await fetch(nexturl, requestOptions)
-        const data = await response.json()
-        if (data.id) {
-            console.log("Update complete")
-            if(injury.id === undefined) {
-                injury.id = data.id
-            }
-            return data.id
-        } else {
-            console.log(data)
-            return -1
-        }
+        return makePostRequest(
+            nexturl,
+            injuryToInjuryDEO(injury, gameReportId)
+        )
+            .then((data) => parseAndHandleDEO(data, InjuryDEO))
+            .then((injuryDEO) => injuryDEO.id)
+    } else {
+        return -1
     }
-    return -1;
 }
 
 export async function deleteInjuryOnServer(injury: Injury):Promise<boolean> {
     if(injury.id != undefined) {
-        const requestOptions = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify({id: injury.id})
-        }
-        const response = await fetch(`/api/gamereport/injury/delete`, requestOptions)
-        const data = await response.json()
-        const parseResult = z.object({
-            id: z.number()
-        }).safeParse(data)
-        if(parseResult.success) {
-            return true
-        } else {
-            const epR = ApiError.safeParse(data)
-            if (epR.success) {
-                return Promise.reject(epR.data.message)
-            } else {
-                return Promise.reject("Unknown error")
-            }
-        }
+        return makePostRequest(
+            `/api/gamereport/injury/delete`,
+            {id: injury.id}
+        )
+            .then((data) => parseAndHandleDEO(data, z.object({id: z.number()})))
+            .then((data) => data.id == injury.id)
     }
     return Promise.reject("Trying to delete an injury on the server that has not been saved to the server")
 }
