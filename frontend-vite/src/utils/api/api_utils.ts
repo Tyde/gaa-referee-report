@@ -24,7 +24,8 @@ export async function parseAndHandleDEO<T extends z.ZodTypeAny>(jsonData: any, d
         if (epR.success) {
             return Promise.reject(epR.data.message)
         } else {
-            return Promise.reject(epR.error.message)
+            console.trace()
+            return Promise.reject("Trying to parse "+ deo+"error: "+ parseResult.error.message)
         }
     }
 }

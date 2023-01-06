@@ -1,6 +1,7 @@
 import {z} from "zod";
 import type {Pitch, PitchProperty, Report} from "@/types";
 import {ApiError, PitchDEO, PitchPropertyDEO, PitchPropertyType} from "@/types";
+import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 const PitchProperyDEO = z.object({
     id: z.number(),
@@ -38,19 +39,10 @@ function pitchVariablesDEOtoPitchVariables(pV:PitchVariablesDEO):PitchVariables 
 }
 
 export async function getPitchVariables():Promise<PitchVariables> {
-    const res = await fetch("/api/pitch_variables")
-    const json = await res.json()
-    const parseResult = PitchVariablesDEO.safeParse(json)
-    if (parseResult.success) {
-        return pitchVariablesDEOtoPitchVariables(parseResult.data)
-    } else {
-        const errorParse = ApiError.safeParse(json)
-        if (errorParse.success) {
-            return Promise.reject(errorParse.data.message)
-        }
-        return Promise.reject(parseResult.error)
-    }
-
+    return fetch("/api/pitch_variables")
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, PitchVariablesDEO))
+        .then(pitchVariablesDEOtoPitchVariables)
 }
 
 function checkPitchReadForUpload(pitch:Pitch):boolean {
@@ -115,109 +107,59 @@ function pitchToPitchDEO(pitch: Pitch):PitchDEO {
 
 export async function uploadPitch(pitch:Pitch) {
     if(checkPitchReadForUpload(pitch)) {
-        const data = pitchToPitchDEO(pitch);
-        const requestOpions =  {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        }
         let nexturl: string
         if (pitch.id != undefined) {
             nexturl = `/api/pitch/update`
         } else {
             nexturl = `/api/pitch/new`
         }
-        const response = await fetch(nexturl, requestOpions)
-        const res = await response.json()
-
-        const parseResult = PitchDEO.safeParse(res)
-        if (parseResult.success) {
-            if(pitch.id == undefined && parseResult.data.id) {
-                pitch.id = parseResult.data.id
-            }
-            return parseResult.data
-        } else {
-            return Promise.reject(parseResult.error)
-        }
+        return makePostRequest(
+            nexturl,
+            pitchToPitchDEO(pitch)
+        )
+            .then(data => parseAndHandleDEO(data, PitchDEO))
+            .then(pitchDEO => {
+                    if(pitch.id === undefined && pitchDEO.id) {
+                        pitch.id = pitchDEO.id
+                    }
+                    return pitchDEO
+                }
+            )
+    } else {
+        return Promise.reject("Pitch not ready for upload")
     }
 
 }
 
 export async function deletePitchOnServer(pitch:Pitch):Promise<boolean> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({id: pitch.id})
-    };
-    const response = await fetch("/api/pitch/delete", requestOptions)
-    const data = await response.json()
-    const parseResult = z.object({
-        id: z.number(),
-    }).safeParse(data)
-    if (parseResult.success) {
-        return true
-    } else {
-        const epR = ApiError.safeParse(data)
-        if (epR.success) {
-            return Promise.reject(epR.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
+    return makePostRequest(
+        `/api/pitch/delete`,
+        {id: pitch.id}
+    )
+        .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
+        .then(data => data.id == pitch.id)
 }
 
 export async function deletePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<boolean> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({id: pitchProperty.id})
-    };
-    const response = await fetch("/api/pitch_property/delete", requestOptions)
-    const data = await response.json()
-    const parseResult = z.object({
-        id: z.number(),
-    }).safeParse(data)
-    if (parseResult.success) {
-        return true
-    } else {
-        const epR = ApiError.safeParse(data)
-        if (epR.success) {
-            return Promise.reject(epR.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
+    return makePostRequest(
+        `/api/pitch_property/delete`,
+        {id: pitchProperty.id}
+    )
+        .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
+        .then(data => data.id == pitchProperty.id)
 }
 
 export async function updatePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<number> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(pitchProperty)
-    };
-    const response = await fetch("/api/pitch_property/update", requestOptions)
-    const data = await response.json()
-    const parseResult = PitchPropertyDEO.safeParse(data)
-    if (parseResult.success) {
-        if (parseResult.data.id) {
-            return parseResult.data.id
-        } else {
-            return Promise.reject("Server did not respond with id while updating pitch property")
-        }
-    } else {
-        const epR = ApiError.safeParse(data)
-        if (epR.success) {
-            return Promise.reject(epR.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
+    return makePostRequest(
+        `/api/pitch_property/update`,
+        pitchProperty
+    )
+        .then(data => parseAndHandleDEO(data, PitchPropertyDEO))
+        .then(pitchPropertyDEO => {
+            if(pitchPropertyDEO.id) {
+                return pitchPropertyDEO.id
+            } else {
+                return Promise.reject("Server did not respond with id while updating pitch property")
+            }
+        })
 }

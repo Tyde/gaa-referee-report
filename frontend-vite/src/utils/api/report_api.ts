@@ -3,6 +3,7 @@ import type {ExtraTimeOption, GameReport, Rule} from "@/types";
 import {ApiError, DatabaseTournament, GameCode, GameType, PitchDEO, Referee, Report, Team} from "@/types";
 import {DateTime} from "luxon";
 import {CompleteGameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
+import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 
 export async function getGameCodes(): Promise<Array<GameCode>> {
@@ -72,20 +73,9 @@ export function extractGameReportsFromCompleteReportDEO(
 }
 
 export async function loadReportDEO(id: number): Promise<CompleteReportDEO> {
-    const res = await (fetch("/api/report/get/" + id))
-    let json_res = await res.json()
-
-    const parsed = CompleteReportDEO.safeParse(json_res)
-    if (parsed.success) {
-        return parsed.data
-    } else {
-        const errorParse = ApiError.safeParse(json_res)
-        if (errorParse.success) {
-            return Promise.reject(errorParse.data.message)
-        }
-        return Promise.reject(parsed.error)
-    }
-
+    return fetch("/api/report/get/" + id)
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data,CompleteReportDEO))
 }
 
 const NewReportDEO = z.object({
@@ -98,33 +88,29 @@ const NewReportDEO = z.object({
 export async function uploadReport(
     report:Report
 ):Promise<number> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(NewReportDEO.parse({
-            id: report.id,
-            tournament: report.tournament.id,
-            selectedTeams: report.selectedTeams.map(value => value.id),
-            gameCode: report.gameCode.id
-        }))
-    };
     let address: string
     if(report.id != undefined) {
         address = "/api/report/update"
     } else {
         address = "/api/report/new"
     }
-    const response = await fetch(address, requestOptions)
-    const dbReport = await response.json()
-    const parseResponse = NewReportDEO.safeParse(dbReport)
-    if(parseResponse.success) {
-        report.id = parseResponse.data.id
-        return (parseResponse.data.id || -1)
-    } else {
-        return Promise.reject("Server did not return a valid report")
-    }
+    return makePostRequest(
+        address,
+        NewReportDEO.parse({
+            id: report.id,
+            tournament: report.tournament.id,
+            selectedTeams: report.selectedTeams.map(value => value.id),
+            gameCode: report.gameCode.id
+        })
+    )
+        .then(data => parseAndHandleDEO(data, NewReportDEO))
+        .then(data => {
+            if(data.id != undefined) {
+                return data.id
+            } else {
+                return Promise.reject("Could not get id from server")
+            }
+        })
 }
 
 export const UpdateReportAdditionalInformationDEO = z.object({
@@ -134,29 +120,21 @@ export const UpdateReportAdditionalInformationDEO = z.object({
 
 export type UpdateReportAdditionalInformationDEO = z.infer<typeof UpdateReportAdditionalInformationDEO>;
 export async function updateReportAdditionalInformation(report:Report):Promise<number> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(UpdateReportAdditionalInformationDEO.parse({
+    return makePostRequest(
+        "/api/report/updateAdditionalInformation",
+        UpdateReportAdditionalInformationDEO.parse({
             id: report.id,
             additionalInformation: report.additionalInformation
-        }))
-    };
-    let address: string
-
-    address = "/api/report/updateAdditionalInformation"
-
-    const response = await fetch(address, requestOptions)
-    const dbReport = await response.json()
-    const parseResponse = UpdateReportAdditionalInformationDEO.safeParse(dbReport)
-    if(parseResponse.success) {
-        report.id = parseResponse.data.id
-        return (parseResponse.data.id || -1)
-    } else {
-        return Promise.reject("Server did not return a valid response")
-    }
+        })
+    )
+        .then(data => parseAndHandleDEO(data, UpdateReportAdditionalInformationDEO))
+        .then(data => {
+            if(data.id != undefined) {
+                return data.id
+            } else {
+                return Promise.reject("Could not get id from server")
+            }
+        })
 }
 
 
@@ -168,24 +146,16 @@ export async function submitReportToServer(report:Report):Promise<number> {
     let submitReportObj = SubmitReportDEO.parse({
         id: report.id
     })
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(submitReportObj)
-    };
-    let address: string
-
-    address = "/api/report/submit"
-
-    const response = await fetch(address, requestOptions)
-    const dbReport = await response.json()
-    const parseResponse = SubmitReportDEO.safeParse(dbReport)
-    if(parseResponse.success) {
-        report.id = parseResponse.data.id
-        return (parseResponse.data.id || -1)
-    } else {
-        return Promise.reject("Server did not return a valid report")
-    }
+    return makePostRequest(
+        "/api/report/submit",
+        submitReportObj
+    )
+        .then(data => parseAndHandleDEO(data, SubmitReportDEO))
+        .then(data => {
+            if(data.id != undefined) {
+                return data.id
+            } else {
+                return Promise.reject("Could not get id from server")
+            }
+        })
 }
