@@ -22,6 +22,8 @@ data class PitchPropertyDEO(
     val name: String,
 )
 
+
+
 @Serializable
 data class PitchVariablesDEO(
     val surfaces: List<PitchPropertyDEO>,
@@ -97,14 +99,14 @@ data class PitchVariableUpdateDEO(
     val name: String,
     @Serializable(with = PitchPropertyTypeSerializer::class) val type: PitchPropertyType
 ) {
-    fun updateInDatabase(): Result<PitchPropertyEntity> {
+    fun updateInDatabase(): Result<PitchVariableUpdateDEO> {
         var pvUpdate = this
         return transaction {
             val obj = pvUpdate.type.toDBClass()
                 .findById(pvUpdate.id)
             if (obj is PitchPropertyEntity) {
                 obj.name = pvUpdate.name
-                Result.success(obj)
+                Result.success(pvUpdate)
             } else {
                 Result.failure(Exception("Could not find Pitch Property"))
             }

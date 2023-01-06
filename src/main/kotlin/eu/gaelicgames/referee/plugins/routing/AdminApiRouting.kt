@@ -26,7 +26,7 @@ fun Route.adminApiRouting() {
             val dBUpdated = updated.getOrThrow().updateInDatabase()
             if (dBUpdated.isSuccess) {
                 call.respond(
-                    dBUpdated.getOrThrow().toPitchPropertyDEO()
+                    dBUpdated.getOrThrow()
                 )
             } else {
                 call.respond(
