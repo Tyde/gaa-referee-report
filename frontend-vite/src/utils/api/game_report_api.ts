@@ -104,11 +104,7 @@ function gameReportToGameReportDEO(gameReport: GameReport) {
     }
 }
 
-export const TypeWithTransforms = z.object({
-    startTime: z.string().transform((value) => DateTime.fromISO(value)),
-})
-const anytype:any = {}
-parseAndHandleDEO(anytype, TypeWithTransforms)
+
 
 export async function updateGameReport(gameReport: GameReport): Promise<number> {
     return makePostRequest(
