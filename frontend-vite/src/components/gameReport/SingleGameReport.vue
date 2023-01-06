@@ -1,34 +1,27 @@
 <script lang="ts" setup>
 
-import {onBeforeUnmount, onMounted, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
 import type {ExtraTimeOption, GameReport, GameType, Rule} from "@/types";
 import SingleGameReportSingleTeam from "@/components/gameReport/SingleGameReportSingleTeam.vue";
 import {DateTime} from "luxon";
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
 import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
 import GameTypeEditor from "@/components/gameReport/GameTypeEditor.vue";
+import {useReportStore} from "@/utils/edit_report_store";
 
 
-const props = defineProps<{
-  modelValue: GameReport,
-  rules: Array<Rule>,
-  gameTypes: Array<GameType>,
-  extraTimeOptions: Array<ExtraTimeOption>,
-  index: number,
-}>()
 
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: GameReport): void,
   (e: 'deleteThisReport', value: GameReport): void,
 }>()
-
+const store = useReportStore()
 const isLoading = ref(false)
 
 
 
-
-
+/*
+//TODO include this into report store as action
 async function sendGameReport(gameReport: GameReport) {
   if (checkGameReportMinimal(gameReport)) {
     if (gameReport.id) {
@@ -42,6 +35,8 @@ async function sendGameReport(gameReport: GameReport) {
     }
   }
 }
+
+ */
 const gameTypeEditorVisible = ref(false)
 function showGameTypeDialog() {
   gameTypeEditorVisible.value = true
@@ -49,17 +44,22 @@ function showGameTypeDialog() {
 
 
 const sendingCreateRequest = ref(false)
-watch(props.modelValue, (newVal, odlVal) => {
-  emit('update:modelValue', props.modelValue)
+const gameTypesByName = computed(() => {
+  return store.gameTypes.sort((a, b) => a.name > b.name ? 1 : -1)
 })
 
 
-watch(()=>props.modelValue,(value,oldValue)=> {
-  sendGameReport(oldValue)
+watch(()=>store.selectedGameReport,(value,oldValue)=> {
+  if(store.selectedGameReport) {
+    store.sendGameReport(store.selectedGameReport)
+  }
 })
 onBeforeUnmount(() => {
-  sendGameReport(props.modelValue)
+  if(store.selectedGameReport) {
+    store.sendGameReport(store.selectedGameReport)
+  }
 })
+
 
 
 onMounted(() => {
@@ -74,14 +74,14 @@ onMounted(() => {
       <div class="field p-2">
         <label for="timeStartGame">Throw in time:</label><br>
         <Calendar
-            :model-value="modelValue.startTime?.toJSDate()"
-            @update:model-value="(nD:Date) => {modelValue.startTime = DateTime.fromJSDate(nD)}"
+            :model-value="store.selectedGameReport.startTime?.toJSDate()"
+            @update:model-value="(nD:Date) => {store.selectedGameReport.startTime = DateTime.fromJSDate(nD)}"
             id="timeStartGame"
             :showSeconds="false"
             :showTime="true"
             :time-only="true"
             :class="{
-                'to-be-filled':modelValue.startTime===undefined
+                'to-be-filled':store.selectedGameReport.startTime===undefined
             }"
         />
 
@@ -90,24 +90,24 @@ onMounted(() => {
         <label for="umpirePresentCheckBox"> Umpires present on time:</label><br>
         <Checkbox
             id="umpirePresentCheckBox"
-            v-model="props.modelValue.umpirePresentOnTime"
+            v-model="store.selectedGameReport.umpirePresentOnTime"
             :binary="true"/>
       </div>
-      <div v-if="!modelValue.umpirePresentOnTime" class="field p-2">
+      <div v-if="!store.selectedGameReport.umpirePresentOnTime" class="field p-2">
         <label for="umpireNotes">Comment on Umpires:</label><br>
-        <InputText id="umpireNotes" v-model="modelValue.umpireNotes" type="text"/>
+        <InputText id="umpireNotes" v-model="store.selectedGameReport.umpireNotes" type="text"/>
 
       </div>
       <div class="field p-2">
         <label for="extraTimeSelect">Extra time:</label><br>
         <Dropdown
             id="extraTimeSelect"
-            v-model="props.modelValue.extraTime"
-            :options="props.extraTimeOptions"
+            v-model="store.selectedGameReport.extraTime"
+            :options="store.extraTimeOptions"
             option-label="name"
             placeholder="Extra Time"
             :class="{
-                'to-be-filled':props.modelValue.extraTime===undefined
+                'to-be-filled':store.selectedGameReport.extraTime===undefined
             }"
         >
 
@@ -117,12 +117,12 @@ onMounted(() => {
         <label for="gameTypeSelect">Game type:</label><br>
         <Dropdown
             id="gameTypeSelect"
-            v-model="props.modelValue.gameType"
-            :options="props.gameTypes"
+            v-model="store.selectedGameReport.gameType"
+            :options="gameTypesByName"
             option-label="name"
             placeholder="Game Type"
             :class="{
-                'to-be-filled':props.modelValue.gameType===undefined
+                'to-be-filled':store.selectedGameReport.gameType===undefined
             }"
             class="w-60"
             :filter="true"
@@ -141,41 +141,24 @@ onMounted(() => {
     <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
       <div>Home team:</div>
     <SingleGameReportSingleTeam
-        v-model="modelValue.teamAReport"
-        :rules="rules"
-        :selected-teams="modelValue.report.selectedTeams"
-        @trigger-update="()=> sendGameReport(modelValue)"
-        :report-id="modelValue.id"
-        :report-passes-minimal-requirements="checkGameReportMinimal(modelValue)"
-    />
+        :is-team-a = "true" />
+
     </div>
     <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
       <div>Away team:</div>
     <SingleGameReportSingleTeam
-        v-model="modelValue.teamBReport"
-        :rules="rules"
-        :selected-teams="modelValue.report.selectedTeams"
+        :is-team-a = "false" />
 
-        @trigger-update="()=> sendGameReport(modelValue)"
-        :report-id="modelValue.id"
-        :report-passes-minimal-requirements="checkGameReportMinimal(modelValue)"
-    />
     </div>
 
     <div class="col-span-2 p-4 flex justify-center">
       <Button
-          @click="emit('deleteThisReport', props.modelValue)"
+          @click="emit('deleteThisReport', store.selectedGameReport)"
           class="p-button-danger"
         >Delete this game report</Button>
     </div>
     <GameTypeEditor
         v-model:visible = "gameTypeEditorVisible"
-        :game-types = "gameTypes"
-        @new-game-type="(gameType)=> {
-          gameTypes.push(gameType)
-          props.modelValue.gameType = gameType
-        }"
-
     />
   </div>
 

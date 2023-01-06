@@ -9,17 +9,19 @@ import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
 import {injuryIsBlank} from "@/utils/api/injuries_api";
 import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
-
+import {useReportStore} from "@/utils/edit_report_store";
+/*
 const props = defineProps<{
   tournament: DatabaseTournament,
   gameReports: Array<GameReport>,
   pitches: Array<Pitch>,
   report: Report
-}>()
+}>()*/
+const store = useReportStore()
 
 
 const tournamentIssues = computed(() => {
-  if (props.tournament == undefined) {
+  if (store.report.tournament == undefined) {
     return "There is currently no tournament selected for this report. Please fix this before submitting."
   } else {
     return ""
@@ -133,7 +135,7 @@ function injuryIssuesForGameReport(gameReport: GameReport): Array<InjuriesIssues
 }
 
 const gameReportIssues = computed(() => {
-  return props.gameReports.map((gameReport) => {
+  return store.gameReports.map((gameReport) => {
     let issues: Array<GameReportIssue> = []
     if (gameReport.gameType == undefined) {
       issues.push(GameReportIssue.NoGameType)
@@ -175,7 +177,7 @@ enum PitchReportIssue {
 }
 
 const pitchReportIssues = computed(() => {
-  return props.pitches.map((pitch) => {
+  return store.pitchReports.map((pitch) => {
     let issues: Array<PitchReportIssue> = []
     if (pitch.name.trim().length == 0) {
       issues.push(PitchReportIssue.NoName)
@@ -215,10 +217,10 @@ const uploadComplete = ref(false);
 
 async function uploadAllData() {
   isUploadingToServer.value = true
-  let promisesPitch = props.pitches.map((pitch) => {
+  let promisesPitch = store.pitchReports.map((pitch) => {
     return uploadPitch(pitch)
   })
-  let promisesReports = props.gameReports.map((gameReport) => {
+  let promisesReports = store.gameReports.map((gameReport) => {
     if (gameReport.id === undefined) {
       return createGameReport(gameReport)
     } else {
@@ -232,9 +234,9 @@ async function uploadAllData() {
 }
 
 const debouncedUpload = debounce(() => {
-  updateReportAdditionalInformation(props.report)
+  updateReportAdditionalInformation(store.report)
 }, 2000)
-watch(() => props.report.additionalInformation, () => {
+watch(() => store.report.additionalInformation, () => {
   debouncedUpload()
 
 })
@@ -247,8 +249,8 @@ onMounted(() => {
 
 async function submitReport() {
   if (uploadComplete.value) {
-    submitReportToServer(props.report).then(() => {
-      location.href= "/report/show/" + props.report.id
+    submitReportToServer(store.report).then(() => {
+      location.href= "/report/show/" + store.report.id
     }).catch((e) => {
       console.log(e)
     })
@@ -377,7 +379,7 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
 
         <Textarea
             id="additionalInfo"
-            v-model="report.additionalInformation"
+            v-model="store.report.additionalInformation"
             class="w-280"
             cols="40"
             placeholder=""

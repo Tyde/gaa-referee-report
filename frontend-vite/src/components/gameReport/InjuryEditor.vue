@@ -2,25 +2,37 @@
 import type {Injury, Team} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
 import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
+import {useReportStore} from "@/utils/edit_report_store";
 
+const store = useReportStore()
 const props = defineProps<{
   visible: boolean
-  modelValue: Array<Injury>
-  team?: Team
-  gameReportId?: number
+  isTeamA: boolean
 }>()
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
-  (e: 'update:modelValue', value: Array<Injury>): void
 }>()
 
+const selectedInjuryArray = computed(() => {
+  if (props.isTeamA) {
+    return store.selectedGameReport!!.teamAReport.injuries
+  } else {
+    return store.selectedGameReport!!.teamBReport.injuries
+  }
+})
+const selectedTeam = computed(() => {
+  if (props.isTeamA) {
+    return store.selectedGameReport!!.teamAReport.team
+  } else {
+    return store.selectedGameReport!!.teamBReport.team
+  }
+})
 async function uploadInjuriesToServer() {
-  if (props.gameReportId != undefined) {
-    for (let injury of props.modelValue) {
+  if (store.selectedGameReport?.id != undefined) {
+    for (let injury of selectedInjuryArray.value) {
       console.log(injury)
-      injury.id = await uploadInjury(injury, props.gameReportId)
+      injury.id = await uploadInjury(injury, store.selectedGameReport?.id)
     }
-    emits('update:modelValue', props.modelValue)
   } else {
     console.log("No report id - deferring upload")
   }
@@ -38,21 +50,20 @@ const localVisible = computed({
 function closeDialog() {
 
   uploadInjuriesToServer()
-  emits('update:modelValue', props.modelValue)
   emits('update:visible', false)
 
 }
 
 const injuryDialogTitle = computed(() => {
-  return "Injuries for " + props.team?.name
+  return "Injuries for " + selectedTeam.value?.name
 })
-watch(()=>props.modelValue, (newInjuries) => {
+watch(()=>selectedInjuryArray, (newInjuries) => {
   //Always add empty injury if there is no empty row
   generateEmptyInjury()
 },{deep:true,immediate:true})
 
 function generateEmptyInjury() {
-  let newInjury = props.modelValue
+  let newInjury = selectedInjuryArray.value
   if (newInjury.length == 0) {
     addEmptyInjury()
   } else if (!injuryIsBlank(newInjury[newInjury.length - 1])) {
@@ -61,13 +72,13 @@ function generateEmptyInjury() {
 }
 
 function addEmptyInjury() {
-  if(props.team) {
-    console.log("Adding empty injury with team id " + props.team?.id)
-    props.modelValue.push({
+  if(selectedTeam.value) {
+    console.log("Adding empty injury with team id " + selectedTeam.value.id)
+    selectedInjuryArray.value.push({
       firstName: "",
       lastName: "",
       details: "",
-      team: props.team
+      team: selectedTeam.value
     } as Injury)
   } else {
     console.log("Cant add empty injury - no team")
@@ -75,7 +86,7 @@ function addEmptyInjury() {
 }
 
 function deleteInjury(injury: Injury) {
-  props.modelValue.splice(props.modelValue.indexOf(injury), 1)
+  selectedInjuryArray.value.splice(selectedInjuryArray.value.indexOf(injury), 1)
 }
 
 onUpdated(() => {
@@ -96,7 +107,7 @@ onMounted(() => {
       :header="injuryDialogTitle"
       :modal="true"
   >
-    <div v-for="injury in props.modelValue">
+    <div v-for="injury in selectedInjuryArray">
       <div class="flex flex-row flex-wrap">
         <div class="p-2">
           <InputText

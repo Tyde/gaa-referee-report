@@ -1,5 +1,5 @@
-import type {ExtraTimeOption, GameReport, Report, Rule, SingleTeamGameReport} from "@/types";
-import {DisciplinaryActionDEO, InjuryDEO, GameType, ApiError} from "@/types";
+import type {GameReport, Report, Rule, SingleTeamGameReport} from "@/types";
+import {ApiError, DisciplinaryActionDEO, GameType, InjuryDEO, ExtraTimeOption} from "@/types";
 import {z} from "zod"
 import {DateTime} from "luxon";
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
@@ -197,4 +197,21 @@ export async function deleteGameReportOnServer(gameReport: GameReport): Promise<
             return Promise.reject("Unknown error")
         }
     }
+}
+
+export async function getGameReportVariables() {
+    return fetch("/api/game_report_variables")
+        .then(response => response.json())
+        .then(data => z.object({
+            gameTypes: z.array(GameType),
+            extraTimeOptions: z.array(ExtraTimeOption),
+        }).safeParse(data))
+        .then(parseResult => {
+            if (parseResult.success) {
+                return parseResult.data
+            } else {
+                return Promise.reject("Could not load or parse game types")
+            }
+        })
+
 }

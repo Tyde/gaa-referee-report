@@ -2,37 +2,36 @@
 
 import type {Pitch, Report} from "@/types";
 import {type PitchVariables, uploadPitch} from "@/utils/api/pitch_api";
-import {onBeforeUnmount, watch} from "vue";
+import {computed, onBeforeUnmount, watch} from "vue";
+import {useReportStore} from "@/utils/edit_report_store";
 
-const props = defineProps<{
-  modelValue: Pitch,
-  report: Report,
-  pitchReportOptions: PitchVariables
-}>()
-
+const store = useReportStore()
+const pitch = computed(() => {
+  return store.selectedPitchReport!!
+})
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: Pitch): void
   (e: 'deleteThisReport', value: Pitch): void
 }>()
 
+
+
 async function asyncUpload(pitch:Pitch) {
   await uploadPitch(pitch)
-  emit('update:modelValue', pitch)
 }
 
-watch(() => props.modelValue, (value, oldValue) => {
+watch(() => store.selectedPitchReport, (value, oldValue) => {
   console.log("Switched report, oldReport is ")
-  asyncUpload(value)
+  asyncUpload(value!!)
 })
 onBeforeUnmount(() => {
-  asyncUpload(props.modelValue)
+  asyncUpload(store.selectedPitchReport!!)
 })
 
 </script>
 
 <template>
   <div class="flex flex-col">
-    <div v-if="props.modelValue.name.trim().length===0" class="rounded-xl border border-amber-400
+    <div v-if="pitch.name?.trim().length===0" class="rounded-xl border border-amber-400
             bg-amber-200 text-center text-lg font-sans text-gray-700
             p-4 m-4">
       Please enter a name for the pitch! Otherwise the data wont be stored
@@ -43,12 +42,12 @@ onBeforeUnmount(() => {
           <label for="pitchName">Name:</label><br>
           <div
               :class="{
-                'to-be-filled':props.modelValue.name.trim().length===0
+                'to-be-filled':pitch.name.trim().length===0
             }"
           >
             <InputText
                 id="pitchName"
-                v-model="modelValue.name"
+                v-model="pitch.name"
                 placeholder="Pitch #X"
             />
           </div>
@@ -59,11 +58,11 @@ onBeforeUnmount(() => {
 
           <Dropdown
               id="surfaceSelect"
-              v-model="props.modelValue.surface"
+              v-model="pitch.surface"
               :class="{
-                'to-be-filled':props.modelValue.surface===undefined
+                'to-be-filled':pitch.surface===undefined
             }"
-              :options="props.pitchReportOptions.surfaces"
+              :options="store.pitchVariables?.surfaces"
               option-label="name"
               placeholder="Surface"
           >
@@ -76,11 +75,11 @@ onBeforeUnmount(() => {
           <label for="lengthSelect">Length:</label><br>
           <Dropdown
               id="lengthSelect"
-              v-model="props.modelValue.length"
+              v-model="pitch.length"
               :class="{
-                'to-be-filled':props.modelValue.length===undefined
+                'to-be-filled':pitch.length===undefined
             }"
-              :options="props.pitchReportOptions.lengths"
+              :options="store.pitchVariables?.lengths"
               option-label="name"
               placeholder="Length"
           >
@@ -91,11 +90,11 @@ onBeforeUnmount(() => {
           <label for="widthSelect">Width:</label><br>
           <Dropdown
               id="widthSelect"
-              v-model="props.modelValue.width"
+              v-model="pitch.width"
               :class="{
-                'to-be-filled':props.modelValue.width===undefined
+                'to-be-filled':pitch.width===undefined
             }"
-              :options="props.pitchReportOptions.widths"
+              :options="store.pitchVariables?.widths"
               option-label="name"
               placeholder="Width"
           >
@@ -108,11 +107,11 @@ onBeforeUnmount(() => {
           <label for="smallSquareSelect">Small square markings:</label><br>
           <Dropdown
               id="smallSquareSelect"
-              v-model="props.modelValue.smallSquareMarkings"
+              v-model="store.selectedPitchReport.smallSquareMarkings"
               :class="{
-                'to-be-filled':props.modelValue.smallSquareMarkings===undefined
+                'to-be-filled':pitch.smallSquareMarkings===undefined
             }"
-              :options="props.pitchReportOptions.markingsOptions"
+              :options="store.pitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="Small square markings"
@@ -124,11 +123,11 @@ onBeforeUnmount(() => {
           <label for="penaltySquareSelect">Penalty square markings:</label><br>
           <Dropdown
               id="penaltySquareSelect"
-              v-model="props.modelValue.penaltySquareMarkings"
+              v-model="pitch.penaltySquareMarkings"
               :class="{
-                'to-be-filled':props.modelValue.penaltySquareMarkings===undefined
+                'to-be-filled':pitch.penaltySquareMarkings===undefined
             }"
-              :options="props.pitchReportOptions.markingsOptions"
+              :options="store.pitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="Penalty square markings"
@@ -140,11 +139,11 @@ onBeforeUnmount(() => {
           <label for="thirteenMarkignsSelect">13m markings:</label><br>
           <Dropdown
               id="thirteenMarkignsSelect"
-              v-model="props.modelValue.thirteenMeterMarkings"
+              v-model="pitch.thirteenMeterMarkings"
               :class="{
-                'to-be-filled':props.modelValue.thirteenMeterMarkings===undefined
+                'to-be-filled':pitch.thirteenMeterMarkings===undefined
             }"
-              :options="props.pitchReportOptions.markingsOptions"
+              :options="store.pitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="13m markings"
@@ -156,11 +155,11 @@ onBeforeUnmount(() => {
           <label for="twentyMarkignsSelect">20m markings:</label><br>
           <Dropdown
               id="twentyMarkignsSelect"
-              v-model="props.modelValue.twentyMeterMarkings"
+              v-model="pitch.twentyMeterMarkings"
               :class="{
-                'to-be-filled':props.modelValue.twentyMeterMarkings===undefined
+                'to-be-filled':pitch.twentyMeterMarkings===undefined
             }"
-              :options="props.pitchReportOptions.markingsOptions"
+              :options="store.pitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="20m markings"
@@ -172,11 +171,11 @@ onBeforeUnmount(() => {
           <label for="longMarkingsSelect">45m/65m markings:</label><br>
           <Dropdown
               id="longMarkingsSelect"
-              v-model="props.modelValue.longMeterMarkings"
+              v-model="pitch.longMeterMarkings"
               :class="{
-                'to-be-filled':props.modelValue.longMeterMarkings===undefined
+                'to-be-filled':pitch.longMeterMarkings===undefined
             }"
-              :options="props.pitchReportOptions.markingsOptions"
+              :options="store.pitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="45m/65m markings"
@@ -190,11 +189,11 @@ onBeforeUnmount(() => {
           <label for="goalpostsSelect">Goalposts:</label><br>
           <Dropdown
               id="goalpostsSelect"
-              v-model="props.modelValue.goalPosts"
+              v-model="pitch.goalPosts"
               :class="{
-                'to-be-filled':props.modelValue.goalPosts===undefined
+                'to-be-filled':pitch.goalPosts===undefined
             }"
-              :options="props.pitchReportOptions.goalPosts"
+              :options="store.pitchVariables?.goalPosts"
               option-label="name"
               placeholder="Goalposts"
           >
@@ -205,11 +204,11 @@ onBeforeUnmount(() => {
           <label for="goalDimsSelect">Goal dimensions:</label><br>
           <Dropdown
               id="goalDimsSelect"
-              v-model="props.modelValue.goalDimensions"
+              v-model="pitch.goalDimensions"
               :class="{
-                'to-be-filled':props.modelValue.goalDimensions===undefined
+                'to-be-filled':pitch.goalDimensions===undefined
             }"
-              :options="props.pitchReportOptions.goalDimensions"
+              :options="store.pitchVariables?.goalDimensions"
               option-label="name"
               placeholder="Goalposts"
           >
@@ -222,7 +221,7 @@ onBeforeUnmount(() => {
 
           <InputText
               id="additionalInfo"
-              v-model="modelValue.additionalInformation"
+              v-model="pitch.additionalInformation"
               class="w-80"
               placeholder=""
           />
@@ -231,7 +230,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="flex-row flex justify-center mt-4">
         <Button
-            @click="emit('deleteThisReport',props.modelValue)"
+            @click="emit('deleteThisReport',store.selectedPitchReport)"
             class="p-button-danger"
           >Delete this pitch report</Button>
       </div>

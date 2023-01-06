@@ -1,8 +1,22 @@
 import {number, z} from "zod";
-import type {ExtraTimeOption, GameCode, GameReport, GameType, Rule} from "@/types";
-import {ApiError, DatabaseTournament, PitchDEO, Referee, Report, Team} from "@/types";
+import type {ExtraTimeOption, GameReport, Rule} from "@/types";
+import {ApiError, DatabaseTournament, GameCode, GameType, PitchDEO, Referee, Report, Team} from "@/types";
 import {DateTime} from "luxon";
 import {CompleteGameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
+
+
+export async function getGameCodes(): Promise<Array<GameCode>> {
+    return fetch("/api/codes")
+        .then(response => response.json())
+        .then(data => z.array(GameCode).safeParse(data))
+        .then(parseResult => {
+            if (parseResult.success) {
+                return parseResult.data
+            } else {
+                return Promise.reject("Could not load or parse game codes")
+            }
+        })
+}
 
 
 export const CompleteReportDEO = z.object({
@@ -57,7 +71,7 @@ export function extractGameReportsFromCompleteReportDEO(
     }).filter(gameReport => gameReport != undefined)
 }
 
-export async function loadReport(id: number): Promise<CompleteReportDEO> {
+export async function loadReportDEO(id: number): Promise<CompleteReportDEO> {
     const res = await (fetch("/api/report/get/" + id))
     let json_res = await res.json()
 

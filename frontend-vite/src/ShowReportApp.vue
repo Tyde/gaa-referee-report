@@ -2,7 +2,7 @@
 
 import {computed, onMounted, ref} from "vue";
 import type {CompleteReportDEO} from "@/utils/api/report_api";
-import {completeReportDEOToReport, extractGameReportsFromCompleteReportDEO, loadReport} from "@/utils/api/report_api";
+import {completeReportDEOToReport, extractGameReportsFromCompleteReportDEO, loadReportDEO} from "@/utils/api/report_api";
 import type {ExtraTimeOption, GameCode, GameReport, GameType, Pitch, Report, Rule} from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api"
 import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
@@ -72,7 +72,7 @@ async function waitForAllVariablesPresent() {
 async function downloadReport(id: number) {
   isLoading.value = true
   try {
-    const report: CompleteReportDEO = await loadReport(id)
+    const report: CompleteReportDEO = await loadReportDEO(id)
     await waitForAllVariablesPresent()
     currentReport.value = completeReportDEOToReport(report, codes.value)
     allGameReports.value = extractGameReportsFromCompleteReportDEO(

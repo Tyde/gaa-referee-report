@@ -75,11 +75,12 @@ export const GameType =  z.object({
 })
 export type GameType = z.infer<typeof GameType>
 
+export const ExtraTimeOption = z.object({
+    id: z.number(),
+    name: z.string().min(1),
+})
+export type ExtraTimeOption = z.infer<typeof ExtraTimeOption>
 
-export interface ExtraTimeOption {
-    id: number,
-    name:string
-}
 
 export interface GameReport {
     id?:number
@@ -109,14 +110,16 @@ export interface Injury {
     team?: Team,
 }
 
-export interface Rule {
-    id: number,
-    code: number,
-    isCaution: boolean,
-    isBlack: boolean,
-    isRed: boolean,
-    description: string
-}
+export const Rule = z.object({
+    id: z.number(),
+    code: z.number(),
+    isCaution: z.boolean(),
+    isBlack: z.boolean(),
+    isRed: z.boolean(),
+    description: z.string()
+})
+export type Rule = z.infer<typeof Rule>
+
 export const DisciplinaryActionDEO = z.object({
     id: z.number(),
     team: z.number(),

@@ -5,7 +5,9 @@ import CreateTournament from "@/components/tournament/CreateTournament.vue";
 import type {DatabaseTournament, Tournament} from "@/types";
 import {loadTournamentsOnDate} from "@/utils/api/tournament_api";
 import {DateTime} from "luxon";
+import {useReportStore} from "@/utils/edit_report_store";
 
+/*
 const emit = defineEmits<{
   (e: 'update:modelValue', tournament: Tournament): void
 }>()
@@ -13,6 +15,9 @@ const emit = defineEmits<{
 const props = defineProps<{
   modelValue?: DatabaseTournament
 }>()
+*/
+
+const store = useReportStore()
 
 const date = ref<Date>()
 const found_tournaments = ref(<DatabaseTournament[]>[])
@@ -24,7 +29,7 @@ const loading = ref(false)
 
 function select_tournament(tournament: DatabaseTournament) {
   //selected_tournament.value = tournament
-  emit('update:modelValue', tournament)
+  store.report.tournament = tournament
 }
 
 watch(date, async () => {
@@ -47,10 +52,10 @@ function on_tournament_created(tournament: DatabaseTournament) {
   <template v-if="!show_create_new_tournament">
     <Card>
       <template #content>
-        <template v-if="modelValue">
+        <template v-if="store.report.tournament">
 
-          Selected tournament: {{ modelValue.name }} - {{ modelValue.location }} -
-          {{ modelValue.date.toISODate() }}
+          Selected tournament: {{ store.report.tournament.name }} - {{ store.report.tournament.location }} -
+          {{ store.report.tournament.date.toISODate() }}
         </template>
 
         <div class="field col-12 md:col-4">
@@ -67,7 +72,7 @@ function on_tournament_created(tournament: DatabaseTournament) {
             <li
                 v-for="tournament in found_tournaments"
                 :class="{
-                'selected-tournament': modelValue && tournament.id === modelValue.id
+                'selected-tournament': store.report.tournament && tournament.id === store.report.tournament.id
               }"
                 class="p-listbox-item"
                 @click="select_tournament(tournament)"

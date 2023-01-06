@@ -1,5 +1,19 @@
-import type {DisciplinaryAction, DisciplinaryActionDEO, Rule, Team} from "@/types";
+import type {DisciplinaryAction, DisciplinaryActionDEO, Team} from "@/types";
+import {Rule} from "@/types";
+import z from "zod";
 
+export async function getRules():Promise<Rule[]> {
+    return fetch("/api/rules")
+        .then(response => response.json())
+        .then(data => z.array(Rule).safeParse(data))
+        .then(parseResult => {
+            if (parseResult.success) {
+                return parseResult.data
+            } else {
+                return Promise.reject("Could not load or parse rules")
+            }
+        })
+}
 export function fromDisciplinaryActionDEOToDisciplinaryAction(
     dADEO:DisciplinaryActionDEO,
     allRules:Rule[],

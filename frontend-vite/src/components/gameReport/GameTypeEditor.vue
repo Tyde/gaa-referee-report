@@ -3,15 +3,17 @@
 import type {GameType} from "@/types";
 import {computed, ref} from "vue";
 import {uploadNewGameType} from "@/utils/api/game_report_api";
+import {useReportStore} from "@/utils/edit_report_store";
 
+const store = useReportStore()
 const newGameType = ref<string>("");
 const props = defineProps<{
   visible: boolean,
-  gameTypes: Array<GameType>,
 }>()
+
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
-  (e: 'newGameType', value: GameType): void
+//  (e: 'newGameType', value: GameType): void
 }>()
 const localVisible = computed({
   get() {
@@ -24,18 +26,20 @@ const localVisible = computed({
 
 function storeGameType() {
 
-  let gtDB = uploadNewGameType(newGameType.value).catch((err) => {
-    console.log(err)
-  }).then((gt) => {
-    emits('newGameType', gt as GameType)
-  })
-
+  let gtDB = uploadNewGameType(newGameType.value)
+      .then((gt) => {
+        store.addNewGameType(gt)
+        if(store.selectedGameReport) {
+          store.selectedGameReport.gameType = gt
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
   emits('update:visible', false)
-
 }
 
 const proposedExistingAlternatives = computed(() => {
-  return props.gameTypes.filter(
+  return store.gameTypes.filter(
       gameType =>
           gameType.name.toLowerCase().includes(newGameType.value.toLowerCase())
   )

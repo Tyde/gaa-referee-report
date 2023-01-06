@@ -21,8 +21,11 @@ import Textarea from "primevue/textarea";
 // @ts-ignore
 import { Vue3Mq } from "vue3-mq";
 import Tooltip from "primevue/tooltip";
+import {createPinia} from "pinia";
 
+const pinia = createPinia()
 const app = createApp(App);
+app.use(pinia)
 app.use(PrimeVue)
 app.use(Vue3Mq);
 app.component('Card',Card)

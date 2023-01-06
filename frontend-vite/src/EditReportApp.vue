@@ -19,11 +19,14 @@ import {
   CompleteReportDEO,
   completeReportDEOToReport,
   extractGameReportsFromCompleteReportDEO,
-  loadReport,
+  loadReportDEO,
   uploadReport
 } from "@/utils/api/report_api";
 import {getPitchVariables, pitchDEOtoPitch, type PitchVariables} from "@/utils/api/pitch_api";
 import SubmitReport from "@/components/SubmitReport.vue";
+import {useReportStore} from "@/utils/edit_report_store";
+
+const store = useReportStore()
 
 enum ReportEditStage {
   SelectTournament,
@@ -72,12 +75,13 @@ const calcStageOptions = computed(() => {
 
 
 const readyStartReport = computed(() => {
-  return currentReport.value.selectedTeams.length > 1 &&
-      currentReport.value.tournament &&
+  return store.report.selectedTeams.length > 1 &&
+      store.report.tournament &&
       !reportStarted.value
 })
 const isLoading = ref(false)
 const current_stage = ref<ReportEditStage>(ReportEditStage.SelectTournament)
+/*
 const codes = ref<Array<GameCode>>([])
 const rules = ref<Array<Rule>>([])
 const gameTypes = ref<Array<GameType>>([])
@@ -86,58 +90,31 @@ const currentReport = ref<Report>({} as Report)
 const allGameReports = ref<Array<GameReport>>([])
 const allPitchReports = ref<Array<Pitch>>([])
 const pitchVariables = ref<PitchVariables | undefined>()
+*/
 const baseReportJustUploaded = ref(false)
-currentReport.value.selectedTeams = []
 
 function submit_teams(teams_added: Array<Team>) {
-  currentReport.value.selectedTeams.length = 0;
-  currentReport.value.selectedTeams = currentReport.value.selectedTeams.concat(teams_added)
+  store.report.selectedTeams.length = 0;
+  store.report.selectedTeams = store.report.selectedTeams.concat(teams_added)
 }
 
-
-watch(() => currentReport.value.tournament, () => {
-  if (currentReport.value.tournament) {
+watch(() => store.report.tournament, () => {
+  if (store.report.tournament) {
     current_stage.value = ReportEditStage.SelectTeams
   }
 })
 
 function select_tournament(tournament: DatabaseTournament) {
-  currentReport.value.tournament = tournament
+  store.report.tournament = tournament
   current_stage.value = ReportEditStage.SelectTeams
 }
 
-async function get_codes() {
-  let res = await fetch("/api/codes")
-  codes.value = (await res.json()) as Array<GameCode>
 
-}
-
-async function get_rules() {
-  let res = await fetch("/api/rules")
-  rules.value = (await res.json()) as Array<Rule>
-}
-
-async function get_game_report_variables() {
-  let res = await fetch("/api/game_report_variables")
-  let combined = (await res.json())
-  gameTypes.value = combined.gameTypes as Array<GameType>
-  extraTimeOptions.value = combined.extraTimeOptions as Array<ExtraTimeOption>
-}
-
-async function load_pitch_variables() {
-  await getPitchVariables().then(res => {
-    pitchVariables.value = res
-  }, err => {
-    console.error(err)
-  })
-
-}
-
-
+//TODO: integrate this into the store as action
 async function start_report() {
   isLoading.value = true
   try {
-    currentReport.value.id = await uploadReport(currentReport.value)
+    store.report.id = await uploadReport(store.report)
     reportStarted.value = true
     baseReportJustUploaded.value = true
     current_stage.value = ReportEditStage.EditGameReports
@@ -148,10 +125,11 @@ async function start_report() {
   }
 }
 
+//TODO: integrate this into the store as action
 async function updateReport() {
   //isLoading.value = true
   try {
-    await uploadReport(currentReport.value)
+    await uploadReport(store.report)
   } catch (e) {
     console.error(e)
   } finally {
@@ -162,35 +140,13 @@ async function updateReport() {
 
 async function loadAndHandleReport(id: number) {
   isLoading.value = true
-  try {
-    const report:CompleteReportDEO = await loadReport(id)
-    await waitForAllVariablesPresent()
-    currentReport.value = completeReportDEOToReport(report, codes.value)
-    allGameReports.value = extractGameReportsFromCompleteReportDEO(
-        report,
-        currentReport.value,
-        gameTypes.value,
-        extraTimeOptions.value,
-        rules.value
-    )
-    const pV = pitchVariables.value
-    if (pV) {
-      allPitchReports.value = report.pitches?.map(pitch => {
-
-        return pitchDEOtoPitch(pitch, currentReport.value, pV)
-
-      }) || []
-    }
-
-
+  store.loadReport(id)
+  if (store.currentError) {
+    //TODO: Show error
+  } else {
     reportStarted.value = true
-  } catch (e) {
-    console.log(e)
-  } finally {
-    isLoading.value = false
-
   }
-
+  isLoading.value = false
 }
 
 watch(current_stage, (new_stage, old_stage) => {
@@ -199,45 +155,21 @@ watch(current_stage, (new_stage, old_stage) => {
     if (baseReportJustUploaded.value) {
       baseReportJustUploaded.value = false
     } else {
-      if (currentReport.value.id) {
+      if (store.report.id) {
         updateReport()
       }
     }
   }
 })
 
-async function waitForAllVariablesPresent() {
-  const start_time = new Date().getTime()
-  while (true) {
-    if (
-        codes.value.length > 0 &&
-        rules.value.length > 0 &&
-        gameTypes.value.length > 0 &&
-        extraTimeOptions.value.length > 0 &&
-        pitchVariables.value
-    ) {
-      break
-    }
-    if ((new Date()).getTime() > start_time + 3000) {
-      throw new Error("Timeout waiting for variables")
-    }
-    console.log("Waiting for data")
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-}
-async function waitForLoadingComplete() {
-  await waitForAllVariablesPresent()
-  isLoading.value = false
-}
+
+
 onMounted(() => {
   isLoading.value = true
-  get_codes()
-  get_rules()
-  get_game_report_variables()
-  load_pitch_variables()
   let loc = new URL(location.href)
   if (loc.pathname.startsWith("/report/new")) {
-    waitForLoadingComplete()
+    store.loadAuxiliaryInformationFromSerer()
+        .then(() => isLoading.value = false)
   } else if (loc.pathname.startsWith("/report/edit/")) {
     let id = Number(loc.pathname.split("/")[3])
     if (id) {
@@ -266,48 +198,33 @@ onMounted(() => {
 
   <TournamentSelector
       v-if="current_stage === ReportEditStage.SelectTournament"
-      v-model="currentReport.tournament"
   />
   <TeamSelector
       v-if="current_stage === ReportEditStage.SelectTeams"
-      :already-selected-teams="currentReport.selectedTeams"
+      :already-selected-teams="store.report.selectedTeams"
       @submit-teams="submit_teams"
   />
 
   <GameReports
-      v-if="current_stage === ReportEditStage.EditGameReports"
-      :extraTimeOptions="extraTimeOptions"
-      :game-reports="allGameReports"
-      :gameTypes="gameTypes"
-      :report="currentReport"
-      :rules="rules"
-      @update:gameReports="newReports => allGameReports = newReports"
-  />
+      v-if="current_stage === ReportEditStage.EditGameReports" />
+
 
   <PitchReports
-      v-if="current_stage === ReportEditStage.EditPitchReports && pitchVariables"
-      v-model="allPitchReports"
-      :pitch-report-options="pitchVariables"
-
-      :report="currentReport"
+      v-if="current_stage === ReportEditStage.EditPitchReports && store.pitchVariables"
   />
 
   <SubmitReport
       v-if="current_stage === ReportEditStage.Submit"
-      :game-reports="allGameReports"
-      :pitches="allPitchReports"
-      :tournament="currentReport.tournament"
-      :report="currentReport"
       />
   <template v-if="readyStartReport">
     Code:
     <SelectButton
-        v-model="currentReport.gameCode"
-        :options="codes"
+        v-model="store.report.gameCode"
+        :options="store.codes"
         option-label="name"
     />
     <Button
-        v-if="currentReport.gameCode"
+        v-if="store.report.gameCode"
         class="p-button-rounded p-button-lg"
         @click="start_report"
     >Start Report

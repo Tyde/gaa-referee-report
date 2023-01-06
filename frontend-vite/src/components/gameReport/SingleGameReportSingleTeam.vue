@@ -4,26 +4,32 @@ import type {DisciplinaryAction, Injury, Rule, SingleTeamGameReport, Team} from 
 import {computed, onMounted, onUpdated, ref, watch} from "vue";
 import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
+import {useReportStore} from "@/utils/edit_report_store";
 
+
+const store = useReportStore()
 const props = defineProps<{
-  modelValue: SingleTeamGameReport,
-  selectedTeams: Array<Team>,
-  rules: Array<Rule>,
-  reportId?: number,
-  reportPassesMinimalRequirements: boolean,
+  isTeamA: boolean,
 }>()
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: SingleTeamGameReport): void,
-  (e: 'triggerUpdate'): void
-}>()
+
 
 const displayDisciplinary = ref(false)
 const displayInjuries = ref(false)
 
 
+const currentSingleTeamGameReport = computed(() => {
+  if (props.isTeamA) {
+    return store.selectedGameReport!!.teamAReport
+  } else {
+    return store.selectedGameReport!!.teamBReport
+  }
+})
+
 function openDisciplinaryDialog() {
-  emit('triggerUpdate')
+  if (store.selectedGameReport) {
+    store.sendGameReport(store.selectedGameReport)
+  }
   displayDisciplinary.value = true;
 }
 
@@ -32,7 +38,9 @@ function closeDisciplinaryDialog() {
 }
 
 function openInjuryDialog() {
-  emit('triggerUpdate')
+  if (store.selectedGameReport) {
+    store.sendGameReport(store.selectedGameReport)
+  }
   displayInjuries.value = true;
 }
 
@@ -40,31 +48,32 @@ function closeInjuryDialog() {
   displayInjuries.value = false;
 }
 
+
 </script>
 
 <template>
   <div class="grid grid-cols-4">
 
     <Dropdown
-        v-model="modelValue.team"
+        v-model="currentSingleTeamGameReport.team"
         :class="{
-                'to-be-filled':modelValue.team===undefined
+                'to-be-filled':currentSingleTeamGameReport.team===undefined
             }"
         :filter="true"
-        :options="selectedTeams"
+        :options="store.report.selectedTeams"
         :show-clear="true"
         class="col-span-4"
         option-label="name"
         placeholder="Select a Team"
     >
     </Dropdown>
-    <template v-if="modelValue.team">
+    <template v-if="currentSingleTeamGameReport.team">
       <div class="flex justify-center p-2">
         <div>
           <label for="goals_team">Goals</label><br>
           <InputNumber
               id="goals_team"
-              v-model="modelValue.goals"
+              v-model="currentSingleTeamGameReport.goals"
               :step="1"
               buttonLayout="vertical" class="w-16 text-sm"
               decrement-button-class="score-button-base"
@@ -80,7 +89,7 @@ function closeInjuryDialog() {
           <label for="points_team">Points</label><br>
           <InputNumber
               id="points_team"
-              v-model="modelValue.points"
+              v-model="currentSingleTeamGameReport.points"
               :step="1"
               buttonLayout="vertical" class="w-16 text-sm"
               decrement-button-class="score-button-base"
@@ -93,46 +102,46 @@ function closeInjuryDialog() {
         </div>
       </div>
       <div class="text-xl col-span-2 p-2 flex flex-col justify-center place-content-center">
-        <div class="flex-shrink">Total: {{ modelValue.goals * 3 + modelValue.points }}</div>
+        <div class="flex-shrink">Total: {{
+            currentSingleTeamGameReport.goals * 3 + currentSingleTeamGameReport.points
+          }}
+        </div>
       </div>
 
 
       <div class="col-span-2 p-1 flex">
         <Button
-            :disabled="!props.reportPassesMinimalRequirements"
+            :disabled="!store.selectedGameReportPassesMinimalRequirements"
             @click="openDisciplinaryDialog"
             class="flex-grow"
         >
-          Edit Disciplinary Actions ({{ modelValue.disciplinaryActions.length - 1 }})
+          Edit Disciplinary Actions ({{ currentSingleTeamGameReport.disciplinaryActions.length - 1 }})
         </Button>
       </div>
 
       <div class="col-span-2 p-1 flex">
         <Button
-            :disabled="!props.reportPassesMinimalRequirements"
+            :disabled="!store.selectedGameReportPassesMinimalRequirements"
             class="flex-grow"
             @click="openInjuryDialog"
         >
-          Edit Injuries ({{ modelValue.injuries.length - 1 }})
+          Edit Injuries ({{ currentSingleTeamGameReport.injuries.length - 1 }})
         </Button>
       </div>
 
 
     </template>
-    <DisciplinaryEditor
-        v-model="modelValue.disciplinaryActions"
-        v-model:visible="displayDisciplinary"
-        :game-report-id="reportId"
-        :rules="rules"
-        v-if="modelValue.team"
-        :team="modelValue.team"
 
+    <DisciplinaryEditor
+        :is-team-a="props.isTeamA"
+        v-model:visible="displayDisciplinary"
+        v-if="currentSingleTeamGameReport.team"
     />
+
     <InjuryEditor
-        v-model="modelValue.injuries"
+        :is-team-a="props.isTeamA"
         v-model:visible="displayInjuries"
-        :game-report-id="reportId"
-        :team="modelValue.team"
+        v-if="currentSingleTeamGameReport.team"
     />
   </div>
 

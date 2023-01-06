@@ -3,11 +3,11 @@ import {onMounted, ref} from "vue";
 import type {Team} from "@/types";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import {allTeams} from "@/utils/api/teams_api";
+import {useReportStore} from "@/utils/edit_report_store";
 
 const emit = defineEmits(['submit-teams'])
-const props = defineProps<{
-  alreadySelectedTeams:Array<Team>
-}>()
+
+const store = useReportStore()
 
 enum TeamSelectorModal {
   NoModal,
@@ -16,9 +16,8 @@ enum TeamSelectorModal {
 }
 
 
-const selected = ref(<Team>{})
 const teams_added = ref(<Team[]>[])
-const isLoading = ref(false)
+
 
 function addTeam(team: Team) {
   teams_added.value.push(team)
@@ -36,7 +35,7 @@ function removeTeam(team:Team) {
 
 onMounted(() => {
   teams_added.value.length = 0
-  teams_added.value = teams_added.value.concat(props.alreadySelectedTeams)
+  teams_added.value = teams_added.value.concat(store.report.selectedTeams)
 })
 </script>
 
@@ -75,16 +74,7 @@ onMounted(() => {
   </Card>
 </template>
 
-<script lang="ts">
-export default {
-  name: "TeamSelector.vue",
-  data() {
-    return {
-      count: 0
-    }
-  }
-}
-</script>
+
 
 <style scoped>
 .selected-teams-list {

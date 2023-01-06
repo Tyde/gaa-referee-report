@@ -3,37 +3,28 @@
 import type {Pitch, Report} from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {deletePitchOnServer} from "@/utils/api/pitch_api";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import SinglePitchReport from "@/components/pitch/SinglePitchReport.vue";
+import {useReportStore} from "@/utils/edit_report_store";
 
-const props = defineProps<{
-  modelValue: Array<Pitch>,
-  report: Report,
-  pitchReportOptions: PitchVariables
-}>()
+const store = useReportStore()
 
-const selectedPitchReport = ref<Pitch | undefined>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: Array<Pitch>): void
-}>()
 
 function newPitch() {
   let newPitch = <Pitch>{
-    report: props.report,
+    report: store.report,
     name: "",
     additionalInformation: "",
   }
-  props.modelValue.push(newPitch)
-  emit('update:modelValue', props.modelValue)
-  selectedPitchReport.value = props.modelValue[props.modelValue.length - 1]
+  store.pitchReports.push(newPitch)
+  store.selectedPitchReportIndex = store.pitchReports.length - 1
 }
 
 onMounted(() => {
-  if (props.modelValue.length == 0) {
-    //newPitch()
+  if (store.pitchReports.length == 0) {
+    //newPitch() -- We dont do that anymore because some might not want to send a report
   } else {
-    selectedPitchReport.value = props.modelValue[0]
+    store.selectedPitchReportIndex = 0
   }
 })
 
@@ -53,32 +44,24 @@ function cancelDeletePitchDialog() {
 
 async function deletePitch() {
   if (pitchToDelete.value) {
-    if (pitchToDelete.value.id) {
-      await deletePitchOnServer(pitchToDelete.value)
-    }
-    let index = props.modelValue.indexOf(pitchToDelete.value)
-    if (index >= 0) {
-      props.modelValue.splice(index, 1)
-      if (props.modelValue.length > 0) {
-        selectedPitchReport.value = props.modelValue[Math.min(index, props.modelValue.length - 1)]
-      } else {
-        selectedPitchReport.value = undefined
-      }
-      emit('update:modelValue', props.modelValue)
-    }
+    await store.deletePitchReport(pitchToDelete.value)
   }
   cancelDeletePitchDialog()
 }
+
+const pitchReportIndices = computed(() => {
+  return Array.from(Array(store.pitchReports.length).keys())
+})
 
 </script>
 <template>
   <div>
     <Toolbar>
       <template #start>
-        <SelectButton v-model="selectedPitchReport" :options="modelValue">
+        <SelectButton v-model="store.selectedPitchReportIndex" :options="pitchReportIndices">
           <template #option="slotProps">
             <span
-                v-if="slotProps.option.name">{{ slotProps.option.name }}</span>
+                v-if="store.pitchReports[slotProps.option].name">{{ store.pitchReports[slotProps.option].name }}</span>
             <span v-else>Unnamed Pitch</span>
 
           </template>
@@ -88,11 +71,16 @@ async function deletePitch() {
         <Button class="p-button-success" @click="newPitch"><i class="pi pi-plus"></i></Button>
       </template>
     </Toolbar>
+    <!--
     <SinglePitchReport
-        v-if="selectedPitchReport"
+        v-if="store.selectedPitchReport"
         v-model="selectedPitchReport"
         :pitch-report-options="props.pitchReportOptions"
         :report="report"
+        @delete-this-report="(pitch)=>startDeletePitchDialog(pitch)"
+    />-->
+    <SinglePitchReport
+        v-if="store.selectedPitchReport"
         @delete-this-report="(pitch)=>startDeletePitchDialog(pitch)"
     />
 

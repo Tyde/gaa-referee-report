@@ -2,18 +2,40 @@
 import type { DisciplinaryAction, Rule, Team} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
 import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
+import {useReportStore} from "@/utils/edit_report_store";
 
+const store = useReportStore()
 const props = defineProps<{
   visible: boolean,
-  modelValue: Array<DisciplinaryAction>,
-  team: Team,
-  gameReportId?: number,
-  rules: Array<Rule>,
+  isTeamA: boolean,
+//  modelValue: Array<DisciplinaryAction>,
+//  team: Team,
+//  gameReportId?: number,
+//  rules: Array<Rule>,
 }>()
+
+const selectedDisciplinaryActions = computed(() => {
+  if (props.isTeamA) {
+    return store.selectedGameReport!!.teamAReport.disciplinaryActions
+  } else {
+    return store.selectedGameReport!!.teamBReport.disciplinaryActions
+  }
+})
+
+const selectedTeam = computed(() => {
+  if (props.isTeamA) {
+    return store.selectedGameReport!!.teamAReport.team
+  } else {
+    return store.selectedGameReport!!.teamBReport.team
+  }
+})
+
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
-  (e: 'update:modelValue', value: Array<DisciplinaryAction>): void
+  //(e: 'update:modelValue', value: Array<DisciplinaryAction>): void
 }>()
+
+
 
 
 const localVisible = computed({
@@ -27,9 +49,9 @@ const localVisible = computed({
 
 
 async function uploadActionsToServer() {
-  if (props.gameReportId != undefined) {
-    for (let action of props.modelValue) {
-      await uploadDisciplinaryAction(action, props.gameReportId)
+  if (store.selectedGameReport?.id != undefined) {
+    for (let action of selectedDisciplinaryActions.value) {
+      await uploadDisciplinaryAction(action, store.selectedGameReport.id)
     }
   } else {
     console.log("No report id - deferring upload")
@@ -37,23 +59,23 @@ async function uploadActionsToServer() {
 }
 
 function closeDialog() {
-  emits('update:modelValue', props.modelValue ?? [])
+  //('update:modelValue', props.modelValue ?? [])
   emits('update:visible', false)
   uploadActionsToServer()
 }
 
 const disciplinaryDialogTitle = computed(() => {
-  return "Disciplinary Action for " + props.team?.name
+  return "Disciplinary Action for " +  selectedTeam.value
 })
 
 
 
-watch(()=>props.modelValue, () => {
+watch(()=>selectedDisciplinaryActions, () => {
   generateEmptydAFields()
 },{deep:true,immediate:true})
 
 function generateEmptydAFields() {
-  let newActions = props.modelValue
+  let newActions = selectedDisciplinaryActions.value
 
   if (newActions.length == 0) {
     addEmptyDisciplinaryAction()
@@ -64,9 +86,9 @@ function generateEmptydAFields() {
 
 
 function addEmptyDisciplinaryAction() {
-  if(props.team) {
-    props.modelValue.push({
-      team: props.team,
+  if(selectedTeam.value) {
+    selectedDisciplinaryActions.value.push({
+      team: selectedTeam.value,
       firstName: "",
       lastName: "",
       number: undefined,
@@ -77,7 +99,7 @@ function addEmptyDisciplinaryAction() {
 }
 
 function deleteDAction(dAction: DisciplinaryAction) {
-  props.modelValue.splice(props.modelValue.indexOf(dAction), 1)
+  selectedDisciplinaryActions.value.splice(selectedDisciplinaryActions.value.indexOf(dAction), 1)
 }
 
 /*
@@ -98,7 +120,7 @@ onMounted(() => {
       :header="disciplinaryDialogTitle"
       :modal="true"
   >
-    <div v-for="dAction in modelValue">
+    <div v-for="dAction in selectedDisciplinaryActions">
       <div class="flex flex-row flex-wrap">
         <div class="p-2">
           <InputText
@@ -128,7 +150,7 @@ onMounted(() => {
 
         <Dropdown
             v-model="dAction.rule"
-            :options="rules"
+            :options="store.rules"
             :show-clear="true"
             class="dropdown-disciplinary m-2"
             input-class="dropdown-disciplinary"
