@@ -18,23 +18,7 @@ const isLoading = ref(false)
 
 
 
-/*
-//TODO include this into report store as action
-async function sendGameReport(gameReport: GameReport) {
-  if (checkGameReportMinimal(gameReport)) {
-    if (gameReport.id) {
-      await updateGameReport(gameReport)
-    } else {
-      if (!sendingCreateRequest.value) {
-        sendingCreateRequest.value = true
-        gameReport.id = await createGameReport(gameReport)
-        sendingCreateRequest.value = false
-      }
-    }
-  }
-}
 
- */
 const gameTypeEditorVisible = ref(false)
 function showGameTypeDialog() {
   gameTypeEditorVisible.value = true
@@ -48,13 +32,19 @@ const gameTypesByName = computed(() => {
 
 
 watch(()=>store.selectedGameReport,(value,oldValue)=> {
-  if(store.selectedGameReport) {
-    store.sendGameReport(store.selectedGameReport)
+  if(store.selectedGameReport && oldValue && oldValue.id != -1) {
+    store.sendGameReport(oldValue)
+        .catch((e) => {
+          store.newError(e)
+        })
   }
 })
 onBeforeUnmount(() => {
   if(store.selectedGameReport) {
     store.sendGameReport(store.selectedGameReport)
+        .catch((e) => {
+          store.newError(e)
+        })
   }
 })
 

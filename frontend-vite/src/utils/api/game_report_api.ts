@@ -4,6 +4,7 @@ import {z} from "zod"
 import {DateTime} from "luxon";
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
 import {fromDisciplinaryActionDEOToDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
+import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 export const GameReportDEO = z.object({
     id: z.number(),
@@ -103,115 +104,57 @@ function gameReportToGameReportDEO(gameReport: GameReport) {
     }
 }
 
-export async function updateGameReport(gameReport: GameReport): Promise<number> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(
-            gameReportToGameReportDEO(gameReport)
-        )
-    }
-    const response = await fetch("/api/gamereport/update", requestOptions)
-    const data = await response.json()
-    const parseResult = GameReportDEO.safeParse(data)
-    if (parseResult.success) {
-        return parseResult.data.id
-    } else {
-        const errorParse = ApiError.safeParse(data)
-        if (errorParse.success) {
-            return Promise.reject(errorParse.data)
-        }
-        return Promise.reject("Error updating game report")
-    }
+export const TypeWithTransforms = z.object({
+    startTime: z.string().transform((value) => DateTime.fromISO(value)),
+})
+const anytype:any = {}
+parseAndHandleDEO(anytype, TypeWithTransforms)
 
+export async function updateGameReport(gameReport: GameReport): Promise<number> {
+    return makePostRequest(
+        "/api/gamereport/update",
+        gameReportToGameReportDEO(gameReport)
+    )
+        .then(data => parseAndHandleDEO(data, GameReportDEO))
+        .then(gameReportDEO => gameReportDEO.id)
 }
 
 export async function createGameReport(gameReport: GameReport): Promise<number> {
-
-
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(gameReportToGameReportDEO(gameReport))
-    };
-    const response = await fetch("/api/gamereport/new", requestOptions)
-    const data = await response.json()
-    const parseResult = GameReportDEO.safeParse(data)
-    console.log(data)
-    if (parseResult.success) {
-        console.log("Game report created")
-        return parseResult.data.id
-    }
-    return -1
+    return makePostRequest(
+        "/api/gamereport/new",
+        gameReportToGameReportDEO(gameReport)
+    )
+        .then(data => parseAndHandleDEO(data, GameReportDEO))
+        .then(gameReportDEO => gameReportDEO.id)
 
 }
 
 export async function uploadNewGameType(gameTypeName: string):Promise<GameType> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({name: gameTypeName})
-    };
-    const response = await fetch("/api/gametype/new", requestOptions)
-    const data = await response.json()
-    const parseResult = GameType.safeParse(data)
-    if (parseResult.success) {
-        console.log("Game type created")
-        return parseResult.data
-    } else {
-        const apiErrorParse = ApiError.safeParse(data)
-        if (apiErrorParse.success) {
-            return Promise.reject(apiErrorParse.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
+    return makePostRequest(
+        "/api/gametype/new",
+        {name: gameTypeName}
+    )
+        .then(data => parseAndHandleDEO(data, GameType))
 }
 
 export async function deleteGameReportOnServer(gameReport: GameReport): Promise<boolean> {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({id: gameReport.id})
-    };
-    const response = await fetch("/api/gamereport/delete", requestOptions)
-    const data = await response.json()
-    const parseResult = z.object({
-        id: z.number(),
-    }).safeParse(data)
-    if (parseResult.success) {
-        return true
-    } else {
-        const epR = ApiError.safeParse(data)
-        if (epR.success) {
-            return Promise.reject(epR.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
+    return makePostRequest(
+        "/api/gamereport/delete",
+        {id: gameReport.id}
+    )
+        .then(data => parseAndHandleDEO(data, z.object({id: z.number(),})))
+        .then(deletedGameReport => {
+            gameReport.id = -1
+            return true
+        })
 }
 
 export async function getGameReportVariables() {
+
     return fetch("/api/game_report_variables")
         .then(response => response.json())
-        .then(data => z.object({
+        .then(data => parseAndHandleDEO(data, z.object({
             gameTypes: z.array(GameType),
             extraTimeOptions: z.array(ExtraTimeOption),
-        }).safeParse(data))
-        .then(parseResult => {
-            if (parseResult.success) {
-                return parseResult.data
-            } else {
-                return Promise.reject("Could not load or parse game types")
-            }
-        })
-
+        })))
 }
