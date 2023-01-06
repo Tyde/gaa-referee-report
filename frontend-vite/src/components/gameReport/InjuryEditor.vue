@@ -30,8 +30,11 @@ const selectedTeam = computed(() => {
 async function uploadInjuriesToServer() {
   if (store.selectedGameReport?.id != undefined) {
     for (let injury of selectedInjuryArray.value) {
-      console.log(injury)
       injury.id = await uploadInjury(injury, store.selectedGameReport?.id)
+          .catch((error) => {
+            store.newError(error)
+            return undefined
+          })
     }
   } else {
     console.log("No report id - deferring upload")

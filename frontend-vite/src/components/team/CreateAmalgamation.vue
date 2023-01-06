@@ -2,7 +2,10 @@
 import {ref} from "vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types";
+import {createAmalgamationOnServer} from "@/utils/api/teams_api";
+import {useReportStore} from "@/utils/edit_report_store";
 
+const store = useReportStore();
 const props = defineProps<{
   rough_amalgamation_name?: string
 }>()
@@ -24,18 +27,19 @@ function on_team_selected(team: Team) {
 async function create_amalgamation() {
   if (amalgamation_name) {
     if (selected_teams.value.length > 1) {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({"name": amalgamation_name.value, "teams": selected_teams.value})
-      };
       is_loading.value = true
-      const response = await fetch("/api/new_amalgamation", requestOptions)
-      const data = await response.json()
+      const team = await createAmalgamationOnServer(
+          amalgamation_name.value,
+          selected_teams.value
+      )
+          .catch((error) => {
+            store.newError(error)
+            return undefined
+          })
       is_loading.value = false
-      emit('on_new_amalgamation', data as Team)
+      if (team) {
+        emit('on_new_amalgamation', team)
+      }
     } else {
       alert("Amalgamations have to consist of at least two teams")
     }

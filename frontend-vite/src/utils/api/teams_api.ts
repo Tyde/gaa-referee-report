@@ -15,3 +15,11 @@ export async function allTeams(): Promise<Array<Team>> {
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, Team.array()))
 }
+
+export async function createAmalgamationOnServer(name:string, teams: Array<Team>) {
+    return makePostRequest(
+        "/api/new_amalgamation",
+        {name: name, teams: teams}
+    )
+        .then(data => parseAndHandleDEO(data, Team))
+}

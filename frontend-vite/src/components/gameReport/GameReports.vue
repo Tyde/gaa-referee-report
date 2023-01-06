@@ -73,10 +73,7 @@ function newGameReport() {
   }
 })*/
 onBeforeMount(()=> {
-  console.log("before mount")
-  console.log(store.gameReports.length==0)
   if(store.gameReports.length==0){
-    console.log("new game report")
     newGameReport()
   } else {
     store.selectedGameReportIndex = 0
@@ -100,6 +97,9 @@ function cancelDeleteReport() {
 async function deleteReport() {
   if(reportToDelete.value != undefined) {
     await store.deleteGameReport(reportToDelete.value)
+        .catch((error) => {
+          store.newError(error)
+        })
     cancelDeleteReport()
   }
 

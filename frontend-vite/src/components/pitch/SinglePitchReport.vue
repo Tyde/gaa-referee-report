@@ -17,6 +17,9 @@ const emit = defineEmits<{
 
 async function asyncUpload(pitch:Pitch) {
   await uploadPitch(pitch)
+      .catch((error) => {
+        store.newError(error)
+      })
 }
 
 watch(() => store.selectedPitchReport, (value, oldValue) => {

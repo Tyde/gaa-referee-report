@@ -86,22 +86,28 @@ export const useReportStore = defineStore('report', () => {
     async function loadReport(id: number) {
         try {
             const reportDEOPromise = loadReportDEO(id)
+                .catch((error) => {
+                    newError(error)
+                    return undefined
+                })
             await loadAuxiliaryInformationFromSerer()
             const reportDEO = await reportDEOPromise
-            report.value = completeReportDEOToReport(reportDEO, codes.value)
-            gameReports.value = extractGameReportsFromCompleteReportDEO(
-                reportDEO,
-                report.value,
-                gameTypes.value,
-                extraTimeOptions.value,
-                rules.value
-            )
-            if(pitchVariables.value) {
-                pitchReports.value = reportDEO.pitches?.map(pitch => {
-                    return pitchDEOtoPitch(pitch, report.value, pitchVariables.value!!)
-                }) ?? []
+            if (reportDEO) {
+                report.value = completeReportDEOToReport(reportDEO, codes.value)
+                gameReports.value = extractGameReportsFromCompleteReportDEO(
+                    reportDEO,
+                    report.value,
+                    gameTypes.value,
+                    extraTimeOptions.value,
+                    rules.value
+                )
+                if (pitchVariables.value) {
+                    pitchReports.value = reportDEO.pitches?.map(pitch => {
+                        return pitchDEOtoPitch(pitch, report.value, pitchVariables.value!!)
+                    }) ?? []
+                }
+                return true
             }
-            return true
         } catch (e) {
             currentErrors.value.push(new ErrorMessage(e as string))
             return false
@@ -116,6 +122,9 @@ export const useReportStore = defineStore('report', () => {
         if(gameReport) {
             if(gameReport.id) {
                 await deleteGameReportOnServer(gameReport)
+                    .catch((error) => {
+                        newError(error)
+                    })
             }
             let index = gameReports.value.indexOf(gameReport)
             gameReports.value.splice(index, 1)
@@ -130,6 +139,9 @@ export const useReportStore = defineStore('report', () => {
         if (checkGameReportMinimal(gameReport)) {
             if (gameReport.id) {
                 await updateGameReport(gameReport)
+                    .catch((error) => {
+                        newError(error)
+                    })
             } else {
                 if (!sendingGameReportCreateRequest.value) {
                     sendingGameReportCreateRequest.value = true
@@ -143,6 +155,9 @@ export const useReportStore = defineStore('report', () => {
     async function deletePitchReport(pitchReport: Pitch) {
         if (pitchReport.id) {
             await deletePitchOnServer(pitchReport)
+                .catch((error) => {
+                    newError(error)
+                })
         }
         let index = pitchReports.value.indexOf(pitchReport)
         if (index >= 0) {

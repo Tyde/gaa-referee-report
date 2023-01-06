@@ -5,12 +5,13 @@ import CreateTeam from "@/components/team/CreateTeam.vue";
 import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
 import Card from 'primevue/card';
 import {allTeams} from "@/utils/api/teams_api";
+import {useReportStore} from "@/utils/edit_report_store";
 
 interface SearchResultTeam {
   team: Team,
   search_score: number
 }
-
+const store = useReportStore()
 const props = defineProps<{
   show_amalgamate: Boolean
   show_add_new_team: Boolean
@@ -59,6 +60,10 @@ async function fetch_available_teams() {
   isLoading.value = true
   try {
     teamsAvailable.value = await allTeams()
+        .catch((error) => {
+          store.newError(error)
+          return []
+        })
   } catch (e) {
     console.error(e)
   } finally {
