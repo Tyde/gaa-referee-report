@@ -217,3 +217,12 @@ export interface Pitch {
     goalDimensions?: PitchProperty,
     additionalInformation: string,
 }
+
+export class ErrorMessage {
+    message: string;
+    timestamp: number;
+    constructor(message: string) {
+        this.message = message;
+        this.timestamp = Date.now();
+    }
+}

@@ -1,11 +1,10 @@
 <script setup lang="ts">
 
 import SingleGameReport from "@/components/gameReport/SingleGameReport.vue";
-import type {ExtraTimeOption, GameReport, GameType, Report, Rule, Team} from "@/types";
-import {computed, onBeforeMount, onMounted, onUpdated, ref, watch} from "vue";
+import type {GameReport} from "@/types";
+import {computed, onBeforeMount, ref} from "vue";
 import { DateTime } from "luxon";
 import {checkGameReportNecessary, checkGameReportSuggestion} from "@/utils/gobal_functions";
-import {deleteGameReportOnServer} from "@/utils/api/game_report_api";
 import {useReportStore} from "@/utils/edit_report_store";
 /*
 const props = defineProps<{

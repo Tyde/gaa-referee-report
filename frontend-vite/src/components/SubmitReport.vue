@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import type {DatabaseTournament, DisciplinaryAction, GameReport, Injury, Pitch, Report} from "@/types";
+import type {DisciplinaryAction, GameReport, Injury, Pitch} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
 import {DateTime} from "luxon";
 import {uploadPitch} from "@/utils/api/pitch_api";

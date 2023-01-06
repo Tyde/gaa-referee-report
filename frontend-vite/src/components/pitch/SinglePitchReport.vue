@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 
-import type {Pitch, Report} from "@/types";
-import {type PitchVariables, uploadPitch} from "@/utils/api/pitch_api";
+import type {Pitch} from "@/types";
+import {uploadPitch} from "@/utils/api/pitch_api";
 import {computed, onBeforeUnmount, watch} from "vue";
 import {useReportStore} from "@/utils/edit_report_store";
 

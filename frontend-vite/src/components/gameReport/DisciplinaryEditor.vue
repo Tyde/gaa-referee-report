@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-import type { DisciplinaryAction, Rule, Team} from "@/types";
-import {computed, onMounted, onUpdated, watch} from "vue";
-import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
+import type { DisciplinaryAction} from "@/types";
+import {computed, onMounted, watch} from "vue";
+import {
+  deleteDisciplinaryActionOnServer,
+  disciplinaryActionIsBlank,
+  uploadDisciplinaryAction
+} from "@/utils/api/disciplinary_action_api";
 import {useReportStore} from "@/utils/edit_report_store";
 
 const store = useReportStore()
@@ -32,7 +36,6 @@ const selectedTeam = computed(() => {
 
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
-  //(e: 'update:modelValue', value: Array<DisciplinaryAction>): void
 }>()
 
 
@@ -51,7 +54,10 @@ const localVisible = computed({
 async function uploadActionsToServer() {
   if (store.selectedGameReport?.id != undefined) {
     for (let action of selectedDisciplinaryActions.value) {
-      await uploadDisciplinaryAction(action, store.selectedGameReport.id)
+      uploadDisciplinaryAction(action, store.selectedGameReport.id)
+          .catch((error) => {
+            store.newError(error)
+          })
     }
   } else {
     console.log("No report id - deferring upload")
@@ -62,10 +68,13 @@ function closeDialog() {
   //('update:modelValue', props.modelValue ?? [])
   emits('update:visible', false)
   uploadActionsToServer()
+      .catch((error) => {
+        store.newError(error)
+      })
 }
 
 const disciplinaryDialogTitle = computed(() => {
-  return "Disciplinary Action for " +  selectedTeam.value
+  return "Disciplinary Action for " +  selectedTeam.value?.name
 })
 
 
@@ -99,6 +108,12 @@ function addEmptyDisciplinaryAction() {
 }
 
 function deleteDAction(dAction: DisciplinaryAction) {
+  if (dAction.id) {
+    deleteDisciplinaryActionOnServer(dAction)
+        .catch((error) => {
+          store.newError(error)
+        })
+  }
   selectedDisciplinaryActions.value.splice(selectedDisciplinaryActions.value.indexOf(dAction), 1)
 }
 

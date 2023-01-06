@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import {onMounted, onUpdated, ref, watch} from "vue";
-import {fromDateToDateString} from "@/utils/gobal_functions";
+import {ref, watch} from "vue";
 import CreateTournament from "@/components/tournament/CreateTournament.vue";
-import type {DatabaseTournament, Tournament} from "@/types";
+import type {DatabaseTournament} from "@/types";
 import {loadTournamentsOnDate} from "@/utils/api/tournament_api";
 import {DateTime} from "luxon";
 import {useReportStore} from "@/utils/edit_report_store";
@@ -98,7 +97,7 @@ function on_tournament_created(tournament: DatabaseTournament) {
   </template>
   <CreateTournament
       v-else
-      :preselected-date="date || new Date()"
+      :preselected-date="date ?? new Date()"
       @tournament_created="on_tournament_created"
   />
 </template>

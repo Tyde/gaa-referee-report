@@ -1,5 +1,5 @@
 import type {DisciplinaryAction, DisciplinaryActionDEO, Team} from "@/types";
-import {Rule} from "@/types";
+import {ApiError, Rule} from "@/types";
 import z from "zod";
 
 export async function getRules():Promise<Rule[]> {
@@ -55,7 +55,7 @@ export async function uploadDisciplinaryAction(action: DisciplinaryAction, gameR
                 "game": gameReportId
             })
         }
-        let nexturl = ""
+        let nexturl: string
         if (action.id != undefined) {
             nexturl = `/api/gamereport/disciplinaryAction/update`
         } else {
@@ -86,4 +86,29 @@ export function disciplinaryActionIsBlank(disciplinaryAction: DisciplinaryAction
         !disciplinaryAction.number &&
         !disciplinaryAction.rule &&
         disciplinaryAction.details.trim().length == 0
+}
+
+export async function deleteDisciplinaryActionOnServer(disciplinaryAction:DisciplinaryAction):Promise<boolean> {
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({id: disciplinaryAction.id})
+    };
+    const response = await fetch("/api/gamereport/disciplinaryAction/delete", requestOptions)
+    const data = await response.json()
+    const parseResult = z.object({
+        id: z.number(),
+    }).safeParse(data)
+    if (parseResult.success) {
+        return true
+    } else {
+        const epR = ApiError.safeParse(data)
+        if (epR.success) {
+            return Promise.reject(epR.data.message)
+        } else {
+            return Promise.reject("Unknown error")
+        }
+    }
 }

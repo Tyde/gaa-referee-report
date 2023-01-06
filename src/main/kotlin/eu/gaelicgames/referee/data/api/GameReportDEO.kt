@@ -406,6 +406,27 @@ data class DisciplinaryActionDEO(
 }
 
 @Serializable
+data class DeleteDisciplinaryActionDEO(
+    val id: Long
+) {
+    fun deleteFromDatabase(): Result<Boolean> {
+        val deleteId = this.id
+        return transaction {
+            val action = DisciplinaryAction.findById(deleteId)
+            if (action != null) {
+                action.delete()
+                Result.success(true)
+            } else {
+                Result.failure(
+                    IllegalArgumentException(
+                        "Trying to delete a disciplinary action with invalid id ${this.id}"
+                    )
+                )
+            }
+        }
+    }
+}
+@Serializable
 data class InjuryDEO(
     val id: Long? = null,
     val team: Long? = null,

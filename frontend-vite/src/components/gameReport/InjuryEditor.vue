@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {Injury, Team} from "@/types";
+import type {Injury} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
 import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
 import {useReportStore} from "@/utils/edit_report_store";

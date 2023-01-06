@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 
-import type {DisciplinaryAction, Injury, Rule, SingleTeamGameReport, Team} from "@/types";
-import {computed, onMounted, onUpdated, ref, watch} from "vue";
+import {computed, ref} from "vue";
 import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";

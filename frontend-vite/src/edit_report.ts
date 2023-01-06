@@ -22,6 +22,7 @@ import Textarea from "primevue/textarea";
 import { Vue3Mq } from "vue3-mq";
 import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
+import Message from "primevue/message";
 
 const pinia = createPinia()
 const app = createApp(App);
@@ -40,6 +41,7 @@ app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)
 app.component('Textarea', Textarea)
+app.component('Message', Message)
 app.directive('tooltip', Tooltip)
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')

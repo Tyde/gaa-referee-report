@@ -37,7 +37,7 @@ export async function uploadInjury(injury: Injury, gameReportId: number):Promise
             },
             body: JSON.stringify(injuryToInjuryDAO(injury, gameReportId))
         }
-        let nexturl = ""
+        let nexturl: string
         if(injury.id != undefined) {
             nexturl = `/api/gamereport/injury/update`
         } else  {

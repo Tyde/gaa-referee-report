@@ -3,26 +3,14 @@ import TeamSelector from './components/team/TeamSelector.vue'
 import {computed, onMounted, ref, watch} from "vue";
 import type {
   DatabaseTournament,
-  ExtraTimeOption,
-  GameCode,
-  GameReport,
-  GameType,
-  Pitch,
-  Report,
-  Rule,
   Team
 } from "@/types";
 import TournamentSelector from "./components/tournament/TournamentSelector.vue";
 import GameReports from "@/components/gameReport/GameReports.vue";
 import PitchReports from "@/components/pitch/PitchReports.vue";
 import {
-  CompleteReportDEO,
-  completeReportDEOToReport,
-  extractGameReportsFromCompleteReportDEO,
-  loadReportDEO,
   uploadReport
 } from "@/utils/api/report_api";
-import {getPitchVariables, pitchDEOtoPitch, type PitchVariables} from "@/utils/api/pitch_api";
 import SubmitReport from "@/components/SubmitReport.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 
@@ -110,7 +98,6 @@ function select_tournament(tournament: DatabaseTournament) {
 }
 
 
-//TODO: integrate this into the store as action
 async function start_report() {
   isLoading.value = true
   try {
@@ -125,7 +112,6 @@ async function start_report() {
   }
 }
 
-//TODO: integrate this into the store as action
 async function updateReport() {
   //isLoading.value = true
   try {
@@ -140,8 +126,8 @@ async function updateReport() {
 
 async function loadAndHandleReport(id: number) {
   isLoading.value = true
-  store.loadReport(id)
-  if (store.currentError) {
+  await store.loadReport(id)
+  if (store.currentErrors.length > 0) {
     //TODO: Show error
   } else {
     reportStarted.value = true
@@ -193,7 +179,9 @@ onMounted(() => {
       option-label="name"
       option-value="stage"
   />
-
+<transition-group name="p-message" tag="div">
+  <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
+</transition-group>
 
 
   <TournamentSelector

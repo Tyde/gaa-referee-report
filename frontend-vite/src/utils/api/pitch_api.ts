@@ -123,7 +123,7 @@ export async function uploadPitch(pitch:Pitch) {
             },
             body: JSON.stringify(data)
         }
-        let nexturl = ""
+        let nexturl: string
         if (pitch.id != undefined) {
             nexturl = `/api/pitch/update`
         } else {

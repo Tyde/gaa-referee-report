@@ -2,7 +2,7 @@
 
 import type {PitchProperty, PitchPropertyType} from "@/types";
 import {useAdminStore} from "@/utils/admin_store";
-import {computed, ref, watch} from "vue";
+import {computed, ref} from "vue";
 import type {ComponentPublicInstance} from "vue";
 import InputText from "primevue/inputtext";
 import {useConfirm} from "primevue/useconfirm";

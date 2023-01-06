@@ -1,6 +1,4 @@
-import {ApiError, NewTeamDEO, Team} from "@/types";
-import {z} from "zod";
-
+import {ApiError, Team} from "@/types";
 
 
 export async function createTeam(name: string): Promise<Team> {

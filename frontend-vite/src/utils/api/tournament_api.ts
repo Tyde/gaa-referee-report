@@ -1,6 +1,5 @@
 import type {DateTime} from "luxon";
 import {ApiError, DatabaseTournament} from "@/types";
-import {z} from "zod";
 
 
 export async function loadTournamentsOnDate(date:DateTime):Promise<Array<DatabaseTournament>> {

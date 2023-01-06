@@ -257,6 +257,23 @@ fun Route.refereeApiRouting() {
     post<Api.GameReports.DisciplinaryAction.Update> {
         handleDisciplinaryActionInput(doUpdate = true)
     }
+    post<Api.GameReports.DisciplinaryAction.Delete> {
+        val disciplinaryAction = call.runCatching { call.receive<DeleteDisciplinaryActionDEO>() }
+        disciplinaryAction.getOrNull()?.apply {
+            val res = deleteFromDatabase()
+            if(res.isSuccess) {
+                call.respond(this)
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.DELETE_FAILED,
+                        res.exceptionOrNull()?.message ?: "Could not delete disciplinary action"
+                    )
+                )
+            }
+        } ?: call.respond(HttpStatusCode.BadRequest)
+
+    }
 
     post<Api.GameReports.Injury.New> {
         handleInjuryInput(doUpdate = false)

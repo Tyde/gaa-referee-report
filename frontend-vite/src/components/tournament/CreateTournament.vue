@@ -2,7 +2,6 @@
 
 import {computed, onMounted, ref} from "vue";
 import type { Tournament} from "@/types";
-import {fromDateToDateString} from "@/utils/gobal_functions";
 import {DatabaseTournament} from "@/types";
 import {DateTime} from "luxon";
 

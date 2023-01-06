@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 
-import type {GameType} from "@/types";
 import {computed, ref} from "vue";
 import {uploadNewGameType} from "@/utils/api/game_report_api";
 import {useReportStore} from "@/utils/edit_report_store";

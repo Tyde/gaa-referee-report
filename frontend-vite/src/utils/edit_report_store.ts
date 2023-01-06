@@ -2,7 +2,6 @@ import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import type {GameReport, Pitch, Report, ExtraTimeOption, GameType, GameCode, Rule} from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api";
-import {z} from "zod"
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {
     completeReportDEOToReport,
@@ -18,6 +17,7 @@ import {
     updateGameReport
 } from "@/utils/api/game_report_api";
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
+import {ErrorMessage} from "@/types";
 
 export const useReportStore = defineStore('report', () => {
     const report = ref<Report>({} as Report)
@@ -32,7 +32,7 @@ export const useReportStore = defineStore('report', () => {
     const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
     const pitchVariables = ref<PitchVariables | undefined>()
 
-    const currentError = ref<string | undefined>()
+    const currentErrors = ref<ErrorMessage[]>([])
 
     const selectedGameReportIndex = ref<number>(-1)
     const selectedGameReport = computed(() => {
@@ -63,22 +63,22 @@ export const useReportStore = defineStore('report', () => {
     async function loadAuxiliaryInformationFromSerer() {
         const promiseCodes = getGameCodes()
             .then(serverCodes => codes.value = serverCodes)
-            .catch(error => currentError.value = error)
+            .catch(error => currentErrors.value.push(new ErrorMessage(error)))
 
         const promiseRules = getRules()
             .then(serverRules => rules.value = serverRules)
-            .catch(reason => currentError.value = reason)
+            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
         const promisePitchVariables = getPitchVariables()
             .then(serverPitchVariables => pitchVariables.value = serverPitchVariables)
-            .catch(reason => currentError.value = reason)
+            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
         const promiseGameReport = getGameReportVariables()
             .then(gameReportVariables => {
                 gameTypes.value = gameReportVariables.gameTypes
                 extraTimeOptions.value = gameReportVariables.extraTimeOptions
             })
-            .catch(reason => currentError.value = reason)
+            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
         return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport])
     }
@@ -103,7 +103,7 @@ export const useReportStore = defineStore('report', () => {
             }
             return true
         } catch (e) {
-            currentError.value = e as string
+            currentErrors.value.push(new ErrorMessage(e as string))
             return false
         }
     }
@@ -157,6 +157,10 @@ export const useReportStore = defineStore('report', () => {
         return false
     }
 
+    function newError(message: string) {
+        currentErrors.value.push(new ErrorMessage(message))
+    }
+
     return {
         report,
         gameReports,
@@ -166,7 +170,7 @@ export const useReportStore = defineStore('report', () => {
         gameTypes,
         extraTimeOptions,
         pitchVariables,
-        currentError,
+        currentErrors,
         selectedGameReportIndex,
         selectedGameReport,
         selectedGameReportPassesMinimalRequirements,
@@ -177,6 +181,7 @@ export const useReportStore = defineStore('report', () => {
         addNewGameType,
         deleteGameReport,
         sendGameReport,
-        deletePitchReport
+        deletePitchReport,
+        newError
     }
 })

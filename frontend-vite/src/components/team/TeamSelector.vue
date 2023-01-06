@@ -2,7 +2,6 @@
 import {onMounted, ref} from "vue";
 import type {Team} from "@/types";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
-import {allTeams} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
 
 const emit = defineEmits(['submit-teams'])

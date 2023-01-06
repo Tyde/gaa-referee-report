@@ -103,6 +103,10 @@ class Api() {
             @Serializable
             @Resource("update")
             class Update(val parent: DisciplinaryAction)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: DisciplinaryAction)
         }
 
         @Serializable

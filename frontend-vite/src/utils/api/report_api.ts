@@ -110,7 +110,7 @@ export async function uploadReport(
             gameCode: report.gameCode.id
         }))
     };
-    let address = ""
+    let address: string
     if(report.id != undefined) {
         address = "/api/report/update"
     } else {
@@ -144,7 +144,7 @@ export async function updateReportAdditionalInformation(report:Report):Promise<n
             additionalInformation: report.additionalInformation
         }))
     };
-    let address = ""
+    let address: string
 
     address = "/api/report/updateAdditionalInformation"
 
@@ -175,7 +175,7 @@ export async function submitReportToServer(report:Report):Promise<number> {
         },
         body: JSON.stringify(submitReportObj)
     };
-    let address = ""
+    let address: string
 
     address = "/api/report/submit"
 
