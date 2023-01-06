@@ -5,8 +5,8 @@ import {computed, onMounted, ref, watch} from "vue";
 import {DateTime} from "luxon";
 import {uploadPitch} from "@/utils/api/pitch_api";
 import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
-import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
-import {injuryIsBlank} from "@/utils/api/injuries_api";
+import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
+import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
 import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
 import {useReportStore} from "@/utils/edit_report_store";
@@ -109,7 +109,7 @@ function disciplinaryActionIssuesForGameReport(gameReport: GameReport): Array<Di
     } else {
       return undefined
     }
-  }).filter((dai)=> (dai?.issues.length || 0) > 0)
+  }).filter((dai) => (dai?.issues.length || 0) > 0)
       .filter((dai): dai is DisciplinaryActionIssues => !!dai)
 }
 
@@ -130,7 +130,7 @@ function injuryIssuesForGameReport(gameReport: GameReport): Array<InjuriesIssues
     } else {
       return undefined
     }
-  }).filter((ii)=> (ii?.issues.length || 0) > 0)
+  }).filter((ii) => (ii?.issues.length || 0) > 0)
       .filter((ii): ii is InjuriesIssues => (!!ii))
 }
 
@@ -229,6 +229,30 @@ async function uploadAllData() {
   })
   await Promise.all(promisesPitch)
   await Promise.all(promisesReports)
+  let updateDiAndInjuries = store.gameReports.map((gameReport) => {
+    if (gameReport.id) {
+      let tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
+        uploadDisciplinaryAction(da, gameReport.id!!)
+      })
+      let tBdiP = gameReport.teamBReport.disciplinaryActions.map((da) => {
+        uploadDisciplinaryAction(da, gameReport.id!!)
+      })
+      let tAinP = gameReport.teamAReport.injuries.map((injury) => {
+        uploadInjury(injury, gameReport.id!!)
+      })
+      let tBinP = gameReport.teamBReport.injuries.map((injury) => {
+        uploadInjury(injury, gameReport.id!!)
+      })
+      //concat all four arrays
+      let allPromises = tAdiP.concat(tBdiP).concat(tAinP).concat(tBinP)
+      return Promise.all(allPromises)
+    } else {
+      return Promise.reject("Game report not uploaded even though it should have been uploaded before")
+    }
+  })
+  await Promise.all(updateDiAndInjuries)
+
+
   isUploadingToServer.value = false
   uploadComplete.value = true
 }
@@ -250,7 +274,7 @@ onMounted(() => {
 async function submitReport() {
   if (uploadComplete.value) {
     submitReportToServer(store.report).then(() => {
-      location.href= "/report/show/" + store.report.id
+      location.href = "/report/show/" + store.report.id
     }).catch((e) => {
       console.log(e)
     })
@@ -322,7 +346,7 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
           <template v-for="inIssues in gris.injuriesIssues">
             <li v-for="issue in inIssues.issues">
               <template v-if="issue===InjuryIssue.NoDetails">
-                No details entered for Injury of {{ inIssues.action.firstName}} {{inIssues.action.lastName }}
+                No details entered for Injury of {{ inIssues.action.firstName }} {{ inIssues.action.lastName }}
               </template>
               <template v-if="issue===InjuryIssue.NoName">
                 Missing name for Injury with details: {{ inIssues.action.details }}
@@ -335,13 +359,16 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
                 Missing name for disciplinary action with details: {{ disIssues.action.details }}
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoDetails">
-                No details entered for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
+                No details entered for disciplinary action of {{ disIssues.action.firstName }}
+                {{ disIssues.action.lastName }}
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoNumber">
-                Missing number for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
+                Missing number for disciplinary action of {{ disIssues.action.firstName }} {{
+                  disIssues.action.lastName
+                }}
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoRule">
-                Missing rule for disciplinary action of {{ disIssues.action.firstName}} {{disIssues.action.lastName }}
+                Missing rule for disciplinary action of {{ disIssues.action.firstName }} {{ disIssues.action.lastName }}
               </template>
             </li>
           </template>
