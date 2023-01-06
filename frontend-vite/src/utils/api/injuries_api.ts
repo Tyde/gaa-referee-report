@@ -1,4 +1,6 @@
 import type {Injury, InjuryDEO, Team} from "@/types";
+import {ApiError} from "@/types";
+import {z} from "zod";
 
 function injuryToInjuryDAO(injury: Injury, gameReportId: number) {
     return {
@@ -57,6 +59,34 @@ export async function uploadInjury(injury: Injury, gameReportId: number):Promise
         }
     }
     return -1;
+}
+
+export async function deleteInjuryOnServer(injury: Injury):Promise<boolean> {
+    if(injury.id != undefined) {
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({id: injury.id})
+        }
+        const response = await fetch(`/api/gamereport/injury/delete`, requestOptions)
+        const data = await response.json()
+        const parseResult = z.object({
+            id: z.number()
+        }).safeParse(data)
+        if(parseResult.success) {
+            return true
+        } else {
+            const epR = ApiError.safeParse(data)
+            if (epR.success) {
+                return Promise.reject(epR.data.message)
+            } else {
+                return Promise.reject("Unknown error")
+            }
+        }
+    }
+    return Promise.reject("Trying to delete an injury on the server that has not been saved to the server")
 }
 
 export function injuryIsBlank(injury: Injury) {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {Injury} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
-import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
+import {deleteInjuryOnServer, injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
 import {useReportStore} from "@/utils/edit_report_store";
 
 const store = useReportStore()
@@ -86,6 +86,12 @@ function addEmptyInjury() {
 }
 
 function deleteInjury(injury: Injury) {
+  if (injury.id) {
+    deleteInjuryOnServer(injury)
+        .catch((error) => {
+          store.newError(error)
+        })
+  }
   selectedInjuryArray.value.splice(selectedInjuryArray.value.indexOf(injury), 1)
 }
 

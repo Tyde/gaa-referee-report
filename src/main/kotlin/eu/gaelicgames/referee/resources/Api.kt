@@ -119,6 +119,10 @@ class Api() {
             @Serializable
             @Resource("update")
             class Update(val parent: Injury)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Injury)
         }
 
 

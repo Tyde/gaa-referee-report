@@ -531,3 +531,25 @@ data class InjuryDEO(
         }
     }
 }
+
+@Serializable
+data class DeleteInjuryDEO(
+    val id:Long
+) {
+    fun deleteFromDatabase(): Result<Boolean> {
+        val deleteId = this.id
+        return transaction {
+            val injury = Injury.findById(deleteId)
+            if (injury != null) {
+                injury.delete()
+                Result.success(true)
+            } else {
+                Result.failure(
+                    IllegalArgumentException(
+                        "Trying to delete an injury with invalid id ${this.id}"
+                    )
+                )
+            }
+        }
+    }
+}

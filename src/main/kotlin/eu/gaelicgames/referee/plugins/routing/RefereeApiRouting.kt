@@ -281,6 +281,23 @@ fun Route.refereeApiRouting() {
     post<Api.GameReports.Injury.Update> {
         handleInjuryInput(doUpdate = true)
     }
+    post<Api.GameReports.Injury.Delete> {
+        val disciplinaryAction = call.runCatching { call.receive<DeleteInjuryDEO>() }
+        disciplinaryAction.getOrNull()?.apply {
+            val res = deleteFromDatabase()
+            if(res.isSuccess) {
+                call.respond(this)
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.DELETE_FAILED,
+                        res.exceptionOrNull()?.message ?: "Could not delete injury"
+                    )
+                )
+            }
+        } ?: call.respond(HttpStatusCode.BadRequest)
+
+    }
 
     post<Api.Pitch.New> {
         handlePitchReportInput(doUpdate = false)
