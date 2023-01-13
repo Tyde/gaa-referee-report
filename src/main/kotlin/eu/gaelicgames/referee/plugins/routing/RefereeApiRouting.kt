@@ -322,7 +322,7 @@ fun Route.refereeApiRouting() {
 
     get<Api.Rules> {
         val rules = transaction {
-            Rule.all().map { RuleDEO(it) }
+            Rule.all().map { RuleDEO.fromRule(it) }
         }
         call.respond(rules)
     }
@@ -335,11 +335,11 @@ fun Route.refereeApiRouting() {
         }
         val data = if (code != null) {
             transaction {
-                Rule.find { Rules.code eq code.id }.map { RuleDEO(it) }
+                Rule.find { Rules.code eq code.id }.map { RuleDEO.fromRule(it) }
             }
         } else {
             transaction {
-                Rule.all().map { RuleDEO(it) }
+                Rule.all().map { RuleDEO.fromRule(it) }
             }
         }
         call.respond(data)

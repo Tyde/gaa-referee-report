@@ -100,7 +100,41 @@ data class RuleDEO(
     val isRed: Boolean,
     val description: String
 ) {
-    constructor(rule: Rule) : this(
-        rule.id.value, rule.code.id.value, rule.isCaution, rule.isBlack, rule.isRed, rule.description
-    )
+
+    companion object {
+        fun fromRule(rule: Rule): RuleDEO {
+            return transaction {
+                 RuleDEO(
+                    rule.id.value,
+                    rule.code.id.value,
+                    rule.isCaution,
+                    rule.isBlack,
+                    rule.isRed,
+                    rule.description
+                )
+            }
+        }
+    }
+
+
+    fun updateInDatabase(): Result<Rule> {
+        val rUpdate = this
+        return transaction {
+            val rule = Rule.findById(rUpdate.id)
+            if(rule != null) {
+                GameCode.findById(rUpdate.code)?.let {
+                    rule.code = it
+                }
+                rule.isCaution = rUpdate.isCaution
+                rule.isBlack = rUpdate.isBlack
+                rule.isRed = rUpdate.isRed
+                rule.description = rUpdate.description
+                Result.success(rule)
+            } else {
+                Result.failure(
+                    IllegalArgumentException("Trying to update a rule with invalid id ${rUpdate.id}")
+                )
+            }
+        }
+    }
 }

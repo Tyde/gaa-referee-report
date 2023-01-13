@@ -29,6 +29,9 @@ const items = ref([
     <Menubar :model="items" />
 
   </div>
+  <transition-group name="p-message" tag="div">
+    <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
+  </transition-group>
   <router-view></router-view>
 </template>
 <style>

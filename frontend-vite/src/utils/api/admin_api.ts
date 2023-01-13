@@ -1,7 +1,8 @@
 
-import {PitchPropertyDEO} from "@/types";
+import {PitchPropertyDEO, Rule} from "@/types";
 import type {PitchProperty} from '@/types'
 import {ApiError} from "@/types";
+import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 
 
@@ -27,4 +28,9 @@ export async function updatePitchVariableOnServer(option: PitchProperty) {
             return Promise.reject("Unknown error")
         }
     }
+}
+
+export async function updateRuleOnServer(rule: Rule) {
+    return makePostRequest("/api/rule/update",rule)
+        .then(data => parseAndHandleDEO(data,Rule))
 }

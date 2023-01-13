@@ -120,6 +120,9 @@ export const Rule = z.object({
 })
 export type Rule = z.infer<typeof Rule>
 
+
+
+
 export const DisciplinaryActionDEO = z.object({
     id: z.number(),
     team: z.number(),

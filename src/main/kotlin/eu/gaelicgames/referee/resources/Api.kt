@@ -41,6 +41,31 @@ class Api() {
     class Rules(val parent: Api)
 
     @Serializable
+    @Resource("rule")
+    class Rule(val parent:Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: Rule)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: Rule)
+
+        @Serializable
+        @Resource("disable")
+        class Disable(val parent: Rule)
+
+        @Serializable
+        @Resource("enable")
+        class Enable(val parent: Rule)
+
+        @Serializable
+        @Resource("delete")
+        class Delete(val parent: Rule)
+    }
+
+
+    @Serializable
     @Resource("game_report_variables")
     class GameReportVariables(val parent: Api)
 
