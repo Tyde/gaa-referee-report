@@ -3,7 +3,7 @@ package eu.gaelicgames.referee.plugins
 import eu.gaelicgames.referee.data.Amalgamation
 import eu.gaelicgames.referee.data.Amalgamations
 import eu.gaelicgames.referee.data.Team
-import eu.gaelicgames.referee.data.TeamDEO
+import eu.gaelicgames.referee.data.api.TeamDEO
 import eu.gaelicgames.referee.plugins.routing.adminApiRouting
 import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
 import eu.gaelicgames.referee.plugins.routing.sites

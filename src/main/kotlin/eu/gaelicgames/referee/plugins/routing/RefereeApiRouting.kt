@@ -10,8 +10,6 @@ import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.resources.*
-import io.ktor.server.resources.Resources
 import io.ktor.server.resources.post
 import io.ktor.util.pipeline.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -196,13 +194,13 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.Submit> {
-        val submitReport = call.receiveOrNull<SubmitTournamentDEO>()
+        val submitReport = call.receiveOrNull<SubmitTournamentReportDEO>()
         if (submitReport != null) {
             val report = submitReport.submitInDatabase()
             if (report.isSuccess) {
 
 
-                val response = SubmitTournamentDEO.fromTournamentReport(
+                val response = SubmitTournamentReportDEO.fromTournamentReport(
                     report.getOrThrow()
                 )
                 call.respond(
@@ -348,7 +346,7 @@ fun Route.refereeApiRouting() {
     }
 
     get<Api.GameReportVariables> {
-        call.respond(GameReportClasses.load())
+        call.respond(GameReportClassesDEO.load())
     }
 
     get<Api.PitchVariables> {

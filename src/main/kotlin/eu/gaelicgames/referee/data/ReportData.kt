@@ -223,6 +223,7 @@ object Rules : LongIdTable() {
     val isBlack = bool("is_black")
     val isRed = bool("is_red")
     val description = text("description")
+    val isDisabled = bool("is_disabled").default(false)
 }
 
 class Rule(id:EntityID<Long>):LongEntity(id) {
@@ -232,6 +233,7 @@ class Rule(id:EntityID<Long>):LongEntity(id) {
     var isBlack by Rules.isBlack
     var isRed by Rules.isRed
     var description by Rules.description
+    var isDisabled by Rules.isDisabled
 }
 
 object DisciplinaryActions : LongIdTable() {

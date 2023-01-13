@@ -1,4 +1,5 @@
 import PitchOptionsEditor from "@/components/admin/PitchOptionsEditor.vue";
+import GameReportOptionsEditor from "@/components/admin/GameReportOptionsEditor.vue";
 
 
 export const routes = [
@@ -11,7 +12,7 @@ export const routes = [
         component: PitchOptionsEditor,
     },
     {
-        path: "/pitch-report-options",
-        redirect:  "/pitch-options"
+        path: "/game-report-options",
+        component:  GameReportOptionsEditor,
     }
 ]

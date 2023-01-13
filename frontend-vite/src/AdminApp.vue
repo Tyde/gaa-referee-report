@@ -4,6 +4,7 @@ import {useAdminStore} from "@/utils/admin_store";
 
 const store = useAdminStore();
 store.fetchPitchVariables()
+store.fetchGameReportVariables()
 
 const items = ref([
   {

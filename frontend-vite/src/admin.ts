@@ -26,6 +26,10 @@ import {createPinia} from "pinia";
 import {routes} from "@/router/admin_router";
 import MegaMenu from "primevue/megamenu";
 import Menubar from "primevue/menubar";
+import Accordion from "primevue/accordion";
+import AccordionTab from "primevue/accordiontab";
+import TabView from "primevue/tabview";
+import TabPanel from "primevue/tabpanel";
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -54,6 +58,10 @@ app.component('Textarea', Textarea)
 app.component('MegaMenu', MegaMenu)
 app.component('Menubar', Menubar)
 app.component('ConfirmDialog', ConfirmDialog)
+app.component('Accordion', Accordion)
+app.component('AccordionTab', AccordionTab)
+app.component('TabView',TabView)
+app.component('TabPanel',TabPanel)
 
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')
