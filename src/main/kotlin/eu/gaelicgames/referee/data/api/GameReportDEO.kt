@@ -236,33 +236,33 @@ data class DeleteGameReportDEO(
 }
 
 @Serializable
-data class GameReportClasses(
-    val extraTimeOptions: List<ExtraTimeOptionDAO>,
-    val gameTypes: List<GameTypeDAO>,
+data class GameReportClassesDEO(
+    val extraTimeOptions: List<ExtraTimeOptionDEO>,
+    val gameTypes: List<GameTypeDEO>,
 ) {
     companion object {
-        fun load(): GameReportClasses {
+        fun load(): GameReportClassesDEO {
             return transaction {
                 val etos = ExtraTimeOption.all().map {
-                    ExtraTimeOptionDAO.fromExtraTimeOption(it)
+                    ExtraTimeOptionDEO.fromExtraTimeOption(it)
                 }
                 val gts = GameType.all().map {
-                    GameTypeDAO.fromGameType(it)
+                    GameTypeDEO.fromGameType(it)
                 }
-                GameReportClasses(etos, gts)
+                GameReportClassesDEO(etos, gts)
             }
         }
     }
 }
 
 @Serializable
-data class ExtraTimeOptionDAO(
+data class ExtraTimeOptionDEO(
     val id: Long,
     val name: String
 ) {
     companion object {
-        fun fromExtraTimeOption(extraTimeOption: ExtraTimeOption): ExtraTimeOptionDAO {
-            return ExtraTimeOptionDAO(
+        fun fromExtraTimeOption(extraTimeOption: ExtraTimeOption): ExtraTimeOptionDEO {
+            return ExtraTimeOptionDEO(
                 extraTimeOption.id.value,
                 extraTimeOption.name
             )
@@ -270,20 +270,7 @@ data class ExtraTimeOptionDAO(
     }
 }
 
-@Serializable
-data class GameTypeDAO(
-    val id: Long,
-    val name: String
-) {
-    companion object {
-        fun fromGameType(gameType: GameType): GameTypeDAO {
-            return GameTypeDAO(
-                gameType.id.value,
-                gameType.name
-            )
-        }
-    }
-}
+
 
 @Serializable
 data class DisciplinaryActionDEO(
@@ -549,6 +536,80 @@ data class DeleteInjuryDEO(
                         "Trying to delete an injury with invalid id ${this.id}"
                     )
                 )
+            }
+        }
+    }
+}
+
+
+@Serializable
+data class GameTypeDEO(
+    val id: Long? = null,
+    val name: String,
+) {
+    companion object {
+        fun fromGameType(gameType: GameType): GameTypeDEO {
+            return transaction {
+                GameTypeDEO(
+                    gameType.id.value,
+                    gameType.name
+                )
+            }
+        }
+    }
+
+    fun createInDatabase(): Result<GameType> {
+        val gUpdate = this
+        if (gUpdate.id == null && gUpdate.name.isNotBlank()) {
+            return Result.success(transaction {
+                GameType.new {
+                    this.name = gUpdate.name
+                }
+            })
+        }
+        return Result.failure(
+            IllegalArgumentException("GameType name not found or already has an id")
+        )
+    }
+
+    fun updateInDatabase(): Result<GameType> {
+        val gUpdate = this
+        if (gUpdate.id != null) {
+            return transaction {
+                val gameType = GameType.findById(gUpdate.id)
+                if (gameType != null) {
+                    gameType.name = gUpdate.name
+                    Result.success(gameType)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException("GameType not found")
+                    )
+                }
+            }
+        }
+        return Result.failure(
+            IllegalArgumentException("GameType id not found")
+        )
+    }
+}
+
+@Serializable
+data class CompleteGameReportDEO(
+    val gameReport: GameReportDEO,
+    val injuries: List<InjuryDEO>,
+    val disciplinaryActions: List<DisciplinaryActionDEO>,
+) {
+    companion object {
+        fun fromGameReport(gameReport: GameReport): CompleteGameReportDEO {
+            return transaction {
+                CompleteGameReportDEO(
+                    gameReport = GameReportDEO.fromGameReport(gameReport),
+                    injuries = gameReport.injuries.map { InjuryDEO.fromInjury(it) },
+                    disciplinaryActions = gameReport.disciplinaryActions.map {
+                        DisciplinaryActionDEO.fromDisciplinaryAction(
+                            it
+                        )
+                    })
             }
         }
     }

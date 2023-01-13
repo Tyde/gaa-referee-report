@@ -1,7 +1,6 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
-import io.netty.util.concurrent.Promise
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -46,87 +45,32 @@ data class CompleteReportDEO(
 }
 
 @Serializable
-data class RefereeDEO(
-    val id: Long,
-    val firstName: String,
-    val lastName: String,
-    val mail: String,
+data class SubmitTournamentReportDEO(
+    val id:Long
 ) {
     companion object {
-        fun fromReferee(referee: User): RefereeDEO {
-            return RefereeDEO(
-                id = referee.id.value,
-                firstName = referee.firstName,
-                lastName = referee.lastName,
-                mail = referee.mail,
-            )
-        }
-    }
-}
-
-@Serializable
-data class CompleteGameReportDEO(
-    val gameReport: GameReportDEO,
-    val injuries: List<InjuryDEO>,
-    val disciplinaryActions: List<DisciplinaryActionDEO>,
-) {
-    companion object {
-        fun fromGameReport(gameReport: GameReport): CompleteGameReportDEO {
+        fun fromTournamentReport(tournamentReport: TournamentReport): SubmitTournamentReportDEO {
             return transaction {
-                CompleteGameReportDEO(
-                    gameReport = GameReportDEO.fromGameReport(gameReport),
-                    injuries = gameReport.injuries.map { InjuryDEO.fromInjury(it) },
-                    disciplinaryActions = gameReport.disciplinaryActions.map {
-                        DisciplinaryActionDEO.fromDisciplinaryAction(
-                            it
-                        )
-                    })
-            }
-        }
-    }
-}
-
-@Serializable
-data class PitchDEO(
-    val id: Long?,
-    val report: Long?,
-    val name: String,
-    val surface: Long? = null,
-    val length: Long? = null,
-    val width: Long? = null,
-    val smallSquareMarkings: Long? = null,
-    val penaltySquareMarkings: Long? = null,
-    val thirteenMeterMarkings: Long? = null,
-    val twentyMeterMarkings: Long? = null,
-    val longMeterMarkings: Long? = null,
-    val goalPosts: Long? = null,
-    val goalDimensions: Long? = null,
-    val additionalInformation: String
-) {
-    companion object {
-        fun fromPitch(pitch: Pitch): PitchDEO {
-            return transaction {
-                PitchDEO(
-                    id = pitch.id.value,
-                    report = pitch.report.id.value,
-                    name = pitch.name,
-                    surface = pitch.surface?.id?.value,
-                    length = pitch.length?.id?.value,
-                    width = pitch.width?.id?.value,
-                    smallSquareMarkings = pitch.smallSquareMarkings?.id?.value,
-                    penaltySquareMarkings = pitch.penaltySquareMarkings?.id?.value,
-                    thirteenMeterMarkings = pitch.thirteenMeterMarkings?.id?.value,
-                    twentyMeterMarkings = pitch.twentyMeterMarkings?.id?.value,
-                    longMeterMarkings = pitch.longMeterMarkings?.id?.value,
-                    goalPosts = pitch.goalPosts?.id?.value,
-                    goalDimensions = pitch.goalDimensions?.id?.value,
-                    additionalInformation = pitch.additionalInformation
+                SubmitTournamentReportDEO(
+                    tournamentReport.id.value
                 )
             }
         }
     }
+    fun submitInDatabase():Result<TournamentReport> {
+        val stdeo = this
+        return transaction {
+            val report = TournamentReport.findById(stdeo.id)
+            if (report != null) {
+                report.isSubmitted = true
+                report.submitDate = LocalDateTime.now()
+                Result.success(report)
+            } else {
+                Result.failure(IllegalArgumentException("TournamentReport not found"))
+            }
+        }
+    }
 }
-
 @Serializable
 data class UpdateReportAdditionalInformationDEO(
     val id: Long,
@@ -165,3 +109,188 @@ data class UpdateReportAdditionalInformationDEO(
     }
 }
 
+@Serializable
+data class NewTournamentReportDEO(
+    val id: Long? = null,
+    val tournament: Long,
+    val selectedTeams: List<Long>,
+    val gameCode: Long
+) {
+    companion object {
+        fun fromTournamentReport(input: TournamentReport): NewTournamentReportDEO {
+            return transaction {
+                NewTournamentReportDEO(
+                    input.id.value,
+                    input.tournament.id.value,
+                    input.selectedTeams.map { it.id.value },
+                    input.code.id.value
+                )
+            }
+        }
+    }
+
+    fun storeInDatabase(user: User): TournamentReport? {
+        return transaction {
+            val reportTournament = Tournament.findById(tournament)
+            val reportGameCode = GameCode.findById(gameCode)
+            if (reportTournament != null && reportGameCode != null) {
+                val report = TournamentReport.new {
+                    tournament = reportTournament
+                    code = reportGameCode
+                    referee = user
+                }
+                selectedTeams.forEach { team ->
+                    val dbTeam = Team.findById(team)
+                    if (dbTeam != null) {
+                        TournamentReportTeamPreSelection.new {
+                            this.report = report
+                            this.team = dbTeam
+                        }
+                    }
+                }
+                report
+            } else {
+                null
+            }
+        }
+    }
+
+    fun updateInDatabase(): Result<TournamentReport> {
+        val trUpdate = this
+        if (trUpdate.id != null) {
+            return transaction {
+                val report = TournamentReport.findById(trUpdate.id)
+                val tournament = Tournament.findById(trUpdate.tournament)
+                val gameCode = GameCode.findById(trUpdate.gameCode)
+                if (report != null && tournament != null && gameCode != null) {
+                    report.tournament = tournament
+                    report.code = gameCode
+                    val connections = TournamentReportTeamPreSelection.find {
+                        (TournamentReportTeamPreSelections.report eq report.id)
+                    }
+
+                    // Add teams selection that cannot be found in the database
+                    trUpdate.selectedTeams.forEach { updateTeamId ->
+                        val matches = connections.count { connection ->
+                            connection.team.id.value == updateTeamId
+                        }
+                        if (matches == 0) {
+                            val dbTeam = Team.findById(updateTeamId)
+                            if (dbTeam != null) {
+                                TournamentReportTeamPreSelection.new {
+                                    this.report = report
+                                    this.team = dbTeam
+                                }
+                            }
+                        }
+                    }
+                    // Remove teams selection that are not in the update
+                    TournamentReportTeamPreSelection.find { TournamentReportTeamPreSelections.report eq trUpdate.id }
+                        .forEach {
+                            if (!trUpdate.selectedTeams.contains(it.team.id.value)) {
+                                it.delete()
+                            }
+                        }
+                    Result.success(report)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException("TournamentReport or Tournament or GameCode not found")
+                    )
+                }
+            }
+        } else {
+            return Result.failure(
+                IllegalArgumentException("TournamentReport id not found")
+            )
+        }
+    }
+}
+
+@Serializable
+data class TournamentReportDEO(
+    val id: Long? = null,
+    val tournament: Long? = null,
+    val code: Long? = null,
+    val additionalInformation: String? = null,
+    val isSubmitted: Boolean? = null,
+    @Serializable(with = LocalDateTimeSerializer::class) val submitDate: LocalDateTime? = null,
+) {
+
+    companion object {
+        fun fromTournamentReport(report: TournamentReport): TournamentReportDEO {
+            return TournamentReportDEO(
+                report.id.value,
+                report.tournament.id.value,
+                report.code.id.value,
+                report.additionalInformation,
+                report.isSubmitted,
+                report.submitDate
+            )
+        }
+    }
+
+    @Deprecated("Use NewTournamentReportDEO instead")
+    fun createInDatabase(referee: User): TournamentReport? {
+        val rUpdate = this
+        if (rUpdate.id == null && rUpdate.tournament != null && rUpdate.code != null) {
+            val tournament = Tournament.findById(rUpdate.tournament)
+            val code = GameCode.findById(rUpdate.code)
+            if (tournament != null && code != null) {
+                return transaction {
+                    TournamentReport.new {
+                        this.tournament = tournament
+                        this.referee = referee
+                        this.code = code
+                        rUpdate.additionalInformation?.let {
+                            this.additionalInformation = it
+                        }
+                        rUpdate.isSubmitted?.let {
+                            this.isSubmitted = it
+                        }
+                        rUpdate.submitDate?.let {
+                            this.submitDate = it
+                        }
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    fun updateInDatabase(): TournamentReport? {
+        val rUpdate = this
+        if (rUpdate.id != null) {
+            return transaction {
+                val report = TournamentReport.findById(rUpdate.id)
+                if (report != null) {
+                    rUpdate.tournament?.let {
+                        Tournament.findById(it)
+                    }?.let {
+                        report.tournament = it
+                    }
+                    rUpdate.code?.let {
+                        GameCode.findById(it)
+                    }?.let {
+                        report.code = it
+                    }
+
+                    rUpdate.additionalInformation?.let {
+                        report.additionalInformation = it
+                    }
+                    rUpdate.isSubmitted?.let {
+                        report.isSubmitted = it
+                    }
+                    rUpdate.submitDate?.let {
+                        report.submitDate = it
+                    }
+                    report
+                } else {
+                    null
+                }
+            }
+        }
+        return null
+    }
+
+
+}
