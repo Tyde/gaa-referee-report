@@ -56,7 +56,7 @@ export const Report = z.object({
     additionalInformation: z.string().optional(),
     isSubmitted: z.boolean().optional().nullable(),
     submitDate: z.string().optional().nullable().transform((value) => {
-        if(value){
+        if (value) {
             return DateTime.fromISO(value)
         } else {
             return null
@@ -66,10 +66,27 @@ export const Report = z.object({
 })
 
 
+export const ReportDEO = z.object({
+        id: number(),
+        tournament: number(),
+        code: number(),
+        additionalInformation: z.string().optional(),
+        isSubmitted: z.boolean(),
+        submitDate: z.string().optional().nullable().transform((value) => {
+            if (value) {
+                return DateTime.fromISO(value)
+            } else {
+                return null
+            }
+        }),
+    }
+)
+export type ReportDEO = z.infer<typeof ReportDEO>
+
 
 export type Referee = z.infer<typeof Referee>
 
-export const GameType =  z.object({
+export const GameType = z.object({
     id: z.number(),
     name: z.string().min(1),
 })
@@ -83,7 +100,7 @@ export type ExtraTimeOption = z.infer<typeof ExtraTimeOption>
 
 
 export interface GameReport {
-    id?:number
+    id?: number
     report: Report,
     startTime?: DateTime,
     gameType?: GameType,
@@ -91,8 +108,9 @@ export interface GameReport {
     teamBReport: SingleTeamGameReport,
     extraTime?: ExtraTimeOption,
     umpirePresentOnTime: boolean,
-    umpireNotes:string
+    umpireNotes: string
 }
+
 export const InjuryDEO = z.object({
     id: z.number(),
     firstName: z.string(),
@@ -116,11 +134,10 @@ export const Rule = z.object({
     isCaution: z.boolean(),
     isBlack: z.boolean(),
     isRed: z.boolean(),
-    description: z.string()
+    description: z.string(),
+    isDisabled: z.boolean(),
 })
 export type Rule = z.infer<typeof Rule>
-
-
 
 
 export const DisciplinaryActionDEO = z.object({
@@ -153,9 +170,7 @@ export interface SingleTeamGameReport {
 }
 
 
-
-
-export const ApiErrorOptions = z.enum(["insertionFailed","notFound"])
+export const ApiErrorOptions = z.enum(["insertionFailed", "notFound"])
 export type ApiErrorOptions = z.infer<typeof ApiErrorOptions>;
 
 export const ApiError = z.object({
@@ -182,6 +197,7 @@ export const PitchDEO = z.object({
     additionalInformation: z.string()
 })
 export type PitchDEO = z.infer<typeof PitchDEO>;
+
 export enum PitchPropertyType {
     surface,
     length,
@@ -190,6 +206,7 @@ export enum PitchPropertyType {
     goalPosts,
     goalDimensions,
 }
+
 const PitchPropertyTypeEnum = z.nativeEnum(PitchPropertyType)
 
 export const PitchPropertyDEO = z.object({
@@ -224,6 +241,7 @@ export interface Pitch {
 export class ErrorMessage {
     message: string;
     timestamp: number;
+
     constructor(message: string) {
         this.message = message;
         this.timestamp = Date.now();

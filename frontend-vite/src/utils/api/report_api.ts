@@ -1,6 +1,6 @@
 import {number, z} from "zod";
-import type {ExtraTimeOption, GameReport, Rule} from "@/types";
-import {ApiError, DatabaseTournament, GameCode, GameType, PitchDEO, Referee, Report, Team} from "@/types";
+import type {ExtraTimeOption, GameReport, Rule, Tournament} from "@/types";
+import {ApiError, DatabaseTournament, GameCode, GameType, PitchDEO, Referee, Report, ReportDEO, Team} from "@/types";
 import {DateTime} from "luxon";
 import {CompleteGameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
@@ -158,4 +158,17 @@ export async function submitReportToServer(report:Report):Promise<number> {
                 return Promise.reject("Could not get id from server")
             }
         })
+}
+
+export function ReportDEOToReport(reportDEO:ReportDEO,tournaments:Array<DatabaseTournament>):Report {
+    return {
+        id: reportDEO.id,
+        tournament: tournaments.find(tournament => tournament.id === reportDEO.tournament),
+
+    } as Report
+}
+export async function loadAllReports(tournaments:Array<DatabaseTournament>):Promise<Array<CompleteReportDEO>> {
+    return fetch("/api/report/all")
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, CompleteReportDEO.array()))
 }

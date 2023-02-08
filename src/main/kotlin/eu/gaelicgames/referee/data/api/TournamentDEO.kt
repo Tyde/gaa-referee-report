@@ -27,3 +27,5 @@ data class NewTournamentDEO(
     val name: String, val location: String, @Serializable(with = LocalDateSerializer::class) val date: LocalDate
 )
 
+
+

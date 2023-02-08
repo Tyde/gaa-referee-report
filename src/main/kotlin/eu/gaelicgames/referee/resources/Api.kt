@@ -30,6 +30,10 @@ class Api() {
         @Serializable
         @Resource("new")
         class New(val parent: Tournaments)
+
+        @Serializable
+        @Resource("all")
+        class All(val parent: Tournaments)
     }
 
     @Serializable
@@ -62,6 +66,10 @@ class Api() {
         @Serializable
         @Resource("delete")
         class Delete(val parent: Rule)
+
+        @Serializable
+        @Resource("check_deletable")
+        class CheckDeletable(val parent: Rule)
     }
 
 
@@ -92,6 +100,10 @@ class Api() {
         @Serializable
         @Resource("get/{id}")
         class Get(val parent: Reports, val id: Long)
+
+        @Serializable
+        @Resource("all")
+        class All(val parent: Reports)
 
         @Serializable
         @Resource("updateAdditionalInformation")

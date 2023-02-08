@@ -234,6 +234,12 @@ class Rule(id:EntityID<Long>):LongEntity(id) {
     var isRed by Rules.isRed
     var description by Rules.description
     var isDisabled by Rules.isDisabled
+
+    fun isDeletable(): Boolean {
+        return transaction {
+            DisciplinaryAction.find { DisciplinaryActions.rule eq this@Rule.id }.empty()
+        }
+    }
 }
 
 object DisciplinaryActions : LongIdTable() {

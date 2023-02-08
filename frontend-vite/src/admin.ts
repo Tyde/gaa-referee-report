@@ -31,6 +31,12 @@ import AccordionTab from "primevue/accordiontab";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import Message from "primevue/message";
+import Panel from "primevue/panel";
+
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Row from 'primevue/row';                     //optional for row
+
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -64,6 +70,10 @@ app.component('AccordionTab', AccordionTab)
 app.component('TabView',TabView)
 app.component('TabPanel',TabPanel)
 app.component('Message',Message)
+app.component('Panel',Panel)
+app.component('DataTable',DataTable)
+app.component('Column',Column)
+app.component('Row',Row)
 
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')

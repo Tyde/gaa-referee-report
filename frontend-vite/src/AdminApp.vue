@@ -19,7 +19,11 @@ const items = ref([
         icon: 'pi pi-fw pi-cog',
         to: "/game-report-options"
       }
-    ]
+    ],
+
+  }, {
+    label: "Tournament Reports",
+    to: "/tournament-reports"
   }
 ])
 </script>

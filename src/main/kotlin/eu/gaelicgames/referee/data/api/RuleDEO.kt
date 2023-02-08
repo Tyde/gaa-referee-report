@@ -8,97 +8,14 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
-data class UpdateRuleDEO(
-    val id:Long,
-    val code: Long? = null,
-    val isCaution: Boolean? = null,
-    val isBlack: Boolean? = null,
-    val isRed: Boolean? = null,
-    val description: String? = null,
-    val isDisabled: Boolean? = null,
-) {
-    fun updateInDatabase():Result<Rule> {
-        val rUpdate = this
-        return transaction {
-            val rule = Rule.findById(rUpdate.id)
-            if (rule != null) {
-                rUpdate.code?.let { code ->
-                    val gameCode = GameCode.findById(code)
-                    if (gameCode != null) {
-                        rule.code = gameCode
-                    }
-                }
-                rUpdate.isCaution?.let { isCaution ->
-                    rule.isCaution = isCaution
-                }
-                rUpdate.isBlack?.let { isBlack ->
-                    rule.isBlack = isBlack
-                }
-                rUpdate.isRed?.let { isRed ->
-                    rule.isRed = isRed
-                }
-                rUpdate.description?.let { description ->
-                    rule.description = description
-                }
-                rUpdate.isDisabled?.let { isDisabled ->
-                    rule.isDisabled = isDisabled
-                }
-                Result.success(rule)
-            } else {
-                Result.failure(
-                    IllegalArgumentException("Trying to update a rule with invalid id ${rUpdate.id}")
-                )
-            }
-        }
-    }
-
-    fun checkIfDeletable():Result<Boolean> {
-        val rUpdate = this
-        return transaction {
-            val rule = Rule.findById(rUpdate.id)
-            if (rule != null) {
-                val deletable = DisciplinaryAction.find {
-                    DisciplinaryActions.rule eq rule.id
-                }.count() == 0L
-                Result.success(deletable)
-            } else {
-                Result.failure(
-                    IllegalArgumentException("Trying to check a rule with invalid id ${rUpdate.id}")
-                )
-            }
-        }
-    }
-
-    fun deleteFromDatabase():Result<Boolean> {
-        val rUpdate = this
-        return transaction {
-            if (rUpdate.checkIfDeletable().getOrDefault(false)) {
-                val rule = Rule.findById(rUpdate.id)
-                if (rule != null) {
-                    rule.delete()
-                    Result.success(true)
-                } else {
-                    Result.failure(
-                        IllegalArgumentException("Trying to delete a rule with invalid id ${rUpdate.id}")
-                    )
-                }
-            } else {
-                Result.failure(
-                    IllegalArgumentException("Trying to delete a rule that is in use")
-                )
-            }
-        }
-    }
-}
-
-@Serializable
 data class RuleDEO(
     val id: Long,
     val code: Long,
     val isCaution: Boolean,
     val isBlack: Boolean,
     val isRed: Boolean,
-    val description: String
+    val description: String,
+    val isDisabled: Boolean
 ) {
 
     companion object {
@@ -110,7 +27,8 @@ data class RuleDEO(
                     rule.isCaution,
                     rule.isBlack,
                     rule.isRed,
-                    rule.description
+                    rule.description,
+                     rule.isDisabled
                 )
             }
         }
@@ -129,6 +47,7 @@ data class RuleDEO(
                 rule.isBlack = rUpdate.isBlack
                 rule.isRed = rUpdate.isRed
                 rule.description = rUpdate.description
+                rule.isDisabled = rUpdate.isDisabled
                 Result.success(rule)
             } else {
                 Result.failure(
@@ -138,3 +57,62 @@ data class RuleDEO(
         }
     }
 }
+
+@Serializable
+data class ModifyRulesDEOState(
+    val id: Long,
+) {
+
+    fun delete(): Result<Boolean> {
+        return transaction {
+            val rule = Rule.findById(this@ModifyRulesDEOState.id)
+            if(rule != null) {
+                if(rule.isDeletable()) {
+                    rule.delete()
+                    Result.success(true)
+                } else {
+                    Result.failure(
+                        IllegalArgumentException("Trying to delete a rule that is not deletable")
+                    )
+                }
+            } else {
+                Result.failure(
+                    IllegalArgumentException("Trying to delete a rule with invalid id $id")
+                )
+            }
+        }
+    }
+
+    fun toggleDisabledState(): Result<Rule> {
+        return transaction {
+            val rule = Rule.findById(this@ModifyRulesDEOState.id)
+            if (rule != null) {
+                rule.isDisabled = !rule.isDisabled
+                Result.success(rule)
+            } else {
+                Result.failure(
+                    IllegalArgumentException("Trying to disable a rule with invalid id $id")
+                )
+            }
+        }
+    }
+
+    fun isDeletable(): Result<RuleIsDeletableDEO> {
+        return transaction {
+            val rule = Rule.findById(this@ModifyRulesDEOState.id)
+            if (rule != null) {
+                Result.success(RuleIsDeletableDEO(rule.id.value, rule.isDeletable()))
+            } else {
+                Result.failure(
+                    IllegalArgumentException("Trying to delete a rule with invalid id $id")
+                )
+            }
+        }
+    }
+}
+
+@Serializable
+data class RuleIsDeletableDEO(
+    val id: Long,
+    val isDeletable: Boolean
+)

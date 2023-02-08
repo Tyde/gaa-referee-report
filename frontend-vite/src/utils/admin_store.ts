@@ -3,7 +3,7 @@ import {ref} from "vue";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {getPitchVariables, updatePitchPropertyOnServer} from "@/utils/api/pitch_api";
 import type {GameCode, PitchProperty, Rule} from "@/types";
-import {ErrorMessage, ExtraTimeOption, GameType, PitchPropertyType} from "@/types";
+import {ErrorMessage, ExtraTimeOption, GameType, PitchPropertyType, Tournament} from "@/types";
 import {getGameCodes} from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {getGameReportVariables} from "@/utils/api/game_report_api";
@@ -81,6 +81,11 @@ export const useAdminStore = defineStore('admin', () => {
         currentErrors.value.push(new ErrorMessage(message))
     }
 
+    function findCodeById(id: number) {
+        return codes.value.find(it => it.id === id)
+    }
+
+
 
     return {
         pitchVariables,
@@ -94,5 +99,6 @@ export const useAdminStore = defineStore('admin', () => {
         updatePitchVariable,
         currentErrors,
         newError,
+        findCodeById
     }
 })
