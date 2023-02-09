@@ -1,10 +1,15 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
 import type {PitchVariables} from "@/utils/api/pitch_api";
-import {getPitchVariables, updatePitchPropertyOnServer} from "@/utils/api/pitch_api";
+import {getPitchVariables, pitchDEOtoPitch, updatePitchPropertyOnServer} from "@/utils/api/pitch_api";
 import type {GameCode, PitchProperty, Rule} from "@/types";
 import {ErrorMessage, ExtraTimeOption, GameType, PitchPropertyType, Tournament} from "@/types";
-import {getGameCodes} from "@/utils/api/report_api";
+import {
+    completeReportDEOToReport,
+    extractGameReportsFromCompleteReportDEO,
+    getGameCodes,
+    loadReportDEO
+} from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {getGameReportVariables} from "@/utils/api/game_report_api";
 
@@ -38,7 +43,7 @@ export const useAdminStore = defineStore('admin', () => {
             })
             .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
-        return Promise.all([ promiseCodes,promiseRules, promisePitchVariables, promiseGameReport])
+        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport])
 
     }
 
@@ -77,6 +82,7 @@ export const useAdminStore = defineStore('admin', () => {
             await updatePitchPropertyOnServer(prop)
         }
     }
+
     function newError(message: string) {
         currentErrors.value.push(new ErrorMessage(message))
     }
@@ -85,6 +91,43 @@ export const useAdminStore = defineStore('admin', () => {
         return codes.value.find(it => it.id === id)
     }
 
+    async function waitForAllVariablesPresent() {
+        const start_time = new Date().getTime()
+        while (true) {
+            if (
+                codes.value.length > 0 &&
+                rules.value.length > 0 &&
+                gameTypes.value.length > 0 &&
+                extraTimeOptions.value.length > 0 &&
+                pitchVariables.value
+            ) {
+                break
+            }
+            if ((new Date()).getTime() > start_time + 3000) {
+                newError("Timeout waiting for variables")
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+
+    async function getCompleteReport(reportId: number) {
+        const deo = await loadReportDEO(reportId)
+        await waitForAllVariablesPresent()
+        let currentReport = completeReportDEOToReport(deo, codes.value)
+        let allGameReports = extractGameReportsFromCompleteReportDEO(
+            deo,
+            currentReport,
+            gameTypes.value,
+            extraTimeOptions.value,
+            rules.value
+        )
+        let allPitchReports = deo.pitches?.map(it => pitchDEOtoPitch(it, currentReport, pitchVariables.value!!)) ?? []
+        return {
+            report: currentReport,
+            gameReports: allGameReports,
+            pitchReports: allPitchReports
+        }
+    }
 
 
     return {
@@ -99,6 +142,7 @@ export const useAdminStore = defineStore('admin', () => {
         updatePitchVariable,
         currentErrors,
         newError,
-        findCodeById
+        findCodeById,
+        getCompleteReport
     }
 })

@@ -30,7 +30,7 @@ const items = ref([
 
 <template>
   <div>
-    <Menubar :model="items" />
+    <Menubar :model="items" class="no-print" />
 
   </div>
   <transition-group name="p-message" tag="div">
@@ -44,4 +44,12 @@ const items = ref([
 
 <style scoped>
 
+</style>
+
+<style>
+@media print {
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}
 </style>

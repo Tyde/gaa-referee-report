@@ -61,7 +61,7 @@ let props = defineProps<{
         {{ pitchReport.goalDimensions?.name }}
       </div>
     </div>
-    <div class="pitch-report-option break-inside-avoid ">
+    <div v-if="pitchReport.additionalInformation.length > 0" class="pitch-report-option break-inside-avoid ">
       <h5>Additional Information</h5>
       {{ pitchReport.additionalInformation }}
     </div>
@@ -79,6 +79,7 @@ let props = defineProps<{
 
 h5 {
   @apply text-center;
+  @apply font-bold;
 }
 h3 {
   @apply text-center text-lg;
