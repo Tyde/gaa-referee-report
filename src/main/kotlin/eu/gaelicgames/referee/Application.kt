@@ -11,6 +11,7 @@ import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.util.DatabaseHandler
+import eu.gaelicgames.referee.util.MockDataGenerator
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun main() {
@@ -39,6 +40,12 @@ fun main() {
             }
             println("Saved")
         }
+    }
+
+
+    System.getenv("ADD_MOCK_DATA")?.let {
+        println("Adding mock data")
+        MockDataGenerator.addMockUsers()
     }
 
 

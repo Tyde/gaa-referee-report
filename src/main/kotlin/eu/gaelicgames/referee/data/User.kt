@@ -1,5 +1,6 @@
 package eu.gaelicgames.referee.data
 
+import at.favre.lib.crypto.bcrypt.BCrypt
 import io.ktor.server.auth.*
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -22,7 +23,24 @@ object Users : LongIdTable() {
 }
 
 class User(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<User>(Users)
+    companion object : LongEntityClass<User>(Users) {
+        fun newWithPassword(
+            firstName: String,
+            lastName: String,
+            mail: String,
+            password: String,
+            role: UserRole
+        ):User {
+            return User.new {
+                this.firstName = firstName
+                this.lastName = lastName
+                this.mail = mail
+                this.password = BCrypt
+                    .withDefaults().hash(12, password.toCharArray())
+                this.role = role
+            }
+        }
+    }
     var firstName by Users.firstName
     var lastName by Users.lastName
     var password by Users.password
