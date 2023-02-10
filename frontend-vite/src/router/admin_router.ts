@@ -4,6 +4,7 @@ import TournamentReportList from "@/components/admin/TournamentReportList.vue";
 import ShowPitchReport from "@/components/showReport/ShowPitchReport.vue";
 import ShowReportApp from "@/ShowReportApp.vue";
 import AdminShowReport from "@/components/admin/AdminShowReport.vue";
+import UserList from "@/components/admin/user/UserList.vue";
 
 
 export const routes = [
@@ -27,5 +28,9 @@ export const routes = [
         path: "/tournament-reports/:id",
         component: AdminShowReport,
         props: true
+    },
+    {
+        path: "/referees/",
+        component: UserList,
     }
 ]

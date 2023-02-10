@@ -18,14 +18,14 @@ fun Route.adminApiRouting() {
 
     get<Api.Tournaments.All> {
         val tournaments = transaction {
-            Tournament.all().map { TournamentDEO.fromTournament(it)}
+            Tournament.all().map { TournamentDEO.fromTournament(it) }
         }
         call.respond(tournaments)
     }
 
     get<Api.Reports.All> {
         val reports = transaction {
-            TournamentReport.all().map { CompleteReportDEO.fromTournamentReport(it)}
+            TournamentReport.all().map { CompleteReportDEO.fromTournamentReport(it) }
         }
         call.respond(reports)
     }
@@ -159,6 +159,42 @@ fun Route.adminApiRouting() {
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
                     "Not able to parse rule delete command: " + rule.exceptionOrNull()?.message
+                )
+            )
+        }
+    }
+
+    get<Api.User.All> {
+        val users = transaction {
+            User.all().map { RefereeDEO.fromReferee(it) }
+        }
+        call.respond(users)
+    }
+
+    post<Api.User.Update> {
+        val updated = call.runCatching {
+            this.receive<RefereeDEO>()
+        }
+        if (updated.isSuccess) {
+            val dBUpdated = updated.getOrThrow().updateInDatabase()
+            val refereeDEO = transaction { RefereeDEO.fromReferee(dBUpdated.getOrThrow()) }
+            if (dBUpdated.isSuccess) {
+                call.respond(
+                    refereeDEO
+                )
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        dBUpdated.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                )
+            }
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    "Not able to parse user update"
                 )
             )
         }

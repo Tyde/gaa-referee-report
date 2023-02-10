@@ -24,6 +24,9 @@ const items = ref([
   }, {
     label: "Tournament Reports",
     to: "/tournament-reports"
+  }, {
+    label: "Referees",
+    to: "/referees"
   }
 ])
 </script>

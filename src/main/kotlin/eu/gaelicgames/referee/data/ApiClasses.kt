@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -84,6 +85,21 @@ data class RefereeDEO(
                 lastName = referee.lastName,
                 mail = referee.mail,
             )
+        }
+    }
+
+    fun updateInDatabase():Result<User> {
+        val thisReferee = this
+        return transaction {
+            val referee = User.findById(thisReferee.id)
+            if(referee != null) {
+                referee.firstName = thisReferee.firstName
+                referee.lastName = thisReferee.lastName
+                referee.mail = thisReferee.mail
+                Result.success(referee)
+            } else {
+                Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
+            }
         }
     }
 }

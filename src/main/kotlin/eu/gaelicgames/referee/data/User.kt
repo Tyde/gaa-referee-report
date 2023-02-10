@@ -9,7 +9,8 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import java.util.*
 enum class UserRole {
     ADMIN,
-    REFEREE
+    REFEREE,
+    INACTIVE
 }
 
 object Users : LongIdTable() {

@@ -1,9 +1,10 @@
 
-import {PitchPropertyDEO, Rule} from "@/types";
+import {PitchPropertyDEO, Referee, Rule} from "@/types";
 import type {PitchProperty} from '@/types'
 import {ApiError} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
+import UserList from "@/components/admin/user/UserList.vue";
 
 
 
@@ -50,4 +51,15 @@ export async function deleteRuleOnServer(rule: Rule) {
 export async function toggleRuleStateOnServer(rule: Rule) {
     return makePostRequest("/api/rule/disable", {id: rule.id})
         .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
+}
+
+export async function getAllUsers():Promise<Array<Referee>> {
+    return fetch("/api/user/all")
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, z.array(Referee)))
+}
+
+export async function updateUserOnServer(user: Referee) {
+    return makePostRequest("/api/user/update", user)
+        .then(data => parseAndHandleDEO(data, Referee))
 }
