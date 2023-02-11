@@ -5,7 +5,7 @@ import {computed, onMounted, ref} from "vue";
 import type {DatabaseTournament, ReportDEO, Tournament} from "@/types";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
 import {Report} from "@/types";
-import {CompleteReportDEO, loadAllReports} from "@/utils/api/report_api";
+import {CompactTournamentReportDEO, CompleteReportDEO, loadAllReports} from "@/utils/api/report_api";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {useRouter} from "vue-router";
 
@@ -19,7 +19,7 @@ const tournamentsSortedByDate = computed(() => {
   })
 })
 
-const reports = ref<Array<CompleteReportDEO>>([])
+const reports = ref<Array<CompactTournamentReportDEO>>([])
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS},
   refereeName: {
@@ -36,11 +36,10 @@ const filters = ref({
   },
 })
 function reportsByTournament(tournament: DatabaseTournament) {
-  let filteed =  reports.value.filter(report => report.tournament.id == tournament.id)
+  let filteed =  reports.value.filter(report => report.tournament == tournament.id)
   let transformed = filteed.map(report => {
-    let refereeName = report.referee.firstName + " " + report.referee.lastName
     let code = store.findCodeById(report.code)
-    return { ...report, refereeName: refereeName, codeName: (code?.name ?? '')}
+    return { ...report, codeName: (code?.name ?? '')}
   })
   return transformed
 
@@ -101,8 +100,8 @@ onMounted(() => {
               @change="filterCallback()" />
         </template>
       </Column>
-      <Column field="gameReports.length" header="# Games" :sortable="true"/>
-      <Column field="selectedTeams.length" header="# Teams" :sortable="true"/>
+      <Column field="numGameReports" header="# Games" :sortable="true"/>
+      <Column field="numTeams" header="# Teams" :sortable="true"/>
       <Column field="isSubmitted"
               header="Submitted"
               :sortable="true"

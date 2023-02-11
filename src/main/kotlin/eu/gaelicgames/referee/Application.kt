@@ -13,6 +13,7 @@ import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.util.DatabaseHandler
 import eu.gaelicgames.referee.util.MockDataGenerator
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.random.Random
 
 fun main() {
 
@@ -46,6 +47,11 @@ fun main() {
     System.getenv("ADD_MOCK_DATA")?.let {
         println("Adding mock data")
         MockDataGenerator.addMockUsers()
+        MockDataGenerator.addMockTournaments()
+        MockDataGenerator.addMockTeams()
+        for (i in 1..280) {
+            MockDataGenerator.addMockTournamentReport()
+        }
     }
 
 

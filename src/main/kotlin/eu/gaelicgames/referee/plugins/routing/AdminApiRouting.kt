@@ -18,15 +18,13 @@ fun Route.adminApiRouting() {
 
     get<Api.Tournaments.All> {
         val tournaments = transaction {
-            Tournament.all().map { TournamentDEO.fromTournament(it) }
+            Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
         }
         call.respond(tournaments)
     }
 
     get<Api.Reports.All> {
-        val reports = transaction {
-            TournamentReport.all().map { CompleteReportDEO.fromTournamentReport(it) }
-        }
+        val reports = CompactTournamentReportDEO.all()
         call.respond(reports)
     }
 

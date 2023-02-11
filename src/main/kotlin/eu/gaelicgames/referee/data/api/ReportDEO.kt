@@ -1,7 +1,9 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.resources.Report
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
@@ -293,4 +295,95 @@ data class TournamentReportDEO(
     }
 
 
+}
+
+@Serializable
+data class CompactTournamentReportDEO(
+    val id:Long,
+    val tournament: Long,
+    val code: Long,
+    val isSubmitted: Boolean,
+    @Serializable(with = LocalDateTimeSerializer::class) val submitDate: LocalDateTime? = null,
+    val refereeId: Long,
+    val refereeName: String,
+    val numGameReports: Long,
+    val numTeams: Long,
+) {
+    companion object {
+        fun all(): List<CompactTournamentReportDEO> {
+            return transaction {
+
+
+                exec("SELECT\n" +
+                        "    TournamentReports.id,\n" +
+                        "    TournamentReports.tournament,\n" +
+                        "    TournamentReports.code,\n" +
+                        "    TournamentReports.is_submitted,\n" +
+                        "    TournamentReports.submit_date,\n" +
+                        "    TournamentReports.referee,\n" +
+                        "    U.first_name,\n" +
+                        "    U.last_name,\n" +
+                        "    (SELECT COUNT(*) FROM GameReports GR WHERE TournamentReports.id = GR.report_id) as \"num_game_reports\",\n" +
+                        "    (SELECT COUNT(*) FROM TournamentReportTeamPreSelections TRTPS WHERE TournamentReports.id = TRTPS.report) as \"num_teams\"\n" +
+                        "FROM TournamentReports\n" +
+                        "         LEFT JOIN Users U on TournamentReports.referee = U.id\n" +
+                        "\n" +
+                        "GROUP BY TournamentReports.id;") {
+                    val returnList = mutableListOf<CompactTournamentReportDEO>()
+                    while(it.next()) {
+                        returnList.add(
+                            CompactTournamentReportDEO(
+                            it.getLong("id"),
+                            it.getLong("tournament"),
+                            it.getLong("code"),
+                            it.getBoolean("is_submitted"),
+                            it.getTimestamp("submit_date")?.toLocalDateTime(),
+                            it.getLong("referee"),
+                            it.getString("first_name") + " " + it.getString("last_name"),
+                            it.getLong("num_game_reports"),
+                            it.getLong("num_teams")
+                        ))
+                    }
+                    returnList.toList()
+                }?: emptyList()
+                /*
+
+                  val numGameReportsAlias = GameReports.id.count().alias("numGameReports")
+                val subQueryGR = GameReports.slice(numGameReportsAlias)
+                    .select { GameReports.report eq TournamentReports.id }
+                val numTeamsAlias = TournamentReportTeamPreSelections.id.count().alias("numTeams")
+                val subQueryTRT = TournamentReportTeamPreSelections
+                    .slice(numTeamsAlias)
+                    .select { TournamentReportTeamPreSelections.report eq TournamentReports.id }.alias("subQueryTRT")
+                (TournamentReports
+                        leftJoin Users).slice(
+                    TournamentReports.id,
+                    TournamentReports.tournament,
+                    TournamentReports.code,
+                    TournamentReports.isSubmitted,
+                    TournamentReports.submitDate,
+                    Users.id,
+                    Users.firstName,
+                    Users.lastName,
+                    subQueryGR.,
+                    subQueryTRT[numTeamsAlias]
+                        ).selectAll().groupBy(TournamentReports.id).map { row->
+                    CompactTournamentReportDEO(
+                        row[TournamentReports.id].value,
+                        row[TournamentReports.tournament].value,
+                        row[TournamentReports.code].value,
+                        row[TournamentReports.isSubmitted],
+                        row[TournamentReports.submitDate],
+                        row[Users.id].value,
+                        row[Users.firstName]+" "+row[Users.lastName],
+                        row[GameReports.id.count()],
+                        row[TournamentReportTeamPreSelections.id.count()]
+                    )
+
+                }.toList()*/
+
+
+            }
+        }
+    }
 }

@@ -34,6 +34,19 @@ export const CompleteReportDEO = z.object({
 })
 export type CompleteReportDEO = z.infer<typeof CompleteReportDEO>;
 
+export const CompactTournamentReportDEO = z.object({
+    id: z.number(),
+    tournament: z.number(),
+    code: z.number(),
+    isSubmitted: z.boolean(),
+    submitDate: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
+    refereeId: z.number(),
+    refereeName: z.string(),
+    numGameReports: z.number(),
+    numTeams: z.number(),
+})
+export type CompactTournamentReportDEO = z.infer<typeof CompactTournamentReportDEO>;
+
 export function completeReportDEOToReport(cReport: CompleteReportDEO, availableCodes: Array<GameCode>): Report {
 
     const code = availableCodes.find(code => code.id === cReport.code)
@@ -167,8 +180,8 @@ export function ReportDEOToReport(reportDEO:ReportDEO,tournaments:Array<Database
 
     } as Report
 }
-export async function loadAllReports(tournaments:Array<DatabaseTournament>):Promise<Array<CompleteReportDEO>> {
+export async function loadAllReports(tournaments:Array<DatabaseTournament>):Promise<Array<CompactTournamentReportDEO>> {
     return fetch("/api/report/all")
         .then(response => response.json())
-        .then(data => parseAndHandleDEO(data, CompleteReportDEO.array()))
+        .then(data => parseAndHandleDEO(data, CompactTournamentReportDEO.array()))
 }
