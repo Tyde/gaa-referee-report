@@ -53,8 +53,9 @@ const localVisible = computed({
 
 async function uploadActionsToServer() {
   if (store.selectedGameReport?.id != undefined) {
+    await store.waitForAllTransfersDone()
     for (let action of selectedDisciplinaryActions.value) {
-      uploadDisciplinaryAction(action, store.selectedGameReport.id)
+      store.sendDisciplinaryAction(action,store.selectedGameReport,true)
           .catch((error) => {
             store.newError(error)
           })

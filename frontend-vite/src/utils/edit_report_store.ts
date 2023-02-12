@@ -1,8 +1,18 @@
 import {defineStore} from "pinia";
 import {computed, ref} from "vue";
-import type {GameReport, Pitch, Report, ExtraTimeOption, GameType, GameCode, Rule} from "@/types";
+import type {
+    GameReport,
+    Pitch,
+    Report,
+    ExtraTimeOption,
+    GameType,
+    GameCode,
+    Rule,
+    DisciplinaryAction,
+    Injury
+} from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api";
-import {getRules} from "@/utils/api/disciplinary_action_api";
+import {getRules, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
@@ -18,6 +28,7 @@ import {
 } from "@/utils/api/game_report_api";
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
 import {ErrorMessage} from "@/types";
+import {uploadInjury} from "@/utils/api/injuries_api";
 
 export const useReportStore = defineStore('report', () => {
     const report = ref<Report>({} as Report)
@@ -177,6 +188,52 @@ export const useReportStore = defineStore('report', () => {
     }
 
     /**
+     * Sends DisciplinaryAction to server - Does not check for correctness of the action
+     *
+     * This function will update the id of the action if it was created on the server.
+     *  Warning! Only use allowAsync if you already checked before that
+     *      all transfers are completed.
+     * @param disciplinaryAction the action to be created/updated
+     * @param gameReport the game report to which the action belongs
+     * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
+     */
+    async function sendDisciplinaryAction(disciplinaryAction: DisciplinaryAction, gameReport: GameReport, allowAsync: boolean = false) {
+        if(!allowAsync) await waitForAllTransfersDone()
+        if (gameReport.id) {
+            let hasNoId = disciplinaryAction.id == undefined
+            await trackTransfer(uploadDisciplinaryAction(disciplinaryAction, gameReport.id))
+                .then((data) => {
+                    if (hasNoId) {
+                        disciplinaryAction.id = data
+                    }
+                })
+        }
+    }
+
+    /**
+     * Sends Injury to server - Does not check for correctness of the action
+     * This function will update the id of the action if it was created on the server.
+     *
+     * Warning! Only use allowAsync if you already checked before that
+     *     all transfers are completed.
+     * @param injury the injury to be created/updated
+     * @param gameReport the game report to which the injury belongs
+     * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
+     */
+    async function sendInjury(injury: Injury, gameReport: GameReport, allowAsync: boolean = false) {
+        if(!allowAsync) await waitForAllTransfersDone()
+        if (gameReport.id) {
+            let hasNoId = injury.id == undefined
+            await trackTransfer(uploadInjury(injury, gameReport.id))
+                .then((data) => {
+                    if (hasNoId) {
+                        injury.id = data
+                    }
+                })
+        }
+    }
+
+    /**
      * Helper function to track the current promises waiting for a response from the server.
      *
      * This is used for waitForAllTransfersDone
@@ -247,6 +304,8 @@ export const useReportStore = defineStore('report', () => {
         deleteGameReport,
         sendGameReport,
         sendPitchReport,
+        sendDisciplinaryAction,
+        sendInjury,
         waitForAllTransfersDone,
         deletePitchReport,
         newError

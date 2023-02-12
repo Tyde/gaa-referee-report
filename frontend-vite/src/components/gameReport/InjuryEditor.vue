@@ -29,11 +29,11 @@ const selectedTeam = computed(() => {
 })
 async function uploadInjuriesToServer() {
   if (store.selectedGameReport?.id != undefined) {
+    await store.waitForAllTransfersDone()
     for (let injury of selectedInjuryArray.value) {
-      injury.id = await uploadInjury(injury, store.selectedGameReport?.id)
+      store.sendInjury(injury,store.selectedGameReport,true)
           .catch((error) => {
             store.newError(error)
-            return undefined
           })
     }
   } else {

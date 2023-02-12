@@ -105,7 +105,7 @@ async function start_report() {
     reportStarted.value = true
     baseReportJustUploaded.value = true
     current_stage.value = ReportEditStage.EditGameReports
-    location.href = "/report/edit/" + store.report.id + "#game_reports"
+    location.href = "/report/edit/" + store.report.id + "#edit_game_reports"
   } catch (e) {
     console.error(e)
   } finally {

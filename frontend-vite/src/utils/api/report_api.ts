@@ -39,7 +39,7 @@ export const CompactTournamentReportDEO = z.object({
     tournament: z.number(),
     code: z.number(),
     isSubmitted: z.boolean(),
-    submitDate: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
+    submitDate: z.string().transform((value) => DateTime.fromISO(value)).optional().nullable(),
     refereeId: z.number(),
     refereeName: z.string(),
     numGameReports: z.number(),
