@@ -2,7 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {onMounted, ref} from "vue";
-import {GameReport, Pitch, Report} from "@/types";
+import type {GameReport, Pitch, Report} from "@/types";
 import ShowFullReport from "@/components/showReport/ShowFullReport.vue";
 
 const store = useAdminStore();

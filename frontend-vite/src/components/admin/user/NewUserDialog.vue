@@ -2,7 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref} from "vue";
-import {NewReferee, Referee} from "@/types";
+import type {NewReferee, Referee} from "@/types";
 import {addRefereeOnServer} from "@/utils/api/admin_api";
 
 const store = useAdminStore()

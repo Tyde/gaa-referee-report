@@ -1,12 +1,11 @@
 <script setup lang="ts">
 
 import {useAdminStore} from "@/utils/admin_store";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
 import type {Rule} from "@/types";
 import {
   checkIfRuleDeletable,
   deleteRuleOnServer,
-  toggleRuleState,
   toggleRuleStateOnServer,
   updateRuleOnServer
 } from "@/utils/api/admin_api";
@@ -20,8 +19,7 @@ const askDisableOnly = ref(false)
 
 const isLoading = ref(false)
 const rule = computed(() => {
-  const rule = store.rules.find(r => r.id == props.ruleId)
-  return rule
+  return store.rules.find(r => r.id == props.ruleId)
 })
 
 const shadowCopyRule = ref<Rule | undefined>()
@@ -103,7 +101,7 @@ const cards = [
 
 const selectedCardInCopy = ref(cards[0])
 
-watch(shadowCopyRule, (newVal, oldVal) => {
+watch(shadowCopyRule, () => {
   if (shadowCopyRule.value) {
     let selectedCard = 0
     if (shadowCopyRule.value.isCaution) {

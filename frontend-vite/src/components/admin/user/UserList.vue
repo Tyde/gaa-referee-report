@@ -3,7 +3,7 @@
 import {useAdminStore} from "@/utils/admin_store";
 import {getAllUsers, updateUserOnServer} from "@/utils/api/admin_api";
 import {onMounted, ref} from "vue";
-import {Referee} from "@/types";
+import type {Referee} from "@/types";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import NewUserDialog from "@/components/admin/user/NewUserDialog.vue";
 
@@ -27,6 +27,10 @@ function editUser(event: DataTableRowEditSaveEvent) {
       })
       .catch(err => store.newError(err))
 
+}
+
+function deactivateUser(user: Referee) {
+    //TODO
 }
 </script>
 
@@ -65,7 +69,7 @@ function editUser(event: DataTableRowEditSaveEvent) {
     </Column>
     <Column>
       <template #body="{data}">
-        <Button icon="pi pi-user-minus" title="Deactivate User" class="mr-2 p-button-rounded p-button-danger" @click="deactivateUser(slotProps.data)"></Button>
+        <Button icon="pi pi-user-minus" title="Deactivate User" class="mr-2 p-button-rounded p-button-danger" @click="() => deactivateUser(data)"></Button>
       </template>
     </Column>
     <Column :rowEditor="true" headerStyle="width:7rem" bodyStyle="text-align:center"></Column>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {GameReport, Pitch, Report} from "@/types";
+import type {GameReport, Pitch, Report} from "@/types";
 import {computed} from "vue";
 import {DateTime} from "luxon";
 import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisciplinaryActionsAndInjuries.vue";
