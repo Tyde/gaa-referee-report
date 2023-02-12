@@ -105,6 +105,7 @@ async function start_report() {
     reportStarted.value = true
     baseReportJustUploaded.value = true
     current_stage.value = ReportEditStage.EditGameReports
+    location.href = "/report/edit/" + store.report.id + "#game_reports"
   } catch (e) {
     console.error(e)
   } finally {
@@ -146,8 +147,47 @@ watch(current_stage, (new_stage, old_stage) => {
       }
     }
   }
+  switch (new_stage) {
+    case ReportEditStage.SelectTournament:
+      location.href= "#select_tournament"
+      break
+    case ReportEditStage.SelectTeams:
+      location.href= "#select_teams"
+      break
+    case ReportEditStage.EditGameReports:
+      location.href= "#edit_game_reports"
+      break
+    case ReportEditStage.EditPitchReports:
+      location.href= "#edit_pitch_reports"
+      break
+    case ReportEditStage.Submit:
+      location.href= "#submit"
+      break
+  }
 })
 
+
+function selectStageByURL(specifier:string) {
+  switch (specifier) {
+    case "select_tournament":
+      current_stage.value = ReportEditStage.SelectTournament
+      break
+    case "select_teams":
+      current_stage.value = ReportEditStage.SelectTeams
+      break
+    case "edit_game_reports":
+      current_stage.value = ReportEditStage.EditGameReports
+      break
+    case "edit_pitch_reports":
+      current_stage.value = ReportEditStage.EditPitchReports
+      break
+    case "submit":
+      current_stage.value = ReportEditStage.Submit
+      break
+    default:
+      current_stage.value = ReportEditStage.SelectTeams
+  }
+}
 
 
 onMounted(() => {
@@ -162,6 +202,9 @@ onMounted(() => {
       //We are in edit mode, load all data
       isLoading.value = true
       loadAndHandleReport(id)
+          .then(() => {
+            selectStageByURL(loc.hash.substring(1))
+          })
     }
 
 
@@ -210,10 +253,11 @@ onMounted(() => {
         v-model="store.report.gameCode"
         :options="store.codes"
         option-label="name"
+        class="m-2"
     />
     <Button
         v-if="store.report.gameCode"
-        class="p-button-rounded p-button-lg"
+        class="p-button-rounded p-button-lg m-2"
         @click="start_report"
     >Start Report
     </Button>
