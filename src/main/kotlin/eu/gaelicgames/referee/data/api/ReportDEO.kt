@@ -387,3 +387,37 @@ data class CompactTournamentReportDEO(
         }
     }
 }
+
+@Serializable
+data class DeleteTournamentReportDEO(
+    val id: Long
+) {
+
+
+    /**
+     * This function deletes the tournament report from the database
+     * it will not check if the user is allowed to delete the report
+     */
+    fun deleteFromDatabase(): Boolean {
+        val id = this.id
+        return transaction {
+            TournamentReport.findById(id)?.let{ it->
+                it.deleteComplete()
+                true
+            } ?: false
+        }
+    }
+
+    fun deleteChecked(user: User) :Boolean {
+        val id = this.id
+        val hasRights =  transaction {
+            TournamentReport.findById(id)?.let{ it->
+                it.referee == user || user.role == UserRole.ADMIN
+            } ?: false
+        }
+        if(hasRights) {
+            return deleteFromDatabase()
+        }
+        return false
+    }
+}

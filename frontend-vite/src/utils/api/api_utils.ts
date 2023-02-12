@@ -30,5 +30,7 @@ export async function parseAndHandleDEO<T extends z.ZodTypeAny>(jsonData: any, d
     }
 }
 
-
+export function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
 

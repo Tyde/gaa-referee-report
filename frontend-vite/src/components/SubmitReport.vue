@@ -10,6 +10,7 @@ import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
 import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
 import {useReportStore} from "@/utils/edit_report_store";
+import {delay} from "@/utils/api/api_utils";
 /*
 const props = defineProps<{
   tournament: DatabaseTournament,
@@ -217,15 +218,14 @@ const uploadComplete = ref(false);
 
 async function uploadAllData() {
   isUploadingToServer.value = true
+  await delay(500) // Lets wait for the unwinding of unmounted components to finish
+
+  await store.waitForAllTransfersDone()
   let promisesPitch = store.pitchReports.map((pitch) => {
-    return uploadPitch(pitch)
+    return store.sendPitchReport(pitch, true)
   })
   let promisesReports = store.gameReports.map((gameReport) => {
-    if (gameReport.id === undefined) {
-      return createGameReport(gameReport)
-    } else {
-      return updateGameReport(gameReport)
-    }
+    store.sendGameReport(gameReport,true)
   })
   await Promise.all(promisesPitch)
   await Promise.all(promisesReports)
@@ -267,6 +267,7 @@ watch(() => store.report.additionalInformation, () => {
 
 onMounted(() => {
   if (reportReadyForUpload.value) {
+    console.log("onMounted called")
     uploadAllData()
   }
 })

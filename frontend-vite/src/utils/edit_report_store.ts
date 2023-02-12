@@ -9,7 +9,7 @@ import {
     getGameCodes,
     loadReportDEO
 } from "@/utils/api/report_api";
-import {deletePitchOnServer, getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
+import {deletePitchOnServer, getPitchVariables, pitchDEOtoPitch, uploadPitch} from "@/utils/api/pitch_api";
 import {
     createGameReport,
     deleteGameReportOnServer,
@@ -33,6 +33,8 @@ export const useReportStore = defineStore('report', () => {
     const pitchVariables = ref<PitchVariables | undefined>()
 
     const currentErrors = ref<ErrorMessage[]>([])
+
+
 
     const selectedGameReportIndex = ref<number>(-1)
     const selectedGameReport = computed(() => {
@@ -133,28 +135,76 @@ export const useReportStore = defineStore('report', () => {
         }
         return false
     }
+    const currentTransfers = ref<Array<Promise<any>>>([])
 
-    const sendingGameReportCreateRequest = ref(false)
-    async function sendGameReport(gameReport: GameReport) {
+    /**
+     * Creates a new game report and adds it to the list of game reports.
+     *
+     *  Warning! Only use allowAsync if you already checked before that
+     *        all transfers are completed.
+     * @param gameReport the game report to be created
+     * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
+     */
+    async function sendGameReport(gameReport: GameReport, allowAsync: boolean = false) {
+
+        if(!allowAsync) await waitForAllTransfersDone()
         if (checkGameReportMinimal(gameReport)) {
             if (gameReport.id) {
-                await updateGameReport(gameReport)
+
+                await trackTransfer(updateGameReport(gameReport))
                     .catch((error) => {
                         newError(error)
                     })
             } else {
-                if (!sendingGameReportCreateRequest.value) {
-                    sendingGameReportCreateRequest.value = true
-                    gameReport.id = await createGameReport(gameReport)
-                    sendingGameReportCreateRequest.value = false
-                }
+                gameReport.id = await trackTransfer(createGameReport(gameReport))
             }
         }
     }
 
+    /**
+     *  Sends all pitches to the server.
+     *
+     *  Warning! Only use allowAsync if you already checked before that
+     *      all transfers are completed.
+     * @param pitchReport the pitch report to be created/updated
+     * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
+     */
+    async function sendPitchReport(pitchReport: Pitch, allowAsync: boolean = false) {
+        //Warning! Only use allowAsync if you already checked before that
+        // all transfers are completed.
+        if(!allowAsync) await waitForAllTransfersDone()
+        return trackTransfer(uploadPitch(pitchReport))
+    }
+
+    /**
+     * Helper function to track the current promises waiting for a response from the server.
+     *
+     * This is used for waitForAllTransfersDone
+     * @param promise the promise to be tracked
+     */
+    async function trackTransfer<T>(promise: Promise<T>):Promise<T> {
+        currentTransfers.value.push(promise)
+        promise.then(() => {
+            currentTransfers.value.splice(currentTransfers.value.indexOf(promise), 1)
+        }).catch((error) => {
+            currentTransfers.value.splice(currentTransfers.value.indexOf(promise), 1)
+        })
+        return promise
+    }
+
+    /**
+     * Waits until all transfers are completed.
+     */
+    async function waitForAllTransfersDone() {
+        if(currentTransfers.value.length > 0) {
+            await Promise.all(currentTransfers.value)
+        }
+    }
+
     async function deletePitchReport(pitchReport: Pitch) {
+        await waitForAllTransfersDone()
         if (pitchReport.id) {
-            await deletePitchOnServer(pitchReport)
+            await trackTransfer(deletePitchOnServer(pitchReport))
                 .catch((error) => {
                     newError(error)
                 })
@@ -196,6 +246,8 @@ export const useReportStore = defineStore('report', () => {
         addNewGameType,
         deleteGameReport,
         sendGameReport,
+        sendPitchReport,
+        waitForAllTransfersDone,
         deletePitchReport,
         newError
     }

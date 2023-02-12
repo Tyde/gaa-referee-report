@@ -41,7 +41,11 @@ watch(()=>store.selectedGameReport,(value,oldValue)=> {
 })
 onBeforeUnmount(() => {
   if(store.selectedGameReport) {
+    console.log("On before unmount sending Game Report")
     store.sendGameReport(store.selectedGameReport)
+        .then(() => {
+          console.log("Game Report sent")
+        })
         .catch((e) => {
           store.newError(e)
         })

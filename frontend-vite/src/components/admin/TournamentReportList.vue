@@ -11,6 +11,7 @@ import {useRouter} from "vue-router";
 
 const store = useAdminStore()
 const router = useRouter()
+const isLoading = ref(true)
 
 const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
@@ -50,19 +51,30 @@ onMounted(() => {
       .then(it => tournaments.value = it)
       .catch(e => store.newError(e))
   loadAllReports(tournaments.value)
-      .then(it => reports.value = it)
+      .then(it => {
+        reports.value = it
+        isLoading.value = false
+      })
       .catch(e => store.newError(e))
 })
 
 </script>
 
 <template>
-
+  <div v-if="isLoading" class="z-[10000] flex flex-row justify-center">
+    <div class="text-center text-2xl">
+      <!-- spinning icon -->
+      <i class="pi pi-spin pi-spinner"></i><br>
+      <span>Loading</span>
+    </div>
+  </div>
   <div
+      v-else
       v-for="tournament in tournamentsSortedByDate"
       :key="tournament.id"
   >
     <h3>{{tournament.date.toISODate()}} - {{tournament.name}}</h3>
+    <h4>{{tournament.location}}</h4>
     <!--<table class="table-auto">
       <tr>
         <th>Referee</th>
@@ -137,7 +149,13 @@ onMounted(() => {
 h3 {
   @apply text-2xl;
   @apply font-bold;
-  @apply p-2;
   @apply mt-2;
+  @apply text-center;
+}
+h4 {
+  @apply text-xl;
+  @apply font-bold;
+  @apply mb-2;
+  @apply text-center;
 }
 </style>

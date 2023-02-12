@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 
 import type {Pitch} from "@/types";
-import {uploadPitch} from "@/utils/api/pitch_api";
 import {computed, onBeforeUnmount, watch} from "vue";
 import {useReportStore} from "@/utils/edit_report_store";
 
@@ -16,7 +15,7 @@ const emit = defineEmits<{
 
 
 async function asyncUpload(pitch:Pitch) {
-  await uploadPitch(pitch)
+  await store.sendPitchReport(pitch)
       .catch((error) => {
         store.newError(error)
       })
