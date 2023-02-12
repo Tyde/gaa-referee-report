@@ -384,6 +384,27 @@ data class CompactTournamentReportDEO(
 
 
             }
+
+
+        }
+        fun fromTournamentReport(report: TournamentReport): CompactTournamentReportDEO {
+            return transaction {
+                val numTeams = TournamentReportTeamPreSelections
+                    .slice(TournamentReportTeamPreSelections.id.count())
+                    .select { TournamentReportTeamPreSelections.report eq report.id }
+                    .first()[TournamentReportTeamPreSelections.id.count()]
+                CompactTournamentReportDEO(
+                    report.id.value,
+                    report.tournament.id.value,
+                    report.code.id.value,
+                    report.isSubmitted,
+                    report.submitDate,
+                    report.referee.id.value,
+                    report.referee.firstName + " " + report.referee.lastName,
+                    report.gameReports.count(),
+                    numTeams
+                )
+            }
         }
     }
 }
@@ -398,17 +419,17 @@ data class DeleteTournamentReportDEO(
      * This function deletes the tournament report from the database
      * it will not check if the user is allowed to delete the report
      */
-    fun deleteFromDatabase(): Boolean {
+    fun deleteFromDatabase(): Result<Boolean> {
         val id = this.id
         return transaction {
             TournamentReport.findById(id)?.let{ it->
                 it.deleteComplete()
-                true
-            } ?: false
+                Result.success(true)
+            } ?: Result.failure(Exception("TournamentReport with id $id not found"))
         }
     }
 
-    fun deleteChecked(user: User) :Boolean {
+    fun deleteChecked(user: User) :Result<Boolean> {
         val id = this.id
         val hasRights =  transaction {
             TournamentReport.findById(id)?.let{ it->
@@ -418,6 +439,6 @@ data class DeleteTournamentReportDEO(
         if(hasRights) {
             return deleteFromDatabase()
         }
-        return false
+        return Result.failure(Exception("User has no rights to delete TournamentReport with id $id"))
     }
 }

@@ -106,12 +106,20 @@ class Api() {
         class All(val parent: Reports)
 
         @Serializable
+        @Resource("my")
+        class My(val parent: Reports)
+
+        @Serializable
         @Resource("updateAdditionalInformation")
         class UpdateAdditionalInformation(val parent: Reports)
 
         @Serializable
         @Resource("submit")
         class Submit(val parent: Reports)
+
+        @Serializable
+        @Resource("delete")
+        class Delete(val parent: Reports)
     }
 
     @Serializable

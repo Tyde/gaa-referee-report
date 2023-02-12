@@ -33,6 +33,18 @@ fun Route.refereeApiRouting() {
         }
     }
 
+    get<Api.Reports.My> {
+        val user = call.principal<UserPrincipal>()
+        if (user != null) {
+            call.respond(transaction {
+                val reports = TournamentReport.find { TournamentReports.referee eq user.user.id }
+                reports.map { CompactTournamentReportDEO.fromTournamentReport(it) }
+            })
+        } else {
+            call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "User not logged in"))
+        }
+    }
+
     post<Api.Reports.UpdateAdditionalInformation> {
         val update = call.receiveOrNull<UpdateReportAdditionalInformationDEO>()
         if (update != null) {
@@ -219,6 +231,36 @@ fun Route.refereeApiRouting() {
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
                     "Could not parse submit input"
+                )
+            )
+        }
+    }
+
+    post<Api.Reports.Delete> {
+        val deleteReport = kotlin.runCatching {
+            call.receive<DeleteTournamentReportDEO>()
+        }
+        val user = call.principal<UserPrincipal>()?.user
+        if (deleteReport.isSuccess && user != null) {
+
+            val report = deleteReport.getOrThrow().deleteChecked(user)
+            if (report.isSuccess) {
+                call.respond(
+                    deleteReport.getOrThrow()
+                )
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        report.exceptionOrNull()?.message?:"Unknown error"
+                    )
+                )
+            }
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    "Could not parse delete input"
                 )
             )
         }

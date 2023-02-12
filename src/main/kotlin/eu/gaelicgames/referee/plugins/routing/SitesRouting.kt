@@ -53,6 +53,18 @@ fun Route.sites() {
             resources(".")
         }
         get("/") {
+            val resource =
+                this.javaClass.classLoader.getResource("static/user_dashboard.html")?.toURI()
+            if (resource != null) {
+                val file = File(resource)
+                call.respondFile(file)
+            } else {
+                call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
+
+            }
+        }
+
+        get("/legacy-home") {
             val user = call.principal<UserPrincipal>()?.user
             if (user != null) {
                 val content = transaction {

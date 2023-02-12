@@ -185,3 +185,15 @@ export async function loadAllReports(tournaments:Array<DatabaseTournament>):Prom
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, CompactTournamentReportDEO.array()))
 }
+
+export async function loadMyReports():Promise<Array<CompactTournamentReportDEO>> {
+    return fetch("/api/report/my")
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, CompactTournamentReportDEO.array()))
+}
+
+export async function deleteReportOnServer(reportId:number):Promise<number> {
+    return makePostRequest("/api/report/delete",{id: reportId})
+        .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
+        .then(data =>  data.id)
+}

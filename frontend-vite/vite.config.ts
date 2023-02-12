@@ -21,6 +21,7 @@ export default defineConfig({
         admin: resolve(__dirname, 'admin.html'),
         showReport: resolve(__dirname, 'show_report.html'),
         onboarding: resolve(__dirname, 'onboarding.html'),
+        userDashboard: resolve(__dirname, 'user_dashboard.html'),
       },
     },
     emptyOutDir: true,
