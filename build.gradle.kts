@@ -70,6 +70,18 @@ tasks.register("buildNPM") {
     }
 }
 
+
+val fatJar = task("fatJar", type = Jar::class) {
+    baseName = "${project.name}-fat"
+    manifest {
+        attributes["Implementation-Title"] = "GGE Referee Fat Jar"
+        attributes["Implementation-Version"] = version
+        attributes["Main-Class"] = "eu.gaelicgames.referee.ApplicationKt"
+    }
+    from(configurations.runtimeClasspath.get().map({ if (it.isDirectory) it else zipTree(it) }))
+        .duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    with(tasks.jar.get() as CopySpec)
+}
 /*
 tasks.classes {
     dependsOn("buildNPM")
