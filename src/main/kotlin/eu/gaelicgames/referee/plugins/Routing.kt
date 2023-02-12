@@ -1,8 +1,6 @@
 package eu.gaelicgames.referee.plugins
 
-import eu.gaelicgames.referee.data.Amalgamation
-import eu.gaelicgames.referee.data.Amalgamations
-import eu.gaelicgames.referee.data.Team
+import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.TeamDEO
 import eu.gaelicgames.referee.plugins.routing.adminApiRouting
 import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
@@ -16,6 +14,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
+import io.ktor.server.resources.post
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -82,12 +81,68 @@ fun Application.configureRouting() {
             })
         }
 
+
+
         authenticate("auth-session") {
             refereeApiRouting()
         }
 
         authenticate("admin-session") {
             adminApiRouting()
+        }
+
+        post<Api.User.ValidateActivationToken> {
+            //This has to be outside any authentication context as user is still in the process of being created
+            val token = kotlin.runCatching {
+                call.receive<TokenDEO>()
+            }
+            if (token.isSuccess) {
+                val tokenDEO = token.getOrThrow()
+                val user = tokenDEO.validate()
+                if (user.isSuccess) {
+                    call.respond(RefereeDEO.fromReferee(user.getOrThrow()))
+                } else {
+                    call.respond(
+                        ApiError(
+                            ApiErrorOptions.INSERTION_FAILED,
+                            user.exceptionOrNull()?.message ?: "Unknown Error"
+                        )
+                    )
+                }
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        token.exceptionOrNull()?.message ?: "Unknown Error"
+                    )
+                )
+            }
+        }
+        post<Api.User.Activate> {
+            val token = kotlin.runCatching {
+                call.receive<NewPasswordByTokenDEO>()
+            }
+            if (token.isSuccess) {
+                val update = token.getOrThrow()
+                val user = update.updatePassword()
+                if (user.isSuccess) {
+                    call.respond(RefereeDEO.fromReferee(user.getOrThrow()))
+                } else {
+                    call.respond(
+                        ApiError(
+                            ApiErrorOptions.INSERTION_FAILED,
+                            user.exceptionOrNull()?.message ?: "Unable to update password"
+                        )
+                    )
+                }
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        token.exceptionOrNull()?.message ?: "Unknown Error"
+                    )
+                )
+            }
         }
         get("/*") {
             call.respondText("Catchall")

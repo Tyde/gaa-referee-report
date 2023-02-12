@@ -1,5 +1,7 @@
 package eu.gaelicgames.referee.data
 
+import eu.gaelicgames.referee.util.GGERefereeConfig
+import eu.gaelicgames.referee.util.MailjetClientHandler
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -12,6 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 object LocalDateSerializer : KSerializer<LocalDate> {
@@ -99,6 +102,104 @@ data class RefereeDEO(
                 Result.success(referee)
             } else {
                 Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
+            }
+        }
+    }
+}
+
+@Serializable
+data class NewRefereeDEO(
+    val firstName: String,
+    val lastName: String,
+    val mail: String
+) {
+    fun createInDatabase(): Result<User> {
+        val thisReferee = this
+        return transaction {
+            val referee = User.new {
+                firstName = thisReferee.firstName
+                lastName = thisReferee.lastName
+                mail = thisReferee.mail
+                password = "".toByteArray()
+                role = UserRole.WAITING_FOR_ACTIVATION
+            }
+            val activationUUID = UUID.randomUUID()
+            val activation = ActivationToken.new {
+                this.token = activationUUID
+                this.user = referee
+                this.expires = LocalDateTime.now().plusDays(7)
+            }
+
+            val activationString = activationUUID.toString()
+            val activationLink = GGERefereeConfig.serverUrl+"/user/activate/$activationString"
+            println(activationLink)
+            val name = "${referee.firstName} ${referee.lastName}"
+            kotlin.runCatching {  MailjetClientHandler.sendActivationMail(
+                name,
+                activationLink,
+                referee.mail,
+            )}.onFailure {
+                println("Failed to send activation mail to $name")
+                it.printStackTrace()
+            }.map { referee }
+        }
+    }
+}
+
+@Serializable
+data class TokenDEO(
+    val token: String
+) {
+    fun validate(): Result<User> {
+        val thisToken = this
+        return transaction {
+            val uuid = kotlin.runCatching { UUID.fromString(thisToken.token) }
+            if (uuid.isSuccess) {
+                val token = ActivationToken.find { ActivationTokens.token eq uuid.getOrThrow() }
+                    .firstOrNull()
+                if (token != null) {
+                    if (token.expires.isAfter(LocalDateTime.now())) {
+                        val user = token.user
+                        Result.success(user)
+                    } else {
+                        Result.failure(IllegalArgumentException("Token expired"))
+                    }
+                } else {
+                    Result.failure(IllegalArgumentException("Token not found"))
+                }
+            } else {
+                Result.failure(uuid.exceptionOrNull() ?: IllegalArgumentException("Token not valid"))
+            }
+        }
+    }
+}
+
+@Serializable
+data class NewPasswordByTokenDEO(
+    val token: String,
+    val password: String
+) {
+    fun updatePassword(): Result<User> {
+        val thisToken = this
+        return transaction {
+            val uuid = kotlin.runCatching { UUID.fromString(thisToken.token) }
+            if (uuid.isSuccess) {
+                val token = ActivationToken.find { ActivationTokens.token eq uuid.getOrThrow() }
+                    .firstOrNull()
+                if (token != null) {
+                    if (token.expires.isAfter(LocalDateTime.now())) {
+                        val user = token.user
+                        user.password = User.hashPassword(thisToken.password)
+                        user.role = UserRole.REFEREE
+                        Result.success(user)
+                    } else {
+                        Result.failure(IllegalArgumentException("Token expired"))
+                    }
+                } else {
+                    Result.failure(IllegalArgumentException("Token not found"))
+                }
+            } else {
+                Result.failure(uuid.exceptionOrNull() ?: IllegalArgumentException("Token not valid"))
             }
         }
     }

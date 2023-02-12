@@ -220,6 +220,18 @@ class Api() {
         @Resource("update")
         class Update(val parent: User)
 
+        @Serializable
+        @Resource("new")
+        class New(val parent: User)
+
+        @Serializable
+        @Resource("validate_activation_token")
+        class ValidateActivationToken(val parent: User)
+
+        @Serializable
+        @Resource("activate")
+        class Activate(val parent: User)
+
     }
 
 }

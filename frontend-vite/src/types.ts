@@ -247,3 +247,9 @@ export class ErrorMessage {
         this.timestamp = Date.now();
     }
 }
+
+export interface NewReferee {
+    firstName?: string,
+    lastName?: string,
+    mail?: string,
+}

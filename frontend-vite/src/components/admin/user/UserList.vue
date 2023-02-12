@@ -5,12 +5,13 @@ import {getAllUsers, updateUserOnServer} from "@/utils/api/admin_api";
 import {onMounted, ref} from "vue";
 import {Referee} from "@/types";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
+import NewUserDialog from "@/components/admin/user/NewUserDialog.vue";
 
 const store = useAdminStore();
 const users = ref<Referee[]>([]);
 
 const editingUsers = ref<Referee[]>([]);
-
+const showNewUserDialog = ref(false);
 onMounted(() => {
   getAllUsers()
       .then(it => users.value = it)
@@ -30,6 +31,17 @@ function editUser(event: DataTableRowEditSaveEvent) {
 </script>
 
 <template>
+  <!-- Button for new user -->
+  <div class="flex flex-row justify-center w-full">
+    <div>
+      <Button
+          label="Register new Referee"
+          icon="pi pi-plus"
+          class="p-button-success p-mr-2"
+          @click="showNewUserDialog = true"
+      />
+    </div>
+  </div>
   <DataTable
       :value="users"
       edit-mode="row"
@@ -58,6 +70,10 @@ function editUser(event: DataTableRowEditSaveEvent) {
     </Column>
     <Column :rowEditor="true" headerStyle="width:7rem" bodyStyle="text-align:center"></Column>
   </DataTable>
+
+  <NewUserDialog
+    v-model:visible="showNewUserDialog"
+    />
 </template>
 
 

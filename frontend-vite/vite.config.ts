@@ -20,6 +20,7 @@ export default defineConfig({
         editReport: resolve(__dirname, 'edit_report.html'),
         admin: resolve(__dirname, 'admin.html'),
         showReport: resolve(__dirname, 'show_report.html'),
+        onboarding: resolve(__dirname, 'onboarding.html'),
       },
     },
     emptyOutDir: true,

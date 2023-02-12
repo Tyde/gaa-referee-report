@@ -2,6 +2,10 @@ package eu.gaelicgames.referee
 
 import io.ktor.server.application.Application
 import at.favre.lib.crypto.bcrypt.BCrypt
+import com.mailjet.client.ClientOptions
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.Key
+import com.natpryce.konfig.stringType
 import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.UserRole
 import io.ktor.server.engine.*
@@ -11,8 +15,10 @@ import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.util.DatabaseHandler
+import eu.gaelicgames.referee.util.MailjetClientHandler
 import eu.gaelicgames.referee.util.MockDataGenerator
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 import kotlin.random.Random
 
 fun main() {
@@ -54,7 +60,7 @@ fun main() {
         }
     }
 
-
+    //MailjetClientHandler.sendActivationMail("Daniel Thiem","https://www.google.com", "info@daniel-thiem.de")
 
     embeddedServer(
         Netty,

@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.routing.get
 import io.ktor.util.pipeline.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 fun Route.adminApiRouting() {
 
@@ -197,6 +198,48 @@ fun Route.adminApiRouting() {
             )
         }
     }
+
+    post<Api.User.New> {
+        val newReferee = call.runCatching {
+            this.receive<NewRefereeDEO>()
+        }
+        if (newReferee.isSuccess) {
+            val referee = newReferee.getOrThrow().createInDatabase()
+            if (referee.isSuccess) {
+                call.respond(
+                    RefereeDEO.fromReferee(referee.getOrThrow())
+                )
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        referee.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                )
+            }
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    "Not able to parse new referee"
+                )
+            )
+        }
+    }
+    /*
+        get<Api.User.Activate> { activate ->
+            val uuid = UUID.fromString(activate.uuid)
+            val user = transaction {
+                ActivationToken
+                    .find { ActivationTokens.token eq uuid }
+                    .firstOrNull()
+                    ?.let {foundToken ->
+                        User.find { Users.id eq foundToken.user.id }.firstOrNull()
+                    }
+            }
+
+
+    }*/
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.toggleRuleState() {

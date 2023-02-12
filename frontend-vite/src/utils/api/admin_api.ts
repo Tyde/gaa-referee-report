@@ -1,6 +1,6 @@
 
 import {PitchPropertyDEO, Referee, Rule} from "@/types";
-import type {PitchProperty} from '@/types'
+import type {PitchProperty, NewReferee} from '@/types'
 import {ApiError} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
@@ -61,5 +61,10 @@ export async function getAllUsers():Promise<Array<Referee>> {
 
 export async function updateUserOnServer(user: Referee) {
     return makePostRequest("/api/user/update", user)
+        .then(data => parseAndHandleDEO(data, Referee))
+}
+
+export async function addRefereeOnServer(user: NewReferee) {
+    return makePostRequest("/api/user/new", user)
         .then(data => parseAndHandleDEO(data, Referee))
 }

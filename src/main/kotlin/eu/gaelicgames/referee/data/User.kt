@@ -11,7 +11,8 @@ import java.util.*
 enum class UserRole {
     ADMIN,
     REFEREE,
-    INACTIVE
+    INACTIVE,
+    WAITING_FOR_ACTIVATION
 }
 
 object Users : LongIdTable() {
@@ -35,10 +36,14 @@ class User(id: EntityID<Long>) : LongEntity(id) {
                 this.firstName = firstName
                 this.lastName = lastName
                 this.mail = mail
-                this.password = BCrypt
-                    .withDefaults().hash(12, password.toCharArray())
+                this.password = hashPassword(password)
                 this.role = role
             }
+        }
+
+        fun hashPassword(password: String): ByteArray {
+            return BCrypt
+                .withDefaults().hash(12, password.toCharArray())
         }
     }
     var firstName by Users.firstName
@@ -46,6 +51,9 @@ class User(id: EntityID<Long>) : LongEntity(id) {
     var password by Users.password
     var mail by Users.mail
     var role by Users.role
+
+
+
 }
 
 object Sessions : LongIdTable() {
@@ -71,4 +79,19 @@ class UserPrincipal(val user:User) : Principal {
 }
 
 data class UserSession(val uuid: UUID) : Principal
+
+object ActivationTokens : LongIdTable() {
+    val token = uuid("token")
+    val user = reference("user", Users)
+    val expires = datetime("expires")
+
+
+}
+
+class ActivationToken(id:EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<ActivationToken> (ActivationTokens)
+    var token by ActivationTokens.token
+    var user by User referencedOn ActivationTokens.user
+    var expires by ActivationTokens.expires
+}
 

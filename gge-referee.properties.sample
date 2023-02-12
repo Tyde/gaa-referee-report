@@ -1,0 +1,4 @@
+mailjet.public=""
+mailjet.secret=""
+
+server.url=http://localhost:8080
