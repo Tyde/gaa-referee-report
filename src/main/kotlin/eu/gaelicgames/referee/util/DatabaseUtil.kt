@@ -15,7 +15,7 @@ import java.time.Month
 object DatabaseHandler {
     var db: Database? = null
     fun init() {
-        db = Database.connect("jdbc:sqlite:data.db", "org.sqlite.JDBC")
+        db = Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
     }
 
     val tables = listOf(
