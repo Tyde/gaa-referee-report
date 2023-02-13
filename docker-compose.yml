@@ -1,0 +1,20 @@
+version: '3'
+services:
+  app:
+    image: 'ghcr.io/tyde/gaa-referee-report:master'
+    restart: unless-stopped
+    ports:
+      - '80:8080'
+    volumes:
+      - database:/app/data
+    environment:
+      SERVER_URL: "http://referee.gaelicgames.eu"
+      MAILJET_PUBLIC: "__public_key__"
+      MAILJET_SECRET: "__secret_key__"
+      ADMIN_FIRST_NAME: "Admin"
+      ADMIN_LAST_NAME: "User"
+      ADMIN_EMAIL: "home@admin.com"
+      ADMIN_PASSWORD: "password"
+
+  volumes:
+    database:
