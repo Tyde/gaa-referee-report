@@ -6,19 +6,19 @@ import eu.gaelicgames.referee.data.UserRole
 import java.io.File
 
 object GGERefereeConfig {
-    lateinit var mailjetSecretKey: String
-    lateinit var mailjetPublicKey: String
+    var mailjetSecretKey: String
+    var mailjetPublicKey: String
 
-    lateinit var serverUrl: String
+    var serverUrl: String
 
-    lateinit var adminFirstName : String
-    lateinit var adminLastName : String
-    lateinit var adminMail : String
-    lateinit var adminPassword : String
+    private var adminFirstName : String
+    private var adminLastName : String
+    private var adminMail : String
+    private var adminPassword : String
 
     init {
         val config = EnvironmentVariables() overriding
-            ConfigurationProperties.fromFile(File("gge-referee.properties"))
+            ConfigurationProperties.fromOptionalFile(File("gge-referee.properties"))
         val configMailjetPublicKey = Key("mailjet.public", stringType)
         val configMailjetSecretKey = Key("mailjet.secret", stringType)
         val configBaseUrl = Key("server.url", stringType)
@@ -36,6 +36,21 @@ object GGERefereeConfig {
         adminLastName = config[configAdminLastName]
         adminMail = config[configAdminMail]
         adminPassword = config[configAdminPassword]
+
+
+    }
+
+    fun debug() {
+        println(
+            "Config loaded: " +
+                    "mailjetPublicKey: $mailjetPublicKey, " +
+                    "mailjetSecretKey: $mailjetSecretKey, " +
+                    "serverUrl: $serverUrl, " +
+                    "adminFirstName: $adminFirstName, " +
+                    "adminLastName: $adminLastName, " +
+                    "adminMail: $adminMail, " +
+                    "adminPassword: $adminPassword"
+        )
     }
 
     fun createAdminUser() {
