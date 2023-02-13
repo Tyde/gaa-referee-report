@@ -133,6 +133,12 @@ fun Route.refereeApiRouting() {
         }
 
     }
+    get<Api.Tournaments.All> {
+        val tournaments = transaction {
+            Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
+        }
+        call.respond(tournaments)
+    }
 
     get<Api.Codes> {
         val allCodes = transaction {
