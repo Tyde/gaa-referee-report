@@ -20,7 +20,8 @@ RUN gradle shadowJar
 
 FROM openjdk:11
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/report-system.jar
-
+WORKDIR /app
+RUN mkdir data
 VOLUME /app/data
 
 ENV SERVER_URL=""
@@ -33,4 +34,4 @@ ENV ADMIN_EMAIL=""
 ENV ADMIN_PASSWORD=""
 
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/report-system.jar"]
+ENTRYPOINT ["java","-jar","report-system.jar"]
