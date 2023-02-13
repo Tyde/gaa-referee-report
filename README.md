@@ -1,5 +1,9 @@
 # GGE Referee Report System
 
+[![Docker Image build](https://github.com/Tyde/gaa-referee-report/actions/workflows/docker.yml/badge.svg)](https://github.com/Tyde/gaa-referee-report/actions/workflows/docker.yml)
+[![Java CI with Gradle](https://github.com/Tyde/gaa-referee-report/actions/workflows/gradle.yml/badge.svg)](https://github.com/Tyde/gaa-referee-report/actions/workflows/gradle.yml)
+
+
 This is a simple system for referees to report on games of tournaments. 
 It is designed to be used by the GGE to replace the old Excel-Based approach.
 
