@@ -1,18 +1,22 @@
+
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val exposed_version: String by project
 
+
+
 plugins {
     application
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "eu.gaelicgames"
 version = "0.0.1"
 application {
-    mainClass.set("eu.gaelicgames.ApplicationKt")
+    mainClass.set("eu.gaelicgames.referee.ApplicationKt")
 
     val isDevelopment: Boolean = true
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -70,7 +74,7 @@ tasks.register("buildNPM") {
     }
 }
 
-
+/*
 val fatJar = task("fatJar", type = Jar::class) {
     baseName = "${project.name}-fat"
     manifest {
@@ -78,10 +82,10 @@ val fatJar = task("fatJar", type = Jar::class) {
         attributes["Implementation-Version"] = version
         attributes["Main-Class"] = "eu.gaelicgames.referee.ApplicationKt"
     }
-    from(configurations.runtimeClasspath.get().map({ if (it.isDirectory) it else zipTree(it) }))
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
         .duplicatesStrategy = DuplicatesStrategy.INCLUDE
     with(tasks.jar.get() as CopySpec)
-}
+}*/
 /*
 tasks.classes {
     dependsOn("buildNPM")

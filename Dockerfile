@@ -16,7 +16,7 @@ RUN npm install
 RUN npm run build
 
 WORKDIR /home/gradle/src
-RUN gradle fatJar
+RUN gradle shadowJar
 
 FROM openjdk:11
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/report-system.jar
