@@ -26,19 +26,19 @@ fun Route.sites() {
 
     authenticate("auth-form") {
         post("/login") {
-            val this_user = call.principal<UserPrincipal>()
-            println(this_user)
-            this_user?.let { userPrincipal ->
+            val thisUser = call.principal<UserPrincipal>()
+            println(thisUser)
+            thisUser?.let { userPrincipal ->
                 println("redirect!")
-                val genereatedUUID = UUID.randomUUID()
+                val generatedUUID = UUID.randomUUID()
                 transaction {
                     Session.new {
                         user = userPrincipal.user
-                        uuid = genereatedUUID
+                        uuid = generatedUUID
                         expires = LocalDateTime.now().plusDays(1)
                     }
                 }
-                call.sessions.set(UserSession(genereatedUUID))
+                call.sessions.set(UserSession(generatedUUID))
                 call.respondRedirect("/")
             }
         }
@@ -54,10 +54,11 @@ fun Route.sites() {
         }
         get("/") {
             val resource =
-                this.javaClass.classLoader.getResource("static/user_dashboard.html")?.toURI()
+                this.javaClass.classLoader.getResourceAsStream("static/user_dashboard.html")
             if (resource != null) {
-                val file = File(resource)
-                call.respondFile(file)
+                call.respondOutputStream(contentType = ContentType.Text.Html) {
+                    resource.copyTo(this)
+                }
             } else {
                 call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
 
@@ -108,10 +109,11 @@ fun Route.sites() {
 
         get<Report.New> {
             val resource =
-                this.javaClass.classLoader.getResource("static/edit_report.html")?.toURI()
+                this.javaClass.classLoader.getResourceAsStream("static/edit_report.html")
             if (resource != null) {
-                val file = File(resource)
-                call.respondFile(file)
+                call.respondOutputStream(contentType = ContentType.Text.Html) {
+                    resource.copyTo(this)
+                }
             } else {
                 call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
 
@@ -124,10 +126,11 @@ fun Route.sites() {
                 TournamentReport.findById(edit.id) != null
             }
             val resource =
-                this.javaClass.classLoader.getResource("static/edit_report.html")?.toURI()
-            if (resource != null && reportExists) {
-                val file = File(resource)
-                call.respondFile(file)
+                this.javaClass.classLoader.getResourceAsStream("static/edit_report.html")
+            if (resource != null) {
+                call.respondOutputStream(contentType = ContentType.Text.Html) {
+                    resource.copyTo(this)
+                }
             } else {
                 call.respond(HttpStatusCode.InternalServerError)
             }
@@ -139,11 +142,12 @@ fun Route.sites() {
                 TournamentReport.findById(show.id) != null
             }
             val resource =
-                this.javaClass.classLoader.getResource("static/show_report.html")?.toURI()
+                this.javaClass.classLoader.getResourceAsStream("static/show_report.html")
             if(resource != null) {
                 if(reportExists) {
-                    val file = File(resource)
-                    call.respondFile(file)
+                    call.respondOutputStream(contentType = ContentType.Text.Html) {
+                        resource.copyTo(this)
+                    }
                 } else {
                     call.respondText(
                         "Tried to show a report that does not exist",
@@ -159,28 +163,29 @@ fun Route.sites() {
     }
     authenticate ("admin-session") {
         get("/admin/{...}") {
-            val user = call.principal<UserPrincipal>()?.user
             val resource =
-                this.javaClass.classLoader.getResource("static/admin.html")?.toURI()
+                this.javaClass.classLoader.getResourceAsStream("static/admin.html")
             if (resource != null) {
-                val file = File(resource)
-                call.respondFile(file)
+                call.respondOutputStream(contentType = ContentType.Text.Html) {
+                    resource.copyTo(this)
+                }
             } else {
-                error("Resource not found")
                 call.respond(HttpStatusCode.InternalServerError)
+                error("Resource not found")
             }
         }
     }
 
-    get<UserRes.Activate> { activate ->
+    get<UserRes.Activate> {
         val resource =
-            this.javaClass.classLoader.getResource("static/onboarding.html")?.toURI()
+            this.javaClass.classLoader.getResourceAsStream("static/onboarding.html")
         if (resource != null) {
-            val file = File(resource)
-            call.respondFile(file)
+            call.respondOutputStream(contentType = ContentType.Text.Html) {
+                resource.copyTo(this)
+            }
         } else {
-            error("Resource not found")
             call.respond(HttpStatusCode.InternalServerError)
+            error("Resource not found")
         }
 
     }
