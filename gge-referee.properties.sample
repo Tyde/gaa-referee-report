@@ -2,3 +2,8 @@ mailjet.public=""
 mailjet.secret=""
 
 server.url=http://localhost:8080
+
+admin.first_name=
+admin.last_name=
+admin.mail=
+admin.password=

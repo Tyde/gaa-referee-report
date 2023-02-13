@@ -6,6 +6,7 @@ import com.mailjet.client.ClientOptions
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
+import com.typesafe.config.ConfigUtil
 import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.UserRole
 import io.ktor.server.engine.*
@@ -15,6 +16,7 @@ import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.util.DatabaseHandler
+import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.MailjetClientHandler
 import eu.gaelicgames.referee.util.MockDataGenerator
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -29,6 +31,7 @@ fun main() {
 
     transaction {
         if (User.all().count() == 0L) {
+            /*
             println("No Admin user registered. Do that now:")
             println("First name:")
             val firstName = readLine()!!
@@ -37,15 +40,9 @@ fun main() {
             println("Mail:")
             val mail = readLine()!!
             println("Password:")
-            val password = readLine()!!
-            User.new {
-                this.firstName = firstName
-                this.lastName = lastName
-                this.mail = mail
-                this.password = BCrypt.withDefaults().hash(12, password.toCharArray())
-                this.role = UserRole.ADMIN
-            }
-            println("Saved")
+            val password = readLine()!!*/
+
+            GGERefereeConfig.createAdminUser()
         }
     }
 
