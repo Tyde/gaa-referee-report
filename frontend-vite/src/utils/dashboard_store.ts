@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {DatabaseTournament, ErrorMessage, GameCode, Report} from "@/types";
 import type {CompactTournamentReportDEO} from "@/utils/api/report_api";
 import {deleteReportOnServer, getGameCodes, loadMyReports} from "@/utils/api/report_api";
@@ -51,9 +51,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         return tournaments.value.find(it => it.id === id)
     }
 
-    function allDataLoaded() {
-        return codes.value.length > 0 && tournaments.value.length > 0 && myReports.value.length > 0
-    }
+
 
     return {
         currentErrors,
@@ -64,7 +62,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         fetchMyReports,
         findCodeById,
         findTournamentById,
-        deleteReport,
-        allDataLoaded
+        deleteReport
     }
 })

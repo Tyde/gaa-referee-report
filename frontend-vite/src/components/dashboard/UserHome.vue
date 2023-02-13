@@ -12,10 +12,11 @@ const unsubmittedReports = computed(() => {
 const submittedReports = computed(() => {
   return store.myReports.filter(report => report.isSubmitted)
 })
+
+
 </script>
 <template>
-
-  <div v-if="!store.allDataLoaded() || store.isLoading">
+  <div v-if="store.isLoading">
     <h1>Loading...</h1>
     <!-- Spinner -->
     <div class="flex justify-center">
