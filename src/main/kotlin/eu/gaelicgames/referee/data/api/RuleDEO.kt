@@ -116,3 +116,32 @@ data class RuleIsDeletableDEO(
     val id: Long,
     val isDeletable: Boolean
 )
+
+@Serializable
+data class NewRuleDEO(
+    val code: Long,
+    val isCaution: Boolean,
+    val isBlack: Boolean,
+    val isRed: Boolean,
+    val description: String,
+    val isDisabled: Boolean
+) {
+    fun createInDatabase():Result<Rule> {
+        val newRule = this
+        return transaction {
+            val code = GameCode.findById(newRule.code)
+            if(code != null) {
+                Result.success(Rule.new {
+                    this.code = code
+                    this.isCaution = newRule.isCaution
+                    this.isBlack = newRule.isBlack
+                    this.isRed = newRule.isRed
+                    this.description = newRule.description
+                    this.isDisabled = newRule.isDisabled
+                })
+            } else {
+                Result.failure(IllegalArgumentException("Trying to create a rule with invalid code id ${newRule.code}"))
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 
-import {PitchPropertyDEO, Referee, Rule} from "@/types";
+import {NewRuleDEO, PitchPropertyDEO, Referee, Rule} from "@/types";
 import type {PitchProperty, NewReferee} from '@/types'
 import {ApiError} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
@@ -50,6 +50,11 @@ export async function deleteRuleOnServer(rule: Rule) {
 
 export async function toggleRuleStateOnServer(rule: Rule) {
     return makePostRequest("/api/rule/disable", {id: rule.id})
+        .then(data => parseAndHandleDEO(data, Rule))
+}
+
+export async function addRuleOnServer(rule: NewRuleDEO) {
+    return makePostRequest("/api/rule/new", rule)
         .then(data => parseAndHandleDEO(data, Rule))
 }
 

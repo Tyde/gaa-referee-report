@@ -62,7 +62,29 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Rule.New> {
-        TODO()
+        try{
+            val newRule = call.receive<NewRuleDEO>()
+            val dbRule = newRule.createInDatabase()
+            if (dbRule.isSuccess) {
+                call.respond(
+                    RuleDEO.fromRule(dbRule.getOrThrow())
+                )
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.INSERTION_FAILED,
+                        dbRule.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                )
+            }
+        } catch (ex : ContentTransformationException) {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    "Not able to parse rule: " + ex.message
+                )
+            )
+        }
     }
 
     post<Api.Rule.Update> {

@@ -2,7 +2,8 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref, watch} from "vue";
-import type {Rule} from "@/types";
+import type {GameCode} from "@/types";
+import {Rule} from "@/types";
 import {
   checkIfRuleDeletable,
   deleteRuleOnServer,
@@ -12,7 +13,9 @@ import {
 
 
 const store = useAdminStore()
-const props = defineProps<{ ruleId: Number }>()
+const props = defineProps<{
+  ruleId: Number
+}>()
 const editing = ref(false)
 const askDeleteOrDisable = ref(false)
 const askDisableOnly = ref(false)

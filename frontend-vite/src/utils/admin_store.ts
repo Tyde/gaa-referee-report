@@ -3,7 +3,7 @@ import {ref} from "vue";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {getPitchVariables, pitchDEOtoPitch, updatePitchPropertyOnServer} from "@/utils/api/pitch_api";
 import type {GameCode, PitchProperty, Rule} from "@/types";
-import {ErrorMessage, ExtraTimeOption, GameType, PitchPropertyType, Tournament} from "@/types";
+import {ErrorMessage, ExtraTimeOption, GameType, NewRuleDEO, PitchPropertyType, Tournament} from "@/types";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
@@ -12,6 +12,7 @@ import {
 } from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {getGameReportVariables} from "@/utils/api/game_report_api";
+import {addRuleOnServer} from "@/utils/api/admin_api";
 
 export const useAdminStore = defineStore('admin', () => {
     const pitchVariables = ref<PitchVariables>()
@@ -143,6 +144,16 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    async function addRule(rule: NewRuleDEO) {
+        try{
+            await addRuleOnServer(rule)
+            rules.value = await getRules()
+        } catch (e:any) {
+            newError(e)
+        }
+
+    }
+
 
     return {
         pitchVariables,
@@ -159,6 +170,7 @@ export const useAdminStore = defineStore('admin', () => {
         findCodeById,
         getCompleteReport,
         updateRuleInStore,
-        deleteRuleInStore
+        deleteRuleInStore,
+        addRule
     }
 })

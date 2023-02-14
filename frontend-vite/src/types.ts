@@ -139,6 +139,9 @@ export const Rule = z.object({
 })
 export type Rule = z.infer<typeof Rule>
 
+export const NewRuleDEO = Rule.omit({id: true})
+export type NewRuleDEO = z.infer<typeof NewRuleDEO>
+
 
 export const DisciplinaryActionDEO = z.object({
     id: z.number(),
