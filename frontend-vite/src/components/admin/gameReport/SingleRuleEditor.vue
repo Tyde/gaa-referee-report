@@ -55,9 +55,22 @@ function startDeleteProcess() {
       )
 }
 
+function enableRule() {
+  toggleRuleStateOnServer(rule.value!!)
+      .then((rule) => {
+        store.updateRuleInStore(rule)
+        askDeleteOrDisable.value = false
+        askDisableOnly.value = false
+      })
+      .catch((e) => {
+        store.newError(e)
+      })
+}
+
 function disableRule() {
   toggleRuleStateOnServer(rule.value!!)
-      .then(() => {
+      .then((rule) => {
+        store.updateRuleInStore(rule)
         askDeleteOrDisable.value = false
         askDisableOnly.value = false
       })
@@ -67,9 +80,11 @@ function disableRule() {
 }
 function deleteRule() {
   deleteRuleOnServer(rule.value!!)
-      .then(() => {
+      .then((ruleId) => {
+
         askDeleteOrDisable.value = false
         askDisableOnly.value = false
+        store.deleteRuleInStore(ruleId.id)
       })
       .catch((e) => {
         store.newError(e)
@@ -131,7 +146,8 @@ watch(shadowCopyRule, () => {
           <p v-else-if="rule.isRed">Red</p>
         </div>
         <div class="group-hover:visible invisible float-right h-buttons">
-          <vue-feather type="trash" @click="startDeleteProcess()"/>
+          <vue-feather v-if="!rule.isDisabled" type="trash" @click="startDeleteProcess()"/>
+          <vue-feather v-else type="check" @click="enableRule()"/>
           <vue-feather type="edit" @click="editRule()"/>
         </div>
       </div>

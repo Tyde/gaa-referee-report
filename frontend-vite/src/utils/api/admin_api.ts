@@ -50,7 +50,7 @@ export async function deleteRuleOnServer(rule: Rule) {
 
 export async function toggleRuleStateOnServer(rule: Rule) {
     return makePostRequest("/api/rule/disable", {id: rule.id})
-        .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
+        .then(data => parseAndHandleDEO(data, Rule))
 }
 
 export async function getAllUsers():Promise<Array<Referee>> {

@@ -129,6 +129,20 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    async function updateRuleInStore(rule: Rule) {
+        const index = rules.value.findIndex(it => it.id === rule.id)
+        if (index >= 0) {
+            rules.value[index] = rule
+        }
+    }
+
+    async function deleteRuleInStore(ruleId: number) {
+        const index = rules.value.findIndex(it => it.id === ruleId)
+        if (index >= 0) {
+            rules.value.splice(index, 1)
+        }
+    }
+
 
     return {
         pitchVariables,
@@ -143,6 +157,8 @@ export const useAdminStore = defineStore('admin', () => {
         currentErrors,
         newError,
         findCodeById,
-        getCompleteReport
+        getCompleteReport,
+        updateRuleInStore,
+        deleteRuleInStore
     }
 })
