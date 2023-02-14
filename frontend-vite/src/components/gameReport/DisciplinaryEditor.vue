@@ -118,6 +118,11 @@ function deleteDAction(dAction: DisciplinaryAction) {
   selectedDisciplinaryActions.value.splice(selectedDisciplinaryActions.value.indexOf(dAction), 1)
 }
 
+const filteredRules = computed(() => {
+  return store.rules.filter((rule) => {
+    return rule.isDisabled == false && rule.code == store.report.gameCode.id
+  })
+})
 /*
 onUpdated(() => {
   console.log("DA model value:",props.modelValue)
@@ -166,7 +171,7 @@ onMounted(() => {
 
         <Dropdown
             v-model="dAction.rule"
-            :options="store.rules"
+            :options="filteredRules"
             :show-clear="true"
             class="dropdown-disciplinary m-2"
             input-class="dropdown-disciplinary"
