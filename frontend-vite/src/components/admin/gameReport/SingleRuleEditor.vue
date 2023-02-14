@@ -2,8 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref, watch} from "vue";
-import type {GameCode} from "@/types";
-import {Rule} from "@/types";
+import type {Rule} from "@/types";
 import {
   checkIfRuleDeletable,
   deleteRuleOnServer,

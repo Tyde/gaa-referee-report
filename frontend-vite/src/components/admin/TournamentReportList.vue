@@ -2,10 +2,9 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, onMounted, ref} from "vue";
-import type {DatabaseTournament, ReportDEO, Tournament} from "@/types";
+import type {DatabaseTournament} from "@/types";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
-import {Report} from "@/types";
-import {CompactTournamentReportDEO, CompleteReportDEO, loadAllReports} from "@/utils/api/report_api";
+import {CompactTournamentReportDEO, loadAllReports} from "@/utils/api/report_api";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {useRouter} from "vue-router";
 
@@ -38,11 +37,10 @@ const filters = ref({
 })
 function reportsByTournament(tournament: DatabaseTournament) {
   let filteed =  reports.value.filter(report => report.tournament == tournament.id)
-  let transformed = filteed.map(report => {
+  return filteed.map(report => {
     let code = store.findCodeById(report.code)
-    return { ...report, codeName: (code?.name ?? '')}
+    return {...report, codeName: (code?.name ?? '')}
   })
-  return transformed
 
 }
 
