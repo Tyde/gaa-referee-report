@@ -1,11 +1,14 @@
 package eu.gaelicgames.referee.plugins
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.TeamDEO
 import eu.gaelicgames.referee.plugins.routing.adminApiRouting
 import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
 import eu.gaelicgames.referee.plugins.routing.sites
 import eu.gaelicgames.referee.resources.Api
+import eu.gaelicgames.referee.util.JWTUtil
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.serialization.kotlinx.*
@@ -22,7 +25,13 @@ import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.*
 
 
 @Serializable
@@ -66,6 +75,8 @@ fun Application.configureRouting() {
     routing {
         sites()
 
+
+
         get<Api.TeamsAvailable> {
             call.respond(transaction {
                 Team.all().map {
@@ -81,6 +92,38 @@ fun Application.configureRouting() {
             })
         }
 
+        post<Api.Login> {
+            try {
+                val login = call.receive<LoginDEO>()
+                println(login)
+                val user = login.validate()
+                if (user.isSuccess) {
+                    val publicKey = JWTUtil.publicKey
+                    val privateKey = JWTUtil.privateKey
+                    val token = JWT.create()
+                        .withAudience(JWTUtil.refereeAudience)
+                        .withIssuer(JWTUtil.issuer)
+                        .withClaim(JWTUtil.userClaimKey, user.getOrThrow().id.value)
+                        .withExpiresAt(Date.from(Instant.now().plus(JWTUtil.expirationDuration)))
+                        .sign(Algorithm.RSA256(publicKey as RSAPublicKey, privateKey as RSAPrivateKey))
+                    call.respond(hashMapOf("token" to token))
+                } else {
+                    call.respond(
+                        ApiError(
+                            ApiErrorOptions.NOT_AUTHORIZED,
+                            user.exceptionOrNull()?.message ?: "Unknown Error"
+                        )
+                    )
+                }
+            } catch (e: ContentTransformationException) {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.NOT_FOUND,
+                        e.message ?: "Unknown Error"
+                    )
+                )
+            }
+        }
 
 
         authenticate("auth-session") {

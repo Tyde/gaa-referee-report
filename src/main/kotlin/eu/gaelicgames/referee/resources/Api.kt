@@ -7,6 +7,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Resource("/api")
 class Api() {
+
+    @Serializable
+    @Resource("login")
+    class Login(val parent: Api)
+
     @Serializable
     @Resource("teams_available")
     class TeamsAvailable(val parent: Api = Api())

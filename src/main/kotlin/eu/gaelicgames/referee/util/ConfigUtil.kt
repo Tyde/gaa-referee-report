@@ -16,6 +16,8 @@ object GGERefereeConfig {
     private var adminMail : String
     private var adminPassword : String
 
+
+
     init {
         val config = EnvironmentVariables() overriding
             ConfigurationProperties.fromOptionalFile(File("gge-referee.properties"))
@@ -36,6 +38,8 @@ object GGERefereeConfig {
         adminLastName = config[configAdminLastName]
         adminMail = config[configAdminMail]
         adminPassword = config[configAdminPassword]
+
+
 
 
     }

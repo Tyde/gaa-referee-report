@@ -32,6 +32,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("io.ktor:ktor-server-sessions-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-host-common-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
@@ -48,6 +49,8 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-dao", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-java-time", exposed_version)
+
+    implementation("com.nimbusds:nimbus-jose-jwt:9.30.1")
 
     implementation("com.mailjet", "mailjet-client", "5.2.1")
 

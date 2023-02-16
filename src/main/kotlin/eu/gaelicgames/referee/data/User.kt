@@ -45,6 +45,8 @@ class User(id: EntityID<Long>) : LongEntity(id) {
             return BCrypt
                 .withDefaults().hash(12, password.toCharArray())
         }
+
+
     }
     var firstName by Users.firstName
     var lastName by Users.lastName
@@ -52,7 +54,10 @@ class User(id: EntityID<Long>) : LongEntity(id) {
     var mail by Users.mail
     var role by Users.role
 
+    fun verifyPassword(password: String): Boolean {
 
+        return BCrypt.verifyer().verify(password.toCharArray(), this.password).verified
+    }
 
 }
 

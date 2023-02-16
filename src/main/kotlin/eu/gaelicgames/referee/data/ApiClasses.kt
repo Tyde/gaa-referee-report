@@ -204,3 +204,27 @@ data class NewPasswordByTokenDEO(
         }
     }
 }
+
+@Serializable
+data class LoginDEO(
+    val mail: String,
+    val password: String
+) {
+    fun validate(): Result<User> {
+        val thisLogin = this
+        return transaction {
+            val user = User.find { Users.mail eq thisLogin.mail }.firstOrNull()
+            if (user != null) {
+
+                if (user.verifyPassword(thisLogin.password)) {
+                    Result.success(user)
+                } else {
+                    Result.failure(IllegalArgumentException("Password not correct"))
+                }
+            } else {
+                Result.failure(IllegalArgumentException("User not found"))
+            }
+        }
+    }
+}
+
