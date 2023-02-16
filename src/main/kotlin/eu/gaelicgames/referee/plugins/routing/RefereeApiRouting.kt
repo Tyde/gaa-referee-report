@@ -61,9 +61,9 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.UpdateAdditionalInformation> {
-        val update = call.receiveOrNull<UpdateReportAdditionalInformationDEO>()
-        if (update != null) {
-            val updateResult = update.updateInDatabase()
+        val update = kotlin.runCatching { call.receive<UpdateReportAdditionalInformationDEO>()}
+        if (update.isSuccess) {
+            val updateResult = update.getOrThrow().updateInDatabase()
             if (updateResult.isSuccess) {
                 call.respond(
                     UpdateReportAdditionalInformationDEO.fromTournamentReportReport(
@@ -84,11 +84,11 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.NewTeam> {
-        val newTeam = call.receiveOrNull<NewTeamDEO>()
-        if (newTeam != null) {
+        val newTeam = kotlin.runCatching { call.receive<NewTeamDEO>()}
+        if (newTeam.isSuccess) {
             val newTeamDB = transaction {
                 Team.new {
-                    name = newTeam.name
+                    name = newTeam.getOrThrow().name
                     isAmalgamation = false
                 }
             }
@@ -99,14 +99,14 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.NewAmalgamation> {
-        val newAmalgamation = call.receiveOrNull<NewAmalgamationDEO>()
-        if (newAmalgamation != null) {
+        val newAmalgamation = kotlin.runCatching { call.receive<NewAmalgamationDEO>()}
+        if (newAmalgamation.isSuccess) {
             val newAmalgamationDB = transaction {
                 val amalgamation_base = Team.new {
-                    name = newAmalgamation.name
+                    name = newAmalgamation.getOrThrow().name
                     isAmalgamation = true
                 }
-                for (team in newAmalgamation.teams) {
+                for (team in newAmalgamation.getOrThrow().teams) {
                     Team.find { Teams.id eq team.id }.firstOrNull()?.let {
                         Amalgamation.new {
                             amalgamation = amalgamation_base
@@ -133,13 +133,13 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Tournaments.New> {
-        val tournamentDraft = call.receiveOrNull<NewTournamentDEO>()
-        if (tournamentDraft != null) {
+        val tournamentDraft = kotlin.runCatching { call.receive<NewTournamentDEO>()}
+        if (tournamentDraft.isSuccess) {
             val databaseTournament = transaction {
                 Tournament.new {
-                    name = tournamentDraft.name
-                    location = tournamentDraft.location
-                    date = tournamentDraft.date
+                    name = tournamentDraft.getOrThrow().name
+                    location = tournamentDraft.getOrThrow().location
+                    date = tournamentDraft.getOrThrow().date
                 }.let { TournamentDEO.fromTournament(it) }
             }
             call.respond(databaseTournament)
@@ -163,11 +163,11 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.New> {
-        val reportDraft = call.receiveOrNull<NewTournamentReportDEO>()
-        if (reportDraft != null) {
+        val reportDraft = kotlin.runCatching { call.receive<NewTournamentReportDEO>()}
+        if (reportDraft.isSuccess) {
             val user = call.principal<UserPrincipal>()?.user
             val report = user?.let {
-                reportDraft.storeInDatabase(it)
+                reportDraft.getOrThrow().storeInDatabase(it)
             }
             if (report != null) {
                 call.respond(NewTournamentReportDEO.fromTournamentReport(report))
@@ -183,7 +183,7 @@ fun Route.refereeApiRouting() {
             call.respond(
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
-                    "Could not parse report input"
+                    reportDraft.exceptionOrNull()?.message?:"Could not parse report input"
                 )
             )
         }
@@ -197,9 +197,9 @@ fun Route.refereeApiRouting() {
         } else {
             call.respond(HttpStatusCode.BadRequest)
         }*/
-        val reportDraft = call.receiveOrNull<NewTournamentReportDEO>()
-        if (reportDraft != null) {
-            val updatedReport = reportDraft.updateInDatabase()
+        val reportDraft = kotlin.runCatching { call.receive<NewTournamentReportDEO>()}
+        if (reportDraft.isSuccess) {
+            val updatedReport = reportDraft.getOrThrow().updateInDatabase()
             val report = updatedReport.getOrNull()
             if (updatedReport.isSuccess && report != null) {
                 call.respond(
@@ -219,7 +219,7 @@ fun Route.refereeApiRouting() {
             call.respond(
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
-                    "Could not parse report input"
+                    reportDraft.exceptionOrNull()?.message?:"Could not parse report input"
                 )
             )
         }
@@ -227,9 +227,9 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.Submit> {
-        val submitReport = call.receiveOrNull<SubmitTournamentReportDEO>()
-        if (submitReport != null) {
-            val report = submitReport.submitInDatabase()
+        val submitReport = kotlin.runCatching { call.receive<SubmitTournamentReportDEO>()}
+        if (submitReport.isSuccess) {
+            val report = submitReport.getOrThrow().submitInDatabase()
             if (report.isSuccess) {
 
 
@@ -251,7 +251,7 @@ fun Route.refereeApiRouting() {
             call.respond(
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
-                    "Could not parse submit input"
+                    submitReport.exceptionOrNull()?.message?:"Could not parse submit input"
                 )
             )
         }
@@ -296,9 +296,9 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.GameReports.Delete> {
-        val gameReport = call.receiveOrNull<DeleteGameReportDEO>()
-        if(gameReport!= null) {
-            val res = gameReport.deleteFromDatabase()
+        val gameReport = kotlin.runCatching { call.receive<DeleteGameReportDEO>()}
+        if(gameReport.isSuccess) {
+            val res = gameReport.getOrThrow().deleteFromDatabase()
             if(res.isSuccess) {
                 call.respond(gameReport)
             } else {
@@ -309,6 +309,13 @@ fun Route.refereeApiRouting() {
                     )
                 )
             }
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.DELETE_FAILED,
+                    gameReport.exceptionOrNull()?.message ?: "Could not parse game report input"
+                )
+            )
         }
     }
 
@@ -319,7 +326,7 @@ fun Route.refereeApiRouting() {
         handleDisciplinaryActionInput(doUpdate = true)
     }
     post<Api.GameReports.DisciplinaryAction.Delete> {
-        val disciplinaryAction = call.runCatching { call.receive<DeleteDisciplinaryActionDEO>() }
+        val disciplinaryAction = runCatching { call.receive<DeleteDisciplinaryActionDEO>() }
         disciplinaryAction.getOrNull()?.apply {
             val res = deleteFromDatabase()
             if(res.isSuccess) {
@@ -343,7 +350,7 @@ fun Route.refereeApiRouting() {
         handleInjuryInput(doUpdate = true)
     }
     post<Api.GameReports.Injury.Delete> {
-        val disciplinaryAction = call.runCatching { call.receive<DeleteInjuryDEO>() }
+        val disciplinaryAction = runCatching { call.receive<DeleteInjuryDEO>() }
         disciplinaryAction.getOrNull()?.apply {
             val res = deleteFromDatabase()
             if(res.isSuccess) {
@@ -367,9 +374,9 @@ fun Route.refereeApiRouting() {
         handlePitchReportInput(doUpdate = true)
     }
     post<Api.Pitch.Delete> {
-        val pitchReport = call.receiveOrNull<DeletePitchReportDEO>()
-        if(pitchReport!= null) {
-            val res = pitchReport.deleteFromDatabase()
+        val pitchReport = runCatching { call.receive<DeletePitchReportDEO>()}
+        if(pitchReport.isSuccess) {
+            val res = pitchReport.getOrThrow().deleteFromDatabase()
             if(res.isSuccess) {
                 call.respond(pitchReport)
             } else {
@@ -418,9 +425,9 @@ fun Route.refereeApiRouting() {
 
 
     post<Api.GameType.New> {
-        val gameType = call.receiveOrNull<GameTypeDEO>()
-        if (gameType != null) {
-            val newGameType = gameType.createInDatabase()
+        val gameType = runCatching { call.receive<GameTypeDEO>()}
+        if (gameType.isSuccess) {
+            val newGameType = gameType.getOrThrow().createInDatabase()
             if (newGameType.isSuccess) {
                 call.respond(GameTypeDEO.fromGameType(newGameType.getOrThrow()))
             } else {
@@ -441,12 +448,12 @@ fun Route.refereeApiRouting() {
 
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInput(doUpdate: Boolean) {
-    val reportDraft = call.receiveOrNull<PitchReportDEO>()
-    if (reportDraft != null) {
+    val reportDraft = runCatching { call.receive<PitchReportDEO>()}
+    if (reportDraft.isSuccess) {
         val updatedReport = if (doUpdate) {
-            reportDraft.updateInDatabase()
+            reportDraft.getOrThrow().updateInDatabase()
         } else {
-            reportDraft.createInDatabase()
+            reportDraft.getOrThrow().createInDatabase()
         }
         if (updatedReport.isSuccess) {
             call.respond(
@@ -466,7 +473,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInpu
         call.respond(
             ApiError(
                 ApiErrorOptions.INSERTION_FAILED,
-                "Not able to parse pitch reports"
+                reportDraft.exceptionOrNull()?.message?:"Not able to parse pitch reports"
             )
         )
     }
@@ -474,13 +481,13 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInpu
 
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGameReportInput(doUpdate: Boolean) {
-    val gameReport = call.receiveOrNull<GameReportDEO>()
-    if (gameReport != null) {
+    val gameReport = runCatching { call.receive<GameReportDEO>()}
+    if (gameReport.isSuccess) {
 
         val updatedReport = if (doUpdate) {
-            gameReport.updateInDatabase()
+            gameReport.getOrThrow().updateInDatabase()
         } else {
-            gameReport.createInDatabase()
+            gameReport.getOrThrow().createInDatabase()
         }
         if (updatedReport.isSuccess) {
             call.respond(
@@ -500,20 +507,20 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGameReportInput
         call.respond(
             ApiError(
                 ApiErrorOptions.INSERTION_FAILED,
-                "Not able to parse game report"
+                gameReport.exceptionOrNull()?.message?:"Not able to parse game report"
             )
         )
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleDisciplinaryActionInput(doUpdate: Boolean) {
-    val dAction = call.receiveOrNull<DisciplinaryActionDEO>()
-    if (dAction != null) {
+    val dAction = runCatching { call.receive<DisciplinaryActionDEO>()}
+    if (dAction.isSuccess) {
 
         val newDisciplinaryAction = if (doUpdate) {
-            dAction.updateInDatabase()
+            dAction.getOrThrow().updateInDatabase()
         } else {
-            dAction.createInDatabase()
+            dAction.getOrThrow().createInDatabase()
         }
         if (newDisciplinaryAction.isSuccess) {
             call.respond(
@@ -533,20 +540,20 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleDisciplinaryAct
         call.respond(
             ApiError(
                 ApiErrorOptions.INSERTION_FAILED,
-                "Could not parse disciplinary action"
+                dAction.exceptionOrNull()?.message?:"Could not parse disciplinary action"
             )
         )
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doUpdate: Boolean) {
-    val injury = call.receiveOrNull<InjuryDEO>()
-    if (injury != null) {
+    val injury = runCatching { call.receive<InjuryDEO>()}
+    if (injury.isSuccess) {
 
         val newInjury = if (doUpdate) {
-            injury.updateInDatabase()
+            injury.getOrThrow().updateInDatabase()
         } else {
-            injury.createInDatabase()
+            injury.getOrThrow().createInDatabase()
         }
         if (newInjury.isSuccess) {
             call.respond(
@@ -566,7 +573,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doU
         call.respond(
             ApiError(
                 ApiErrorOptions.INSERTION_FAILED,
-                "Could not parse injury"
+                injury.exceptionOrNull()?.message?:"Could not parse injury"
             )
         )
     }
