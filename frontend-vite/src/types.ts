@@ -48,6 +48,15 @@ export const Referee = z.object({
     mail: z.string(),
 })
 
+
+export type Referee = z.infer<typeof Referee>
+
+
+export const SessionInfo = Referee.extend({
+    role: z.enum(["ADMIN", "REFEREE", "INACTIVE", "WAITING_FOR_ACTIVATION"])
+})
+export type SessionInfo = z.infer<typeof SessionInfo>
+
 export const Report = z.object({
     id: number().optional().nullable(),
     tournament: DatabaseTournament,
@@ -84,7 +93,6 @@ export const ReportDEO = z.object({
 export type ReportDEO = z.infer<typeof ReportDEO>
 
 
-export type Referee = z.infer<typeof Referee>
 
 export const GameType = z.object({
     id: z.number(),

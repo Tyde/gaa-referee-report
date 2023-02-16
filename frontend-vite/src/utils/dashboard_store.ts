@@ -1,16 +1,18 @@
 import {defineStore} from "pinia";
-import {computed, ref} from "vue";
-import {DatabaseTournament, ErrorMessage, GameCode, Report} from "@/types";
+import {ref} from "vue";
+import {DatabaseTournament, ErrorMessage, GameCode} from "@/types";
 import type {CompactTournamentReportDEO} from "@/utils/api/report_api";
 import {deleteReportOnServer, getGameCodes, loadMyReports} from "@/utils/api/report_api";
-import {useAdminStore} from "@/utils/admin_store";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
+import {getSessionInfo} from "@/utils/api/referee_api";
 
 
 export const useDashboardStore = defineStore('dashboard', () => {
     const currentErrors = ref<ErrorMessage[]>([])
     const codes = ref<Array<GameCode>>([])
     const tournaments = ref<Array<DatabaseTournament>>([])
+
+    const isAdmin = ref(false)
 
     const isLoading = ref<boolean>(false)
     function newError(message: string) {
@@ -32,6 +34,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
             .catch(reason => newError(reason))
         await Promise.all([gcProm, myRepProm, allTournProm])
         isLoading.value = false
+    }
+
+    async function checkAdmin() {
+        getSessionInfo()
+            .then(sessionInfo => isAdmin.value = sessionInfo.role == "ADMIN")
+            .catch(reason => newError(reason))
     }
 
     async function deleteReport(report: CompactTournamentReportDEO) {
@@ -58,9 +66,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
         codes,
         myReports,
         isLoading,
+        isAdmin,
         newError,
         fetchMyReports,
         findCodeById,
+        checkAdmin,
         findTournamentById,
         deleteReport
     }

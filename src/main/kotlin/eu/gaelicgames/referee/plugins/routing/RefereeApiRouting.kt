@@ -1,4 +1,4 @@
-package  eu.gaelicgames.referee.plugins.routing;
+package  eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
@@ -16,6 +16,21 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
 fun Route.refereeApiRouting() {
+
+    get<Api.Session> {
+        val user = call.principal<UserPrincipal>()
+        if (user != null) {
+            call.respond(
+                SessionInfoDEO.fromUser(
+                    transaction {
+                        User.findById(user.user.id)
+                    }!!
+                )
+            )
+        } else {
+            call.respond(HttpStatusCode.Unauthorized)
+        }
+    }
 
     get<Api.Reports.Get> { get ->
         val reportId = get.id

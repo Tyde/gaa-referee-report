@@ -1,6 +1,5 @@
 package eu.gaelicgames.referee.resources
 
-import eu.gaelicgames.referee.data.GameReports
 import io.ktor.resources.*
 import kotlinx.serialization.Serializable
 
@@ -12,6 +11,9 @@ class Api() {
     @Resource("login")
     class Login(val parent: Api)
 
+    @Serializable
+    @Resource("session")
+    class Session(val parent: Api)
 
     @Serializable
     @Resource("teams_available")

@@ -124,7 +124,7 @@ data class NewRefereeDEO(
                 role = UserRole.WAITING_FOR_ACTIVATION
             }
             val activationUUID = UUID.randomUUID()
-            val activation = ActivationToken.new {
+            ActivationToken.new {
                 this.token = activationUUID
                 this.user = referee
                 this.expires = LocalDateTime.now().plusDays(7)
@@ -228,3 +228,23 @@ data class LoginDEO(
     }
 }
 
+@Serializable
+data class SessionInfoDEO(
+    val id: Long,
+    val firstName: String,
+    val lastName: String,
+    val mail: String,
+    val role: UserRole
+) {
+    companion object {
+        fun fromUser(user: User): SessionInfoDEO {
+            return SessionInfoDEO(
+                id = user.id.value,
+                firstName = user.firstName,
+                lastName = user.lastName,
+                mail = user.mail,
+                role = user.role
+            )
+        }
+    }
+}
