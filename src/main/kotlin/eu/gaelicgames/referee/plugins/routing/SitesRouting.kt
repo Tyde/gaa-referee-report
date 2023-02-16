@@ -46,6 +46,7 @@ fun Route.sites() {
     static("/static") {
         staticBasePackage = "files_static"
         resources(".")
+        //TODO: add .well-known
     }
     authenticate("auth-session") {
         static("assets") {
@@ -63,6 +64,11 @@ fun Route.sites() {
                 call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
 
             }
+        }
+
+        get("/logout") {
+            call.sessions.clear<UserSession>()
+            call.respondRedirect("/login")
         }
 
         get("/legacy-home") {

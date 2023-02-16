@@ -12,6 +12,7 @@ class Api() {
     @Resource("login")
     class Login(val parent: Api)
 
+
     @Serializable
     @Resource("teams_available")
     class TeamsAvailable(val parent: Api = Api())
