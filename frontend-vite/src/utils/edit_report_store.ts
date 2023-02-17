@@ -203,7 +203,7 @@ export const useReportStore = defineStore('report', () => {
             let hasNoId = disciplinaryAction.id == undefined
             await trackTransfer(uploadDisciplinaryAction(disciplinaryAction, gameReport.id))
                 .then((data) => {
-                    if (hasNoId) {
+                    if (hasNoId && data != -1) {
                         disciplinaryAction.id = data
                     }
                 })
@@ -226,7 +226,7 @@ export const useReportStore = defineStore('report', () => {
             let hasNoId = injury.id == undefined
             await trackTransfer(uploadInjury(injury, gameReport.id))
                 .then((data) => {
-                    if (hasNoId) {
+                    if (hasNoId && data != -1) {
                         injury.id = data
                     }
                 })

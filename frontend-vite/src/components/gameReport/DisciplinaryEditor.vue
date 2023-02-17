@@ -4,7 +4,6 @@ import {computed, onMounted, watch} from "vue";
 import {
   deleteDisciplinaryActionOnServer,
   disciplinaryActionIsBlank,
-  uploadDisciplinaryAction
 } from "@/utils/api/disciplinary_action_api";
 import {useReportStore} from "@/utils/edit_report_store";
 
@@ -52,7 +51,7 @@ const localVisible = computed({
 
 
 async function uploadActionsToServer() {
-  if (store.selectedGameReport?.id != undefined) {
+  if (store.selectedGameReport?.id) {
     await store.waitForAllTransfersDone()
     for (let action of selectedDisciplinaryActions.value) {
       store.sendDisciplinaryAction(action,store.selectedGameReport,true)
@@ -97,7 +96,9 @@ function generateEmptydAFields() {
 
 function addEmptyDisciplinaryAction() {
   if(selectedTeam.value) {
+    console.log("adding empty disciplinary action")
     selectedDisciplinaryActions.value.push({
+      id: undefined,
       team: selectedTeam.value,
       firstName: "",
       lastName: "",

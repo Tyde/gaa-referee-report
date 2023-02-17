@@ -108,24 +108,47 @@ function closeInjuryDialog() {
       </div>
 
 
-      <div class="col-span-2 p-1 flex">
+      <div class="col-span-2 p-1 flex flex-col">
         <Button
             :disabled="!store.selectedGameReportPassesMinimalRequirements"
             @click="openDisciplinaryDialog"
-            class="flex-grow"
+            class="flex-shrink"
         >
           Edit Disciplinary Actions ({{ currentSingleTeamGameReport.disciplinaryActions.length - 1 }})
         </Button>
+        <div class="text-sm flex flex-col">
+          <div
+              v-for="action in currentSingleTeamGameReport.disciplinaryActions"
+              :key="action.id"
+          >
+            <template v-if="action.id">
+            <div v-if="action.rule?.isCaution" class="rule-card card-yellow"></div>
+            <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
+            <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
+            {{action.number}} - {{action.firstName}} {{action.lastName}} - {{action.rule?.description.substring(0, 25)}} ...
+            </template>
+          </div>
+        </div>
       </div>
 
-      <div class="col-span-2 p-1 flex">
+      <div class="col-span-2 p-1 flex flex-col">
         <Button
             :disabled="!store.selectedGameReportPassesMinimalRequirements"
-            class="flex-grow"
+            class="flex-shrink"
             @click="openInjuryDialog"
         >
           Edit Injuries ({{ currentSingleTeamGameReport.injuries.length - 1 }})
         </Button>
+        <div class="text-sm flex flex-col">
+          <div
+              v-for="injury in currentSingleTeamGameReport.injuries"
+              :key="injury.id"
+          >
+            <template v-if="injury.id">
+              {{injury.firstName}} {{injury.lastName}} - {{injury.details.substring(0, 25)}} ...
+            </template>
+          </div>
+        </div>
       </div>
 
 
