@@ -11,20 +11,29 @@ const store = useAdminStore()
 </script>
 
 <template>
-  <Accordion>
-    <AccordionTab header="Game Types">
+  <div class="flex flex-row justify-center mt-2">
+    <div class="sbs-container">
+      <h2>Game Types</h2>
       <GameTypeEditor />
-    </AccordionTab>
-    <AccordionTab header="Rules">
-      <RulesEditor />
-    </AccordionTab>
-    <AccordionTab header="Extra Time Options">
+    </div>
+    <div class="sbs-container">
+      <h2>Extra Time options</h2>
       <ExtraTimeOptionEditor />
-    </AccordionTab>
-  </Accordion>
+    </div>
+  </div>
+
 
 </template>
 
 <style scoped>
-
+.sbs-container {
+  @apply w-5/12;
+  @apply m-4;
+  @apply rounded-2xl shadow-lg;
+}
+h2 {
+  @apply text-center text-2xl;
+  @apply font-bold;
+  @apply mb-2;
+}
 </style>

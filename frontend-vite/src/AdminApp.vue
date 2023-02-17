@@ -15,7 +15,12 @@ const items = ref([
         to: "/pitch-options"
       },
       {
-        label: "Game report options",
+        label: "Rules",
+        to: "/rules",
+        icon: "pi pi-fw pi-book"
+      },
+      {
+        label: "Game type & Extra Time options",
         icon: 'pi pi-fw pi-cog',
         to: "/game-report-options"
       }
