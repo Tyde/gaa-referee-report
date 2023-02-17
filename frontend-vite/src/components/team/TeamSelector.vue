@@ -39,9 +39,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card>
-    <template #title>Select the clubs, that will be part of this report</template>
-    <template #content>
+  <div class="mx-auto m-2 w-5/12">
+    <h2>Select the clubs, that will be part of this report</h2>
+    <div>
 
 
 
@@ -51,6 +51,7 @@ onMounted(() => {
           :exclude_team_list="teams_added"
           @team_selected="addTeam"
           :force_hide_exclude_team_list="false"
+          :allow_unselect="false"
       />
 
 
@@ -69,20 +70,25 @@ onMounted(() => {
       </template>
 
 
-    </template>
-  </Card>
+    </div>
+  </div>
 </template>
 
 
 
 <style scoped>
+  h2 {
+    @apply text-2xl font-bold text-gray-700 text-center mt-2 mb-2;
+  }
 .selected-teams-list {
-  max-width: 35em;
+  @apply w-full;
   list-style: none;
-  padding:0em;
+  padding:0;
+  @apply flex flex-row justify-center items-center flex-wrap;
 }
 .selected-teams-list li {
   display: inline-block;
   padding: 8px;
+
 }
 </style>

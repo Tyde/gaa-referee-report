@@ -51,18 +51,28 @@ async function create_amalgamation() {
 function cancel() {
   emit('on_cancel')
 }
+
+function unselectTeam(team: Team) {
+  selected_teams.value = selected_teams.value.filter(t => t.id !== team.id)
+}
 </script>
 
 <template>
-  <Card>
-    <template #title>Create new Amalgamation</template>
-    <template #content>
-      <span class="p-float-label">
-        <InputText id="amalgamation_name" v-model="amalgamation_name" type="text"/>
+  <div class="w-fill shadow-xl p-2 bg-gray-100 border-gray-500 rounded-xl">
+    <h3>Create new Amalgamation</h3>
+    <div class="w-fill">
+      <div class="mt-2 text-center">
         <label for="amalgamation_name">Enter amalgamation name</label>
-      </span>
-      <ul>
-        <li v-for="team in selected_teams">
+        <div class="m-1">
+          <InputText id="amalgamation_name" v-model="amalgamation_name" type="text"/>
+        </div>
+
+      </div>
+      <ul class="flex flex-row flex-wrap justify-center list-none w-full min-h-[4rem]">
+        <li v-for="team in selected_teams"
+            class="p-2 m-2 h-min rounded-2xl bg-gray-300 hover:bg-gray-200 hover:cursor-pointer inline-block"
+            @click="unselectTeam(team)"
+        >
           {{ team.name }}
         </li>
       </ul>
@@ -74,14 +84,22 @@ function cancel() {
           :show_amalgamate="false"
           @team_selected="on_team_selected"
       />
-      <Button class="p-button-rounded" @click="create_amalgamation">Send</Button>
-      <Button class="p-button-secondary p-button-rounded" @click="cancel">Cancel</Button>
-    </template>
+      <div class="flex flex-row justify-center">
+        <div class="m-2">
+          <Button class="p-button-rounded" @click="create_amalgamation">Save Amalgamation</Button>
+        </div>
+        <div class="m-2">
+          <Button class="p-button-secondary p-button-rounded" @click="cancel">Cancel creating Amalgamation</Button>
+        </div>
+      </div>
+    </div>
 
 
-  </Card>
+  </div>
 </template>
 
 <style scoped>
-
+h3 {
+  @apply text-xl font-bold text-gray-700 text-center mt-2 mb-2;
+}
 </style>

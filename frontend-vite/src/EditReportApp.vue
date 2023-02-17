@@ -215,13 +215,16 @@ onMounted(() => {
 
 <template>
 
-  <SelectButton
-      v-model="current_stage"
-      :options="calcStageOptions"
-      option-disabled="disabled"
-      option-label="name"
-      option-value="stage"
-  />
+  <div class="mx-auto w-[47rem]">
+    <SelectButton
+        v-model="current_stage"
+        :options="calcStageOptions"
+        option-disabled="disabled"
+        option-label="name"
+        option-value="stage"
+
+    />
+  </div>
 <transition-group name="p-message" tag="div">
   <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
 </transition-group>
