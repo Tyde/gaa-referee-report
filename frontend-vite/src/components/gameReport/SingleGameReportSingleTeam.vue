@@ -47,6 +47,10 @@ function closeInjuryDialog() {
   displayInjuries.value = false;
 }
 
+function stripRuleCardsFromDescription(description: string) {
+  return description.replace(/(CAUTION:|ORDER OFF:|BLACK CARD:)/gm, '')
+}
+
 
 </script>
 
@@ -125,7 +129,7 @@ function closeInjuryDialog() {
             <div v-if="action.rule?.isCaution" class="rule-card card-yellow"></div>
             <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
             <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
-            {{action.number}} - {{action.firstName}} {{action.lastName}} - {{action.rule?.description.substring(0, 25)}} ...
+            {{action.number}} - {{action.firstName}} {{action.lastName}} - {{stripRuleCardsFromDescription(action.rule?.description).substring(0, 25)}} ...
             </template>
           </div>
         </div>
