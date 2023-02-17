@@ -1,5 +1,5 @@
 
-import {NewRuleDEO, Referee, Rule} from "@/types";
+import {GameType, NewRuleDEO, Referee, Rule} from "@/types";
 import type { NewReferee} from '@/types'
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
@@ -47,4 +47,9 @@ export async function updateUserOnServer(user: Referee) {
 export async function addRefereeOnServer(user: NewReferee) {
     return makePostRequest("/api/user/new", user)
         .then(data => parseAndHandleDEO(data, Referee))
+}
+
+export async function updateGameTypeOnServer(gameType: GameType) {
+    return makePostRequest("/api/gametype/update", gameType)
+        .then(data => parseAndHandleDEO(data, GameType))
 }

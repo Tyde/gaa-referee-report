@@ -263,6 +263,16 @@ fun Route.adminApiRouting() {
             }
         }
     }
+
+    post<Api.GameType.Update> {
+        receiveAndHandleDEO<GameTypeDEO> { gameTypeDEO ->
+            gameTypeDEO.updateInDatabase().map {
+                GameTypeDEO.fromGameType(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
     /*
         get<Api.User.Activate> { activate ->
             val uuid = UUID.fromString(activate.uuid)

@@ -17,8 +17,8 @@ import {
     loadReportDEO
 } from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
-import {getGameReportVariables} from "@/utils/api/game_report_api";
-import {addRuleOnServer} from "@/utils/api/admin_api";
+import {getGameReportVariables, uploadNewGameType} from "@/utils/api/game_report_api";
+import {addRuleOnServer, updateGameTypeOnServer} from "@/utils/api/admin_api";
 
 export const useAdminStore = defineStore('admin', () => {
     const pitchVariables = ref<PitchVariables>()
@@ -195,6 +195,27 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
 
+    async function updateGameType(gameType: GameType) {
+        try {
+            let result = await updateGameTypeOnServer(gameType)
+            let index = gameTypes.value.findIndex(it => it.id === result.id)
+            if (index >= 0) {
+                gameTypes.value[index] = result
+            }
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
+    async function createGameType(type: GameType) {
+        try {
+            let result = await uploadNewGameType(type.name)
+            gameTypes.value.push(result)
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
     return {
         pitchVariables,
         gameTypes,
@@ -212,6 +233,8 @@ export const useAdminStore = defineStore('admin', () => {
         getCompleteReport,
         updateRuleInStore,
         deleteRuleInStore,
-        addRule
+        updateGameType,
+        addRule,
+        createGameType
     }
 })
