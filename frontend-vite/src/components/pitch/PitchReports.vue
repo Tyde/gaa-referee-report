@@ -54,7 +54,7 @@ const pitchReportIndices = computed(() => {
 </script>
 <template>
   <div>
-    <Toolbar>
+    <Toolbar v-if="store.pitchReports.length>0">
       <template #start>
         <SelectButton v-model="store.selectedPitchReportIndex" :options="pitchReportIndices">
           <template #option="slotProps">
@@ -69,6 +69,12 @@ const pitchReportIndices = computed(() => {
         <Button class="p-button-success" @click="newPitch"><i class="pi pi-plus"></i></Button>
       </template>
     </Toolbar>
+    <div v-else class="flex flex-row justify-center mt-2 p-4 bg-gray-300 ">
+      <div class="text-center" v-if="store.pitchReports.length===0">
+        <p class="text-lg">No pitch reports yet. Create the first:</p>
+        <Button class="p-button-success" @click="newPitch"><i class="pi pi-plus"></i></Button>
+      </div>
+    </div>
     <!--
     <SinglePitchReport
         v-if="store.selectedPitchReport"
@@ -79,7 +85,7 @@ const pitchReportIndices = computed(() => {
     />-->
     <SinglePitchReport
         v-if="store.selectedPitchReport"
-        @delete-this-report="(pitch)=>startDeletePitchDialog(pitch)"
+        @delete-this-report="startDeletePitchDialog"
     />
 
     <Dialog
