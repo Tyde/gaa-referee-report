@@ -41,5 +41,14 @@ const store = useAdminStore()
 
 
 <style scoped>
-
+h2 {
+  @apply text-center text-2xl;
+  @apply font-bold;
+  @apply mb-2;
+}
+h4 {
+  @apply text-center text-lg;
+  @apply font-bold;
+  @apply mb-2;
+}
 </style>

@@ -1,7 +1,8 @@
 import {z} from "zod";
 import type {Pitch, PitchProperty, Report} from "@/types";
-import {ApiError, PitchDEO, PitchPropertyDEO, PitchPropertyType} from "@/types";
+import { PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+
 
 const PitchProperyDEO = z.object({
     id: z.number(),
@@ -143,23 +144,30 @@ export async function deletePitchOnServer(pitch:Pitch):Promise<boolean> {
 export async function deletePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<boolean> {
     return makePostRequest(
         `/api/pitch_property/delete`,
-        {id: pitchProperty.id}
+        pitchProperty
     )
         .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
         .then(data => data.id == pitchProperty.id)
 }
 
-export async function updatePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<number> {
+export async function updatePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<PitchPropertyWithTypeDEO> {
+
     return makePostRequest(
         `/api/pitch_property/update`,
         pitchProperty
     )
-        .then(data => parseAndHandleDEO(data, PitchPropertyDEO))
+        .then(data => parseAndHandleDEO(data, PitchPropertyWithTypeDEO))
         .then(pitchPropertyDEO => {
             if(pitchPropertyDEO.id) {
-                return pitchPropertyDEO.id
+                return pitchPropertyDEO
             } else {
                 return Promise.reject("Server did not respond with id while updating pitch property")
             }
         })
+}
+
+export async function createPitchPropertyOnServer(pitchProperty:PitchProperty):Promise<PitchPropertyWithTypeDEO> {
+    let data = PitchPropertyWithTypeDEO.omit({id:true}).parse(pitchProperty)
+    return makePostRequest(`api/pitch_property/new`, data)
+        .then(data => parseAndHandleDEO(data, PitchPropertyWithTypeDEO))
 }

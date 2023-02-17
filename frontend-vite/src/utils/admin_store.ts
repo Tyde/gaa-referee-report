@@ -1,9 +1,15 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
 import type {PitchVariables} from "@/utils/api/pitch_api";
-import {getPitchVariables, pitchDEOtoPitch, updatePitchPropertyOnServer} from "@/utils/api/pitch_api";
+import {
+    createPitchPropertyOnServer,
+    deletePitchPropertyOnServer,
+    getPitchVariables,
+    pitchDEOtoPitch,
+    updatePitchPropertyOnServer
+} from "@/utils/api/pitch_api";
 import type {GameCode, PitchProperty, Rule} from "@/types";
-import {ErrorMessage, ExtraTimeOption, GameType, NewRuleDEO, PitchPropertyType, Tournament} from "@/types";
+import {ErrorMessage, ExtraTimeOption, GameType, NewRuleDEO, PitchPropertyType} from "@/types";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
@@ -76,13 +82,47 @@ export const useAdminStore = defineStore('admin', () => {
         return []
     }
 
+
     async function updatePitchVariable(option: PitchProperty, type: PitchPropertyType) {
-        const prop = getVariablesByType(type).find(it => it.id === option.id)
-        if (prop) {
-            prop.name = option.name
-            await updatePitchPropertyOnServer(prop)
+        if (option.id === -1) {
+            createPitchPropertyOnServer(option)
+                .then(it => {
+                    if (it.id) {
+                        option.id = it.id
+                    } else {
+                        throw new Error("Server did respond with wrong id when creating a new pitch property")
+                    }
+                })
+                .catch(reason => newError(reason))
+
+        } else {
+            const prop = getVariablesByType(type).find(it => it.id === option.id)
+            if (prop) {
+                prop.name = option.name
+                updatePitchPropertyOnServer(prop)
+                    .then(it => {
+                        prop.name = it.name
+                        prop.id = it.id ?? -1
+                    })
+                    .catch(reason => newError(reason))
+            }
         }
     }
+
+    async function deletePitchVariable(option: PitchProperty, type: PitchPropertyType) {
+        const prop = getVariablesByType(type).find(it => it.id === option.id)
+        if (prop) {
+            deletePitchPropertyOnServer(prop)
+                .then(() => {
+                    const index = getVariablesByType(type).indexOf(prop)
+                    if (index >= 0) {
+                        getVariablesByType(type).splice(index, 1)
+                    }
+                })
+                .catch(reason => newError(reason))
+        }
+    }
+
 
     function newError(message: string) {
         currentErrors.value.push(new ErrorMessage(message))
@@ -145,10 +185,10 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function addRule(rule: NewRuleDEO) {
-        try{
+        try {
             await addRuleOnServer(rule)
             rules.value = await getRules()
-        } catch (e:any) {
+        } catch (e: any) {
             newError(e)
         }
 
@@ -165,6 +205,7 @@ export const useAdminStore = defineStore('admin', () => {
         fetchPitchVariables,
         getVariablesByType,
         updatePitchVariable,
+        deletePitchVariable,
         currentErrors,
         newError,
         findCodeById,

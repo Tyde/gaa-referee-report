@@ -1,6 +1,7 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
@@ -11,9 +12,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
@@ -21,7 +19,6 @@ data class PitchPropertyDEO(
     val id: Long,
     val name: String,
 )
-
 
 
 @Serializable
@@ -65,7 +62,7 @@ enum class PitchPropertyType(val id: Long) {
         }
     }
 
-    fun toDBClass() :LongEntityClass<LongEntity> {
+    fun toDBClass(): LongEntityClass<LongEntity> {
         return when (this) {
             SURFACE -> PitchSurfaceOption
             LENGTH -> PitchLengthOption
@@ -79,6 +76,7 @@ enum class PitchPropertyType(val id: Long) {
 }
 
 //PitchPropertyType serializer by id
+@OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = PitchPropertyType::class)
 object PitchPropertyTypeSerializer : KSerializer<PitchPropertyType> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PitchPropertyType", PrimitiveKind.LONG)
@@ -100,7 +98,7 @@ data class PitchVariableUpdateDEO(
     @Serializable(with = PitchPropertyTypeSerializer::class) val type: PitchPropertyType
 ) {
     fun updateInDatabase(): Result<PitchVariableUpdateDEO> {
-        var pvUpdate = this
+        val pvUpdate = this
         return transaction {
             val obj = pvUpdate.type.toDBClass()
                 .findById(pvUpdate.id)
@@ -112,7 +110,43 @@ data class PitchVariableUpdateDEO(
             }
         }
     }
+
+    fun delete(): Result<Long> {
+        val pvUpdate = this
+        return transaction {
+            val obj = pvUpdate.type.toDBClass()
+                .findById(pvUpdate.id)
+            if (obj is PitchPropertyEntity) {
+                obj.delete()
+                Result.success(pvUpdate.id)
+            } else {
+                Result.failure(Exception("Could not find Pitch Property to delete"))
+            }
+        }
+    }
 }
+
+@Serializable
+data class NewPitchVariableDEO(
+    val name: String,
+    @Serializable(with = PitchPropertyTypeSerializer::class) val type: PitchPropertyType
+) {
+    fun createInDatabase(): Result<PitchVariableUpdateDEO> {
+        val pvUpdate = this
+        return transaction {
+            val obj = when (pvUpdate.type) {
+                PitchPropertyType.SURFACE -> PitchSurfaceOption.new { name = pvUpdate.name }
+                PitchPropertyType.LENGTH -> PitchLengthOption.new { name = pvUpdate.name }
+                PitchPropertyType.WIDTH -> PitchWidthOption.new { name = pvUpdate.name }
+                PitchPropertyType.MARKINGS -> PitchMarkingsOption.new { name = pvUpdate.name }
+                PitchPropertyType.GOALPOSTS -> PitchGoalpostsOption.new { name = pvUpdate.name }
+                PitchPropertyType.GOALDIMENSIONS -> PitchGoalDimensionOption.new { name = pvUpdate.name }
+            }
+            Result.success(PitchVariableUpdateDEO(obj.id.value, obj.name, pvUpdate.type))
+        }
+    }
+}
+
 
 @Serializable
 data class PitchReportDEO(
@@ -268,7 +302,7 @@ data class PitchReportDEO(
 
 @Serializable
 data class DeletePitchReportDEO(
-    val id:Long
+    val id: Long
 ) {
     fun deleteFromDatabase(): Result<Boolean> {
         val deleteId = this.id

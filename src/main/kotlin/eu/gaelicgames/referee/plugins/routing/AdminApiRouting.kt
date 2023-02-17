@@ -4,20 +4,17 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.get
 import io.ktor.util.pipeline.*
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.*
 
 fun Route.adminApiRouting() {
-
 
 
     get<Api.Reports.All> {
@@ -26,7 +23,11 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.PitchProperty.New> {
-        TODO()
+        receiveAndHandleDEO<NewPitchVariableDEO> { newDEO ->
+            newDEO.createInDatabase().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
     }
 
     post<Api.PitchProperty.Update> {
@@ -59,11 +60,19 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.PitchProperty.Delete> {
-        TODO()
+        @Serializable
+        data class DeleteResponse(val id: Long)
+        receiveAndHandleDEO<PitchVariableUpdateDEO> {
+            it.delete().map { id->
+                DeleteResponse(id)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
     }
 
     post<Api.Rule.New> {
-        try{
+        try {
             val newRule = call.receive<NewRuleDEO>()
             val dbRule = newRule.createInDatabase()
             if (dbRule.isSuccess) {
@@ -78,7 +87,7 @@ fun Route.adminApiRouting() {
                     )
                 )
             }
-        } catch (ex : ContentTransformationException) {
+        } catch (ex: ContentTransformationException) {
             call.respond(
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
@@ -246,7 +255,7 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Team.Update> {
-        receiveAndHandleDEO<TeamDEO> {teamDEO ->
+        receiveAndHandleDEO<TeamDEO> { teamDEO ->
             teamDEO.updateInDatabase().map {
                 TeamDEO.fromTeam(it)
             }.getOrElse {

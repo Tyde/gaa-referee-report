@@ -51,7 +51,7 @@ async function deleteOption(option:PitchProperty) {
     icon: 'pi pi-info-circle',
     acceptClass: 'p-button-danger',
     accept: () => {
-      //Confirmed delete
+      store.deletePitchVariable(option, props.type)
     },
     reject: () => {
       //Rejected delete
@@ -61,7 +61,17 @@ async function deleteOption(option:PitchProperty) {
   })
 }
 
-
+function newOption() {
+  let newOption = <PitchProperty>{
+    id: -1,
+    name: "",
+    type: props.type
+  }
+  console.log("bfeore push", options.value)
+  options.value.push(newOption)
+  console.log("after push", options.value)
+  editingOption.value = newOption
+}
 
 async function storeOption(option:PitchProperty) {
   await store.updatePitchVariable(option, props.type)
@@ -73,7 +83,7 @@ async function storeOption(option:PitchProperty) {
 <template>
   <div>
 
-      <div class="flex flex-col m-2">
+      <div class="flex flex-col m-2 shadow-xl bg-gray-100">
         <div v-for="option in options" class="group option-label">
           <template v-if="option === editingOption">
 
@@ -98,6 +108,9 @@ async function storeOption(option:PitchProperty) {
             </div>
           </template>
         </div>
+        <div class="flex flex-row justify-center m-2 rounded w-96 bg-gray-300">
+          <Button @click="newOption" class="p-button-sm p-button-secondary m-1">Add new</Button>
+        </div>
       </div>
     <ConfirmDialog :group="dialogOption"></ConfirmDialog>
   </div>
@@ -107,11 +120,11 @@ async function storeOption(option:PitchProperty) {
 <style scoped>
 .option-label {
   @apply p-2;
-  @apply m-1;
+  @apply m-2;
   @apply w-96;
   @apply rounded;
-  @apply bg-gray-100;
-  @apply hover:bg-gray-200;
+  @apply bg-gray-200;
+  @apply hover:bg-gray-300;
 }
 
 </style>

@@ -1,36 +1,11 @@
 
-import {NewRuleDEO, PitchPropertyDEO, Referee, Rule} from "@/types";
-import type {PitchProperty, NewReferee} from '@/types'
-import {ApiError} from "@/types";
+import {NewRuleDEO, Referee, Rule} from "@/types";
+import type { NewReferee} from '@/types'
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
-import UserList from "@/components/admin/user/UserList.vue";
 
 
 
-export async function updatePitchVariableOnServer(option: PitchProperty) {
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(option)
-    };
-    const response = await fetch("/api/pitchProperty/update", requestOptions)
-    const data = await response.json()
-    const parseResult = PitchPropertyDEO.safeParse(data)
-    if (parseResult.success) {
-        console.log("Pitch property updated")
-        return parseResult.data
-    } else {
-        const apiErrorParse = ApiError.safeParse(data)
-        if (apiErrorParse.success) {
-            return Promise.reject(apiErrorParse.data.message)
-        } else {
-            return Promise.reject("Unknown error")
-        }
-    }
-}
 
 export async function updateRuleOnServer(rule: Rule) {
     return makePostRequest("/api/rule/update",rule)

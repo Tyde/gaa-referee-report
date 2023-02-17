@@ -220,11 +220,12 @@ export enum PitchPropertyType {
 
 const PitchPropertyTypeEnum = z.nativeEnum(PitchPropertyType)
 
-export const PitchPropertyDEO = z.object({
+export const PitchPropertyWithTypeDEO = z.object({
     id: z.number().nullable().optional(),
     name: z.string(),
     type: PitchPropertyTypeEnum
 })
+export type PitchPropertyWithTypeDEO = z.infer<typeof PitchPropertyWithTypeDEO>;
 
 export interface PitchProperty {
     id: number,
