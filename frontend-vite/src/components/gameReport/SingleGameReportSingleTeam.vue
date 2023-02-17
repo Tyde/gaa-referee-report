@@ -47,8 +47,8 @@ function closeInjuryDialog() {
   displayInjuries.value = false;
 }
 
-function stripRuleCardsFromDescription(description: string) {
-  return description.replace(/(CAUTION:|ORDER OFF:|BLACK CARD:)/gm, '')
+function stripRuleCardsFromDescription(description?: string) {
+  return description?.replace(/(CAUTION:|ORDER OFF:|BLACK CARD:)/gm, '')
 }
 
 
