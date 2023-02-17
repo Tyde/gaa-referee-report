@@ -17,10 +17,14 @@ const props = defineProps<{
   show_add_new_team: Boolean
   exclude_team_list?: Team[]
   force_hide_exclude_team_list: Boolean
+  allow_unselect?: Boolean
 }>()
+
+
 
 const emit = defineEmits<{
   (e: 'team_selected', team: Team): void
+  (e: 'team_unselected', team: Team): void
 }>()
 
 const searchTerm = ref("")
@@ -87,6 +91,7 @@ const filtered_list = computed(() => {
     return a.name.localeCompare(b.name)
   })
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {
+
     let excludelist = props.exclude_team_list
     //console.log("Checking excludes")
     preparedlist = preparedlist.filter(value => {
@@ -116,6 +121,10 @@ const filtered_list = computed(() => {
   }
 })
 
+
+function unselect_team(team: Team) {
+  emit("team_unselected", team)
+}
 
 
 </script>
@@ -169,6 +178,7 @@ const filtered_list = computed(() => {
                 <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
                   Already in selection
                 </p>
+                <!-- unselect icon -->
                 <p v-if="srt.team.amalgamationTeams" class="amalgamation_subtitle">
                   {{ srt.team.amalgamationTeams.map(value => value.name).join(" - ") }}
                 </p>
@@ -177,8 +187,12 @@ const filtered_list = computed(() => {
               <template v-else>
                 {{ srt.team.name }}
                 <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
-                  Already in selection
+                  Already in selection <i
+                    v-if="thisTeamInExludedList(srt.team)"
+                    class="pi pi-times hover:cursor-pointer"
+                    @click.stop="emit('team_unselected', srt.team)" />
                 </p>
+
               </template>
             </li>
           </ul>

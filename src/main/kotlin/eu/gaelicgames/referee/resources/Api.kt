@@ -28,6 +28,15 @@ class Api() {
     class NewAmalgamation(val parent: Api)
 
     @Serializable
+    @Resource("team")
+    class Team(val parent: Api) {
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: Team)
+    }
+
+    @Serializable
     @Resource("tournament")
     class Tournaments(val parent: Api) {
 

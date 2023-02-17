@@ -23,3 +23,8 @@ export async function createAmalgamationOnServer(name:string, teams: Array<Team>
     )
         .then(data => parseAndHandleDEO(data, Team))
 }
+
+export async function editTeamOnServer(team: Team): Promise<Team> {
+    return makePostRequest("/api/team/update", team)
+        .then(data => parseAndHandleDEO(data, Team))
+}

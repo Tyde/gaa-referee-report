@@ -2,6 +2,7 @@ package  eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
+import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -84,29 +85,26 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.NewTeam> {
-        val newTeam = kotlin.runCatching { call.receive<NewTeamDEO>()}
-        if (newTeam.isSuccess) {
+        receiveAndHandleDEO<NewTeamDEO> { newTeam ->
             val newTeamDB = transaction {
                 Team.new {
-                    name = newTeam.getOrThrow().name
+                    name = newTeam.name
                     isAmalgamation = false
                 }
             }
-            call.respond(TeamDEO.fromTeam(newTeamDB))
-        } else {
-            call.respond(HttpStatusCode.BadRequest)
+            TeamDEO.fromTeam(newTeamDB)
         }
+
     }
 
     post<Api.NewAmalgamation> {
-        val newAmalgamation = kotlin.runCatching { call.receive<NewAmalgamationDEO>()}
-        if (newAmalgamation.isSuccess) {
+        receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
             val newAmalgamationDB = transaction {
                 val amalgamation_base = Team.new {
-                    name = newAmalgamation.getOrThrow().name
+                    name = newAmalgamation.name
                     isAmalgamation = true
                 }
-                for (team in newAmalgamation.getOrThrow().teams) {
+                for (team in newAmalgamation.teams) {
                     Team.find { Teams.id eq team.id }.firstOrNull()?.let {
                         Amalgamation.new {
                             amalgamation = amalgamation_base
@@ -116,9 +114,7 @@ fun Route.refereeApiRouting() {
                 }
                 amalgamation_base
             }
-            call.respond(TeamDEO.fromTeam(newAmalgamationDB))
-        } else {
-            call.respond(HttpStatusCode.BadRequest)
+            TeamDEO.fromTeam(newAmalgamationDB)
         }
     }
 
@@ -133,18 +129,14 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Tournaments.New> {
-        val tournamentDraft = kotlin.runCatching { call.receive<NewTournamentDEO>()}
-        if (tournamentDraft.isSuccess) {
-            val databaseTournament = transaction {
+        receiveAndHandleDEO<NewTournamentDEO> { tournamentDraft ->
+            transaction {
                 Tournament.new {
-                    name = tournamentDraft.getOrThrow().name
-                    location = tournamentDraft.getOrThrow().location
-                    date = tournamentDraft.getOrThrow().date
+                    name = tournamentDraft.name
+                    location = tournamentDraft.location
+                    date = tournamentDraft.date
                 }.let { TournamentDEO.fromTournament(it) }
             }
-            call.respond(databaseTournament)
-        } else {
-            call.respond(HttpStatusCode.BadRequest)
         }
 
     }
@@ -163,29 +155,19 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.New> {
-        val reportDraft = kotlin.runCatching { call.receive<NewTournamentReportDEO>()}
-        if (reportDraft.isSuccess) {
+        receiveAndHandleDEO<NewTournamentReportDEO> { reportDraft ->
             val user = call.principal<UserPrincipal>()?.user
             val report = user?.let {
-                reportDraft.getOrThrow().storeInDatabase(it)
+                reportDraft.storeInDatabase(it)
             }
             if (report != null) {
-                call.respond(NewTournamentReportDEO.fromTournamentReport(report))
+                NewTournamentReportDEO.fromTournamentReport(report)
             } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        "Report could not be stored in database"
-                    )
-                )
-            }
-        } else {
-            call.respond(
                 ApiError(
                     ApiErrorOptions.INSERTION_FAILED,
-                    reportDraft.exceptionOrNull()?.message?:"Could not parse report input"
+                    "Report could not be stored in database"
                 )
-            )
+            }
         }
     }
 
@@ -578,3 +560,4 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doU
         )
     }
 }
+

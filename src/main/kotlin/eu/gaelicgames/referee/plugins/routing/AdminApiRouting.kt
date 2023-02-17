@@ -2,6 +2,7 @@ package eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
+import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -241,6 +242,16 @@ fun Route.adminApiRouting() {
                     "Not able to parse new referee"
                 )
             )
+        }
+    }
+
+    post<Api.Team.Update> {
+        receiveAndHandleDEO<TeamDEO> {teamDEO ->
+            teamDEO.updateInDatabase().map {
+                TeamDEO.fromTeam(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
         }
     }
     /*

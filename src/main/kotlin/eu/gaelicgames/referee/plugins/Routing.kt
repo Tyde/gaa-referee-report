@@ -22,6 +22,7 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -194,6 +195,20 @@ fun Application.configureRouting() {
 
 }
 
+
+suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.receiveAndHandleDEO(onReceived: (T) -> Any) {
+    val deo = runCatching { call.receive<T>() }
+    if (deo.isSuccess) {
+        call.respond(onReceived(deo.getOrThrow()))
+    } else {
+        call.respond(
+            ApiError(
+                ApiErrorOptions.NOT_FOUND,
+                deo.exceptionOrNull()?.message ?: "Could not parse ${T::class.simpleName}"
+            )
+        )
+    }
+}
 
 class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
