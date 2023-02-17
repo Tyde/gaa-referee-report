@@ -2,7 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {onMounted, ref} from "vue";
-import {GameType} from "@/types";
+import type {GameType} from "@/types";
 import SingleGameTypeEditor from "@/components/admin/gameReport/SingleGameTypeEditor.vue";
 
 const store = useAdminStore()
