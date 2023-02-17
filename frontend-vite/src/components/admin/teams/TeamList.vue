@@ -64,7 +64,7 @@ const filters = ref({
                 :show_amalgamate="false"
                 :allow_unselect="true"
                 @team_selected="(team) => slotProps.data.amalgamationTeams.push(team)"
-                @team_unselected="(team) => slotProps.data.amalgamationTeams = slotProps.data.amalgamationTeams.filter(it => it.id !== team.id)"
+                @team_unselected="(team) => slotProps.data.amalgamationTeams = slotProps.data.amalgamationTeams.filter((it:Team) => it.id !== team.id)"
             />
           </template>
 
