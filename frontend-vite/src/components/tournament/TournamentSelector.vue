@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import CreateTournament from "@/components/tournament/CreateTournament.vue";
 import type {DatabaseTournament} from "@/types";
-import {loadTournamentsOnDate} from "@/utils/api/tournament_api";
+import {loadAllTournaments, loadTournamentsOnDate} from "@/utils/api/tournament_api";
 import {DateTime} from "luxon";
 import {useReportStore} from "@/utils/edit_report_store";
 
@@ -24,8 +24,8 @@ const found_tournaments = ref(<DatabaseTournament[]>[])
 const show_create_new_tournament = ref(false)
 const loading = ref(false)
 
-
-
+const completeTournamentList = ref(<DatabaseTournament[]>[])
+const showingRecentTournaments = ref(false)
 function select_tournament(tournament: DatabaseTournament) {
   //selected_tournament.value = tournament
   store.report.tournament = tournament
@@ -33,9 +33,12 @@ function select_tournament(tournament: DatabaseTournament) {
 
 watch(date, async () => {
   if (date.value) {
+    showingRecentTournaments.value = false
     loading.value = true
     found_tournaments.value = await loadTournamentsOnDate(DateTime.fromJSDate(date.value))
     loading.value = false
+  } else {
+
   }
 })
 
@@ -45,6 +48,25 @@ function on_tournament_created(tournament: DatabaseTournament) {
   show_create_new_tournament.value = false
   loadTournamentsOnDate(DateTime.fromJSDate(date.value))
 }
+function showNewTournamentDialogWithoutDate() {
+  date.value = DateTime.now().minus({days: DateTime.now().weekday + 1}).toJSDate()
+  show_create_new_tournament.value = true
+
+}
+
+onMounted(() => {
+  loadAllTournaments()
+      .then((tournaments) => {
+        completeTournamentList.value = tournaments
+        found_tournaments.value = completeTournamentList.value.filter((tournament) => {
+          return Math.abs(tournament.date.diffNow().as('days')) < 14
+        })
+        showingRecentTournaments.value = true
+      })
+      .catch((error) => {
+        store.newError(error)
+      })
+})
 
 </script>
 <template>
@@ -58,15 +80,21 @@ function on_tournament_created(tournament: DatabaseTournament) {
         </template>
 
         <div class="field col-12 md:col-4">
-          <label for="dateformat">Date of Tournament:</label>
+          <label for="dateformat">Date of Tournament: </label>
           <Calendar id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
         </div>
-        <div v-if="date" class="p-listbox">
+        <div class="p-listbox">
           <ul class="p-listbox-list">
             <li
                 v-if="loading"
                 class="p-listbox-item">
               Loading...
+            </li>
+            <li
+              v-if="showingRecentTournaments && found_tournaments.length >0"
+              class=" italic bg-amber-200 hover:bg-amber-200 p-listbox-item"
+              >
+              Showing recent tournaments
             </li>
             <li
                 v-for="tournament in found_tournaments"
@@ -84,6 +112,12 @@ function on_tournament_created(tournament: DatabaseTournament) {
                 @click="show_create_new_tournament=true"
 
             >
+              Tournament not in list? Create new ...
+            </li>
+            <li
+                v-else
+                class="p-listbox-item tournamentselect-add-option"
+            @click="showNewTournamentDialogWithoutDate">
               Tournament not in list? Create new ...
             </li>
           </ul>

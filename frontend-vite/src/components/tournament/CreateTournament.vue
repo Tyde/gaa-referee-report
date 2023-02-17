@@ -66,8 +66,8 @@ const dateString = computed(() => {
                   @update:model-value="(newDate:Date) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
                   dateFormat="yy-mm-dd"/>
       </template>
-      <template v-else> Date: {{ dateString }}
-        <Button @click="allowChangeDate = true">Change</Button>
+      <template v-else> <h3>Date: {{ dateString }}</h3>
+        <Button class="p-button-secondary" @click="allowChangeDate = true">Change Date</Button>
       </template>
       <br><br>
       <span class="p-float-label">
@@ -78,12 +78,21 @@ const dateString = computed(() => {
         <InputText v-model="editedTournament.location" id="location"/>
         <label for="location">Enter tournament location</label>
       </span><br>
-      <Button @click="save_tournament">Submit</Button>
-      <Button @click="emit('canceled')" class="p-button-danger">Cancel</Button>
+      <div class="flex flex-row">
+        <div class="m-2">
+          <Button @click="save_tournament">Submit</Button>
+        </div>
+        <div class="m-2">
+          <Button @click="emit('canceled')" class="p-button-danger">Cancel</Button>
+        </div>
+      </div>
     </template>
   </Card>
 </template>
 
 <style scoped>
-
+h3 {
+  @apply m-2;
+  @apply text-xl font-bold;
+}
 </style>
