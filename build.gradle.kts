@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "eu.gaelicgames"
-version = "0.0.1"
+version = "1.0-ALPHA"
 application {
     mainClass.set("eu.gaelicgames.referee.ApplicationKt")
 
