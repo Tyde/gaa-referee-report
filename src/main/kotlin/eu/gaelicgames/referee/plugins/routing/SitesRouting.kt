@@ -48,11 +48,12 @@ fun Route.sites() {
         resources(".")
         //TODO: add .well-known
     }
+    static("assets") {
+        staticBasePackage = "static/assets"
+        resources(".")
+    }
     authenticate("auth-session") {
-        static("assets") {
-            staticBasePackage = "static/assets"
-            resources(".")
-        }
+
         get("/") {
             val resource =
                 this.javaClass.classLoader.getResourceAsStream("static/user_dashboard.html")
