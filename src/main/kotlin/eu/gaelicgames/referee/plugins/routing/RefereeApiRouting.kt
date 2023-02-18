@@ -425,6 +425,23 @@ fun Route.refereeApiRouting() {
         }
     }
 
+    post<Api.User.UpdateMe> {
+        receiveAndHandleDEO<UpdateRefereeDAO> { dao ->
+            dao.updateInDatabase().map {
+                RefereeDEO.fromReferee(it)
+            }.getOrElse { ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Could not update user") }
+
+        }
+    }
+
+    post<Api.User.UpdatePassword> {
+        receiveAndHandleDEO<UpdateRefereePasswordDAO> { dao ->
+            dao.updateInDatabase()
+                .getOrElse { ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Could not update user") }
+
+        }
+    }
+
 
 }
 

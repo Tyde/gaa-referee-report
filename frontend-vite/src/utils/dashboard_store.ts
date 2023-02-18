@@ -1,10 +1,10 @@
 import {defineStore} from "pinia";
-import {ref} from "vue";
-import {DatabaseTournament, ErrorMessage, GameCode} from "@/types";
+import { ref} from "vue";
+import {DatabaseTournament, ErrorMessage, GameCode, Referee} from "@/types";
 import type {CompactTournamentReportDEO} from "@/utils/api/report_api";
 import {deleteReportOnServer, getGameCodes, loadMyReports} from "@/utils/api/report_api";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
-import {getSessionInfo} from "@/utils/api/referee_api";
+import {getSessionInfo, updateMeUser} from "@/utils/api/referee_api";
 
 
 export const useDashboardStore = defineStore('dashboard', () => {
@@ -13,6 +13,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     const tournaments = ref<Array<DatabaseTournament>>([])
 
     const isAdmin = ref(false)
+    const me = ref<Referee>({} as Referee)
+
+
 
     const isLoading = ref<boolean>(false)
     function newError(message: string) {
@@ -38,6 +41,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     async function checkAdmin() {
         getSessionInfo()
+            .then(sessionInfo => me.value = sessionInfo)
             .then(sessionInfo => isAdmin.value = sessionInfo.role == "ADMIN")
             .catch(reason => newError(reason))
     }
@@ -60,6 +64,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
 
 
+    async function updateMe(shadowCopy: Referee) {
+        try{
+            let newUser = await updateMeUser(shadowCopy)
+            me.value = shadowCopy
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
 
     return {
         currentErrors,
@@ -67,11 +80,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
         myReports,
         isLoading,
         isAdmin,
+        me,
         newError,
         fetchMyReports,
         findCodeById,
         checkAdmin,
         findTournamentById,
-        deleteReport
+        deleteReport,
+        updateMe
     }
 })

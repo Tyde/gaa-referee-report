@@ -246,6 +246,14 @@ class Api() {
         class Update(val parent: User)
 
         @Serializable
+        @Resource("update_me")
+        class UpdateMe(val parent: User)
+
+        @Serializable
+        @Resource("update_password")
+        class UpdatePassword(val parent: User)
+
+        @Serializable
         @Resource("new")
         class New(val parent: User)
 

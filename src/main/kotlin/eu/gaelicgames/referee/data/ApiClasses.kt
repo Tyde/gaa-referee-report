@@ -248,3 +248,64 @@ data class SessionInfoDEO(
         }
     }
 }
+
+
+@Serializable
+data class UpdateRefereeDAO(
+    val id: Long,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val mail: String? = null
+) {
+    fun updateInDatabase(): Result<User> {
+        val thisReferee = this
+        return transaction {
+            val referee = User.findById(thisReferee.id)
+            if(referee != null) {
+                if(thisReferee.firstName != null) {
+                    referee.firstName = thisReferee.firstName
+                }
+                if(thisReferee.lastName != null) {
+                    referee.lastName = thisReferee.lastName
+                }
+                if(thisReferee.mail != null) {
+                    referee.mail = thisReferee.mail
+                }
+                Result.success(referee)
+            } else {
+                Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
+            }
+        }
+    }
+}
+
+@Serializable
+data class UpdateRefereePasswordResponse(
+    val id: Long,
+    val success: Boolean,
+    val message: String? = null
+)
+
+@Serializable
+data class UpdateRefereePasswordDAO(
+    val id: Long,
+    val oldPassword: String,
+    val newPassword: String
+) {
+    fun updateInDatabase(): Result<UpdateRefereePasswordResponse> {
+        val thisReferee = this
+        return transaction {
+            val referee = User.findById(thisReferee.id)
+            if(referee != null) {
+                if(referee.verifyPassword(thisReferee.oldPassword)) {
+                    referee.password = User.hashPassword(thisReferee.newPassword)
+                    Result.success(UpdateRefereePasswordResponse(thisReferee.id, true))
+                } else {
+                    Result.success(UpdateRefereePasswordResponse(thisReferee.id, false, "Old password not correct"))
+                }
+            } else {
+                Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
+            }
+        }
+    }
+}

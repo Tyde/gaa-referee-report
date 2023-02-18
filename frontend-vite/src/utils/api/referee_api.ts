@@ -1,4 +1,4 @@
-import {Referee, SessionInfo} from "@/types";
+import {Referee, SessionInfo, UpdateRefereeDAO, UpdateRefereePasswordDAO, UpdateRefereePasswordResponse} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 
@@ -16,4 +16,15 @@ export async function getSessionInfo() {
     return fetch("/api/session")
         .then(data => data.json())
         .then(data => parseAndHandleDEO(data, SessionInfo))
+}
+
+export async function updateMeUser(changedValues: UpdateRefereeDAO) {
+    let val = UpdateRefereeDAO.parse(changedValues)
+    return makePostRequest("/api/user/update_me", val)
+        .then(data => parseAndHandleDEO(data, Referee))
+}
+
+export async function updatePasswordOnServer(update:UpdateRefereePasswordDAO) {
+    return makePostRequest("/api/user/update_password", update)
+        .then(data => parseAndHandleDEO(data, UpdateRefereePasswordResponse))
 }
