@@ -1,4 +1,4 @@
-import type {GameReport} from "@/types";
+import type {GameReport} from "@/types/game_report_types";
 
 export const fromDateToDateString = (date:Date|undefined) => {
     if (date) {

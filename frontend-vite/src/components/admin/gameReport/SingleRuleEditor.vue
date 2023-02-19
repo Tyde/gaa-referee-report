@@ -2,13 +2,13 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref, watch} from "vue";
-import type {Rule} from "@/types";
 import {
   checkIfRuleDeletable,
   deleteRuleOnServer,
   toggleRuleStateOnServer,
   updateRuleOnServer
 } from "@/utils/api/admin_api";
+import type {Rule} from "@/types/rules_types";
 
 
 const store = useAdminStore()

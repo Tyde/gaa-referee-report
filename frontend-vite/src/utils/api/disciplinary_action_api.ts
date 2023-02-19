@@ -1,7 +1,9 @@
-import type {DisciplinaryAction, Team} from "@/types";
-import {ApiError, Rule,DisciplinaryActionDEO} from "@/types";
 import z from "zod";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+import type {Team} from "@/types/team_types";
+import type {DisciplinaryAction} from "@/types/game_report_types";
+import {DisciplinaryActionDEO} from "@/types/game_report_types";
+import {Rule} from "@/types/rules_types";
 
 export async function getRules():Promise<Rule[]> {
     return fetch("/api/rules")

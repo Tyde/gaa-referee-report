@@ -1,15 +1,9 @@
 import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import type {
-    GameReport,
-    Pitch,
-    Report,
     ExtraTimeOption,
     GameType,
-    GameCode,
-    Rule,
-    DisciplinaryAction,
-    Injury
+    GameCode
 } from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {getRules, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
@@ -29,6 +23,10 @@ import {
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
 import {ErrorMessage} from "@/types";
 import {uploadInjury} from "@/utils/api/injuries_api";
+import type {Report} from "@/types/report_types";
+import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
+import type {Rule} from "@/types/rules_types";
+import type {Pitch} from "@/types/pitch_types";
 
 export const useReportStore = defineStore('report', () => {
     const report = ref<Report>({} as Report)

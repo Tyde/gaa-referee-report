@@ -1,5 +1,11 @@
-import {Referee, SessionInfo, UpdateRefereeDAO, UpdateRefereePasswordDAO, UpdateRefereePasswordResponse} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+import {
+    Referee,
+    SessionInfo,
+    UpdateRefereeDAO,
+    UpdateRefereePasswordDAO,
+    UpdateRefereePasswordResponse
+} from "@/types/referee_types";
 
 
 export async function validateActivationToken(token: string): Promise<Referee> {

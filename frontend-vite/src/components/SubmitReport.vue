@@ -1,16 +1,15 @@
 <script lang="ts" setup>
 
-import type {DisciplinaryAction, GameReport, Injury, Pitch} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
 import {DateTime} from "luxon";
-import {uploadPitch} from "@/utils/api/pitch_api";
-import {createGameReport, updateGameReport} from "@/utils/api/game_report_api";
-import {disciplinaryActionIsBlank, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
-import {injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
+import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
+import {injuryIsBlank} from "@/utils/api/injuries_api";
 import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
 import {useReportStore} from "@/utils/edit_report_store";
 import {delay} from "@/utils/api/api_utils";
+import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
+import type {Pitch} from "@/types/pitch_types";
 /*
 const props = defineProps<{
   tournament: DatabaseTournament,

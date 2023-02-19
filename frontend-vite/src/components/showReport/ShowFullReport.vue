@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type {GameReport, Pitch, Report} from "@/types";
 import {computed} from "vue";
 import {DateTime} from "luxon";
 import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisciplinaryActionsAndInjuries.vue";
 import ShowPitchReport from "@/components/showReport/ShowPitchReport.vue";
+import type {Report} from "@/types/report_types";
+import type {GameReport} from "@/types/game_report_types";
+import type {Pitch} from "@/types/pitch_types";
 
 const props = defineProps<{
   currentReport: Report,

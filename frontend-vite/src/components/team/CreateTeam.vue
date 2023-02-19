@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
-import type {Team} from "@/types";
 import {createTeam} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {Team} from "@/types/team_types";
 const store = useReportStore()
 const props = defineProps<{
   rough_team_name?:string

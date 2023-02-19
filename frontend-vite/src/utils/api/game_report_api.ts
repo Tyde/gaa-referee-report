@@ -1,10 +1,13 @@
-import type {GameReport, Report, Rule, SingleTeamGameReport} from "@/types";
-import {ApiError, DisciplinaryActionDEO, GameType, InjuryDEO, ExtraTimeOption} from "@/types";
+import {GameType, ExtraTimeOption} from "@/types";
 import {z} from "zod"
 import {DateTime} from "luxon";
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
 import {fromDisciplinaryActionDEOToDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+import type {Report} from "@/types/report_types";
+import type {GameReport, SingleTeamGameReport} from "@/types/game_report_types";
+import {DisciplinaryActionDEO, InjuryDEO} from "@/types/game_report_types";
+import type {Rule} from "@/types/rules_types";
 
 export const GameReportDEO = z.object({
     id: z.number(),

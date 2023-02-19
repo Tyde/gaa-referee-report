@@ -8,8 +8,8 @@ import {
     pitchDEOtoPitch,
     updatePitchPropertyOnServer
 } from "@/utils/api/pitch_api";
-import type {GameCode, PitchProperty, Rule} from "@/types";
-import {ErrorMessage, ExtraTimeOption, GameType, NewRuleDEO, PitchPropertyType} from "@/types";
+import type {GameCode} from "@/types";
+import {ErrorMessage, ExtraTimeOption, GameType} from "@/types";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
@@ -19,6 +19,9 @@ import {
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {getGameReportVariables, uploadNewGameType} from "@/utils/api/game_report_api";
 import {addRuleOnServer, updateGameTypeOnServer} from "@/utils/api/admin_api";
+import type {NewRuleDEO, Rule} from "@/types/rules_types";
+import type {PitchProperty} from "@/types/pitch_types";
+import {PitchPropertyType} from "@/types/pitch_types";
 
 export const useAdminStore = defineStore('admin', () => {
     const pitchVariables = ref<PitchVariables>()

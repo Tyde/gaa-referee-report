@@ -2,8 +2,10 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {onMounted, ref} from "vue";
-import type {GameReport, Pitch, Report} from "@/types";
 import ShowFullReport from "@/components/showReport/ShowFullReport.vue";
+import type {Report} from "@/types/report_types";
+import type {GameReport} from "@/types/game_report_types";
+import type {Pitch} from "@/types/pitch_types";
 
 const store = useAdminStore();
 const props = defineProps<{

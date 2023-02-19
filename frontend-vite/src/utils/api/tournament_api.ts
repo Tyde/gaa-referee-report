@@ -1,6 +1,6 @@
 import type {DateTime} from "luxon";
-import {ApiError, DatabaseTournament, Tournament} from "@/types";
 import {parseAndHandleDEO} from "@/utils/api/api_utils";
+import {DatabaseTournament} from "@/types/tournament_types";
 
 
 export async function loadTournamentsOnDate(date:DateTime):Promise<Array<DatabaseTournament>> {

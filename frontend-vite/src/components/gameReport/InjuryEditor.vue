@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type {Injury} from "@/types";
 import {computed, onMounted, onUpdated, watch} from "vue";
-import {deleteInjuryOnServer, injuryIsBlank, uploadInjury} from "@/utils/api/injuries_api";
+import {deleteInjuryOnServer, injuryIsBlank} from "@/utils/api/injuries_api";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {Injury} from "@/types/game_report_types";
 
 const store = useReportStore()
 const props = defineProps<{
@@ -60,7 +60,7 @@ function closeDialog() {
 const injuryDialogTitle = computed(() => {
   return "Injuries for " + selectedTeam.value?.name
 })
-watch(()=>selectedInjuryArray, (newInjuries) => {
+watch(()=>selectedInjuryArray, () => {
   //Always add empty injury if there is no empty row
   generateEmptyInjury()
 },{deep:true,immediate:true})

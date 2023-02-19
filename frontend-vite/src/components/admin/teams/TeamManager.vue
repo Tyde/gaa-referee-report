@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import {allTeams} from "@/utils/api/teams_api";
 import {computed, onMounted, ref} from "vue";
-import type {Team} from "@/types";
 import TeamList from "@/components/admin/teams/TeamList.vue";
+import type {Team} from "@/types/team_types";
 
 const teams = ref<Team[]>([])
 const teamsNoAmalgamations = computed(() => teams.value.filter(it => !it.isAmalgamation))

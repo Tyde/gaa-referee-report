@@ -1,9 +1,8 @@
 <script setup lang="ts">
 
 import {computed, onMounted, ref} from "vue";
-import type { Tournament} from "@/types";
-import {DatabaseTournament} from "@/types";
 import {DateTime} from "luxon";
+import {DatabaseTournament, Tournament} from "@/types/tournament_types";
 
 const props = defineProps<{
   preselectedDate: Date,

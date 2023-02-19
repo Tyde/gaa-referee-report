@@ -1,8 +1,8 @@
-import type {Injury, Team} from "@/types";
-import {ApiError, InjuryDEO} from "@/types";
 import {z} from "zod";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
-
+import type {Team} from "@/types/team_types";
+import {InjuryDEO} from "@/types/game_report_types";
+import type {Injury} from "@/types/game_report_types";
 function injuryToInjuryDEO(injury: Injury, gameReportId: number) {
     return {
         id: injury.id,

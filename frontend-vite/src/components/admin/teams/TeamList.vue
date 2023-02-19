@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 
 import {useAdminStore} from "@/utils/admin_store";
-import {allTeams, editTeamOnServer} from "@/utils/api/teams_api";
-import {computed, onMounted, ref} from "vue";
-import type {Team} from "@/types";
+import {editTeamOnServer} from "@/utils/api/teams_api";
+import {ref} from "vue";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import {FilterMatchMode} from "primevue/api";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
+import type {Team} from "@/types/team_types";
 
 const store = useAdminStore()
 

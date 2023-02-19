@@ -3,9 +3,9 @@
 import {useAdminStore} from "@/utils/admin_store";
 import {getAllUsers, updateUserOnServer} from "@/utils/api/admin_api";
 import {onMounted, ref} from "vue";
-import type {Referee} from "@/types";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import NewUserDialog from "@/components/admin/user/NewUserDialog.vue";
+import type {Referee} from "@/types/referee_types";
 
 const store = useAdminStore();
 const users = ref<Referee[]>([]);

@@ -1,7 +1,9 @@
 import {z} from "zod";
-import type {Pitch, PitchProperty, Report} from "@/types";
-import {DeletionResponse, PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO} from "@/types";
+import {DeletionResponse} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+import type {Report} from "@/types/report_types";
+import type {Pitch, PitchProperty} from "@/types/pitch_types";
+import {PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO} from "@/types/pitch_types";
 
 
 const PitchProperyDEO = z.object({

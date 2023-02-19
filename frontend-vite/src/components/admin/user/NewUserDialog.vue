@@ -2,8 +2,8 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref} from "vue";
-import type {NewReferee, Referee} from "@/types";
 import {addRefereeOnServer} from "@/utils/api/admin_api";
+import type {Referee, NewReferee} from "@/types/referee_types";
 
 const store = useAdminStore()
 const props = defineProps<{

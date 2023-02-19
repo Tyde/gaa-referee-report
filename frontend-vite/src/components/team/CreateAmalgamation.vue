@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import {ref} from "vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
-import type {Team} from "@/types";
 import {createAmalgamationOnServer} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {Team} from "@/types/team_types";
 
 const store = useReportStore();
 const props = defineProps<{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import type {SingleTeamGameReport} from "@/types";
+import type {SingleTeamGameReport} from "@/types/game_report_types";
 
 const props = defineProps<{
   teamReport:SingleTeamGameReport

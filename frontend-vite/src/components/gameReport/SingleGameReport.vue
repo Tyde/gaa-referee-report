@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 
 import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue";
-import type {GameReport} from "@/types";
 import SingleGameReportSingleTeam from "@/components/gameReport/SingleGameReportSingleTeam.vue";
 import {DateTime} from "luxon";
 import GameTypeEditor from "@/components/gameReport/GameTypeEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {GameReport} from "@/types/game_report_types";
 
 
 

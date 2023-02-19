@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 
 import {useAdminStore} from "@/utils/admin_store";
-import type {GameCode, NewRuleDEO, Rule} from "@/types";
+import type {GameCode} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
+import type {NewRuleDEO} from "@/types/rules_types";
 
 const store = useAdminStore()
 

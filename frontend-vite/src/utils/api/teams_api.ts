@@ -1,5 +1,5 @@
-import {ApiError, Team} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+import {Team} from "@/types/team_types";
 
 
 export async function createTeam(name: string): Promise<Team> {

@@ -2,7 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import SingleOptionEditor from "@/components/admin/SingleOptionEditor.vue";
-import {PitchPropertyType} from "@/types";
+import {PitchPropertyType} from "@/types/pitch_types";
 
 const store = useAdminStore()
 </script>

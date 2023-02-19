@@ -1,9 +1,16 @@
 import {number, z} from "zod";
-import type {ExtraTimeOption, GameReport, Rule, Tournament} from "@/types";
-import {ApiError, DatabaseTournament, GameCode, GameType, PitchDEO, Referee, Report, ReportDEO, Team} from "@/types";
+import type {ExtraTimeOption} from "@/types";
+import {GameCode, GameType} from "@/types";
 import {DateTime} from "luxon";
 import {CompleteGameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
+import {Team} from "@/types/team_types";
+import {DatabaseTournament} from "@/types/tournament_types";
+import {Referee} from "@/types/referee_types";
+import type {Report, ReportDEO} from "@/types/report_types";
+import type {GameReport} from "@/types/game_report_types";
+import type {Rule} from "@/types/rules_types";
+import {PitchDEO} from "@/types/pitch_types";
 
 
 export async function getGameCodes(): Promise<Array<GameCode>> {

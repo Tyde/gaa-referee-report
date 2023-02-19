@@ -1,10 +1,6 @@
 <script lang="ts" setup>
 import TeamSelector from './components/team/TeamSelector.vue'
 import {computed, onMounted, ref, watch} from "vue";
-import type {
-  DatabaseTournament,
-  Team
-} from "@/types";
 import TournamentSelector from "./components/tournament/TournamentSelector.vue";
 import GameReports from "@/components/gameReport/GameReports.vue";
 import PitchReports from "@/components/pitch/PitchReports.vue";
@@ -13,6 +9,8 @@ import {
 } from "@/utils/api/report_api";
 import SubmitReport from "@/components/SubmitReport.vue";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {Team} from "@/types/team_types";
+import type {DatabaseTournament} from "@/types/tournament_types";
 
 const store = useReportStore()
 

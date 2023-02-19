@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import {onMounted, ref, watch} from "vue";
 import CreateTournament from "@/components/tournament/CreateTournament.vue";
-import type {DatabaseTournament} from "@/types";
 import {loadAllTournaments, loadTournamentsOnDate} from "@/utils/api/tournament_api";
 import {DateTime} from "luxon";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {DatabaseTournament} from "@/types/tournament_types";
 
 /*
 const emit = defineEmits<{

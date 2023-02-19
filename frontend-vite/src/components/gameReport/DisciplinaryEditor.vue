@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import type { DisciplinaryAction} from "@/types";
 import {computed, onMounted, watch} from "vue";
 import {
   deleteDisciplinaryActionOnServer,
   disciplinaryActionIsBlank,
 } from "@/utils/api/disciplinary_action_api";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {DisciplinaryAction} from "@/types/game_report_types";
 
 const store = useReportStore()
 const props = defineProps<{

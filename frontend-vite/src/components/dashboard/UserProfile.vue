@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import {useDashboardStore} from "@/utils/dashboard_store";
-import type {Referee} from "@/types";
 import {computed, ref, watch} from "vue";
-import {UpdateRefereePasswordDAO} from "@/types";
 import {updatePasswordOnServer} from "@/utils/api/referee_api";
+import {Referee, UpdateRefereePasswordDAO} from "@/types/referee_types";
 
 const store = useDashboardStore()
 const meShadowCopy = ref<Referee>({...store.me})

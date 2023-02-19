@@ -4,8 +4,8 @@
 
 import {computed, onMounted, ref} from "vue";
 import {activateUser, validateActivationToken} from "@/utils/api/referee_api";
-import type {Referee} from "@/types";
 import {useAdminStore} from "@/utils/admin_store";
+import type {Referee} from "@/types/referee_types";
 
 const currentReferee = ref<Referee | null>(null)
 const newPassword = ref("")

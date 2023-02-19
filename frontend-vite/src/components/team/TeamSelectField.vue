@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import {computed, onMounted, ref} from "vue";
-import type {Team} from "@/types";
 import CreateTeam from "@/components/team/CreateTeam.vue";
 import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
 import {allTeams} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {Team} from "@/types/team_types";
 
 interface SearchResultTeam {
   team: Team,

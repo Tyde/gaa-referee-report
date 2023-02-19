@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 
-import type {Pitch} from "@/types";
 import {computed, onBeforeUnmount, watch} from "vue";
 import {useReportStore} from "@/utils/edit_report_store";
+import type {Pitch} from "@/types/pitch_types";
 const props = defineProps<{
   toBeDeleted: boolean
 }>()

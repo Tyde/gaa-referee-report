@@ -1,8 +1,10 @@
 
-import {GameType, NewRuleDEO, Referee, Rule} from "@/types";
-import type { NewReferee} from '@/types'
+import {GameType} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
+import {Referee} from "@/types/referee_types";
+import type {NewReferee} from "@/types/referee_types";
+import {NewRuleDEO, Rule} from "@/types/rules_types";
 
 
 

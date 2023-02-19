@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 
-import type {PitchProperty, PitchPropertyType} from "@/types";
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref} from "vue";
 import type {ComponentPublicInstance} from "vue";
 import InputText from "primevue/inputtext";
 import {useConfirm} from "primevue/useconfirm";
+import type {PitchProperty} from "@/types/pitch_types";
+import type {PitchPropertyType} from "@/types/pitch_types";
 
 const props = defineProps<{
   type: PitchPropertyType

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import type {Pitch} from "@/types";
+import type {Pitch} from "@/types/pitch_types";
 
 let props = defineProps<{
   pitchReport: Pitch
