@@ -337,6 +337,18 @@ data class PitchReportDEO(
 data class DeletePitchReportDEO(
     val id: Long
 ) {
+    fun deleteChecked(user: User):Result<Boolean> {
+        val deleteId = this.id
+        return transaction {
+            Pitch.findById(deleteId)?.let {
+                if(it.report.referee.id == user.id) {
+                    deleteFromDatabase()
+                } else {
+                    Result.failure(IllegalArgumentException("No rights - User is not the author of this pitch report"))
+                }
+            } ?: Result.failure(IllegalArgumentException("Pitch report does not exist"))
+        }
+    }
     fun deleteFromDatabase(): Result<Boolean> {
         val deleteId = this.id
         return transaction {

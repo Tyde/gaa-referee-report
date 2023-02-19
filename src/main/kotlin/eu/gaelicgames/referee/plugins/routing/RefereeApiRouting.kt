@@ -199,9 +199,9 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.GameReports.Delete> {
+        val user = call.principal<UserPrincipal>()?.user!!
         receiveAndHandleDEO<DeleteGameReportDEO> {  deo ->
-            //TODO: Delete checked for rights
-            deo.deleteFromDatabase().map{deo}.getOrElse {
+            deo.deleteChecked(user).map{deo}.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
@@ -214,8 +214,9 @@ fun Route.refereeApiRouting() {
         handleDisciplinaryActionInput(doUpdate = true)
     }
     post<Api.GameReports.DisciplinaryAction.Delete> {
+        val user = call.principal<UserPrincipal>()?.user!!
         receiveAndHandleDEO<DeleteDisciplinaryActionDEO> {  deo ->
-            deo.deleteFromDatabase().map { deo }.getOrElse {
+            deo.deleteChecked(user).map { deo }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
@@ -229,8 +230,9 @@ fun Route.refereeApiRouting() {
         handleInjuryInput(doUpdate = true)
     }
     post<Api.GameReports.Injury.Delete> {
+        val user = call.principal<UserPrincipal>()?.user!!
         receiveAndHandleDEO<DeleteInjuryDEO> { deo ->
-            deo.deleteFromDatabase().map { deo }.getOrElse {
+            deo.deleteChecked(user).map { deo }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
@@ -243,8 +245,9 @@ fun Route.refereeApiRouting() {
         handlePitchReportInput(doUpdate = true)
     }
     post<Api.Pitch.Delete> {
+        val user = call.principal<UserPrincipal>()?.user!!
         receiveAndHandleDEO<DeletePitchReportDEO> { deo ->
-            deo.deleteFromDatabase().map { deo }.getOrElse {
+            deo.deleteChecked(user).map { deo }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }

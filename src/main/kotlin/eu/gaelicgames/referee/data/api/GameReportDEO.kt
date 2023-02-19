@@ -202,6 +202,18 @@ data class GameReportDEO(
 data class DeleteGameReportDEO(
     val id: Long? = null
 ) {
+    fun deleteChecked(user: User):Result<Boolean> {
+        val deleteId = this.id ?: -1
+        return transaction {
+            GameReport.findById(deleteId)?.let {
+                if(it.report.referee.id == user.id) {
+                    deleteFromDatabase()
+                } else {
+                    Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
+                }
+            } ?: Result.failure(IllegalArgumentException("Game report does not exist"))
+        }
+    }
     fun deleteFromDatabase(): Result<Boolean> {
         val deleteId = this.id
         if (deleteId != null) {
@@ -396,6 +408,18 @@ data class DisciplinaryActionDEO(
 data class DeleteDisciplinaryActionDEO(
     val id: Long
 ) {
+    fun deleteChecked(user: User):Result<Boolean> {
+        val deleteId = this.id
+        return transaction {
+            DisciplinaryAction.findById(deleteId)?.let {
+                if(it.game.report.referee.id == user.id) {
+                    deleteFromDatabase()
+                } else {
+                    Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
+                }
+            } ?: Result.failure(IllegalArgumentException("Disciplinary Action does not exist"))
+        }
+    }
     fun deleteFromDatabase(): Result<Boolean> {
         val deleteId = this.id
         return transaction {
@@ -523,6 +547,18 @@ data class InjuryDEO(
 data class DeleteInjuryDEO(
     val id:Long
 ) {
+    fun deleteChecked(user: User):Result<Boolean> {
+        val deleteId = this.id
+        return transaction {
+            Injury.findById(deleteId)?.let {
+                if(it.game.report.referee.id == user.id) {
+                    deleteFromDatabase()
+                } else {
+                    Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
+                }
+            } ?: Result.failure(IllegalArgumentException("Injury does not exist"))
+        }
+    }
     fun deleteFromDatabase(): Result<Boolean> {
         val deleteId = this.id
         return transaction {
