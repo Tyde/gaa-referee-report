@@ -29,16 +29,20 @@ function closeDialog() {
 
 const newUser = ref<NewReferee>({})
 
+const isLoading = ref(false)
 
 function addNewReferee() {
   if (newUser.value.firstName && newUser.value.lastName && newUser.value.mail) {
+    isLoading.value = true
     addRefereeOnServer(newUser.value)
         .then((referee: Referee) => {
           closeDialog()
+          isLoading.value = false
         })
         .catch((error) => {
           store.newError(error)
           closeDialog()
+          isLoading.value = false
         })
   }
 }
@@ -52,28 +56,30 @@ function addNewReferee() {
       header="Add new Referee"
       :modal="true"
   >
-    <h5>First Name</h5>
-    <InputText v-model="newUser.firstName" />
-    <h5>Last Name</h5>
-    <InputText v-model="newUser.lastName" />
-    <h5>Email</h5>
-    <InputText v-model="newUser.mail" />
+    <BlockUI :blocked="isLoading">
+      <h5>First Name</h5>
+      <InputText v-model="newUser.firstName"/>
+      <h5>Last Name</h5>
+      <InputText v-model="newUser.lastName"/>
+      <h5>Email</h5>
+      <InputText v-model="newUser.mail"/>
 
-    <div class="flex justify-end">
-      <Button
-          label="Cancel"
-          class="p-button-secondary"
-          @click="closeDialog"
-      />
-      <Button
-          label="Add"
-          class="p-button-primary"
-          @click="addNewReferee"
-      />
-    </div>
+      <div class="flex justify-end">
+        <Button
+            label="Cancel"
+            class="p-button-secondary"
+            @click="closeDialog"
+
+        />
+        <Button
+            label="Add"
+            class="p-button-primary"
+            @click="addNewReferee"
+        />
+      </div>
+    </BlockUI>
   </Dialog>
 </template>
-
 
 
 <style scoped>

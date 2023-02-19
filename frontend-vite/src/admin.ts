@@ -35,7 +35,8 @@ import Panel from "primevue/panel";
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Row from 'primevue/row';                     //optional for row
+import Row from 'primevue/row';
+import BlockUI from "primevue/blockui";                     //optional for row
 
 
 const router = createRouter({
@@ -74,6 +75,7 @@ app.component('Panel',Panel)
 app.component('DataTable',DataTable)
 app.component('Column',Column)
 app.component('Row',Row)
+app.component('BlockUI',BlockUI)
 
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')
