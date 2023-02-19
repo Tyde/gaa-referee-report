@@ -9,7 +9,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'on_new_team', team: Team): void
+  (e: 'on_new_team', team: Team): void,
+  (e: 'on_cancel'): void
 }>()
 
 onMounted(()=> {
@@ -36,7 +37,14 @@ async function send_new_team_to_server() {
 <template>
   <label for="new_team_name">Name of new team:</label><br>
   <InputText id="new_team_name" :disabled="is_loading" v-model="new_team_name" /><br>
-  <Button @click="send_new_team_to_server">Send</Button>
+  <div class="flex flex-row">
+    <div class="m-2">
+      <Button @click="send_new_team_to_server">Send</Button>
+    </div>
+    <div class="m-2">
+      <Button @click="emit('on_cancel')">Cancel</Button>
+    </div>
+  </div>
 </template>
 
 

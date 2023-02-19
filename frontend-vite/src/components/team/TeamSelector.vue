@@ -39,7 +39,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto m-2 w-5/12">
+  <div class="mx-auto m-2 w-full md:w-10/12 xl:w-5/12">
     <h2>Select the clubs, that will be part of this report</h2>
     <div>
 

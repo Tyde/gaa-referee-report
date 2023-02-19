@@ -72,7 +72,7 @@ onMounted(() => {
 
 </script>
 <template>
-  <div class="mx-auto w-5/12">
+  <div class="mx-auto w-full md:w-10/12 xl:w-5/12">
 
     <div v-if="!show_create_new_tournament">
       <h2>
@@ -136,6 +136,7 @@ onMounted(() => {
         v-else
         :preselected-date="date ?? new Date()"
         @tournament_created="on_tournament_created"
+        @canceled="show_create_new_tournament=false"
     />
   </div>
 </template>

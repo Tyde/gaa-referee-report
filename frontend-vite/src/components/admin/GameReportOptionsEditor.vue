@@ -11,7 +11,7 @@ const store = useAdminStore()
 </script>
 
 <template>
-  <div class="flex flex-row justify-center mt-2">
+  <div class="flex flex-row flex-wrap justify-center mt-2">
     <div class="sbs-container">
       <h2>Game Types</h2>
       <GameTypeEditor />
@@ -27,9 +27,9 @@ const store = useAdminStore()
 
 <style scoped>
 .sbs-container {
-  @apply w-5/12;
+  @apply md:w-5/12 w-full sm:w-10/12;
   @apply m-4;
-  @apply rounded-2xl shadow-lg;
+  @apply sm:rounded-2xl sm:shadow-lg;
 }
 h2 {
   @apply text-center text-2xl;

@@ -215,7 +215,7 @@ onMounted(() => {
 
 <template>
 
-  <div class="mx-auto w-[47rem]">
+  <div class="mx-auto w-full xl:w-[47rem]">
     <SelectButton
         v-model="current_stage"
         :options="calcStageOptions"
@@ -251,7 +251,7 @@ onMounted(() => {
       v-if="current_stage === ReportEditStage.Submit"
       />
   <template v-if="readyStartReport">
-    <div class="mx-auto w-[47rem]">
+    <div class="mx-auto w-full xl:w-[47rem]">
 
       <h4>Code:</h4>
       <div class="flex flex-row justify-center">

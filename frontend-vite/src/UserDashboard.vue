@@ -32,8 +32,8 @@ const route = useRoute()
     <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
   </transition-group>
   <div class="flex flex-row justify-center">
-    <div class="w-10/12">
-      <div class="flex flex-row justify-center">
+    <div class="w-full xl:w-10/12">
+      <div class="flex flex-row justify-center md:flex-wrap">
         <div class="m-2">
           <Button label="Create new report" icon="pi pi-plus" class="m-2" @click="newReport"></Button>
         </div>

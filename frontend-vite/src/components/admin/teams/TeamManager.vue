@@ -29,7 +29,7 @@ onMounted(() => {
 
 <template>
 
-  <div class="flex flex-row">
+  <div class="flex flex-col lg:flex-row">
     <div class="basis-1/2">
       <h3>Teams</h3>
       <TeamList :teams="teamsNoAmalgamations" :amalgamation-display="false" @team-updated="onTeamUpdated"/>

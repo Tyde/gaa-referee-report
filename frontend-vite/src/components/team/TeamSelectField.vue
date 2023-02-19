@@ -205,6 +205,7 @@ function unselect_team(team: Team) {
       <CreateTeam
           :rough_team_name="searchTerm"
           @on_new_team="new_team_created"
+          @on_cancel="showNewTeam = false; showSelect = true"
       />
     </template>
     <template v-if="showNewAmalgamation">
