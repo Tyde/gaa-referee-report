@@ -251,19 +251,26 @@ onMounted(() => {
       v-if="current_stage === ReportEditStage.Submit"
       />
   <template v-if="readyStartReport">
-    Code:
-    <SelectButton
-        v-model="store.report.gameCode"
-        :options="store.codes"
-        option-label="name"
-        class="m-2"
-    />
-    <Button
-        v-if="store.report.gameCode"
-        class="p-button-rounded p-button-lg m-2"
-        @click="start_report"
-    >Start Report
-    </Button>
+    <div class="mx-auto w-[47rem]">
+
+      <h4>Code:</h4>
+      <div class="flex flex-row justify-center">
+        <SelectButton
+            v-model="store.report.gameCode"
+            :options="store.codes"
+            option-label="name"
+            class="m-2 flex flex-row justify-center"
+        />
+      </div>
+      <div class="flex flex-row justify-center">
+        <Button
+            v-if="store.report.gameCode"
+            class="p-button-rounded p-button-lg m-2"
+            @click="start_report"
+        >Start Report
+        </Button>
+      </div>
+    </div>
   </template>
 
 
@@ -284,8 +291,16 @@ onMounted(() => {
   @apply justify-center;
   @apply content-center;
 }
+
+
 </style>
 
 <style scoped>
-
+h4 {
+  @apply text-center;
+  @apply text-lg;
+  @apply font-bold;
+  @apply mt-1;
+  @apply mb-2;
+}
 </style>
