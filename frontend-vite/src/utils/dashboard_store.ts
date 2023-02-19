@@ -1,12 +1,12 @@
 import {defineStore} from "pinia";
 import { ref} from "vue";
 import {ErrorMessage, GameCode} from "@/types";
-import type {CompactTournamentReportDEO} from "@/utils/api/report_api";
 import {deleteReportOnServer, getGameCodes, loadMyReports} from "@/utils/api/report_api";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
 import {getSessionInfo, updateMeUser} from "@/utils/api/referee_api";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {Referee} from "@/types/referee_types";
+import type {CompactTournamentReportDEO} from "@/types/report_types";
 
 
 export const useDashboardStore = defineStore('dashboard', () => {

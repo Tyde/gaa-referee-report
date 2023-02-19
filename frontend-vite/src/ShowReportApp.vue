@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 
 import {onMounted, ref} from "vue";
-import type {CompleteReportDEO} from "@/utils/api/report_api";
 import {completeReportDEOToReport, extractGameReportsFromCompleteReportDEO, loadReportDEO} from "@/utils/api/report_api";
 import type {ExtraTimeOption, GameCode, GameType} from "@/types";
 import type {PitchVariables} from "@/utils/api/pitch_api"
@@ -11,6 +10,7 @@ import type {Report} from "@/types/report_types";
 import type {GameReport} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import type {Pitch} from "@/types/pitch_types";
+import type {CompleteReportDEO} from "@/types/report_types";
 
 const props = defineProps<{
   id?: number

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 
 import {useDashboardStore} from "@/utils/dashboard_store";
-import type {CompactTournamentReportDEO} from "@/utils/api/report_api";
 import {computed, ref} from "vue";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {DateTime} from "luxon";
 import {useConfirm} from "primevue/useconfirm";
 import {useRouter} from "vue-router";
+import type {CompactTournamentReportDEO} from "@/types/report_types";
 
 
 const store = useDashboardStore()

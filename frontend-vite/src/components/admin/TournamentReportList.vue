@@ -3,10 +3,11 @@
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, onMounted, ref} from "vue";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
-import {CompactTournamentReportDEO, loadAllReports} from "@/utils/api/report_api";
+import {loadAllReports} from "@/utils/api/report_api";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {useRouter} from "vue-router";
 import type {DatabaseTournament} from "@/types/tournament_types";
+import type {CompactTournamentReportDEO} from "@/types/report_types";
 
 const store = useAdminStore()
 const router = useRouter()
