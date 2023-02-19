@@ -1,6 +1,9 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.Session
+import eu.gaelicgames.referee.data.TournamentReport
+import eu.gaelicgames.referee.data.UserPrincipal
+import eu.gaelicgames.referee.data.UserSession
 import eu.gaelicgames.referee.resources.Report
 import eu.gaelicgames.referee.resources.UserRes
 import io.ktor.http.*
@@ -12,10 +15,7 @@ import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.File
 import java.time.LocalDateTime
 import java.util.*
 
@@ -62,7 +62,7 @@ fun Route.sites() {
                     resource.copyTo(this)
                 }
             } else {
-                call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
+                call.respondText("Resource not found", status = HttpStatusCode.InternalServerError)
 
             }
         }
@@ -72,47 +72,6 @@ fun Route.sites() {
             call.respondRedirect("/login")
         }
 
-        get("/legacy-home") {
-            val user = call.principal<UserPrincipal>()?.user
-            if (user != null) {
-                val content = transaction {
-                    val nonSubmittedReports = TournamentReports.innerJoin(Tournaments).select {
-                        TournamentReports.referee eq user.id and (
-                                TournamentReports.isSubmitted eq false
-                                )
-                    }.map { row ->
-                        val tournament = Tournament.wrapRow(row)
-                        TournamentReport.wrapRow(row) to tournament
-                    }
-
-
-                    val submittedReports =
-                        TournamentReports.innerJoin(Tournaments).select {
-                            TournamentReports.referee eq user.id and (
-                                    TournamentReports.isSubmitted eq true
-                                    )
-                        }.map { row ->
-                            val tournament = Tournament.wrapRow(row)
-                            TournamentReport.wrapRow(row) to tournament
-                        }
-
-                    FreeMarkerContent(
-                        "main_page.ftl",
-                        mapOf(
-                            "nonSubmittedReports" to nonSubmittedReports,
-                            "submittedReports" to submittedReports
-                        )
-                    )
-                }
-
-                call.respond(
-                    content
-
-                )
-            } else {
-                call.respond(HttpStatusCode.InternalServerError)
-            }
-        }
 
         get<Report.New> {
             val resource =
@@ -122,16 +81,13 @@ fun Route.sites() {
                     resource.copyTo(this)
                 }
             } else {
-                call.respondText("Resource not found",status = HttpStatusCode.InternalServerError)
+                call.respondText("Resource not found", status = HttpStatusCode.InternalServerError)
 
             }
 
         }
 
         get<Report.Edit> { edit ->
-            val reportExists = transaction {
-                TournamentReport.findById(edit.id) != null
-            }
             val resource =
                 this.javaClass.classLoader.getResourceAsStream("static/edit_report.html")
             if (resource != null) {
@@ -150,8 +106,8 @@ fun Route.sites() {
             }
             val resource =
                 this.javaClass.classLoader.getResourceAsStream("static/show_report.html")
-            if(resource != null) {
-                if(reportExists) {
+            if (resource != null) {
+                if (reportExists) {
                     call.respondOutputStream(contentType = ContentType.Text.Html) {
                         resource.copyTo(this)
                     }
@@ -168,7 +124,7 @@ fun Route.sites() {
 
         }
     }
-    authenticate ("admin-session") {
+    authenticate("admin-session") {
         get("/admin/{...}") {
             val resource =
                 this.javaClass.classLoader.getResourceAsStream("static/admin.html")

@@ -10,38 +10,23 @@ import eu.gaelicgames.referee.plugins.routing.sites
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.JWTUtil
 import io.ktor.http.*
-import io.ktor.resources.*
-import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.post
-import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
-import java.time.Duration
 import java.time.Instant
 import java.util.*
 
 
-
 fun Application.configureRouting() {
-    install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
-        maxFrameSize = Long.MAX_VALUE
-        masking = false
-        contentConverter = KotlinxWebsocketSerializationConverter(Json)
-    }
     install(Resources)
     install(StatusPages) {
         exception<AuthenticationException> { call, _ ->
@@ -58,7 +43,6 @@ fun Application.configureRouting() {
     }
     routing {
         sites()
-
 
 
         get<Api.TeamsAvailable> {
