@@ -84,7 +84,7 @@ function stripRuleCardsFromDescription(description?: string) {
               input-class="text-sm"
               showButtons
               type="text"
-              min=0
+              :min="0"
           />
         </div>
       </div>
@@ -101,7 +101,7 @@ function stripRuleCardsFromDescription(description?: string) {
               input-class="text-sm"
               showButtons
               type="text"
-              min=0
+              :min="0"
 
           />
         </div>
