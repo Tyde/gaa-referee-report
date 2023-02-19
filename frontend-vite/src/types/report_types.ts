@@ -4,8 +4,8 @@ import {Team} from "@/types/team_types";
 import {GameCode} from "@/types";
 import {DateTime} from "luxon";
 import {Referee} from "@/types/referee_types";
-import {CompleteGameReportDEO} from "@/utils/api/game_report_api";
 import {PitchDEO} from "@/types/pitch_types";
+import {CompleteGameReportDEO} from "@/types/game_report_types";
 
 export type Report = z.infer<typeof Report>
 export const Report = z.object({

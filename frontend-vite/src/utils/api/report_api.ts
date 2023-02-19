@@ -1,7 +1,7 @@
 import {z} from "zod";
 import type {ExtraTimeOption} from "@/types";
 import {GameCode, GameType} from "@/types";
-import {CompleteGameReportDEO, gameReportDEOToGameReport} from "@/utils/api/game_report_api";
+import {gameReportDEOToGameReport} from "@/utils/api/game_report_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {Report, ReportDEO} from "@/types/report_types";
@@ -11,7 +11,7 @@ import {
     NewReportDEO,
     UpdateReportAdditionalInformationDEO
 } from "@/types/report_types";
-import type {GameReport} from "@/types/game_report_types";
+import type {GameReport, CompleteGameReportDEO} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 
 

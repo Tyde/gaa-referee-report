@@ -1,5 +1,6 @@
 import type {Report} from "@/types/report_types";
-import type {DateTime} from "luxon";
+
+import {DateTime} from "luxon";
 import {z} from "zod";
 import type {Team} from "@/types/team_types";
 import type {ExtraTimeOption, GameType} from "@/types";
@@ -61,3 +62,26 @@ export interface SingleTeamGameReport {
     injuries: Injury[],
     disciplinaryActions: DisciplinaryAction[],
 }
+
+export const GameReportDEO = z.object({
+    id: z.number(),
+    report: z.number(),
+    teamA: z.number(),
+    teamB: z.number(),
+    teamAGoals: z.number(),
+    teamBGoals: z.number(),
+    teamAPoints: z.number(),
+    teamBPoints: z.number(),
+    startTime: z.string().transform((value) => DateTime.fromISO(value)),
+    extraTime: z.number().optional().nullable(),
+    gameType: z.number().optional().nullable(),
+    umpirePresentOnTime: z.boolean(),
+    umpireNotes: z.string()
+});
+export type GameReportDEO = z.infer<typeof GameReportDEO>;
+export const CompleteGameReportDEO = z.object({
+    gameReport: GameReportDEO,
+    injuries: InjuryDEO.array().nullable(),
+    disciplinaryActions: DisciplinaryActionDEO.array().nullable()
+})
+export type CompleteGameReportDEO = z.infer<typeof CompleteGameReportDEO>;

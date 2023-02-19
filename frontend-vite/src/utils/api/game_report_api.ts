@@ -1,38 +1,13 @@
-import {GameType, ExtraTimeOption} from "@/types";
+import {ExtraTimeOption, GameType} from "@/types";
 import {z} from "zod"
-import {DateTime} from "luxon";
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
 import {fromDisciplinaryActionDEOToDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import type {Report} from "@/types/report_types";
-import type {GameReport, SingleTeamGameReport} from "@/types/game_report_types";
-import {DisciplinaryActionDEO, InjuryDEO} from "@/types/game_report_types";
+import type {CompleteGameReportDEO, GameReport, SingleTeamGameReport} from "@/types/game_report_types";
+import {GameReportDEO} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 
-export const GameReportDEO = z.object({
-    id: z.number(),
-    report: z.number(),
-    teamA: z.number(),
-    teamB: z.number(),
-    teamAGoals: z.number(),
-    teamBGoals: z.number(),
-    teamAPoints: z.number(),
-    teamBPoints: z.number(),
-    startTime: z.string().transform((value) => DateTime.fromISO(value)),
-    extraTime: z.number().optional().nullable(),
-    gameType: z.number().optional().nullable(),
-    umpirePresentOnTime: z.boolean(),
-    umpireNotes: z.string()
-});
-export type GameReportDEO = z.infer<typeof GameReportDEO>;
-
-
-export const CompleteGameReportDEO = z.object({
-    gameReport: GameReportDEO,
-    injuries: InjuryDEO.array().nullable(),
-    disciplinaryActions: DisciplinaryActionDEO.array().nullable()
-})
-export type CompleteGameReportDEO = z.infer<typeof CompleteGameReportDEO>;
 
 export function gameReportDEOToGameReport(
     cGameReportDEO: CompleteGameReportDEO,
