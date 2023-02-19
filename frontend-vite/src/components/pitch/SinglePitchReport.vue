@@ -3,6 +3,9 @@
 import type {Pitch} from "@/types";
 import {computed, onBeforeUnmount, watch} from "vue";
 import {useReportStore} from "@/utils/edit_report_store";
+const props = defineProps<{
+  toBeDeleted: boolean
+}>()
 
 const store = useReportStore()
 const pitch = computed(() => {
@@ -23,10 +26,14 @@ async function asyncUpload(pitch:Pitch) {
 
 watch(() => store.selectedPitchReport, (value, oldValue) => {
   console.log("Switched report, oldReport is ")
-  asyncUpload(value!!)
+  if(!props.toBeDeleted) {
+    asyncUpload(value!!)
+  }
 })
 onBeforeUnmount(() => {
-  asyncUpload(store.selectedPitchReport!!)
+  if(!props.toBeDeleted) {
+    asyncUpload(store.selectedPitchReport!!)
+  }
 })
 
 </script>

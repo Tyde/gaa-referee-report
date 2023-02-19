@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "mybuild": "vite build --mode development",
-    "watch-build": "vite build --mode development --minify terser --debug build --watch",
+    "watch-build": "vite build --mode development --debug build --watch",
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
     "build-only": "vite build",

@@ -282,7 +282,7 @@ fun Route.refereeApiRouting() {
         if(gameReport.isSuccess) {
             val res = gameReport.getOrThrow().deleteFromDatabase()
             if(res.isSuccess) {
-                call.respond(gameReport)
+                call.respond(gameReport.getOrThrow())
             } else {
                 call.respond(
                     ApiError(
@@ -360,7 +360,7 @@ fun Route.refereeApiRouting() {
         if(pitchReport.isSuccess) {
             val res = pitchReport.getOrThrow().deleteFromDatabase()
             if(res.isSuccess) {
-                call.respond(pitchReport)
+                call.respond(pitchReport.getOrThrow())
             } else {
                 call.respond(
                     ApiError(

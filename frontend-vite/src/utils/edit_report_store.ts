@@ -281,6 +281,7 @@ export const useReportStore = defineStore('report', () => {
 
     function newError(message: string) {
         currentErrors.value.push(new ErrorMessage(message))
+        console.log(message)
     }
 
     return {

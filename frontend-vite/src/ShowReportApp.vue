@@ -11,6 +11,10 @@ import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisc
 import ShowPitchReport from "@/components/showReport/ShowPitchReport.vue";
 import ShowFullReport from "@/components/showReport/ShowFullReport.vue";
 
+const props = defineProps<{
+  id?: number
+}>()
+
 const isLoading = ref(false)
 const loadingComplete = ref(false)
 const codes = ref<Array<GameCode>>([])
@@ -110,7 +114,7 @@ onMounted(() => {
   get_game_report_variables()
   load_pitch_variables()
   let loc = new URL(location.href)
-  let id = Number(loc.pathname.split("/")[3])
+  let id = props.id || Number(loc.pathname.split("/")[3])
   if (id) {
     downloadReport(id)
   }
@@ -122,6 +126,9 @@ function print() {
   html2Pdf.value?.generatePdf();
 }*/
 
+function backToDashboard() {
+  location.href = "/"
+}
 </script>
 
 <template>
@@ -129,6 +136,10 @@ function print() {
     <span v-if="isLoading">Loading</span>
   </div>
   <template v-if="loadingComplete">
+
+    <div v-if="!props.id" class="fixed top-4 right-4 no-print">
+      <Button @click="backToDashboard">Back to Dashboard</Button>
+    </div>
     <ShowFullReport
         :current-report="currentReport"
         :all-game-reports="allGameReports"
@@ -138,5 +149,13 @@ function print() {
 
 
 </template>
+
+<style>
+@media print {
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}
+</style>
 
 

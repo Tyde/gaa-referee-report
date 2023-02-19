@@ -6,6 +6,7 @@ import {computed, ref} from "vue";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {DateTime} from "luxon";
 import {useConfirm} from "primevue/useconfirm";
+import {useRouter} from "vue-router";
 
 
 const store = useDashboardStore()
@@ -42,9 +43,9 @@ const transformedReports = computed(() => {
 function editReport(report: CompactTournamentReportDEO) {
   location.href = "/report/edit/" + report.id
 }
-
+const router = useRouter()
 function showReport(report: CompactTournamentReportDEO) {
-  location.href = "/report/show/" + report.id
+  router.push("/report/" + report.id)
 }
 
 

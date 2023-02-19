@@ -40,9 +40,12 @@ function cancelDeletePitchDialog() {
   pitchToDelete.value = undefined
 }
 
+const currentReportToBeDeleted = ref(false)
 async function deletePitch() {
   if (pitchToDelete.value) {
+    currentReportToBeDeleted.value = true
     await store.deletePitchReport(pitchToDelete.value)
+    currentReportToBeDeleted.value = false
   }
   cancelDeletePitchDialog()
 }
@@ -86,6 +89,7 @@ const pitchReportIndices = computed(() => {
     <SinglePitchReport
         v-if="store.selectedPitchReport"
         @delete-this-report="startDeletePitchDialog"
+        :to-be-deleted="currentReportToBeDeleted"
     />
 
     <Dialog

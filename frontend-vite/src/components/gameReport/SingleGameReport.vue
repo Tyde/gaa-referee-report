@@ -9,7 +9,9 @@ import {useReportStore} from "@/utils/edit_report_store";
 
 
 
-
+const props = defineProps<{
+  toBeDeleted: boolean
+}>()
 const emit = defineEmits<{
   (e: 'deleteThisReport', value: GameReport): void,
 }>()
@@ -32,7 +34,7 @@ const gameTypesByName = computed(() => {
 
 
 watch(()=>store.selectedGameReport,(value,oldValue)=> {
-  if(store.selectedGameReport && oldValue && oldValue.id != -1) {
+  if(store.selectedGameReport && oldValue && oldValue.id != -1 && !props.toBeDeleted) {
     store.sendGameReport(oldValue)
         .catch((e) => {
           store.newError(e)
@@ -40,7 +42,7 @@ watch(()=>store.selectedGameReport,(value,oldValue)=> {
   }
 })
 onBeforeUnmount(() => {
-  if(store.selectedGameReport) {
+  if(store.selectedGameReport && !props.toBeDeleted) {
     console.log("On before unmount sending Game Report")
     store.sendGameReport(store.selectedGameReport)
         .then(() => {

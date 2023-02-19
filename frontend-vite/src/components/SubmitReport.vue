@@ -275,7 +275,7 @@ onMounted(() => {
 async function submitReport() {
   if (uploadComplete.value) {
     submitReportToServer(store.report).then(() => {
-      location.href = "/report/show/" + store.report.id
+      location.href = "/#/report/" + store.report.id
     }).catch((e) => {
       console.log(e)
     })

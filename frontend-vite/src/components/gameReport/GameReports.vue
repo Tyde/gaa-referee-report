@@ -94,12 +94,15 @@ function cancelDeleteReport() {
   reportToDelete.value = undefined
 }
 
+const currentReportToBeDeleted = ref(false)
 async function deleteReport() {
   if(reportToDelete.value != undefined) {
+    currentReportToBeDeleted.value = true
     await store.deleteGameReport(reportToDelete.value)
         .catch((error) => {
           store.newError(error)
         })
+    currentReportToBeDeleted.value = false
     cancelDeleteReport()
   }
 
@@ -164,6 +167,7 @@ const gameReportsListIndices = computed(() => {
   <SingleGameReport
       v-if="store.selectedGameReport"
       @delete-this-report="(report) => startDeleteReport(report)"
+      :to-be-deleted="currentReportToBeDeleted"
   />
 
   <Dialog
