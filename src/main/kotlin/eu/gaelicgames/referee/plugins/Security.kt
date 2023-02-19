@@ -14,6 +14,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
+import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.concurrent.TimeUnit
 import kotlin.collections.first
@@ -55,7 +56,7 @@ fun Application.configureSecurity() {
                 val hash = BCrypt.withDefaults().hash(12, pw.toCharArray())
 
                 val user = transaction {
-                    val foundUser = User.find { Users.mail eq credentials.name }
+                    val foundUser = User.find { Users.mail.lowerCase() eq credentials.name.lowercase() }
                     var loginUser: User? = null
                     for (user in foundUser) {
                         if (BCrypt.verifyer().verify(pw.toCharArray(), user.password).verified) {
