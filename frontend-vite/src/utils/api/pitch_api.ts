@@ -1,12 +1,13 @@
 import {z} from "zod";
 import type {Pitch, PitchProperty, Report} from "@/types";
-import { PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO} from "@/types";
+import {DeletionResponse, PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 
 
 const PitchProperyDEO = z.object({
     id: z.number(),
     name: z.string().min(1),
+    disabled: z.boolean().optional().default(false)
 })
 type PitchProperyDEO = z.infer<typeof PitchProperyDEO>
 const PitchVariablesDEO = z.object({
@@ -30,12 +31,12 @@ export interface PitchVariables {
 
 function pitchVariablesDEOtoPitchVariables(pV:PitchVariablesDEO):PitchVariables {
     return {
-        surfaces: pV.surfaces.map(p => ({id: p.id, name: p.name, type: PitchPropertyType.surface})),
-        lengths: pV.lengths.map(p => ({id: p.id, name: p.name, type: PitchPropertyType.length})),
-        widths: pV.widths.map(p => ({id: p.id, name: p.name, type: PitchPropertyType.width})),
-        markingsOptions: pV.markingsOptions.map(p => ({id: p.id, name: p.name, type: PitchPropertyType.markingsOptions})),
-        goalPosts: pV.goalPosts.map(p => ({id: p.id, name: p.name, type: PitchPropertyType.goalPosts})),
-        goalDimensions: pV.goalDimensions.map(p => ({id: p.id, name: p.name, type: PitchPropertyType.goalDimensions})),
+        surfaces: pV.surfaces.map(p => ({id: p.id, name: p.name, disabled:p.disabled, type: PitchPropertyType.surface})),
+        lengths: pV.lengths.map(p => ({id: p.id, name: p.name,disabled:p.disabled, type: PitchPropertyType.length})),
+        widths: pV.widths.map(p => ({id: p.id, name: p.name,disabled:p.disabled, type: PitchPropertyType.width})),
+        markingsOptions: pV.markingsOptions.map(p => ({id: p.id, name: p.name, disabled:p.disabled, type: PitchPropertyType.markingsOptions})),
+        goalPosts: pV.goalPosts.map(p => ({id: p.id, name: p.name,disabled:p.disabled, type: PitchPropertyType.goalPosts})),
+        goalDimensions: pV.goalDimensions.map(p => ({id: p.id, name: p.name,disabled:p.disabled, type: PitchPropertyType.goalDimensions})),
     }
 }
 
@@ -141,13 +142,22 @@ export async function deletePitchOnServer(pitch:Pitch):Promise<boolean> {
         .then(data => data.id == pitch.id)
 }
 
-export async function deletePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<boolean> {
+export async function deletePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<DeletionResponse> {
     return makePostRequest(
         `/api/pitch_property/delete`,
         pitchProperty
     )
-        .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
-        .then(data => data.id == pitchProperty.id)
+        .then(data => parseAndHandleDEO(data, DeletionResponse))
+
+}
+
+export async function enablePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<PitchPropertyWithTypeDEO> {
+    return makePostRequest(
+        `/api/pitch_property/enable`,
+        pitchProperty
+    )
+        .then(data => parseAndHandleDEO(data, PitchPropertyWithTypeDEO))
+
 }
 
 export async function updatePitchPropertyOnServer(pitchProperty:PitchProperty):Promise<PitchPropertyWithTypeDEO> {

@@ -246,11 +246,24 @@ export const PitchPropertyWithTypeDEO = z.object({
 })
 export type PitchPropertyWithTypeDEO = z.infer<typeof PitchPropertyWithTypeDEO>;
 
-export interface PitchProperty {
+export  interface PitchProperty {
     id: number,
     name: string,
     type: PitchPropertyType,
+
+    disabled?: boolean,
 }
+
+
+
+export const DeletionStateEnum = z.enum(["DELETED", "DISABLED", "FAILED"])
+
+export const DeletionResponse = z.object({
+    id: z.number(),
+    deletionState: DeletionStateEnum
+})
+
+export type DeletionResponse = z.infer<typeof DeletionResponse>
 
 export interface Pitch {
     id?: number,

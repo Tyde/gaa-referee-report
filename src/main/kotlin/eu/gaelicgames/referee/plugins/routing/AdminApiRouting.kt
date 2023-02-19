@@ -60,12 +60,17 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.PitchProperty.Delete> {
-        @Serializable
-        data class DeleteResponse(val id: Long)
+
         receiveAndHandleDEO<PitchVariableUpdateDEO> {
-            it.delete().map { id->
-                DeleteResponse(id)
-            }.getOrElse {
+            it.delete().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.PitchProperty.Enable>{
+        receiveAndHandleDEO<PitchVariableUpdateDEO> {
+            it.enable().getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }

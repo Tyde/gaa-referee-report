@@ -46,6 +46,23 @@ export const useReportStore = defineStore('report', () => {
     const currentErrors = ref<ErrorMessage[]>([])
 
 
+    const enabledPitchVariables = computed(() => {
+        if (pitchVariables.value != undefined) {
+            let local = {
+                ... pitchVariables.value,
+            } as PitchVariables
+            local.goalDimensions = local.goalDimensions.filter(it => !it.disabled)
+            local.goalPosts = local.goalPosts.filter(it => !it.disabled)
+            local.lengths = local.lengths.filter(it => !it.disabled)
+            local.widths = local.widths.filter(it => !it.disabled)
+            local.markingsOptions = local.markingsOptions.filter(it => !it.disabled)
+            local.surfaces = local.surfaces.filter(it => !it.disabled)
+            return local
+
+        } else {
+            return undefined
+        }
+    })
 
     const selectedGameReportIndex = ref<number>(-1)
     const selectedGameReport = computed(() => {
@@ -293,6 +310,7 @@ export const useReportStore = defineStore('report', () => {
         gameTypes,
         extraTimeOptions,
         pitchVariables,
+        enabledPitchVariables,
         currentErrors,
         selectedGameReportIndex,
         selectedGameReport,

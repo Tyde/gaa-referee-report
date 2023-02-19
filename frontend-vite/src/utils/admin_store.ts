@@ -3,7 +3,7 @@ import {ref} from "vue";
 import type {PitchVariables} from "@/utils/api/pitch_api";
 import {
     createPitchPropertyOnServer,
-    deletePitchPropertyOnServer,
+    deletePitchPropertyOnServer, enablePitchPropertyOnServer,
     getPitchVariables,
     pitchDEOtoPitch,
     updatePitchPropertyOnServer
@@ -113,11 +113,28 @@ export const useAdminStore = defineStore('admin', () => {
         const prop = getVariablesByType(type).find(it => it.id === option.id)
         if (prop) {
             deletePitchPropertyOnServer(prop)
-                .then(() => {
-                    const index = getVariablesByType(type).indexOf(prop)
-                    if (index >= 0) {
-                        getVariablesByType(type).splice(index, 1)
+                .then((response) => {
+                    if (response.deletionState === "DELETED") {
+                        const index = getVariablesByType(type).indexOf(prop)
+                        if (index >= 0) {
+                            getVariablesByType(type).splice(index, 1)
+                        }
+                    } else if (response.deletionState == "DISABLED") {
+                        prop.disabled = true
+                    } else {
+                        newError("Could not delete or disable pitch variable")
                     }
+                })
+                .catch(reason => newError(reason))
+        }
+    }
+
+    async function enablePitchVariable(option: PitchProperty, type: PitchPropertyType) {
+        const prop = getVariablesByType(type).find(it => it.id === option.id)
+        if (prop) {
+            enablePitchPropertyOnServer(prop)
+                .then(() => {
+                    prop.disabled = false
                 })
                 .catch(reason => newError(reason))
         }
@@ -227,6 +244,7 @@ export const useAdminStore = defineStore('admin', () => {
         getVariablesByType,
         updatePitchVariable,
         deletePitchVariable,
+        enablePitchVariable,
         currentErrors,
         newError,
         findCodeById,

@@ -282,86 +282,97 @@ class Injury(id:EntityID<Long>):LongEntity(id) {
 
 interface PitchPropertyEntity {
     var name:String
+    var disabled: Boolean
     fun toPitchPropertyDEO():PitchPropertyDEO
 }
 
 object PitchSurfaceOptions : LongIdTable() {
     val name = varchar("name",80)
-
-
+    val disabled = bool("disabled").default(false)
 }
 
 class PitchSurfaceOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchSurfaceOption>(PitchSurfaceOptions)
     override var name by PitchSurfaceOptions.name
+    override var disabled by PitchSurfaceOptions.disabled
 
     override fun toPitchPropertyDEO():PitchPropertyDEO {
-        return PitchPropertyDEO(id.value, name)
+        return PitchPropertyDEO(id.value, name, disabled)
     }
 }
 
 object PitchLengthOptions : LongIdTable() {
     val name = varchar("name",80)
+    val disabled = bool("disabled").default(false)
 }
 
 class PitchLengthOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchLengthOption>(PitchLengthOptions)
     override var name by PitchLengthOptions.name
+    override var disabled by PitchLengthOptions.disabled
 
     override fun toPitchPropertyDEO():PitchPropertyDEO {
-        return PitchPropertyDEO(id.value, name)
+        return PitchPropertyDEO(id.value, name, disabled)
     }
 }
 
 object PitchWidthOptions : LongIdTable() {
     val name = varchar("name",80)
+    val disabled = bool("disabled").default(false)
 }
 
 class PitchWidthOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchWidthOption>(PitchWidthOptions)
     override var name by PitchWidthOptions.name
+    override var disabled by PitchWidthOptions.disabled
 
     override fun toPitchPropertyDEO():PitchPropertyDEO {
-        return PitchPropertyDEO(id.value, name)
+        return PitchPropertyDEO(id.value, name, disabled)
     }
 }
 
 object PitchMarkingsOptions : LongIdTable() {
     val name = varchar("name",80)
+    val disabled = bool("disabled").default(false)
 }
 
 class PitchMarkingsOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchMarkingsOption>(PitchMarkingsOptions)
     override var name by PitchMarkingsOptions.name
+    override var disabled by PitchMarkingsOptions.disabled
 
     override fun toPitchPropertyDEO():PitchPropertyDEO {
-        return PitchPropertyDEO(id.value, name)
+        return PitchPropertyDEO(id.value, name, disabled)
     }
 }
 
 object PitchGoalpostsOptions : LongIdTable() {
     val name = varchar("name",80)
+    val disabled = bool("disabled").default(false)
 }
 
 class PitchGoalpostsOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchGoalpostsOption>(PitchGoalpostsOptions)
     override var name by PitchGoalpostsOptions.name
+    override var disabled by PitchGoalpostsOptions.disabled
 
     override fun toPitchPropertyDEO():PitchPropertyDEO {
-        return PitchPropertyDEO(id.value, name)
+        return PitchPropertyDEO(id.value, name , disabled)
     }
 }
 
 object PitchGoalDimensionOptions : LongIdTable() {
     val name = varchar("name",80)
+    val disabled = bool("disabled").default(false)
 }
 
 class PitchGoalDimensionOption(id:EntityID<Long>):LongEntity(id), PitchPropertyEntity {
     companion object : LongEntityClass<PitchGoalDimensionOption>(PitchGoalDimensionOptions)
     override var name by PitchGoalDimensionOptions.name
+    override var disabled by PitchGoalDimensionOptions.disabled
 
     override fun toPitchPropertyDEO():PitchPropertyDEO {
-        return PitchPropertyDEO(id.value, name)
+        return PitchPropertyDEO(id.value, name, disabled)
     }
 }
 
@@ -379,6 +390,36 @@ object Pitches : LongIdTable() {
     val goalPosts = optReference("goal_posts",PitchGoalpostsOptions)
     val goalDimensions = optReference("goal_dimensions", PitchGoalDimensionOptions)
     val additionalInformation = text("additional_information")
+
+    fun isPitchPropertyReferenced(pitchProperty:PitchPropertyEntity):Boolean {
+        return when(pitchProperty) {
+            is PitchSurfaceOption -> {
+                Pitches.select { Pitches.surface eq pitchProperty.id }.count() > 0
+            }
+            is PitchLengthOption -> {
+                Pitches.select { Pitches.length eq pitchProperty.id }.count() > 0
+            }
+            is PitchWidthOption -> {
+                Pitches.select { Pitches.width eq pitchProperty.id }.count() > 0
+            }
+            is PitchMarkingsOption -> {
+                Pitches.select { Pitches.smallSquareMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.select { Pitches.penaltySquareMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.select { Pitches.thirteenMeterMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.select { Pitches.twentyMeterMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.select { Pitches.longMeterMarkings eq pitchProperty.id }.count() > 0
+            }
+            is PitchGoalpostsOption -> {
+                Pitches.select { Pitches.goalPosts eq pitchProperty.id }.count() > 0
+            }
+            is PitchGoalDimensionOption -> {
+                Pitches.select { Pitches.goalDimensions eq pitchProperty.id }.count() > 0
+            }
+            else -> {
+                false
+            }
+        }
+    }
 }
 
 class Pitch(id:EntityID<Long>):LongEntity(id) {

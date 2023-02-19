@@ -232,6 +232,10 @@ class Api() {
         @Serializable
         @Resource("delete")
         class Delete(val parent: PitchProperty)
+
+        @Serializable
+        @Resource("enable")
+        class Enable(val parent: PitchProperty)
     }
 
     @Serializable

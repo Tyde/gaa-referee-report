@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.surface===undefined
             }"
-              :options="store.pitchVariables?.surfaces"
+              :options="store.enabledPitchVariables?.surfaces"
               option-label="name"
               placeholder="Surface"
           >
@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.length===undefined
             }"
-              :options="store.pitchVariables?.lengths"
+              :options="store.enabledPitchVariables?.lengths"
               option-label="name"
               placeholder="Length"
           >
@@ -103,7 +103,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.width===undefined
             }"
-              :options="store.pitchVariables?.widths"
+              :options="store.enabledPitchVariables?.widths"
               option-label="name"
               placeholder="Width"
           >
@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.smallSquareMarkings===undefined
             }"
-              :options="store.pitchVariables?.markingsOptions"
+              :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="Small square markings"
@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.penaltySquareMarkings===undefined
             }"
-              :options="store.pitchVariables?.markingsOptions"
+              :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="Penalty square markings"
@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.thirteenMeterMarkings===undefined
             }"
-              :options="store.pitchVariables?.markingsOptions"
+              :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="13m markings"
@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.twentyMeterMarkings===undefined
             }"
-              :options="store.pitchVariables?.markingsOptions"
+              :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="20m markings"
@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.longMeterMarkings===undefined
             }"
-              :options="store.pitchVariables?.markingsOptions"
+              :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
               placeholder="45m/65m markings"
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.goalPosts===undefined
             }"
-              :options="store.pitchVariables?.goalPosts"
+              :options="store.enabledPitchVariables?.goalPosts"
               option-label="name"
               placeholder="Goalposts"
           >
@@ -217,7 +217,7 @@ onBeforeUnmount(() => {
               :class="{
                 'to-be-filled':pitch.goalDimensions===undefined
             }"
-              :options="store.pitchVariables?.goalDimensions"
+              :options="store.enabledPitchVariables?.goalDimensions"
               option-label="name"
               placeholder="Goalposts"
           >

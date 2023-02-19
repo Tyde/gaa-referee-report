@@ -61,6 +61,10 @@ async function deleteOption(option:PitchProperty) {
   })
 }
 
+async function enableOption(option:PitchProperty) {
+  await store.enablePitchVariable(option, props.type)
+}
+
 function newOption() {
   let newOption = <PitchProperty>{
     id: -1,
@@ -101,9 +105,10 @@ async function storeOption(option:PitchProperty) {
             </div>
           </template>
           <template v-else>
-            {{ option.name }}
+            <span v-if="option.disabled" class="tag-disabled">Disabled</span>{{ option.name }}
             <div class="group-hover:visible invisible float-right">
-              <vue-feather type="trash" @click="deleteOption(option)"/>
+              <vue-feather v-if="!option.disabled" type="trash" @click="deleteOption(option)"/>
+              <vue-feather v-else type="check" @click="enableOption(option)"/>
               <vue-feather type="edit" @click="showInputFor(option)"/>
             </div>
           </template>
@@ -125,6 +130,13 @@ async function storeOption(option:PitchProperty) {
   @apply rounded;
   @apply bg-gray-200;
   @apply hover:bg-gray-300;
+}
+
+.tag-disabled {
+  @apply bg-red-600;
+  @apply text-white;
+  @apply rounded-lg;
+  @apply p-1 mr-1;
 }
 
 </style>

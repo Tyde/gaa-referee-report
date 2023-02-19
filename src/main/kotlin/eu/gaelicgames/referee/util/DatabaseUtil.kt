@@ -47,7 +47,15 @@ object DatabaseHandler {
             for (table in tables) {
                 SchemaUtils.create(table)
             }
-
+            //Migration 1 - All PitchProperties now have a "disabled" field
+            SchemaUtils.createMissingTablesAndColumns(
+                PitchSurfaceOptions,
+                PitchLengthOptions,
+                PitchWidthOptions,
+                PitchMarkingsOptions,
+                PitchGoalpostsOptions,
+                PitchGoalDimensionOptions
+            )
         }
     }
 

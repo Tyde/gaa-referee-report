@@ -18,6 +18,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 data class PitchPropertyDEO(
     val id: Long,
     val name: String,
+    val disabled: Boolean
 )
 
 
@@ -95,7 +96,8 @@ object PitchPropertyTypeSerializer : KSerializer<PitchPropertyType> {
 data class PitchVariableUpdateDEO(
     val id: Long,
     val name: String,
-    @Serializable(with = PitchPropertyTypeSerializer::class) val type: PitchPropertyType
+    @Serializable(with = PitchPropertyTypeSerializer::class) val type: PitchPropertyType,
+    val disabled: Boolean? = false
 ) {
     fun updateInDatabase(): Result<PitchVariableUpdateDEO> {
         val pvUpdate = this
@@ -111,20 +113,51 @@ data class PitchVariableUpdateDEO(
         }
     }
 
-    fun delete(): Result<Long> {
+    fun delete(): Result<DeletePitchVariableResultDEO> {
         val pvUpdate = this
         return transaction {
             val obj = pvUpdate.type.toDBClass()
                 .findById(pvUpdate.id)
             if (obj is PitchPropertyEntity) {
-                obj.delete()
-                Result.success(pvUpdate.id)
+                if(Pitches.isPitchPropertyReferenced(obj)) {
+                    obj.disabled = true
+                    Result.success(DeletePitchVariableResultDEO(pvUpdate.id, DeletionState.DISABLED))
+                } else {
+                    obj.delete()
+                    Result.success(DeletePitchVariableResultDEO(pvUpdate.id, DeletionState.DELETED))
+                }
             } else {
                 Result.failure(Exception("Could not find Pitch Property to delete"))
             }
         }
     }
+
+    fun enable(): Result<PitchVariableUpdateDEO> {
+        val pvUpdate = this
+        return transaction {
+            val obj = pvUpdate.type.toDBClass()
+                .findById(pvUpdate.id)
+            if (obj is PitchPropertyEntity) {
+                obj.disabled = false
+                Result.success(pvUpdate)
+            } else {
+                Result.failure(Exception("Could not find Pitch Property to enable"))
+            }
+        }
+    }
 }
+
+@Serializable
+enum class DeletionState {
+    DELETED,
+    DISABLED,
+    FAILED
+}
+@Serializable
+data class DeletePitchVariableResultDEO(
+    val id: Long,
+    val deletionState : DeletionState
+)
 
 @Serializable
 data class NewPitchVariableDEO(
