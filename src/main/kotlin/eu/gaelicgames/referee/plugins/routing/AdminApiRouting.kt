@@ -5,13 +5,11 @@ import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.adminApiRouting() {
@@ -31,36 +29,14 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.PitchProperty.Update> {
-        val updated = call.runCatching {
-            this.receive<PitchVariableUpdateDEO>()
-        }
-        if (updated.isSuccess) {
-            val dBUpdated = updated.getOrThrow().updateInDatabase()
-            if (dBUpdated.isSuccess) {
-                call.respond(
-                    dBUpdated.getOrThrow()
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        dBUpdated.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<PitchVariableUpdateDEO> { deo->
+            deo.updateInDatabase().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            println(updated.exceptionOrNull())
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse pitch property update"
-                )
-            )
         }
     }
 
     post<Api.PitchProperty.Delete> {
-
         receiveAndHandleDEO<PitchVariableUpdateDEO> {
             it.delete().getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
@@ -77,62 +53,23 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Rule.New> {
-        try {
-            val newRule = call.receive<NewRuleDEO>()
-            val dbRule = newRule.createInDatabase()
-            if (dbRule.isSuccess) {
-                call.respond(
-                    RuleDEO.fromRule(dbRule.getOrThrow())
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        dbRule.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<NewRuleDEO> { newRuleDEO ->
+            newRuleDEO.createInDatabase().map { RuleDEO.fromRule(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } catch (ex: ContentTransformationException) {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse rule: " + ex.message
-                )
-            )
         }
     }
 
     post<Api.Rule.Update> {
-        val updated = call.runCatching {
-            this.receive<RuleDEO>()
-        }
-        if (updated.isSuccess) {
-            val dbUpdated = updated.getOrThrow().updateInDatabase()
-            if (dbUpdated.isSuccess) {
-                call.respond(
-                    RuleDEO.fromRule(dbUpdated.getOrThrow())
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        dbUpdated.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<RuleDEO> { ruleDEO ->
+            ruleDEO.updateInDatabase().map { RuleDEO.fromRule(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse rule update: " + updated.exceptionOrNull()?.message
-                )
-            )
         }
     }
 
     post<Api.Rule.Disable> {
         toggleRuleState()
-
     }
 
     post<Api.Rule.Enable> {
@@ -140,58 +77,18 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Rule.Delete> {
-        val rule = call.runCatching {
-            this.receive<ModifyRulesDEOState>()
-        }
-        if (rule.isSuccess) {
-            val deleteResult = rule.getOrThrow().delete()
-            if (deleteResult.isSuccess) {
-                call.respond(
-                    rule.getOrThrow()
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        deleteResult.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<ModifyRulesDEOState> { modifyRulesDEOState ->
+            modifyRulesDEOState.delete().map { modifyRulesDEOState }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse rule delete command: " + rule.exceptionOrNull()?.message
-                )
-            )
         }
     }
 
     post<Api.Rule.CheckDeletable> {
-        val rule = call.runCatching {
-            this.receive<ModifyRulesDEOState>()
-        }
-        if (rule.isSuccess) {
-            val deleteResult = rule.getOrThrow().isDeletable()
-            if (deleteResult.isSuccess) {
-                call.respond(
-                    deleteResult.getOrThrow()
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        deleteResult.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<ModifyRulesDEOState> { modifyRulesDEOState ->
+            modifyRulesDEOState.isDeletable().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse rule delete command: " + rule.exceptionOrNull()?.message
-                )
-            )
         }
     }
 
@@ -203,61 +100,18 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.User.Update> {
-
-
-        val updated = call.runCatching {
-            this.receive<RefereeDEO>()
-        }
-        if (updated.isSuccess) {
-            val dBUpdated = updated.getOrThrow().updateInDatabase()
-            val refereeDEO = transaction { RefereeDEO.fromReferee(dBUpdated.getOrThrow()) }
-            if (dBUpdated.isSuccess) {
-                call.respond(
-                    refereeDEO
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        dBUpdated.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<RefereeDEO> {  refereeDEO ->
+            refereeDEO.updateInDatabase().map { transaction { RefereeDEO.fromReferee(it) }}.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse user update"
-                )
-            )
         }
     }
 
     post<Api.User.New> {
-        val newReferee = call.runCatching {
-            this.receive<NewRefereeDEO>()
-        }
-        if (newReferee.isSuccess) {
-            val referee = newReferee.getOrThrow().createInDatabase()
-            if (referee.isSuccess) {
-                call.respond(
-                    RefereeDEO.fromReferee(referee.getOrThrow())
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        referee.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<NewRefereeDEO> {  newRefereeDEO ->
+            newRefereeDEO.createInDatabase().map { RefereeDEO.fromReferee(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Not able to parse new referee"
-                )
-            )
         }
     }
 
@@ -297,30 +151,9 @@ fun Route.adminApiRouting() {
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.toggleRuleState() {
-    val rule = call.runCatching {
-        this.receive<ModifyRulesDEOState>()
-    }
-    if (rule.isSuccess) {
-        val updateResult = rule.getOrThrow().toggleDisabledState()
-        if (updateResult.isSuccess) {
-            call.respond(
-                RuleDEO.fromRule(updateResult.getOrThrow())
-            )
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    updateResult.exceptionOrNull()?.message ?: "Unknown error"
-                )
-            )
+    receiveAndHandleDEO<ModifyRulesDEOState> { deo ->
+        deo.toggleDisabledState().map { RuleDEO.fromRule(it) }.getOrElse {
+            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
         }
-
-    } else {
-        call.respond(
-            ApiError(
-                ApiErrorOptions.INSERTION_FAILED,
-                "Not able to parse rule dis-/enable: " + rule.exceptionOrNull()?.message
-            )
-        )
     }
 }
