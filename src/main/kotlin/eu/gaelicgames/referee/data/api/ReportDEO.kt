@@ -1,7 +1,6 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
-import eu.gaelicgames.referee.resources.Report
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -91,7 +90,7 @@ data class UpdateReportAdditionalInformationDEO(
 
     fun updateInDatabase(): Result<TournamentReport> {
         val update = this
-        if(update.id != null && update.additionalInformation.isNotBlank()) {
+        if(update.additionalInformation.isNotBlank()) {
             return transaction {
                 val report = TournamentReport.findById(update.id)
                 if (report != null) {

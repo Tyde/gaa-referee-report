@@ -100,7 +100,7 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.User.Update> {
-        receiveAndHandleDEO<RefereeDEO> {  refereeDEO ->
+        receiveAndHandleDEO<RefereeDEO> { refereeDEO ->
             refereeDEO.updateInDatabase().map { transaction { RefereeDEO.fromReferee(it) }}.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -108,7 +108,7 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.User.New> {
-        receiveAndHandleDEO<NewRefereeDEO> {  newRefereeDEO ->
+        receiveAndHandleDEO<NewRefereeDEO> { newRefereeDEO ->
             newRefereeDEO.createInDatabase().map { RefereeDEO.fromReferee(it) }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }

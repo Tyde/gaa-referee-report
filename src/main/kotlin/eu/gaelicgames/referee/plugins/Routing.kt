@@ -3,7 +3,7 @@ package eu.gaelicgames.referee.plugins
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import eu.gaelicgames.referee.data.*
-import eu.gaelicgames.referee.data.api.TeamDEO
+import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.routing.adminApiRouting
 import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
 import eu.gaelicgames.referee.plugins.routing.sites
@@ -30,26 +30,9 @@ import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 
 
-@Serializable
-@Resource("/articles")
-class Articles(val sort: String? = "new") {
-    @Serializable
-    @Resource("new")
-    class New(val parent: Articles = Articles())
-
-    @Serializable
-    @Resource("{id}")
-    class Id(val parent: Articles = Articles(), val id: Long) {
-        @Serializable
-        @Resource("edit")
-        class Edit(val parent: Id)
-    }
-}
 
 fun Application.configureRouting() {
     install(WebSockets) {
