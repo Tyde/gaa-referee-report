@@ -7,7 +7,6 @@ import eu.gaelicgames.referee.resources.Api
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -62,25 +61,12 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.UpdateAdditionalInformation> {
-        val update = kotlin.runCatching { call.receive<UpdateReportAdditionalInformationDEO>()}
-        if (update.isSuccess) {
-            val updateResult = update.getOrThrow().updateInDatabase()
-            if (updateResult.isSuccess) {
-                call.respond(
-                    UpdateReportAdditionalInformationDEO.fromTournamentReportReport(
-                        updateResult.getOrThrow()
-                    )
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        updateResult.exceptionOrNull()?.message ?: "Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<UpdateReportAdditionalInformationDEO> { deo ->
+            deo.updateInDatabase().map {
+                UpdateReportAdditionalInformationDEO.fromTournamentReportReport(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(HttpStatusCode.InternalServerError)
         }
     }
 
@@ -172,100 +158,35 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.Update> {
-        /*
-        val newReport = call.receiveOrNull<TournamentReportDEO>()?.updateInDatabase()
-        if (newReport != null) {
-            call.respond(TournamentReportDEO.fromTournamentReport(newReport))
-        } else {
-            call.respond(HttpStatusCode.BadRequest)
-        }*/
-        val reportDraft = kotlin.runCatching { call.receive<NewTournamentReportDEO>()}
-        if (reportDraft.isSuccess) {
-            val updatedReport = reportDraft.getOrThrow().updateInDatabase()
-            val report = updatedReport.getOrNull()
-            if (updatedReport.isSuccess && report != null) {
-                call.respond(
-                    NewTournamentReportDEO.fromTournamentReport(
-                        report
-                    )
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        updatedReport.exceptionOrNull()?.message ?: "Could not update report"
-                    )
-                )
+        receiveAndHandleDEO<NewTournamentReportDEO> { newTournamentReportDEO ->
+            newTournamentReportDEO.updateInDatabase().map {
+                NewTournamentReportDEO.fromTournamentReport(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    reportDraft.exceptionOrNull()?.message?:"Could not parse report input"
-                )
-            )
         }
-
     }
 
     post<Api.Reports.Submit> {
-        val submitReport = kotlin.runCatching { call.receive<SubmitTournamentReportDEO>()}
-        if (submitReport.isSuccess) {
-            val report = submitReport.getOrThrow().submitInDatabase()
-            if (report.isSuccess) {
-
-
-                val response = SubmitTournamentReportDEO.fromTournamentReport(
-                    report.getOrThrow()
-                )
-                call.respond(
-                    response
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        report.exceptionOrNull()?.message?:"Unknown error"
-                    )
-                )
+        receiveAndHandleDEO<SubmitTournamentReportDEO> { deo ->
+            deo.submitInDatabase().map {
+                SubmitTournamentReportDEO.fromTournamentReport(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    submitReport.exceptionOrNull()?.message?:"Could not parse submit input"
-                )
-            )
         }
     }
 
     post<Api.Reports.Delete> {
-        val deleteReport = kotlin.runCatching {
-            call.receive<DeleteTournamentReportDEO>()
-        }
         val user = call.principal<UserPrincipal>()?.user
-        if (deleteReport.isSuccess && user != null) {
-
-            val report = deleteReport.getOrThrow().deleteChecked(user)
-            if (report.isSuccess) {
-                call.respond(
-                    deleteReport.getOrThrow()
-                )
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        report.exceptionOrNull()?.message?:"Unknown error"
-                    )
-                )
+        if (user != null) {
+            receiveAndHandleDEO<DeleteTournamentReportDEO> { deo ->
+                deo.deleteChecked(user).map{deo}.getOrElse {
+                    ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+                }
             }
         } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    "Could not parse delete input"
-                )
-            )
+            call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "User not logged in"))
         }
     }
 
@@ -278,26 +199,11 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.GameReports.Delete> {
-        val gameReport = kotlin.runCatching { call.receive<DeleteGameReportDEO>()}
-        if(gameReport.isSuccess) {
-            val res = gameReport.getOrThrow().deleteFromDatabase()
-            if(res.isSuccess) {
-                call.respond(gameReport.getOrThrow())
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.DELETE_FAILED,
-                        res.exceptionOrNull()?.message ?: "Could not delete game report"
-                    )
-                )
+        receiveAndHandleDEO<DeleteGameReportDEO> {  deo ->
+            //TODO: Delete checked for rights
+            deo.deleteFromDatabase().map{deo}.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.DELETE_FAILED,
-                    gameReport.exceptionOrNull()?.message ?: "Could not parse game report input"
-                )
-            )
         }
     }
 
@@ -308,20 +214,11 @@ fun Route.refereeApiRouting() {
         handleDisciplinaryActionInput(doUpdate = true)
     }
     post<Api.GameReports.DisciplinaryAction.Delete> {
-        val disciplinaryAction = runCatching { call.receive<DeleteDisciplinaryActionDEO>() }
-        disciplinaryAction.getOrNull()?.apply {
-            val res = deleteFromDatabase()
-            if(res.isSuccess) {
-                call.respond(this)
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.DELETE_FAILED,
-                        res.exceptionOrNull()?.message ?: "Could not delete disciplinary action"
-                    )
-                )
+        receiveAndHandleDEO<DeleteDisciplinaryActionDEO> {  deo ->
+            deo.deleteFromDatabase().map { deo }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } ?: call.respond(HttpStatusCode.BadRequest)
+        }
 
     }
 
@@ -332,21 +229,11 @@ fun Route.refereeApiRouting() {
         handleInjuryInput(doUpdate = true)
     }
     post<Api.GameReports.Injury.Delete> {
-        val disciplinaryAction = runCatching { call.receive<DeleteInjuryDEO>() }
-        disciplinaryAction.getOrNull()?.apply {
-            val res = deleteFromDatabase()
-            if(res.isSuccess) {
-                call.respond(this)
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.DELETE_FAILED,
-                        res.exceptionOrNull()?.message ?: "Could not delete injury"
-                    )
-                )
+        receiveAndHandleDEO<DeleteInjuryDEO> { deo ->
+            deo.deleteFromDatabase().map { deo }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } ?: call.respond(HttpStatusCode.BadRequest)
-
+        }
     }
 
     post<Api.Pitch.New> {
@@ -356,18 +243,9 @@ fun Route.refereeApiRouting() {
         handlePitchReportInput(doUpdate = true)
     }
     post<Api.Pitch.Delete> {
-        val pitchReport = runCatching { call.receive<DeletePitchReportDEO>()}
-        if(pitchReport.isSuccess) {
-            val res = pitchReport.getOrThrow().deleteFromDatabase()
-            if(res.isSuccess) {
-                call.respond(pitchReport.getOrThrow())
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.DELETE_FAILED,
-                        res.exceptionOrNull()?.message ?: "Could not delete pitch report"
-                    )
-                )
+        receiveAndHandleDEO<DeletePitchReportDEO> { deo ->
+            deo.deleteFromDatabase().map { deo }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
     }
@@ -407,21 +285,10 @@ fun Route.refereeApiRouting() {
 
 
     post<Api.GameType.New> {
-        val gameType = runCatching { call.receive<GameTypeDEO>()}
-        if (gameType.isSuccess) {
-            val newGameType = gameType.getOrThrow().createInDatabase()
-            if (newGameType.isSuccess) {
-                call.respond(GameTypeDEO.fromGameType(newGameType.getOrThrow()))
-            } else {
-                call.respond(
-                    ApiError(
-                        ApiErrorOptions.INSERTION_FAILED,
-                        newGameType.exceptionOrNull()?.message ?: "Could not create game type"
-                    )
-                )
+        receiveAndHandleDEO<GameTypeDEO> { deo ->
+            deo.createInDatabase().map { GameTypeDEO.fromGameType(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-        } else {
-            call.respond(HttpStatusCode.BadRequest)
         }
     }
 
@@ -447,134 +314,56 @@ fun Route.refereeApiRouting() {
 
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInput(doUpdate: Boolean) {
-    val reportDraft = runCatching { call.receive<PitchReportDEO>()}
-    if (reportDraft.isSuccess) {
+    receiveAndHandleDEO<PitchReportDEO> { pitchReportDEO ->
         val updatedReport = if (doUpdate) {
-            reportDraft.getOrThrow().updateInDatabase()
+            pitchReportDEO.updateInDatabase()
         } else {
-            reportDraft.getOrThrow().createInDatabase()
+            pitchReportDEO.createInDatabase()
         }
-        if (updatedReport.isSuccess) {
-            call.respond(
-                PitchReportDEO.fromPitchReport(
-                    updatedReport.getOrThrow()
-                )
-            )
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    updatedReport.exceptionOrNull()?.message ?: "Unknown error"
-                )
-            )
+        updatedReport.map { PitchReportDEO.fromPitchReport(it) }.getOrElse {
+            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
         }
-    } else {
-        call.respond(
-            ApiError(
-                ApiErrorOptions.INSERTION_FAILED,
-                reportDraft.exceptionOrNull()?.message?:"Not able to parse pitch reports"
-            )
-        )
     }
+
 }
 
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGameReportInput(doUpdate: Boolean) {
-    val gameReport = runCatching { call.receive<GameReportDEO>()}
-    if (gameReport.isSuccess) {
-
+    receiveAndHandleDEO<GameReportDEO> { deo ->
         val updatedReport = if (doUpdate) {
-            gameReport.getOrThrow().updateInDatabase()
+            deo.updateInDatabase()
         } else {
-            gameReport.getOrThrow().createInDatabase()
+            deo.createInDatabase()
         }
-        if (updatedReport.isSuccess) {
-            call.respond(
-                GameReportDEO.fromGameReport(
-                    updatedReport.getOrThrow()
-                )
-            )
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    updatedReport.exceptionOrNull()?.message ?: "Unknown error"
-                )
-            )
+        updatedReport.map { GameReportDEO.fromGameReport(it) }.getOrElse {
+            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
         }
-    } else {
-        call.respond(
-            ApiError(
-                ApiErrorOptions.INSERTION_FAILED,
-                gameReport.exceptionOrNull()?.message?:"Not able to parse game report"
-            )
-        )
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleDisciplinaryActionInput(doUpdate: Boolean) {
-    val dAction = runCatching { call.receive<DisciplinaryActionDEO>()}
-    if (dAction.isSuccess) {
-
-        val newDisciplinaryAction = if (doUpdate) {
-            dAction.getOrThrow().updateInDatabase()
+    receiveAndHandleDEO<DisciplinaryActionDEO> { deo ->
+        val updatedReport = if (doUpdate) {
+            deo.updateInDatabase()
         } else {
-            dAction.getOrThrow().createInDatabase()
+            deo.createInDatabase()
         }
-        if (newDisciplinaryAction.isSuccess) {
-            call.respond(
-                DisciplinaryActionDEO.fromDisciplinaryAction(
-                    newDisciplinaryAction.getOrThrow()
-                )
-            )
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    newDisciplinaryAction.exceptionOrNull()?.message ?: "Unknown error"
-                )
-            )
+        updatedReport.map { DisciplinaryActionDEO.fromDisciplinaryAction(it) }.getOrElse {
+            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
         }
-    } else {
-        call.respond(
-            ApiError(
-                ApiErrorOptions.INSERTION_FAILED,
-                dAction.exceptionOrNull()?.message?:"Could not parse disciplinary action"
-            )
-        )
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doUpdate: Boolean) {
-    val injury = runCatching { call.receive<InjuryDEO>()}
-    if (injury.isSuccess) {
-
-        val newInjury = if (doUpdate) {
-            injury.getOrThrow().updateInDatabase()
+    receiveAndHandleDEO<InjuryDEO> {  deo ->
+        val updatedReport = if (doUpdate) {
+            deo.updateInDatabase()
         } else {
-            injury.getOrThrow().createInDatabase()
+            deo.createInDatabase()
         }
-        if (newInjury.isSuccess) {
-            call.respond(
-                InjuryDEO.fromInjury(
-                    newInjury.getOrThrow()
-                )
-            )
-        } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.INSERTION_FAILED,
-                    newInjury.exceptionOrNull()?.message ?: "Unknown error"
-                )
-            )
+        updatedReport.map { InjuryDEO.fromInjury(it) }.getOrElse {
+            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
         }
-    } else {
-        call.respond(
-            ApiError(
-                ApiErrorOptions.INSERTION_FAILED,
-                injury.exceptionOrNull()?.message?:"Could not parse injury"
-            )
-        )
     }
 }
 
