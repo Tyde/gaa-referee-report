@@ -2,34 +2,9 @@ import {z} from "zod";
 import {DeletionResponse} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import type {Report} from "@/types/report_types";
-import type {Pitch, PitchProperty} from "@/types/pitch_types";
-import {PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO} from "@/types/pitch_types";
+import type {Pitch, PitchProperty, PitchVariables} from "@/types/pitch_types";
+import {PitchDEO, PitchPropertyType, PitchPropertyWithTypeDEO, PitchVariablesDEO} from "@/types/pitch_types";
 
-
-const PitchProperyDEO = z.object({
-    id: z.number(),
-    name: z.string().min(1),
-    disabled: z.boolean().optional().default(false)
-})
-type PitchProperyDEO = z.infer<typeof PitchProperyDEO>
-const PitchVariablesDEO = z.object({
-    surfaces: PitchProperyDEO.array(),
-    lengths: PitchProperyDEO.array(),
-    widths: PitchProperyDEO.array(),
-    markingsOptions: PitchProperyDEO.array(),
-    goalPosts: PitchProperyDEO.array(),
-    goalDimensions: PitchProperyDEO.array()
-})
-type PitchVariablesDEO = z.infer<typeof PitchVariablesDEO>;
-
-export interface PitchVariables {
-    surfaces: Array<PitchProperty>,
-    lengths: Array<PitchProperty>,
-    widths: Array<PitchProperty>,
-    markingsOptions: Array<PitchProperty>,
-    goalPosts: Array<PitchProperty>,
-    goalDimensions: Array<PitchProperty>,
-}
 
 function pitchVariablesDEOtoPitchVariables(pV:PitchVariablesDEO):PitchVariables {
     return {

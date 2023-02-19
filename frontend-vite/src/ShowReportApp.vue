@@ -3,13 +3,12 @@
 import {onMounted, ref} from "vue";
 import {completeReportDEOToReport, extractGameReportsFromCompleteReportDEO, loadReportDEO} from "@/utils/api/report_api";
 import type {ExtraTimeOption, GameCode, GameType} from "@/types";
-import type {PitchVariables} from "@/utils/api/pitch_api"
 import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
 import ShowFullReport from "@/components/showReport/ShowFullReport.vue";
 import type {Report} from "@/types/report_types";
 import type {GameReport} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
-import type {Pitch} from "@/types/pitch_types";
+import type {Pitch, PitchVariables} from "@/types/pitch_types";
 import type {CompleteReportDEO} from "@/types/report_types";
 
 const props = defineProps<{

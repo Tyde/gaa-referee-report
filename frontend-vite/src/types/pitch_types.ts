@@ -60,3 +60,28 @@ export interface Pitch {
     goalDimensions?: PitchProperty,
     additionalInformation: string,
 }
+
+const PitchProperyDEO = z.object({
+    id: z.number(),
+    name: z.string().min(1),
+    disabled: z.boolean().optional().default(false)
+})
+type PitchProperyDEO = z.infer<typeof PitchProperyDEO>
+export const PitchVariablesDEO = z.object({
+    surfaces: PitchProperyDEO.array(),
+    lengths: PitchProperyDEO.array(),
+    widths: PitchProperyDEO.array(),
+    markingsOptions: PitchProperyDEO.array(),
+    goalPosts: PitchProperyDEO.array(),
+    goalDimensions: PitchProperyDEO.array()
+})
+export type PitchVariablesDEO = z.infer<typeof PitchVariablesDEO>;
+
+export interface PitchVariables {
+    surfaces: Array<PitchProperty>,
+    lengths: Array<PitchProperty>,
+    widths: Array<PitchProperty>,
+    markingsOptions: Array<PitchProperty>,
+    goalPosts: Array<PitchProperty>,
+    goalDimensions: Array<PitchProperty>,
+}
