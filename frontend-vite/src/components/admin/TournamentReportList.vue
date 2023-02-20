@@ -8,6 +8,8 @@ import {FilterMatchMode, FilterOperator} from "primevue/api";
 import {useRouter} from "vue-router";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
+import ShareReport from "@/components/dashboard/ShareReport.vue";
+
 
 const store = useAdminStore()
 const router = useRouter()
@@ -44,6 +46,8 @@ function reportsByTournament(tournament: DatabaseTournament) {
   })
 
 }
+const reportToShare = ref<CompactTournamentReportDEO | undefined>(undefined)
+
 
 onMounted(() => {
   loadAllTournaments()
@@ -56,10 +60,18 @@ onMounted(() => {
       })
       .catch(e => store.newError(e))
 })
-
+function shareSingleReport(report: CompactTournamentReportDEO) {
+  console.log(report)
+  reportToShare.value = report
+}
 </script>
 
 <template>
+  <ShareReport
+      :report="reportToShare"
+      @on-error="(err) => store.newError(err)"
+      @on-success="() => reportToShare = undefined"
+  ></ShareReport>
   <div v-if="isLoading" class="z-[10000] flex flex-row justify-center">
     <div class="text-center text-2xl">
       <!-- spinning icon -->
@@ -134,10 +146,18 @@ onMounted(() => {
               class="p-button-raised p-button-text"
               @click="router.push({path: `/tournament-reports/${data.id}`})"
           />
+          <!-- share button: -->
+          <Button
+              label="Share"
+              icon="pi pi-share-alt"
+              class="p-button-raised p-button-text"
+              @click="() => shareSingleReport(data)"
+          />
         </template>
 
       </Column>
     </DataTable>
+
   </div>
 
 </template>

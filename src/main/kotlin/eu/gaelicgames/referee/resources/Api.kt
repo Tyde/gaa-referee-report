@@ -137,6 +137,14 @@ class Api() {
         @Serializable
         @Resource("delete")
         class Delete(val parent: Reports)
+
+        @Serializable
+        @Resource("share")
+        class Share(val parent: Reports)
+
+        @Serializable
+        @Resource("get_shared/{uuid}")
+        class GetShared(val parent: Reports, val uuid: String)
     }
 
     @Serializable

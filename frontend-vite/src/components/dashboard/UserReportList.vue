@@ -7,7 +7,9 @@ import {DateTime} from "luxon";
 import {useConfirm} from "primevue/useconfirm";
 import {useRouter} from "vue-router";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
-
+import {shareReportOnServer} from "@/utils/api/report_api";
+import useClipboard from 'vue-clipboard3'
+import ShareReport from "@/components/dashboard/ShareReport.vue";
 
 const store = useDashboardStore()
 
@@ -48,7 +50,7 @@ function showReport(report: CompactTournamentReportDEO) {
   router.push("/report/" + report.id)
 }
 
-
+const reportToShare = ref<CompactTournamentReportDEO | undefined>(undefined)
 const confirm = useConfirm()
 
 function askDeleteReport(report: CompactTournamentReportDEO) {
@@ -137,10 +139,22 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
             class="p-button-raised p-button-text"
             @click="askDeleteReport(data)"
         />
+        <!-- share button: -->
+        <Button
+            label="Share"
+            icon="pi pi-share-alt"
+            class="p-button-raised p-button-text"
+            @click="() => reportToShare = data"
+        />
       </template>
 
     </Column>
   </DataTable>
+  <ShareReport
+    :report="reportToShare"
+    @on-error="(err) => store.newError(err)"
+    @on-success="() => reportToShare = undefined"
+    ></ShareReport>
 
 
 </template>

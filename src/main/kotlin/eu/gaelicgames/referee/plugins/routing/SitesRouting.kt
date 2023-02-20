@@ -1,9 +1,8 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.Session
-import eu.gaelicgames.referee.data.TournamentReport
-import eu.gaelicgames.referee.data.UserPrincipal
-import eu.gaelicgames.referee.data.UserSession
+import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.api.CompleteReportDEO
+import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.resources.Report
 import eu.gaelicgames.referee.resources.UserRes
 import io.ktor.http.*
@@ -52,6 +51,47 @@ fun Route.sites() {
         staticBasePackage = "static/assets"
         resources(".")
     }
+
+    get<Report.Share> { share ->
+        val uuid = UUID.fromString(share.uuid)
+        val report = transaction {
+            TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull()
+        }
+        if (report != null) {
+            val resource =
+                this.javaClass.classLoader.getResourceAsStream("static/show_report.html")
+            if (resource != null) {
+                call.respondOutputStream(contentType = ContentType.Text.Html) {
+                    resource.copyTo(this)
+                }
+            } else {
+                call.respond(HttpStatusCode.InternalServerError)
+            }
+        } else {
+            call.respondText(
+                "This share link does not exist or is expired",
+                status = HttpStatusCode.NotFound
+            )
+        }
+
+    }
+    get<Api.Reports.GetShared> { getShared ->
+        val uuid = UUID.fromString(getShared.uuid)
+        val report = transaction {
+            val link = TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull()
+            link?.let {
+                CompleteReportDEO.fromTournamentReport(link.report)
+            }
+        }
+        if (report != null) {
+            call.respond(report)
+        } else {
+            call.respond(
+                ApiError(ApiErrorOptions.NOT_FOUND, "This share link does not exist or is expired")
+            )
+        }
+    }
+
     authenticate("auth-session") {
 
         get("/") {
@@ -123,6 +163,9 @@ fun Route.sites() {
             }
 
         }
+
+
+
     }
     authenticate("admin-session") {
         get("/admin/{...}") {

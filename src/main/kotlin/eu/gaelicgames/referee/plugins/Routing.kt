@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.routing.adminApiRouting
+import eu.gaelicgames.referee.plugins.routing.publicApiRouting
 import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
 import eu.gaelicgames.referee.plugins.routing.sites
 import eu.gaelicgames.referee.resources.Api
@@ -43,6 +44,7 @@ fun Application.configureRouting() {
     }
     routing {
         sites()
+        publicApiRouting()
 
 
         get<Api.TeamsAvailable> {

@@ -6,6 +6,7 @@ import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {Report, ReportDEO} from "@/types/report_types";
 import {
+    TournamentReportShareLinkDEO,
     CompactTournamentReportDEO,
     CompleteReportDEO,
     NewReportDEO,
@@ -69,6 +70,12 @@ export function extractGameReportsFromCompleteReportDEO(
 
 export async function loadReportDEO(id: number): Promise<CompleteReportDEO> {
     return fetch("/api/report/get/" + id)
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data,CompleteReportDEO))
+}
+
+export async function loadReportDEOByUUID(uuid: string): Promise<CompleteReportDEO> {
+    return fetch("/api/report/get_shared/" + uuid)
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data,CompleteReportDEO))
 }
@@ -165,4 +172,9 @@ export async function deleteReportOnServer(reportId:number):Promise<number> {
     return makePostRequest("/api/report/delete",{id: reportId})
         .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
         .then(data =>  data.id)
+}
+
+export async function shareReportOnServer(reportId:number):Promise<TournamentReportShareLinkDEO> {
+    return makePostRequest("/api/report/share",{id: reportId})
+        .then(data => parseAndHandleDEO(data, TournamentReportShareLinkDEO))
 }

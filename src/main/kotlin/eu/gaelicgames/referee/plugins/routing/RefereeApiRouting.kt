@@ -133,12 +133,7 @@ fun Route.refereeApiRouting() {
         call.respond(tournaments)
     }
 
-    get<Api.Codes> {
-        val allCodes = transaction {
-            GameCode.all().map { GameCodeDEO(it) }
-        }
-        call.respond(allCodes)
-    }
+
 
     post<Api.Reports.New> {
         receiveAndHandleDEO<NewTournamentReportDEO> { reportDraft ->
@@ -168,9 +163,9 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.Reports.Submit> {
-        receiveAndHandleDEO<SubmitTournamentReportDEO> { deo ->
+        receiveAndHandleDEO<TournamentReportByIdDEO> { deo ->
             deo.submitInDatabase().map {
-                SubmitTournamentReportDEO.fromTournamentReport(it)
+                TournamentReportByIdDEO.fromTournamentReport(it)
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -187,6 +182,14 @@ fun Route.refereeApiRouting() {
             }
         } else {
             call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "User not logged in"))
+        }
+    }
+
+    post<Api.Reports.Share> {
+        receiveAndHandleDEO<TournamentReportByIdDEO> { deo ->
+            deo.createShareLink().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
         }
     }
 
@@ -253,12 +256,7 @@ fun Route.refereeApiRouting() {
         }
     }
 
-    get<Api.Rules> {
-        val rules = transaction {
-            Rule.all().map { RuleDEO.fromRule(it) }
-        }
-        call.respond(rules)
-    }
+
 
     get<Api.RulesForCode> { rules ->
         val code = transaction {
@@ -278,13 +276,7 @@ fun Route.refereeApiRouting() {
         call.respond(data)
     }
 
-    get<Api.GameReportVariables> {
-        call.respond(GameReportClassesDEO.load())
-    }
 
-    get<Api.PitchVariables> {
-        call.respond(PitchVariablesDEO.load())
-    }
 
 
     post<Api.GameType.New> {

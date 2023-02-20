@@ -100,6 +100,17 @@ class TournamentReport(id:EntityID<Long>):LongEntity(id) {
     }
 }
 
+object TournamentReportShareLinks : LongIdTable() {
+    val report = reference("report", TournamentReports)
+    val uuid = uuid("uuid")
+}
+
+class TournamentReportShareLink(id:EntityID<Long>):LongEntity(id) {
+    companion object : LongEntityClass<TournamentReportShareLink>(TournamentReportShareLinks)
+    var report by TournamentReport referencedOn TournamentReportShareLinks.report
+    var uuid by TournamentReportShareLinks.uuid
+}
+
 object TournamentReportTeamPreSelections : LongIdTable() {
     val report = reference("report", TournamentReports)
     val team = reference("team", Teams)

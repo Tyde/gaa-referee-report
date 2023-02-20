@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 
 import {onMounted, ref} from "vue";
-import {completeReportDEOToReport, extractGameReportsFromCompleteReportDEO, loadReportDEO} from "@/utils/api/report_api";
+import {
+  completeReportDEOToReport,
+  extractGameReportsFromCompleteReportDEO,
+  loadReportDEO,
+  loadReportDEOByUUID
+} from "@/utils/api/report_api";
 import type {ExtraTimeOption, GameCode, GameType} from "@/types";
 import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
 import ShowFullReport from "@/components/showReport/ShowFullReport.vue";
@@ -78,25 +83,7 @@ async function downloadReport(id: number) {
   isLoading.value = true
   try {
     const report: CompleteReportDEO = await loadReportDEO(id)
-    await waitForAllVariablesPresent()
-    currentReport.value = completeReportDEOToReport(report, codes.value)
-    allGameReports.value = extractGameReportsFromCompleteReportDEO(
-        report,
-        currentReport.value,
-        gameTypes.value,
-        extraTimeOptions.value,
-        rules.value
-    )
-
-
-    let pitches = report.pitches
-    const pV = pitchVariables.value
-    if (pitches && pV) {
-
-      allPitchReports.value = pitches.map(pitch => {
-        return pitchDEOtoPitch(pitch, currentReport.value, pV)
-      }) || []
-    }
+    await handleDownloadedReport(report)
 
   } catch (e) {
     console.log(e)
@@ -107,6 +94,43 @@ async function downloadReport(id: number) {
   }
 }
 
+async function downloadReportByUUID(uuid: string) {
+  isLoading.value = true
+  try {
+    const report: CompleteReportDEO = await loadReportDEOByUUID( uuid)
+    await handleDownloadedReport(report)
+
+  } catch (e) {
+    console.log(e)
+
+  } finally {
+    isLoading.value = false
+    loadingComplete.value = true
+  }
+}
+
+async function handleDownloadedReport(report: CompleteReportDEO) {
+  await waitForAllVariablesPresent()
+  currentReport.value = completeReportDEOToReport(report, codes.value)
+  allGameReports.value = extractGameReportsFromCompleteReportDEO(
+      report,
+      currentReport.value,
+      gameTypes.value,
+      extraTimeOptions.value,
+      rules.value
+  )
+
+
+  let pitches = report.pitches
+  const pV = pitchVariables.value
+  if (pitches && pV) {
+
+    allPitchReports.value = pitches.map(pitch => {
+      return pitchDEOtoPitch(pitch, currentReport.value, pV)
+    }) || []
+  }
+}
+
 onMounted(() => {
   isLoading.value = true
   get_codes()
@@ -114,6 +138,13 @@ onMounted(() => {
   get_game_report_variables()
   load_pitch_variables()
   let loc = new URL(location.href)
+  // If loc contains "share" in path, then we have to load by uuid given
+  if(loc.pathname.includes("share")) {
+    let uuid = loc.pathname.split("/")[3]
+    if (uuid) {
+      downloadReportByUUID(uuid)
+    }
+  }
   let id = props.id || Number(loc.pathname.split("/")[3])
   if (id) {
     downloadReport(id)

@@ -76,3 +76,9 @@ export const UpdateReportAdditionalInformationDEO = z.object({
     additionalInformation: z.string()
 })
 export type UpdateReportAdditionalInformationDEO = z.infer<typeof UpdateReportAdditionalInformationDEO>;
+
+export const TournamentReportShareLinkDEO = z.object({
+    id: z.number(),
+    uuid: z.string(),
+})
+export type TournamentReportShareLinkDEO = z.infer<typeof TournamentReportShareLinkDEO>;

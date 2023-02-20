@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.util.*
 
 @Serializable
 data class CompleteReportDEO(
@@ -46,13 +47,13 @@ data class CompleteReportDEO(
 }
 
 @Serializable
-data class SubmitTournamentReportDEO(
+data class TournamentReportByIdDEO(
     val id:Long
 ) {
     companion object {
-        fun fromTournamentReport(tournamentReport: TournamentReport): SubmitTournamentReportDEO {
+        fun fromTournamentReport(tournamentReport: TournamentReport): TournamentReportByIdDEO {
             return transaction {
-                SubmitTournamentReportDEO(
+                TournamentReportByIdDEO(
                     tournamentReport.id.value
                 )
             }
@@ -71,7 +72,38 @@ data class SubmitTournamentReportDEO(
             }
         }
     }
+
+    fun createShareLink():Result<TournamentReportShareLinkDEO> {
+        val stdeo = this
+        return transaction {
+            val report = TournamentReport.findById(stdeo.id)
+            if (report != null) {
+                var share = TournamentReportShareLink.find { TournamentReportShareLinks.report eq report.id }.firstOrNull()
+                if(share == null){
+                    var uuid = UUID.randomUUID()
+                    while(TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull() != null){
+                        uuid = UUID.randomUUID()
+                    }
+                    share = TournamentReportShareLink.new {
+                        this.report = report
+                        this.uuid = uuid
+                    }
+                }
+                Result.success(TournamentReportShareLinkDEO(report.id.value, share.uuid.toString()))
+
+            } else {
+                Result.failure(IllegalArgumentException("TournamentReport not found"))
+            }
+        }
+    }
 }
+
+@Serializable
+data class TournamentReportShareLinkDEO(
+    val id:Long,
+    val uuid: String
+)
+
 @Serializable
 data class UpdateReportAdditionalInformationDEO(
     val id: Long,

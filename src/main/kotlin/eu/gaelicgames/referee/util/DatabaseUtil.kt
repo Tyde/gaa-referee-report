@@ -40,7 +40,8 @@ object DatabaseHandler {
         PitchGoalpostsOptions,
         PitchGoalDimensionOptions,
         Pitches,
-        ActivationTokens
+        ActivationTokens,
+        TournamentReportShareLinks
     )
     fun createSchema() {
         transaction {

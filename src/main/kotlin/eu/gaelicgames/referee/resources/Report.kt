@@ -23,4 +23,7 @@ class Report() {
     @Resource("show/{id}")
     class Show(val parent: Report, val id:Long)
 
+    @Serializable
+    @Resource("share/{uuid}")
+    class Share(val parent: Report, val uuid:String)
 }
