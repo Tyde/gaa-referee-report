@@ -209,6 +209,10 @@ onMounted(() => {
   }
 
 })
+
+function backToDashboard() {
+  location.href = "/"
+}
 </script>
 
 <template>
@@ -270,6 +274,16 @@ onMounted(() => {
       </div>
     </div>
   </template>
+
+  <div class="mx-auto mt-10 flex flex-row justify-center">
+  <div>
+    <Button
+        class="p-button-outlined p-button-secondary"
+        @click="backToDashboard">
+      Back to Dashboard
+    </Button>
+  </div>
+  </div>
 
 
   <Dialog
