@@ -269,6 +269,13 @@ class Api() {
         @Resource("activate")
         class Activate(val parent: User)
 
+
+
+        @Serializable
+        @Resource("set_role")
+        class SetRole(val parent: User)
+
+
     }
 
 }

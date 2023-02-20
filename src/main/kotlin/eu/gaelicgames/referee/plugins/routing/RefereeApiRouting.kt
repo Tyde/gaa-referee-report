@@ -21,7 +21,7 @@ fun Route.refereeApiRouting() {
         val user = call.principal<UserPrincipal>()
         if (user != null) {
             call.respond(
-                SessionInfoDEO.fromUser(
+                RefereeWithRoleDEO.fromUser(
                     transaction {
                         User.findById(user.user.id)
                     }!!

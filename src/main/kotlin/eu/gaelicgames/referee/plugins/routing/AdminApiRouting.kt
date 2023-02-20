@@ -94,7 +94,7 @@ fun Route.adminApiRouting() {
 
     get<Api.User.All> {
         val users = transaction {
-            User.all().map { RefereeDEO.fromReferee(it) }
+            User.all().map { RefereeWithRoleDEO.fromUser(it) }
         }
         call.respond(users)
     }
@@ -110,6 +110,14 @@ fun Route.adminApiRouting() {
     post<Api.User.New> {
         receiveAndHandleDEO<NewRefereeDEO> { newRefereeDEO ->
             newRefereeDEO.createInDatabase().map { RefereeDEO.fromReferee(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.User.SetRole> {
+        receiveAndHandleDEO<SetRefereeRole> { deo ->
+            deo.updateInDatabase().map { RefereeWithRoleDEO.fromUser(it) }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
@@ -134,6 +142,8 @@ fun Route.adminApiRouting() {
             }
         }
     }
+
+
     /*
         get<Api.User.Activate> { activate ->
             val uuid = UUID.fromString(activate.uuid)

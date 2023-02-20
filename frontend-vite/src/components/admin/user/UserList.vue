@@ -5,12 +5,14 @@ import {getAllUsers, updateUserOnServer} from "@/utils/api/admin_api";
 import {onMounted, ref} from "vue";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import NewUserDialog from "@/components/admin/user/NewUserDialog.vue";
-import type {Referee} from "@/types/referee_types";
+import type { RefereeWithRoleDEO} from "@/types/referee_types";
+import {updateUserRole} from "@/utils/api/referee_api";
+import {RefereeRole, SetRefereeRoleDEO} from "@/types/referee_types";
 
 const store = useAdminStore();
-const users = ref<Referee[]>([]);
+const users = ref<RefereeWithRoleDEO[]>([]);
 
-const editingUsers = ref<Referee[]>([]);
+const editingUsers = ref<RefereeWithRoleDEO[]>([]);
 const showNewUserDialog = ref(false);
 onMounted(() => {
   updateUserList()
@@ -33,9 +35,26 @@ function editUser(event: DataTableRowEditSaveEvent) {
 
 }
 
-function deactivateUser(user: Referee) {
-    //TODO
+function setRefereeRole(user: RefereeWithRoleDEO, role: RefereeRole) {
+  updateUserRole(SetRefereeRoleDEO.parse({
+    id: user.id,
+    role: role
+  }))
+      .then(() => updateUserList())
+      .catch(err => store.newError(err))
 }
+function deactivateUser(user: RefereeWithRoleDEO) {
+  setRefereeRole(user, RefereeRole.Enum.INACTIVE)
+}
+
+function activateDeactivatedUser(user: RefereeWithRoleDEO) {
+  setRefereeRole(user, RefereeRole.Enum.REFEREE)
+}
+
+function makeAdmin(user: RefereeWithRoleDEO) {
+  setRefereeRole(user, RefereeRole.Enum.ADMIN)
+}
+
 </script>
 
 <template>
@@ -72,8 +91,27 @@ function deactivateUser(user: Referee) {
       </template>
     </Column>
     <Column>
-      <template #body="{data}">
-        <Button icon="pi pi-user-minus" title="Deactivate User" class="mr-2 p-button-rounded p-button-danger" @click="() => deactivateUser(data)"></Button>
+      <template #body="{data}:{data: RefereeWithRoleDEO}">
+        <Button
+            v-if="data.role === RefereeRole.Enum.REFEREE"
+            icon="pi pi-user-minus"
+            label="Deactivate"
+            class="mr-2 p-button-rounded p-button-danger"
+            @click="() => deactivateUser(data)"></Button>
+        <Button
+            v-if="data.role === RefereeRole.Enum.INACTIVE"
+            icon="pi pi-user-plus"
+            label="Activate User"
+            class="mr-2 p-button-rounded p-button-success"
+            @click="() => activateDeactivatedUser(data)"></Button>
+        <Button
+            v-if="data.role === RefereeRole.Enum.REFEREE"
+            icon="pi pi-lock-open"
+            label="Make Admin"
+            class="mr-2 p-button-rounded p-button-warning"
+            @click="() => makeAdmin(data)"></Button>
+
+        <span v-if="data.role === RefereeRole.Enum.WAITING_FOR_ACTIVATION"> Did not set password yet. </span>
       </template>
     </Column>
     <Column :rowEditor="true" headerStyle="width:7rem" bodyStyle="text-align:center"></Column>

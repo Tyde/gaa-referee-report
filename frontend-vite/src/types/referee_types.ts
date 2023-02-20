@@ -11,10 +11,16 @@ export const UpdateRefereeDAO = Referee.partial({
     firstName: true, lastName: true, mail: true
 })
 export type UpdateRefereeDAO = z.infer<typeof UpdateRefereeDAO>
-export const SessionInfo = Referee.extend({
-    role: z.enum(["ADMIN", "REFEREE", "INACTIVE", "WAITING_FOR_ACTIVATION"])
+
+
+export const RefereeRole = z.enum(["ADMIN", "REFEREE", "INACTIVE", "WAITING_FOR_ACTIVATION"])
+
+
+export type RefereeRole = z.infer<typeof RefereeRole>
+export const RefereeWithRoleDEO = Referee.extend({
+    role: RefereeRole
 })
-export type SessionInfo = z.infer<typeof SessionInfo>
+export type RefereeWithRoleDEO = z.infer<typeof RefereeWithRoleDEO>
 export const UpdateRefereePasswordDAO = z.object({
     id: z.number(),
     oldPassword: z.string(),
@@ -27,6 +33,12 @@ export const UpdateRefereePasswordResponse = z.object({
     message: z.string().optional().nullable()
 })
 export type UpdateRefereePasswordResponse = z.infer<typeof UpdateRefereePasswordResponse>
+
+export const SetRefereeRoleDEO = z.object({
+    id: z.number(),
+    role: RefereeRole
+})
+export type SetRefereeRoleDEO = z.infer<typeof SetRefereeRoleDEO>
 
 export interface NewReferee {
     firstName?: string,

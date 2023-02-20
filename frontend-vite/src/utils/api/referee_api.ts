@@ -1,7 +1,7 @@
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {
     Referee,
-    SessionInfo,
+    RefereeWithRoleDEO, SetRefereeRoleDEO,
     UpdateRefereeDAO,
     UpdateRefereePasswordDAO,
     UpdateRefereePasswordResponse
@@ -21,7 +21,12 @@ export async function activateUser(token: string, password: string) {
 export async function getSessionInfo() {
     return fetch("/api/session")
         .then(data => data.json())
-        .then(data => parseAndHandleDEO(data, SessionInfo))
+        .then(data => parseAndHandleDEO(data, RefereeWithRoleDEO))
+}
+
+export async function updateUserRole(update: SetRefereeRoleDEO) {
+    return makePostRequest("/api/user/set_role", update)
+        .then(data => parseAndHandleDEO(data, RefereeWithRoleDEO))
 }
 
 export async function updateMeUser(changedValues: UpdateRefereeDAO) {
@@ -34,3 +39,4 @@ export async function updatePasswordOnServer(update:UpdateRefereePasswordDAO) {
     return makePostRequest("/api/user/update_password", update)
         .then(data => parseAndHandleDEO(data, UpdateRefereePasswordResponse))
 }
+

@@ -166,7 +166,7 @@ data class LoginDEO(
 }
 
 @Serializable
-data class SessionInfoDEO(
+data class RefereeWithRoleDEO(
     val id: Long,
     val firstName: String,
     val lastName: String,
@@ -174,8 +174,8 @@ data class SessionInfoDEO(
     val role: UserRole
 ) {
     companion object {
-        fun fromUser(user: User): SessionInfoDEO {
-            return SessionInfoDEO(
+        fun fromUser(user: User): RefereeWithRoleDEO {
+            return RefereeWithRoleDEO(
                 id = user.id.value,
                 firstName = user.firstName,
                 lastName = user.lastName,
@@ -239,6 +239,26 @@ data class UpdateRefereePasswordDAO(
                 } else {
                     Result.success(UpdateRefereePasswordResponse(thisReferee.id, false, "Old password not correct"))
                 }
+            } else {
+                Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
+            }
+        }
+    }
+}
+
+
+@Serializable
+data class SetRefereeRole(
+    val id: Long,
+    val role: UserRole
+) {
+    fun updateInDatabase(): Result<User> {
+        val thisReferee = this
+        return transaction {
+            val referee = User.findById(thisReferee.id)
+            if (referee != null) {
+                referee.role = thisReferee.role
+                Result.success(referee)
             } else {
                 Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
             }

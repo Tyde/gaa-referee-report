@@ -2,7 +2,7 @@
 import {GameType} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
-import {Referee} from "@/types/referee_types";
+import {Referee, RefereeWithRoleDEO} from "@/types/referee_types";
 import type {NewReferee} from "@/types/referee_types";
 import {NewRuleDEO, Rule} from "@/types/rules_types";
 
@@ -35,10 +35,10 @@ export async function addRuleOnServer(rule: NewRuleDEO) {
         .then(data => parseAndHandleDEO(data, Rule))
 }
 
-export async function getAllUsers():Promise<Array<Referee>> {
+export async function getAllUsers():Promise<Array<RefereeWithRoleDEO>> {
     return fetch("/api/user/all")
         .then(response => response.json())
-        .then(data => parseAndHandleDEO(data, z.array(Referee)))
+        .then(data => parseAndHandleDEO(data, z.array(RefereeWithRoleDEO)))
 }
 
 export async function updateUserOnServer(user: Referee) {
