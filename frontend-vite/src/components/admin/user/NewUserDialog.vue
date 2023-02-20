@@ -11,6 +11,7 @@ const props = defineProps<{
 }>()
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
+  (e: 'newRefereeAdded', referee: Referee): void
 }>()
 
 const localVisible = computed({
@@ -24,6 +25,7 @@ const localVisible = computed({
 
 function closeDialog() {
   emits('update:visible', false)
+
 }
 
 
@@ -38,6 +40,7 @@ function addNewReferee() {
         .then((referee: Referee) => {
           closeDialog()
           isLoading.value = false
+          emits('newRefereeAdded', referee)
         })
         .catch((error) => {
           store.newError(error)

@@ -13,10 +13,14 @@ const users = ref<Referee[]>([]);
 const editingUsers = ref<Referee[]>([]);
 const showNewUserDialog = ref(false);
 onMounted(() => {
+  updateUserList()
+})
+
+function updateUserList() {
   getAllUsers()
       .then(it => users.value = it)
       .catch(err => store.newError(err))
-})
+}
 
 function editUser(event: DataTableRowEditSaveEvent) {
 
@@ -77,6 +81,7 @@ function deactivateUser(user: Referee) {
 
   <NewUserDialog
     v-model:visible="showNewUserDialog"
+    @newRefereeAdded="() => updateUserList()"
     />
 </template>
 
