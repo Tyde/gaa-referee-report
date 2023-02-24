@@ -82,11 +82,17 @@ onMounted(() => {
 
       </div>
       <div class="field p-2 object-center">
-        <label for="umpirePresentCheckBox"> Umpires present on time:</label><br>
-        <Checkbox
-            id="umpirePresentCheckBox"
-            v-model="store.selectedGameReport.umpirePresentOnTime"
-            :binary="true"/>
+
+        <div class="flex flex-col items-center justify-center">
+          <div><label for="umpirePresentCheckBox"> Umpires present on time:</label></div>
+          <div>
+            <input type="checkbox"
+                id="umpirePresentCheckBox"
+                class="w-6 h-6 rounded m-2"
+                v-model="store.selectedGameReport.umpirePresentOnTime"
+                :binary="true"/>
+          </div>
+        </div>
       </div>
       <div v-if="!store.selectedGameReport.umpirePresentOnTime" class="field p-2">
         <label for="umpireNotes">Comment on Umpires:</label><br>
@@ -129,8 +135,14 @@ onMounted(() => {
 
       </div>
       <div class="field p-2 mt-6">
-        <Button @click="showGameTypeDialog" class="p-button-success">
+        <Button @click="showGameTypeDialog" class="p-button-success h-12 p-button-outlined">
           <i class="pi pi-plus"></i> </Button>
+      </div>
+      <div class="p-2 mt-6">
+        <Button
+            @click="emit('deleteThisReport', store.selectedGameReport)"
+            class="p-button-danger h-12 p-button-outlined"
+        >Delete this game report</Button>
       </div>
     </div>
     <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
@@ -146,12 +158,7 @@ onMounted(() => {
 
     </div>
 
-    <div class="col-span-2 p-4 flex justify-center">
-      <Button
-          @click="emit('deleteThisReport', store.selectedGameReport)"
-          class="p-button-danger"
-        >Delete this game report</Button>
-    </div>
+
     <GameTypeEditor
         v-model:visible = "gameTypeEditorVisible"
     />

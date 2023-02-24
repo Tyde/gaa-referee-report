@@ -286,13 +286,22 @@ function navigate(stage:ReportEditStage) {
       </div>
     </div>
   </template>
-
   <div class="mx-auto mt-10 flex flex-row justify-center">
+  <div v-if="store.report.id && current_stage !== ReportEditStage.Submit">
+    <Button
+        class="p-button-success"
+        @click="() => navigate(ReportEditStage.Submit)">
+      Submit report
+    </Button>
+  </div>
+  </div>
+
+  <div class="mx-auto mt-2 flex flex-row justify-center">
   <div>
     <Button
         class="p-button-outlined p-button-secondary"
         @click="backToDashboard">
-      Back to Dashboard
+      Back to dashboard
     </Button>
   </div>
   </div>
