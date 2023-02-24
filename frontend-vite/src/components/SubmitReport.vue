@@ -334,10 +334,10 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
               No extra time option selected
             </template>
             <template v-else-if="issue===GameReportIssue.NoTeamA">
-              No home team selected
+              No team A selected
             </template>
             <template v-else-if="issue===GameReportIssue.NoTeamB">
-              No away team selected
+              No team B selected
             </template>
             <template v-else-if="issue===GameReportIssue.NoScores">
               No scores entered - This might be correct if the game was a draw.

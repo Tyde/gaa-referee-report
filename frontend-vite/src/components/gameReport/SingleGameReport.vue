@@ -134,13 +134,13 @@ onMounted(() => {
       </div>
     </div>
     <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
-      <div>Home team:</div>
+      <div>Team A:</div>
     <SingleGameReportSingleTeam
         :is-team-a = "true" />
 
     </div>
     <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
-      <div>Away team:</div>
+      <div>Team B:</div>
     <SingleGameReportSingleTeam
         :is-team-a = "false" />
 
