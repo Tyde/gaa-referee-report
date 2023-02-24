@@ -6,7 +6,7 @@ import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
 import {injuryIsBlank} from "@/utils/api/injuries_api";
 import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
-import {useReportStore} from "@/utils/edit_report_store";
+import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import {delay} from "@/utils/api/api_utils";
 import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
 import type {Pitch} from "@/types/pitch_types";
@@ -19,7 +19,9 @@ const props = defineProps<{
 }>()*/
 const store = useReportStore()
 
-
+const emit = defineEmits<{
+  (e: 'navigate', stage:ReportEditStage): void
+}>()
 const tournamentIssues = computed(() => {
   if (store.report.tournament == undefined) {
     return "There is currently no tournament selected for this report. Please fix this before submitting."
@@ -27,6 +29,8 @@ const tournamentIssues = computed(() => {
     return ""
   }
 })
+
+
 
 enum GameReportIssue {
   NoGameType,
@@ -42,8 +46,7 @@ enum GameReportIssue {
 enum DisciplinaryActionIssue {
   NoRule,
   NoName,
-  NoNumber,
-  NoDetails
+  NoNumber
 }
 
 class DisciplinaryActionIssues {
@@ -93,9 +96,6 @@ function disciplinaryActionIssuesForGameReport(gameReport: GameReport): Array<Di
     let issues: Array<DisciplinaryActionIssue> = []
     let fullName = disciplinaryAction.firstName + " " + disciplinaryAction.lastName
     if (!disciplinaryActionIsBlank(disciplinaryAction)) {
-      if (disciplinaryAction.details.trim().length == 0) {
-        issues.push(DisciplinaryActionIssue.NoDetails)
-      }
       if (fullName.trim().length == 0) {
         issues.push(DisciplinaryActionIssue.NoName)
       }
@@ -290,6 +290,15 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
       gris.disciplinaryActionIssues.length == 0
   )
 }
+
+function goToGameReport(id:number | undefined) {
+  store.gameReports.forEach((report, index) => {
+    if(report.id == id) {
+      store.selectedGameReportIndex = index
+    }
+  })
+  emit("navigate",ReportEditStage.EditGameReports)
+}
 </script>
 
 <template>
@@ -342,6 +351,11 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
             <template v-else-if="issue===GameReportIssue.NoScores">
               No scores entered - This might be correct if the game was a draw.
             </template>
+            <!-- go to report button -->
+            <br><Button
+              class="p-button-info p-button-raised p-button-text"
+              @click="goToGameReport(gris.gameReport.id)"
+          >Go to report</Button>
           </li>
           <template v-for="inIssues in gris.injuriesIssues">
             <li v-for="issue in inIssues.issues">
@@ -351,16 +365,16 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
               <template v-if="issue===InjuryIssue.NoName">
                 Missing name for Injury with details: {{ inIssues.action.details }}
               </template>
+              <br><Button
+                class="p-button-info p-button-raised p-button-text"
+                @click="goToGameReport(gris.gameReport.id)"
+            >Go to report</Button>
             </li>
           </template>
           <template v-for="disIssues in gris.disciplinaryActionIssues">
             <li v-for="issue in disIssues.issues">
               <template v-if="issue===DisciplinaryActionIssue.NoName">
                 Missing name for disciplinary action with details: {{ disIssues.action.details }}
-              </template>
-              <template v-if="issue===DisciplinaryActionIssue.NoDetails">
-                No details entered for disciplinary action of {{ disIssues.action.firstName }}
-                {{ disIssues.action.lastName }}
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoNumber">
                 Missing number for disciplinary action of {{ disIssues.action.firstName }} {{
@@ -370,6 +384,10 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
               <template v-if="issue===DisciplinaryActionIssue.NoRule">
                 Missing rule for disciplinary action of {{ disIssues.action.firstName }} {{ disIssues.action.lastName }}
               </template>
+              <br><Button
+                class="p-button-info p-button-raised p-button-text"
+                @click="goToGameReport(gris.gameReport.id)"
+            >Go to report</Button>
             </li>
           </template>
         </ul>

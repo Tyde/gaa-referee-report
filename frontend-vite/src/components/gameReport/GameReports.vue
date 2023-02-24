@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import SingleGameReport from "@/components/gameReport/SingleGameReport.vue";
-import {computed, onBeforeMount, ref} from "vue";
+import {computed, onBeforeMount, ref, watch} from "vue";
 import { DateTime } from "luxon";
 import {checkGameReportNecessary, checkGameReportSuggestion} from "@/utils/gobal_functions";
 import {useReportStore} from "@/utils/edit_report_store";
@@ -73,10 +73,27 @@ function newGameReport() {
   }
 })*/
 onBeforeMount(()=> {
+
+
   if(store.gameReports.length==0){
     newGameReport()
   } else {
-    store.selectedGameReportIndex = 0
+    console.log("locaiotn",location.href)
+    let queryIdSplit = location.href.split("#")[1]?.split("/")[1]
+    console.log("quid split",queryIdSplit)
+    if(queryIdSplit) {
+      let queryId = parseInt(queryIdSplit)
+      console.log("QueryID:",queryId)
+      store.gameReports.forEach((report, index) => {
+        if(report.id == queryId) {
+          store.selectedGameReportIndex = index
+        }
+      })
+    } else {
+      if(!store.selectedGameReport) {
+        store.selectedGameReportIndex = 0
+      }
+    }
   }
 })
 
@@ -116,6 +133,15 @@ const gameReportsListIndices = computed(() => {
   }
   return indices
 })
+
+watch(() => store.selectedGameReport, () => {
+  if(store.selectedGameReport?.id) {
+    location.href="#edit_game_reports/"+store.selectedGameReport?.id
+  } else {
+    location.href="#edit_game_reports/new"
+  }
+} )
+
 
 
 

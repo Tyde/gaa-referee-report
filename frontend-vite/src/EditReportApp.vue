@@ -8,19 +8,13 @@ import {
   uploadReport
 } from "@/utils/api/report_api";
 import SubmitReport from "@/components/SubmitReport.vue";
-import {useReportStore} from "@/utils/edit_report_store";
+import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 import type {DatabaseTournament} from "@/types/tournament_types";
 
 const store = useReportStore()
 
-enum ReportEditStage {
-  SelectTournament,
-  SelectTeams,
-  EditGameReports,
-  EditPitchReports,
-  Submit
-}
+
 
 
 const allStages = ref([
@@ -84,8 +78,9 @@ function submit_teams(teams_added: Array<Team>) {
   store.report.selectedTeams = store.report.selectedTeams.concat(teams_added)
 }
 
+
 watch(() => store.report.tournament, () => {
-  if (store.report.tournament) {
+  if (store.report.tournament && !isLoading.value) {
     current_stage.value = ReportEditStage.SelectTeams
   }
 })
@@ -133,8 +128,10 @@ async function loadAndHandleReport(id: number) {
   }
   isLoading.value = false
 }
+const dontUpdateHref = ref(false)
 
 watch(current_stage, (new_stage, old_stage) => {
+  console.log("stage change ",old_stage,new_stage)
   if (old_stage === ReportEditStage.SelectTeams ||
       old_stage === ReportEditStage.SelectTournament) {
     if (baseReportJustUploaded.value) {
@@ -145,27 +142,37 @@ watch(current_stage, (new_stage, old_stage) => {
       }
     }
   }
-  switch (new_stage) {
-    case ReportEditStage.SelectTournament:
-      location.href= "#select_tournament"
-      break
-    case ReportEditStage.SelectTeams:
-      location.href= "#select_teams"
-      break
-    case ReportEditStage.EditGameReports:
-      location.href= "#edit_game_reports"
-      break
-    case ReportEditStage.EditPitchReports:
-      location.href= "#edit_pitch_reports"
-      break
-    case ReportEditStage.Submit:
-      location.href= "#submit"
-      break
+  if (!dontUpdateHref.value) {
+    switch (new_stage) {
+      case ReportEditStage.SelectTournament:
+        location.href = "#select_tournament"
+        break
+      case ReportEditStage.SelectTeams:
+        location.href = "#select_teams"
+        break
+      case ReportEditStage.EditGameReports:
+        location.href = "#edit_game_reports"
+        break
+      case ReportEditStage.EditPitchReports:
+        location.href = "#edit_pitch_reports"
+        break
+      case ReportEditStage.Submit:
+        location.href = "#submit"
+        break
+    }
+  } else {
+    console.log("Not updating href as it is loaded on begin")
+    dontUpdateHref.value = false
   }
+
 })
 
 
 function selectStageByURL(specifier:string) {
+  //First remove anything trailing the slash
+  specifier = specifier.replace(/\/.*/, "")
+  console.log("Modified specifier",specifier)
+  dontUpdateHref.value = true
   switch (specifier) {
     case "select_tournament":
       current_stage.value = ReportEditStage.SelectTournament
@@ -213,6 +220,10 @@ onMounted(() => {
 function backToDashboard() {
   location.href = "/"
 }
+
+function navigate(stage:ReportEditStage) {
+  current_stage.value = stage
+}
 </script>
 
 <template>
@@ -251,6 +262,7 @@ function backToDashboard() {
 
   <SubmitReport
       v-if="current_stage === ReportEditStage.Submit"
+      @navigate="navigate"
       />
   <template v-if="readyStartReport">
     <div class="mx-auto w-full xl:w-[47rem]">

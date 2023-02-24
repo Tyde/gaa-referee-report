@@ -27,6 +27,14 @@ import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_t
 import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
 
+
+export enum ReportEditStage {
+    SelectTournament,
+    SelectTeams,
+    EditGameReports,
+    EditPitchReports,
+    Submit
+}
 export const useReportStore = defineStore('report', () => {
     const report = ref<Report>({} as Report)
     report.value.selectedTeams = []
