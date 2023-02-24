@@ -8,6 +8,10 @@ store.fetchGameReportVariables()
 
 const items = ref([
   {
+    label: "Referee Home",
+    url: "/"
+  }
+    ,{
     label: "Report options",
     items: [
       {
