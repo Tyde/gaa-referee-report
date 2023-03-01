@@ -41,6 +41,10 @@ volumes:
   database:
 ```
 
+## Sample video
+[here](https://www.youtube.com/watch?v=gyzN0ipvogg)
+
+
 ## Development
 
 The project consists of a backend written in Kotlin (Ktor framework; organized via gradle) and a frontend
