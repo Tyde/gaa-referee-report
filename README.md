@@ -25,7 +25,7 @@ services:
     volumes:
       - database:/app/data
     environment:
-      SERVER_URL: "http://base.url"
+      SERVER_URL: "https://base.url"
       MAILJET_PUBLIC: "public"
       MAILJET_SECRET: "secret"
       ADMIN_FIRST_NAME: "Your"
