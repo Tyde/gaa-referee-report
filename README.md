@@ -60,11 +60,3 @@ The naming convention is like the following:
 
 `server.url` -> `SERVER_URL`
 
-## JWT
-
-Generate a JWT token with the [`json-web-key-generator.jar`](https://github.com/mitreid-connect/json-web-key-generator) 
-
-`java -jar json-web-key-generator.jar -t RSA -s 2048 -i ggereferee -u sig -S -o full.json -P jwks.json
-`
-
-place the jwks.json file in the key folder in the data folder.
