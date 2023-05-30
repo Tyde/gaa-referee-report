@@ -70,7 +70,7 @@ onMounted(() => {
 </script>
 <template>
 
-  <div class="grid grid-cols-2">
+  <div class="grid grid-cols-2" v-if="store.selectedGameReport !== undefined">
     <div class="col-span-2 flex flex-wrap">
       <div class="field p-2">
         <label for="timeStartGame">Throw in time:</label><br>
@@ -86,7 +86,7 @@ onMounted(() => {
             :showTime="true"
             :time-only="true"
             :class="{
-                'to-be-filled':store.selectedGameReport?.startTime===undefined
+                'to-be-filled':store.selectedGameReport.startTime===undefined
             }"
         />
 
@@ -99,21 +99,21 @@ onMounted(() => {
             <input type="checkbox"
                 id="umpirePresentCheckBox"
                 class="w-6 h-6 rounded m-2"
-                v-model="store.selectedGameReport?.umpirePresentOnTime"
+                v-model="store.selectedGameReport.umpirePresentOnTime"
                 :binary="true"/>
           </div>
         </div>
       </div>
       <div v-if="!store.selectedGameReport?.umpirePresentOnTime" class="field p-2">
         <label for="umpireNotes">Comment on Umpires:</label><br>
-        <InputText id="umpireNotes" v-model="store.selectedGameReport?.umpireNotes" type="text"/>
+        <InputText id="umpireNotes" v-model="store.selectedGameReport.umpireNotes" type="text"/>
 
       </div>
       <div class="field p-2">
         <label for="extraTimeSelect">Extra time:</label><br>
         <Dropdown
             id="extraTimeSelect"
-            v-model="store.selectedGameReport?.extraTime"
+            v-model="store.selectedGameReport.extraTime"
             :options="store.extraTimeOptions"
             option-label="name"
             placeholder="Extra Time"
@@ -128,7 +128,7 @@ onMounted(() => {
         <label for="gameTypeSelect">Game type:</label><br>
         <Dropdown
             id="gameTypeSelect"
-            v-model="store.selectedGameReport?.gameType"
+            v-model="store.selectedGameReport.gameType"
             :options="gameTypesByName"
             option-label="name"
             placeholder="Game Type"

@@ -177,7 +177,9 @@ watch(shadowCopyRule, () => {
       </template>
     </template>
     <template v-else>
-      <InputText class="m-1 w-[100%]" ref="ruleEditInput" v-model="shadowCopyRule?.description"/>
+      <template v-if="shadowCopyRule !== undefined">
+      <InputText class="m-1 w-[100%]" ref="ruleEditInput"
+                 v-model="shadowCopyRule.description"/>
       <div class="float-left">
         <SelectButton v-model="selectedCardInCopy" :options="cards" class="m-1" optionLabel="label"/>
       </div>
@@ -185,7 +187,7 @@ watch(shadowCopyRule, () => {
         <vue-feather class="m-2" type="x" @click="cancelEdit()"/>
         <vue-feather class="m-2" type="check" @click="saveRule()"/>
       </div>
-
+      </template>
     </template>
 
   </div>

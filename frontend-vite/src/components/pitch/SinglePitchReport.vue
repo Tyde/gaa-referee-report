@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
           <label for="smallSquareSelect">Small square markings:</label><br>
           <Dropdown
               id="smallSquareSelect"
-              v-model="store.selectedPitchReport?.smallSquareMarkings"
+              v-model="pitch.smallSquareMarkings"
               :class="{
                 'to-be-filled':pitch.smallSquareMarkings===undefined
             }"
