@@ -153,10 +153,10 @@ watch(() => store.selectedGameReport, () => {
   <template #start>
     <SelectButton v-model="store.selectedGameReportIndex" :options="gameReportsListIndices" >
       <template #option="slotProps">
-        <span v-if="store.gameReports[slotProps.option].startTime">{{store.gameReports[slotProps.option].startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
-        <span v-if="store.gameReports[slotProps.option].teamAReport.team">{{store.gameReports[slotProps.option].teamAReport.team.name}}</span>
+        <span v-if="store.gameReports[slotProps.option].startTime">{{store.gameReports[slotProps.option].startTime?.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
+        <span v-if="store.gameReports[slotProps.option].teamAReport.team">{{store.gameReports[slotProps.option].teamAReport.team?.name}}</span>
         <span v-else>...</span>&nbsp;vs.&nbsp;
-        <span v-if="store.gameReports[slotProps.option].teamBReport.team">{{store.gameReports[slotProps.option].teamBReport.team.name}}</span>
+        <span v-if="store.gameReports[slotProps.option].teamBReport.team">{{store.gameReports[slotProps.option].teamBReport.team?.name}}</span>
         <span v-else>...</span>
 
         <vue-feather

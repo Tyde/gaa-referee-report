@@ -24,6 +24,12 @@ async function asyncUpload(pitch:Pitch) {
       })
 }
 
+function deleteThisReport(pitch: Pitch | undefined) {
+  if(pitch) {
+    emit('deleteThisReport', pitch)
+  }
+}
+
 watch(() => store.selectedPitchReport, (value, oldValue) => {
   console.log("Switched report, oldReport is ")
   if(!props.toBeDeleted) {
@@ -116,7 +122,7 @@ onBeforeUnmount(() => {
           <label for="smallSquareSelect">Small square markings:</label><br>
           <Dropdown
               id="smallSquareSelect"
-              v-model="store.selectedPitchReport.smallSquareMarkings"
+              v-model="store.selectedPitchReport?.smallSquareMarkings"
               :class="{
                 'to-be-filled':pitch.smallSquareMarkings===undefined
             }"
@@ -239,7 +245,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="flex-row flex justify-center mt-4">
         <Button
-            @click="emit('deleteThisReport',store.selectedPitchReport)"
+            @click="deleteThisReport(store.selectedPitchReport)"
             class="p-button-danger"
           >Delete this pitch report</Button>
       </div>

@@ -32,6 +32,12 @@ const gameTypesByName = computed(() => {
   return store.gameTypes.sort((a, b) => a.name > b.name ? 1 : -1)
 })
 
+function deleteThisReport(report:GameReport | undefined) {
+  if(report) {
+    emit('deleteThisReport', report)
+  }
+}
+
 
 watch(()=>store.selectedGameReport,(value,oldValue)=> {
   if(store.selectedGameReport && oldValue && oldValue.id != -1 && !props.toBeDeleted) {
@@ -69,14 +75,18 @@ onMounted(() => {
       <div class="field p-2">
         <label for="timeStartGame">Throw in time:</label><br>
         <Calendar
-            :model-value="store.selectedGameReport.startTime?.toJSDate()"
-            @update:model-value="(nD:Date) => {store.selectedGameReport.startTime = DateTime.fromJSDate(nD)}"
+            :model-value="store.selectedGameReport?.startTime?.toJSDate()"
+            @update:model-value="(nD:Date) => {
+              if(store.selectedGameReport){
+                store.selectedGameReport.startTime = DateTime.fromJSDate(nD)
+              }
+            }"
             id="timeStartGame"
             :showSeconds="false"
             :showTime="true"
             :time-only="true"
             :class="{
-                'to-be-filled':store.selectedGameReport.startTime===undefined
+                'to-be-filled':store.selectedGameReport?.startTime===undefined
             }"
         />
 
@@ -89,26 +99,26 @@ onMounted(() => {
             <input type="checkbox"
                 id="umpirePresentCheckBox"
                 class="w-6 h-6 rounded m-2"
-                v-model="store.selectedGameReport.umpirePresentOnTime"
+                v-model="store.selectedGameReport?.umpirePresentOnTime"
                 :binary="true"/>
           </div>
         </div>
       </div>
-      <div v-if="!store.selectedGameReport.umpirePresentOnTime" class="field p-2">
+      <div v-if="!store.selectedGameReport?.umpirePresentOnTime" class="field p-2">
         <label for="umpireNotes">Comment on Umpires:</label><br>
-        <InputText id="umpireNotes" v-model="store.selectedGameReport.umpireNotes" type="text"/>
+        <InputText id="umpireNotes" v-model="store.selectedGameReport?.umpireNotes" type="text"/>
 
       </div>
       <div class="field p-2">
         <label for="extraTimeSelect">Extra time:</label><br>
         <Dropdown
             id="extraTimeSelect"
-            v-model="store.selectedGameReport.extraTime"
+            v-model="store.selectedGameReport?.extraTime"
             :options="store.extraTimeOptions"
             option-label="name"
             placeholder="Extra Time"
             :class="{
-                'to-be-filled':store.selectedGameReport.extraTime===undefined
+                'to-be-filled':store.selectedGameReport?.extraTime===undefined
             }"
         >
 
@@ -118,12 +128,12 @@ onMounted(() => {
         <label for="gameTypeSelect">Game type:</label><br>
         <Dropdown
             id="gameTypeSelect"
-            v-model="store.selectedGameReport.gameType"
+            v-model="store.selectedGameReport?.gameType"
             :options="gameTypesByName"
             option-label="name"
             placeholder="Game Type"
             :class="{
-                'to-be-filled':store.selectedGameReport.gameType===undefined
+                'to-be-filled':store.selectedGameReport?.gameType===undefined
             }"
             class="w-60"
             :filter="true"
@@ -140,7 +150,7 @@ onMounted(() => {
       </div>
       <div class="p-2 mt-6">
         <Button
-            @click="emit('deleteThisReport', store.selectedGameReport)"
+            @click="deleteThisReport(store.selectedGameReport)"
             class="p-button-danger h-12 p-button-outlined"
         >Delete this game report</Button>
       </div>

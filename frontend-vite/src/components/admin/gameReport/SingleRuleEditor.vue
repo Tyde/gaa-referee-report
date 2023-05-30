@@ -142,13 +142,13 @@ watch(shadowCopyRule, () => {
     <template v-if="!editing">
       <div>
         <div class="float-left">
-          <h4><span class="disabled-tag" v-if="rule.isDisabled">Disabled</span>  {{rule.description }}</h4>
-          <p v-if="rule.isCaution">Caution</p>
-          <p v-else-if="rule.isBlack">Black</p>
-          <p v-else-if="rule.isRed">Red</p>
+          <h4><span class="disabled-tag" v-if="rule?.isDisabled">Disabled</span>  {{rule?.description }}</h4>
+          <p v-if="rule?.isCaution">Caution</p>
+          <p v-else-if="rule?.isBlack">Black</p>
+          <p v-else-if="rule?.isRed">Red</p>
         </div>
         <div class="group-hover:visible invisible float-right h-buttons">
-          <vue-feather v-if="!rule.isDisabled" type="trash" @click="startDeleteProcess()"/>
+          <vue-feather v-if="!rule?.isDisabled" type="trash" @click="startDeleteProcess()"/>
           <vue-feather v-else type="check" @click="enableRule()"/>
           <vue-feather type="edit" @click="editRule()"/>
         </div>
@@ -177,7 +177,7 @@ watch(shadowCopyRule, () => {
       </template>
     </template>
     <template v-else>
-      <InputText class="m-1 w-[100%]" ref="ruleEditInput" v-model="shadowCopyRule.description"/>
+      <InputText class="m-1 w-[100%]" ref="ruleEditInput" v-model="shadowCopyRule?.description"/>
       <div class="float-left">
         <SelectButton v-model="selectedCardInCopy" :options="cards" class="m-1" optionLabel="label"/>
       </div>

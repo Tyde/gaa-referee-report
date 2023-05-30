@@ -108,7 +108,7 @@ function stripRuleCardsFromDescription(description?: string) {
       </div>
       <div class="text-xl col-span-2 p-2 flex flex-col justify-center place-content-center">
         <div class="flex-shrink">Total: {{
-            currentSingleTeamGameReport.goals * 3 + currentSingleTeamGameReport.points
+            (currentSingleTeamGameReport?.goals??0) * 3 + (currentSingleTeamGameReport?.points??0)
           }}
         </div>
       </div>
@@ -131,7 +131,7 @@ function stripRuleCardsFromDescription(description?: string) {
             <div v-if="action.rule?.isCaution" class="rule-card card-yellow"></div>
             <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
             <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
-            {{action.number}} - {{action.firstName}} {{action.lastName}} - {{stripRuleCardsFromDescription(action.rule?.description).substring(0, 25)}} ...
+            {{action.number}} - {{action.firstName}} {{action.lastName}} - {{stripRuleCardsFromDescription(action.rule?.description)?.substring(0, 25)}} ...
             </template>
           </div>
         </div>
