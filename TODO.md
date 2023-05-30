@@ -1,0 +1,24 @@
+ - [ ] Finalize Rules editor
+   - [ ] Add enable rule option
+   - [ ] Option to add Rule
+   - [ ] Conform with disabled Rules in editor
+ - [ ] Add Game Type editor
+ - [ ] Add Extra Time editor
+ - [ ] Finalize Pitch options editor
+   - [ ] Add option to add Pitch options
+   - [ ] Add option to disable Pitch options
+ - [ ] Logout
+ - [ ] Edit Profile
+ - [ ] Edit Report optimizations
+   - [ ] On Tournament selection page - show current tournaments
+   - [ ] After Game Reports going to Pitch reports - better layout
+   - [ ] Center everything!
+ - [ ] Show Admin link when logged in as admin
+ - [ ] Teams editor in Admin panel
+ - [ ] Responsiveness of Design - At least Report
+ - [ ] Introduce a "secret" link which can be used to share a report
+
+## Open Ideas
+ - Option to "freeze" reports as soon as they are submitted => changes in the options are no longer respected
+ - Option to unsubmit a report in a given time period
+ - 
