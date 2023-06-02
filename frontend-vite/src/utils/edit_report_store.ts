@@ -26,6 +26,8 @@ import type {Report} from "@/types/report_types";
 import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
+import {loadAllRegions} from "@/utils/api/tournament_api";
+import {RegionDEO} from "@/types/tournament_types";
 
 
 export enum ReportEditStage {
@@ -47,6 +49,7 @@ export const useReportStore = defineStore('report', () => {
     const gameTypes = ref<Array<GameType>>([])
     const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
     const pitchVariables = ref<PitchVariables | undefined>()
+    const regions = ref<Array<RegionDEO>>([])
 
     const currentErrors = ref<ErrorMessage[]>([])
 
@@ -115,7 +118,13 @@ export const useReportStore = defineStore('report', () => {
             })
             .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
-        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport])
+        const promiseRegions = loadAllRegions()
+            .then(regionsFromServer => {
+                regions.value = regionsFromServer
+            })
+            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+
+        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport, promiseRegions])
     }
 
     async function loadReport(id: number) {
@@ -315,6 +324,7 @@ export const useReportStore = defineStore('report', () => {
         gameTypes,
         extraTimeOptions,
         pitchVariables,
+        regions,
         enabledPitchVariables,
         currentErrors,
         selectedGameReportIndex,

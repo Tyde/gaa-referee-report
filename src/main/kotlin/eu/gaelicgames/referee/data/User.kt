@@ -61,6 +61,8 @@ class User(id: EntityID<Long>) : LongEntity(id) {
 
 }
 
+
+
 object Sessions : LongIdTable() {
     val uuid = uuid("uuid")
     val user = reference("user", Users)

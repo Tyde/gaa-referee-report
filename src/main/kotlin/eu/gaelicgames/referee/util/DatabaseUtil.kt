@@ -23,6 +23,7 @@ object DatabaseHandler {
         Sessions,
         Teams,
         Amalgamations,
+        Regions,
         Tournaments,
         GameCodes,
         TournamentReports,
@@ -57,6 +58,8 @@ object DatabaseHandler {
                 PitchGoalpostsOptions,
                 PitchGoalDimensionOptions
             )
+
+
         }
     }
 
@@ -105,6 +108,11 @@ object DatabaseHandler {
             PitchWidthOptions,
             "pitch_width_options.csv",
             PitchWidthOptions.name
+        )
+        populate_name_only_table_from_csv(
+            Regions,
+            "regions.csv",
+            Regions.name
         )
 
         populate_rules()

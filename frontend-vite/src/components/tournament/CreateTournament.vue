@@ -3,17 +3,21 @@
 import {computed, onMounted, ref} from "vue";
 import {DateTime} from "luxon";
 import {DatabaseTournament, Tournament} from "@/types/tournament_types";
+import {useReportStore} from "@/utils/edit_report_store";
+import {uploadNewTournament} from "@/utils/api/tournament_api";
 
 const props = defineProps<{
   preselectedDate: Date,
 }>()
+
+const store = useReportStore()
 
 const emit = defineEmits<{
   (e: 'tournament_created', tournament: DatabaseTournament): void,
   (e: 'canceled') :void
 }>()
 const editedTournament = ref<Tournament>({
-  date: DateTime.now(), location: "", name: ""
+  date: DateTime.now(), location: "", name: "", region: 0
 })
 const allowChangeDate = ref<Boolean>(false)
 const isLoading = ref<Boolean>(true)
@@ -22,29 +26,23 @@ onMounted(() => {
 })
 
 async function save_tournament() {
-  if (editedTournament.value.location && editedTournament.value.name) {
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-      },
-      body: JSON.stringify({
-        name:editedTournament.value.name,
-        location: editedTournament.value.location,
-        date:editedTournament.value.date.toISODate()
-      })
-    };
-    isLoading.value = true
-    const response = await fetch("/api/tournament/new",requestOptions)
-    const data = await response.json()
-    let parseResult = DatabaseTournament.safeParse(data)
-    if (parseResult.success) {
-      emit('tournament_created',parseResult.data)
-    } else {
-      console.error(parseResult.error)
-    }
-    isLoading.value = false
+  if (editedTournament.value.location && editedTournament.value.name && editedTournament.value.region) {
 
+    isLoading.value = true
+
+
+    uploadNewTournament(editedTournament.value)
+        .then((newTournament) => emit('tournament_created',newTournament))
+        .catch((e) => {
+          store.newError(e)
+        })
+        .finally(() => {
+          isLoading.value = false
+        })
+
+
+  } else {
+    store.newError("Please fill out all fields")
   }
 }
 
@@ -77,6 +75,15 @@ const dateString = computed(() => {
         <InputText v-model="editedTournament.location" id="location"/>
         <label for="location">Enter tournament location</label>
       </span><br>
+
+        <Dropdown
+            v-model="editedTournament.region"
+            id="region"
+            :options="store.regions"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a region"
+            />
       <div class="flex flex-row">
         <div class="m-2">
           <Button @click="save_tournament">Submit</Button>

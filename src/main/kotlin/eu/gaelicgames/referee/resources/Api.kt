@@ -54,6 +54,15 @@ class Api() {
     }
 
     @Serializable
+    @Resource("region")
+    class Regions(val parent: Api) {
+
+        @Serializable
+        @Resource("all")
+        class All(val parent: Regions)
+    }
+
+    @Serializable
     @Resource("codes")
     class Codes(val parent: Api)
 

@@ -39,10 +39,20 @@ class Amalgamation(id: EntityID<Long>) : LongEntity(id) {
     var addedTeam by Team referencedOn Amalgamations.addedTeam
 }
 
+object Regions : LongIdTable() {
+    val name = varchar("name", 100)
+}
+
+class Region(id:EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<Region>(Regions)
+    var name by Regions.name
+}
+
 object Tournaments : LongIdTable() {
     val name: Column<String> = varchar("name",80)
     val location: Column<String> = varchar("location",90)
     val date: Column<LocalDate> = date("date")
+    val region = reference("region", Regions)
 }
 
 class Tournament(id: EntityID<Long>) : LongEntity(id) {
@@ -50,6 +60,7 @@ class Tournament(id: EntityID<Long>) : LongEntity(id) {
     var name by Tournaments.name
     var location by Tournaments.location
     var date by Tournaments.date
+    var region by Region referencedOn Tournaments.region
 }
 
 object GameCodes : LongIdTable() {

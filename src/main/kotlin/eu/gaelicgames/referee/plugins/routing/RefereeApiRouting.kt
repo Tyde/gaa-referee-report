@@ -114,14 +114,19 @@ fun Route.refereeApiRouting() {
         call.respond(tournaments)
     }
 
+    get<Api.Regions.All> {
+        val regions = transaction {
+            Region.all().map { RegionDEO.fromRegion(it) }
+        }
+        call.respond(regions)
+    }
+
     post<Api.Tournaments.New> {
         receiveAndHandleDEO<NewTournamentDEO> { tournamentDraft ->
-            transaction {
-                Tournament.new {
-                    name = tournamentDraft.name
-                    location = tournamentDraft.location
-                    date = tournamentDraft.date
-                }.let { TournamentDEO.fromTournament(it) }
+            tournamentDraft.storeInDatabase().map {
+                TournamentDEO.fromTournament(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
 

@@ -94,7 +94,7 @@ onMounted(() => {
       <div class="field p-2 object-center">
 
         <div class="flex flex-col items-center justify-center">
-          <div><label for="umpirePresentCheckBox"> Umpires present on time:</label></div>
+          <div><label for="umpirePresentCheckBox">Umpires present on time:</label></div>
           <div>
             <input type="checkbox"
                 id="umpirePresentCheckBox"
@@ -105,7 +105,7 @@ onMounted(() => {
         </div>
       </div>
       <div v-if="!store.selectedGameReport?.umpirePresentOnTime" class="field p-2">
-        <label for="umpireNotes">Comment on Umpires:</label><br>
+        <label for="umpireNotes">Comments on Umpires:</label><br>
         <InputText id="umpireNotes" v-model="store.selectedGameReport.umpireNotes" type="text"/>
 
       </div>
