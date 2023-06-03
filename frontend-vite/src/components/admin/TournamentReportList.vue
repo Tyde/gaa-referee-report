@@ -9,6 +9,7 @@ import {useRouter} from "vue-router";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
 import ShareReport from "@/components/dashboard/ShareReport.vue";
+import {RegionDEO} from "@/types/tournament_types";
 
 
 const store = useAdminStore()
@@ -19,6 +20,12 @@ const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
   return tournaments.value.sort((a, b) => {
     return a.date.diff(b.date).milliseconds < 0 ? 1 : -1
+  }).filter(tournament => {
+    if (selectedRegion.value) {
+      return tournament.region == selectedRegion.value?.id
+    } else {
+      return true
+    }
   })
 })
 
@@ -47,7 +54,7 @@ function reportsByTournament(tournament: DatabaseTournament) {
 
 }
 const reportToShare = ref<CompactTournamentReportDEO | undefined>(undefined)
-
+const selectedRegion = ref<RegionDEO | undefined>(undefined)
 
 onMounted(() => {
   loadAllTournaments()
@@ -80,7 +87,20 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
     </div>
   </div>
   <div
-      v-else
+    v-else>
+    <div class="flex flex-row justify-center content-center">
+      <div>
+      <SelectButton
+          v-model="selectedRegion"
+          :options="store.regions"
+          optionLabel="name"
+        />
+      </div>
+      <div v-if="selectedRegion">
+        <Button @click="selectedRegion = undefined">X</Button>
+      </div>
+    </div>
+  <div
       v-for="tournament in tournamentsSortedByDate"
       :key="tournament.id"
   >
@@ -158,6 +178,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
       </Column>
     </DataTable>
 
+  </div>
   </div>
 
 </template>

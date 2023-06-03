@@ -92,10 +92,12 @@ object MockDataGenerator {
                                 firstCheckDone = true
                             }
                         }
+                        val allRegions = Region.all().toList()
                         Tournament.new {
                             date = LocalDate.parse(csvRecord.get(0))
                             location = csvRecord.get(1)
                             name = csvRecord.get(2)
+                            region = allRegions.random()
                         }
                         println(
                             "Adding Tournament: ${csvRecord.get(0)} ${csvRecord.get(1)} ${csvRecord.get(

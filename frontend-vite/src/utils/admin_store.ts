@@ -21,6 +21,8 @@ import {addRuleOnServer, updateGameTypeOnServer} from "@/utils/api/admin_api";
 import type {NewRuleDEO, Rule} from "@/types/rules_types";
 import type {PitchProperty, PitchVariables} from "@/types/pitch_types";
 import {PitchPropertyType} from "@/types/pitch_types";
+import type {RegionDEO} from "@/types/tournament_types";
+import {loadAllRegions} from "@/utils/api/tournament_api";
 
 export const useAdminStore = defineStore('admin', () => {
     const pitchVariables = ref<PitchVariables>()
@@ -28,6 +30,7 @@ export const useAdminStore = defineStore('admin', () => {
     const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
     const rules = ref<Array<Rule>>([])
     const codes = ref<Array<GameCode>>([])
+    const regions = ref<Array<RegionDEO>>([])
 
 
     const currentErrors = ref<ErrorMessage[]>([])
@@ -52,7 +55,12 @@ export const useAdminStore = defineStore('admin', () => {
             })
             .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
-        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport])
+        const promiseRegions = loadAllRegions()
+            .then(it => regions.value = it)
+            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+
+
+        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport, promiseRegions])
 
     }
 
@@ -241,6 +249,7 @@ export const useAdminStore = defineStore('admin', () => {
         extraTimeOptions,
         rules,
         codes,
+        regions,
         fetchGameReportVariables,
         fetchPitchVariables,
         getVariablesByType,
