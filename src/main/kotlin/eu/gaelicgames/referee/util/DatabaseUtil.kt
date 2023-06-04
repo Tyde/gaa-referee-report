@@ -59,6 +59,8 @@ object DatabaseHandler {
                 PitchGoalDimensionOptions
             )
 
+            //Migration 2 - All Tournaments now have a "region" field
+            SchemaUtils.createMissingTablesAndColumns(Tournaments)
 
         }
     }

@@ -52,7 +52,7 @@ object Tournaments : LongIdTable() {
     val name: Column<String> = varchar("name",80)
     val location: Column<String> = varchar("location",90)
     val date: Column<LocalDate> = date("date")
-    val region = reference("region", Regions)
+    val region = reference("region", Regions).default(EntityID(1, Regions))
 }
 
 class Tournament(id: EntityID<Long>) : LongEntity(id) {
@@ -60,7 +60,7 @@ class Tournament(id: EntityID<Long>) : LongEntity(id) {
     var name by Tournaments.name
     var location by Tournaments.location
     var date by Tournaments.date
-    var region by Region referencedOn Tournaments.region
+    var region by Region referencedOn  Tournaments.region
 }
 
 object GameCodes : LongIdTable() {
