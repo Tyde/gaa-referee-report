@@ -303,7 +303,7 @@ function goToGameReport(id:number | undefined) {
 
 <template>
   <div class="flex justify-center content-center">
-    <div class="flex flex-col w-280 p-4 m-4">
+    <div class="flex flex-col w-screen md:w-[32rem] p-4 m-4">
       <div
           v-if="isUploadingToServer"
           class="bg-blue-200 rounded p-4 text-center">
@@ -425,7 +425,7 @@ function goToGameReport(id:number | undefined) {
         <Textarea
             id="additionalInfo"
             v-model="store.report.additionalInformation"
-            class="w-280"
+            class="w-full m-4"
             cols="40"
             placeholder=""
             rows="4"
@@ -433,7 +433,9 @@ function goToGameReport(id:number | undefined) {
       </div>
       <Button
           v-if="reportReadyForUpload && uploadComplete"
-          @click="submitReport">
+          @click="submitReport"
+          class="w-full m-4"
+      >
         Submit report
       </Button>
 

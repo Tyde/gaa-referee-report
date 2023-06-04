@@ -138,6 +138,7 @@ onMounted(() => {
             class="w-60"
             :filter="true"
             :filter-fields="['name']"
+
         >
 
 
