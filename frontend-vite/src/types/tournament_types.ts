@@ -1,5 +1,7 @@
 import {z} from "zod";
 import {DateTime} from "luxon";
+import {PublicGameReportDEO} from "@/types/game_report_types";
+import {Team} from "@/types/team_types";
 
 export const Tournament = z.object({
     name: z.string().min(1),
@@ -32,3 +34,12 @@ export const RegionDEO = z.object({
 })
 
 export type RegionDEO = z.infer<typeof RegionDEO>
+
+
+export const PublicTournamentReportDEO = z.object({
+    tournament: Tournament,
+    games: z.array(PublicGameReportDEO),
+    teams: z.array(Team)
+})
+
+export type PublicTournamentReportDEO = z.infer<typeof PublicTournamentReportDEO>

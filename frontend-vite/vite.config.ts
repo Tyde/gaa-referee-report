@@ -22,6 +22,7 @@ export default defineConfig({
         showReport: resolve(__dirname, 'show_report.html'),
         onboarding: resolve(__dirname, 'onboarding.html'),
         userDashboard: resolve(__dirname, 'user_dashboard.html'),
+        publicDashboard: resolve(__dirname, 'public_dashboard.html'),
       },
     },
     emptyOutDir: true,

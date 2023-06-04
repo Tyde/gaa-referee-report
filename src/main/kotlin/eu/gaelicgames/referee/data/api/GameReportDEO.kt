@@ -650,3 +650,49 @@ data class CompleteGameReportDEO(
         }
     }
 }
+
+@Serializable
+data class PublicDisciplinaryActionDEO(
+    val id: Long? = null,
+    val team: Long? = null,
+    val rule: Long? = null,
+    val game: Long? = null,
+) {
+    companion object{
+        fun fromDisciplinaryAction(disciplinaryAction: DisciplinaryAction): PublicDisciplinaryActionDEO {
+            return transaction {
+                PublicDisciplinaryActionDEO(
+                    id = disciplinaryAction.id.value,
+                    team = disciplinaryAction.team.id.value,
+                    rule = disciplinaryAction.rule.id.value,
+                    game = disciplinaryAction.game.id.value
+                )
+            }
+        }
+    }
+}
+
+@Serializable
+data class PublicGameReportDEO(
+    val gameReport: GameReportDEO,
+    val disciplinaryActions: List<PublicDisciplinaryActionDEO>,
+    val code: Long,
+) {
+    companion object {
+        fun fromGameReport(gameReport: GameReport): PublicGameReportDEO {
+            return transaction {
+                PublicGameReportDEO(
+                    gameReport = GameReportDEO.fromGameReport(gameReport),
+                    disciplinaryActions = gameReport.disciplinaryActions.map {
+                        PublicDisciplinaryActionDEO.fromDisciplinaryAction(
+                            it
+                        )
+                    },
+                    code = gameReport.report.code.id.value
+                )
+
+
+            }
+        }
+    }
+}

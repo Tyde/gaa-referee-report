@@ -55,6 +55,10 @@ class Api() {
         @Serializable
         @Resource("update")
         class Update(val parent: Tournaments)
+
+        @Serializable
+        @Resource("complete_report/{id}")
+        class CompleteReport(val parent: Tournaments, val id: Long)
     }
 
     @Serializable

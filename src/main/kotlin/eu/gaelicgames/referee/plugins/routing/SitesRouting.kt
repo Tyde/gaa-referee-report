@@ -195,4 +195,16 @@ fun Route.sites() {
         }
 
     }
+
+    get("/public") {
+        val resource =
+            this.javaClass.classLoader.getResourceAsStream("static/public_dashboard.html")
+        if (resource != null) {
+            call.respondOutputStream(contentType = ContentType.Text.Html) {
+                resource.copyTo(this)
+            }
+        } else {
+            call.respond(HttpStatusCode.InternalServerError)
+        }
+    }
 }

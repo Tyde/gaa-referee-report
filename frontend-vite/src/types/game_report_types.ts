@@ -85,3 +85,17 @@ export const CompleteGameReportDEO = z.object({
     disciplinaryActions: DisciplinaryActionDEO.array().nullable()
 })
 export type CompleteGameReportDEO = z.infer<typeof CompleteGameReportDEO>;
+
+export const PublicDisciplinaryActionDEO = z.object({
+    id: z.number(),
+    team: z.number(),
+    rule: z.number(),
+    game: z.number(),
+})
+export const PublicGameReportDEO = z.object({
+    gameReport: GameReportDEO,
+    disciplinaryActions: z.array(PublicDisciplinaryActionDEO),
+    code: z.number()
+})
+
+export type PublicGameReportDEO = z.infer<typeof PublicGameReportDEO>

@@ -5,8 +5,10 @@ import eu.gaelicgames.referee.data.GameCodeDEO
 import eu.gaelicgames.referee.data.Rule
 import eu.gaelicgames.referee.data.api.GameReportClassesDEO
 import eu.gaelicgames.referee.data.api.PitchVariablesDEO
+import eu.gaelicgames.referee.data.api.PublicTournamentReportDEO
 import eu.gaelicgames.referee.data.api.RuleDEO
 import eu.gaelicgames.referee.resources.Api
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
@@ -33,5 +35,17 @@ fun Route.publicApiRouting() {
             GameCode.all().map { GameCodeDEO(it) }
         }
         call.respond(allCodes)
+    }
+
+    get<Api.Tournaments.CompleteReport> { completeReport ->
+        val id = completeReport.id
+        runCatching {
+            PublicTournamentReportDEO.fromTournamentId(id).let {
+                call.respond(it)
+            }
+        }.onFailure {
+            call.respond(HttpStatusCode.NotFound)
+        }
+
     }
 }

@@ -33,7 +33,7 @@ const route = useRoute()
   </transition-group>
   <div class="flex flex-row justify-center">
     <div class="w-full xl:w-10/12">
-      <div class="flex flex-row justify-center md:flex-wrap no-print">
+      <div class="flex flex-row justify-center flex-wrap md:flex-nowrap no-print">
         <div class="m-2">
           <Button label="Create new report" icon="pi pi-plus" class="m-2" @click="newReport"></Button>
         </div>
