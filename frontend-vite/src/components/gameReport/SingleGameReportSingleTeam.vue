@@ -208,8 +208,10 @@ function stripRuleCardsFromDescription(description?: string) {
   background-color: red;
 }
 
-.score-button-base {
-  padding: 0px !important;
-  margin: 0px !important;
+@media (min-width: 1024px) {
+  .score-button-base {
+    padding: 0px !important;
+    margin: 0px !important;
+  }
 }
 </style>

@@ -71,7 +71,7 @@ onMounted(() => {
 <template>
 
   <div class="grid grid-cols-2" v-if="store.selectedGameReport !== undefined">
-    <div class="col-span-2 flex flex-wrap">
+    <div class="col-span-2 flex flex-wrap flex-col md:flex-row justify-center content-center">
       <div class="field p-2">
         <label for="timeStartGame">Throw in time:</label><br>
         <Calendar
@@ -93,7 +93,7 @@ onMounted(() => {
       </div>
       <div class="field p-2 object-center">
 
-        <div class="flex flex-col items-center justify-center">
+        <div class="flex flex-row md:flex-col items-center justify-center">
           <div><label for="umpirePresentCheckBox">Umpires present on time:</label></div>
           <div>
             <input type="checkbox"
@@ -124,8 +124,8 @@ onMounted(() => {
 
         </Dropdown>
       </div>
-      <div class="field p-2">
-        <label for="gameTypeSelect">Game type:</label><br>
+      <div class="p-2 flex flex-row">
+        <div class="field pr-2"><label for="gameTypeSelect">Game type:</label><br>
         <Dropdown
             id="gameTypeSelect"
             v-model="store.selectedGameReport.gameType"
@@ -141,13 +141,13 @@ onMounted(() => {
         >
 
 
-        </Dropdown>
+        </Dropdown></div>
+        <div class="field pr-2 mt-6">
+          <Button @click="showGameTypeDialog" class="p-button-success h-12 p-button-outlined">
+            <i class="pi pi-plus"></i> </Button>
+        </div>
+      </div>
 
-      </div>
-      <div class="field p-2 mt-6">
-        <Button @click="showGameTypeDialog" class="p-button-success h-12 p-button-outlined">
-          <i class="pi pi-plus"></i> </Button>
-      </div>
       <div class="p-2 mt-6">
         <Button
             @click="deleteThisReport(store.selectedGameReport)"
@@ -155,13 +155,13 @@ onMounted(() => {
         >Delete this game report</Button>
       </div>
     </div>
-    <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
+    <div  class="single-team-report">
       <div>Team A:</div>
     <SingleGameReportSingleTeam
         :is-team-a = "true" />
 
     </div>
-    <div  class="p-4 col-span-2 lg:col-span-1 flex flex-col">
+    <div  class="single-team-report">
       <div>Team B:</div>
     <SingleGameReportSingleTeam
         :is-team-a = "false" />
@@ -179,6 +179,12 @@ onMounted(() => {
 
 
 <style>
+.single-team-report {
+  @apply p-4 col-span-2 lg:col-span-1 flex;
+  @apply flex-col border-2 border-gray-800 m-2 bg-gray-200;
+  @apply rounded-lg md:border-0;
+
+}
 .to-be-filled {
   @apply ring-2;
   @apply ring-red-400;
