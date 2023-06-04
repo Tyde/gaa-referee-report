@@ -5,6 +5,7 @@ import {z} from "zod";
 import {Referee, RefereeWithRoleDEO} from "@/types/referee_types";
 import type {NewReferee} from "@/types/referee_types";
 import {NewRuleDEO, Rule} from "@/types/rules_types";
+import {DatabaseTournament, databaseTournamentToTournamentDAO} from "@/types/tournament_types";
 
 
 
@@ -54,4 +55,10 @@ export async function addRefereeOnServer(user: NewReferee) {
 export async function updateGameTypeOnServer(gameType: GameType) {
     return makePostRequest("/api/gametype/update", gameType)
         .then(data => parseAndHandleDEO(data, GameType))
+}
+
+export async function updateTournamentOnServer(tournament: DatabaseTournament) {
+    let data = databaseTournamentToTournamentDAO(tournament)
+    return makePostRequest("/api/tournament/update", data)
+        .then(data => parseAndHandleDEO(data, DatabaseTournament))
 }

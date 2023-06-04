@@ -33,7 +33,10 @@ const items = ref([
   }, {
     label: "Tournament Reports",
     to: "/tournament-reports"
-  },{
+  }, {
+    label: "Tournaments",
+    to: "/tournaments"
+  }, {
     label: "Teams",
     to: "/teams"
   }, {

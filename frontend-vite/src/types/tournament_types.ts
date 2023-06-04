@@ -14,6 +14,18 @@ export const DatabaseTournament = Tournament.extend({
 export type DatabaseTournament = z.infer<typeof DatabaseTournament>
 
 
+
+export function databaseTournamentToTournamentDAO(tournament: DatabaseTournament) {
+    return {
+        name: tournament.name,
+        location: tournament.location,
+        date: tournament.date.toISODate(),
+        region: tournament.region,
+        id: tournament.id
+    }
+}
+
+
 export const RegionDEO = z.object({
     id: z.number(),
     name: z.string().min(1),

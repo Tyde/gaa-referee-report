@@ -21,6 +21,29 @@ data class TournamentDEO(
             )}
         }
     }
+
+    fun updateInDatabase(): Result<Tournament> {
+        val thisDEO = this
+        return transaction {
+            val region = Region.findById(thisDEO.region)
+            if (region == null) {
+                return@transaction Result.failure(
+                    IllegalArgumentException("Region with id ${thisDEO.region} does not exist")
+                )
+            }
+            val tournament = Tournament.findById(thisDEO.id)
+            if (tournament == null) {
+                return@transaction Result.failure(
+                    IllegalArgumentException("Tournament with id ${thisDEO.id} does not exist")
+                )
+            }
+            tournament.name = thisDEO.name
+            tournament.location = thisDEO.location
+            tournament.date = thisDEO.date
+            tournament.region = region
+            return@transaction Result.success(tournament)
+        }
+    }
 }
 
 
