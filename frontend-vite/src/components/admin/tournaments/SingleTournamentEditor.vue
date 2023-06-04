@@ -10,6 +10,7 @@ let props = defineProps<{
   tournament: DatabaseTournament
 }>();
 
+
 let emit = defineEmits<{
   (e: 'tournament_updated', tournament: DatabaseTournament): void,
   (e: 'canceled'): void

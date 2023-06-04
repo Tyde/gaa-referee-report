@@ -38,12 +38,16 @@ const gameReportsByTime = computed(() => {
 <template>
   <div class="flex flex-row justify-center">
     <div class="flex flex-col">
-      <div class="bg-white w-[680px]">
+      <div class="bg-white w-full sm:w-[680px]">
         <h1>Tournament Report</h1>
         <h2>Tournament: {{ tournamentDate }} - {{ currentReport.tournament.name }} in
           {{ currentReport.tournament.location }}</h2>
         <div class="italic">Referee: {{ currentReport.referee.firstName }} {{ currentReport.referee.lastName }} -
           {{ currentReport.referee.mail }}
+        </div>
+        <div v-if="currentReport.additionalInformation && currentReport.additionalInformation !== ''">
+          <span class="italic">Additional Information: </span>
+          {{ currentReport.additionalInformation}}
         </div>
         <!--<div v-if="currentReport."-->
         <div>Code: {{ currentReport.gameCode.name }}</div>
