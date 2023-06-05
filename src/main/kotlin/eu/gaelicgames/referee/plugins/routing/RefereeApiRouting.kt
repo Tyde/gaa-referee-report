@@ -114,12 +114,7 @@ fun Route.refereeApiRouting() {
         call.respond(tournaments)
     }
 
-    get<Api.Regions.All> {
-        val regions = transaction {
-            Region.all().map { RegionDEO.fromRegion(it) }
-        }
-        call.respond(regions)
-    }
+
 
     post<Api.Tournaments.New> {
         receiveAndHandleDEO<NewTournamentDEO> { tournamentDraft ->
@@ -131,12 +126,7 @@ fun Route.refereeApiRouting() {
         }
 
     }
-    get<Api.Tournaments.All> {
-        val tournaments = transaction {
-            Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
-        }
-        call.respond(tournaments)
-    }
+
 
 
 

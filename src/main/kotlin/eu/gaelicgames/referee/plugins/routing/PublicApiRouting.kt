@@ -1,12 +1,7 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.GameCode
-import eu.gaelicgames.referee.data.GameCodeDEO
-import eu.gaelicgames.referee.data.Rule
-import eu.gaelicgames.referee.data.api.GameReportClassesDEO
-import eu.gaelicgames.referee.data.api.PitchVariablesDEO
-import eu.gaelicgames.referee.data.api.PublicTournamentReportDEO
-import eu.gaelicgames.referee.data.api.RuleDEO
+import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.resources.Api
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -47,5 +42,19 @@ fun Route.publicApiRouting() {
             call.respond(HttpStatusCode.NotFound)
         }
 
+    }
+
+    get<Api.Regions.All> {
+        val regions = transaction {
+            Region.all().map { RegionDEO.fromRegion(it) }
+        }
+        call.respond(regions)
+    }
+
+    get<Api.Tournaments.All> {
+        val tournaments = transaction {
+            Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
+        }
+        call.respond(tournaments)
     }
 }
