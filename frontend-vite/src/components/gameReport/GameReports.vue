@@ -151,7 +151,11 @@ watch(() => store.selectedGameReport, () => {
 <template>
 <Toolbar>
   <template #start>
-    <SelectButton v-model="store.selectedGameReportIndex" :options="gameReportsListIndices" >
+    <SelectButton
+        v-model="store.selectedGameReportIndex"
+        :options="gameReportsListIndices"
+        class="gamelist"
+    >
       <template #option="slotProps">
         <span v-if="store.gameReports[slotProps.option].startTime">{{store.gameReports[slotProps.option].startTime?.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
         <span v-if="store.gameReports[slotProps.option].teamAReport.team">{{store.gameReports[slotProps.option].teamAReport.team?.name}}</span>
@@ -223,5 +227,27 @@ watch(() => store.selectedGameReport, () => {
 
 
 <style scoped>
+.gamelist:deep(.p-button) {
+  @apply border-gray-200 border-[1px];
+  @apply md:border-[1px];
+}
+.gamelist:deep(.p-button:not(:last-child)) {
+  border-right: 1px solid;
+  @apply border-gray-200;
+
+  @apply md:w-fit w-full;
+
+}
+
+.gamelist:deep(.p-button:first-of-type) {
+  @apply rounded-none;
+}
+.gamelist:deep(.p-button:last-of-type) {
+  @apply rounded-none;
+}
+
+.p-selectbutton {
+  @apply flex-row flex justify-center flex-wrap;
+}
 
 </style>

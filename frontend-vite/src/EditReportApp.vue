@@ -228,7 +228,7 @@ function navigate(stage:ReportEditStage) {
 
 <template>
 
-  <div class="mx-auto w-full xl:w-[47rem]">
+  <div class="mx-auto w-full xl:w-[47rem] navigation-bar">
     <SelectButton
         v-model="current_stage"
         :options="calcStageOptions"
@@ -268,7 +268,7 @@ function navigate(stage:ReportEditStage) {
     <div class="mx-auto w-full xl:w-[47rem]">
 
       <h4>Code:</h4>
-      <div class="flex flex-row justify-center">
+      <div class="flex flex-row justify-center navi">
         <SelectButton
             v-model="store.report.gameCode"
             :options="store.codes"
@@ -335,5 +335,23 @@ h4 {
   @apply font-bold;
   @apply mt-1;
   @apply mb-2;
+}
+
+
+
+.navigation-bar:deep(.p-button:first-of-type) {
+  @apply rounded-none;
+  @apply md:rounded-l-lg;
+}
+.navigation-bar:deep(.p-button:last-of-type) {
+  @apply rounded-none;
+  @apply md:rounded-r-lg;
+}
+.navigation-bar:deep(.p-button) {
+  @apply text-sm;
+  @apply md:text-base;
+}
+.navigation-bar:deep(.p-selectbutton) {
+  @apply flex-row flex justify-center flex-wrap;
 }
 </style>
