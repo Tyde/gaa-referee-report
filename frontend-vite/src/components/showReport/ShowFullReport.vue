@@ -125,6 +125,7 @@ h3 {
     -webkit-print-color-adjust: exact; /*Chrome, Safari */
     color-adjust: exact; /*Firefox*/
     print-color-adjust: exact; /*Firefox*/
+    font-size: 12px;
   }
 }
 </style>
