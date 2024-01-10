@@ -25,7 +25,7 @@ function on_team_selected(team: Team) {
 
 
 async function create_amalgamation() {
-  if (amalgamation_name) {
+  if (amalgamation_name.value && amalgamation_name.value.length > 0) {
     if (selected_teams.value.length > 1) {
       is_loading.value = true
       const team = await createAmalgamationOnServer(
