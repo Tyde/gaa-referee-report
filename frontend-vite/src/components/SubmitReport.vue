@@ -226,8 +226,15 @@ async function uploadAllData() {
   let promisesReports = store.gameReports.map((gameReport) => {
     store.sendGameReport(gameReport,true)
   })
-  await Promise.all(promisesPitch)
-  await Promise.all(promisesReports)
+  await Promise.all(promisesPitch).catch((e) => {
+    store.newError(e)
+  })
+  await Promise.all(promisesPitch).catch((e) => {
+    store.newError(e)
+  })
+  await Promise.all(promisesReports).catch((e) => {
+    store.newError(e)
+  })
   let updateDiAndInjuries = store.gameReports.map((gameReport) => {
     if (gameReport.id) {
       let tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
@@ -249,7 +256,9 @@ async function uploadAllData() {
       return Promise.reject("Game report not uploaded even though it should have been uploaded before")
     }
   })
-  await Promise.all(updateDiAndInjuries)
+  await Promise.all(updateDiAndInjuries).catch((e) => {
+    store.newError(e)
+  })
 
 
   isUploadingToServer.value = false
@@ -257,7 +266,11 @@ async function uploadAllData() {
 }
 
 const debouncedUpload = debounce(() => {
-  updateReportAdditionalInformation(store.report)
+  if(store.report.additionalInformation && store.report.additionalInformation.trim().length > 0) {
+    updateReportAdditionalInformation(store.report).catch((e) => {
+      store.newError(e)
+    })
+  }
 }, 2000)
 watch(() => store.report.additionalInformation, () => {
   debouncedUpload()
@@ -273,11 +286,15 @@ onMounted(() => {
 
 async function submitReport() {
   if (uploadComplete.value) {
-    await updateReportAdditionalInformation(store.report)
+    if(store.report.additionalInformation && store.report.additionalInformation.trim().length > 0) {
+      await updateReportAdditionalInformation(store.report).catch((e) => {
+        store.newError(e)
+      })
+    }
     submitReportToServer(store.report).then(() => {
       location.href = "/#/report/" + store.report.id
     }).catch((e) => {
-      console.log(e)
+      store.newError(e)
     })
   }
   console.log("submit report")
