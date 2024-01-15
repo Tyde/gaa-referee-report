@@ -1,8 +1,6 @@
 package eu.gaelicgames.referee.data.api
 
-import eu.gaelicgames.referee.data.Amalgamation
-import eu.gaelicgames.referee.data.Amalgamations
-import eu.gaelicgames.referee.data.Team
+import eu.gaelicgames.referee.data.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -61,3 +59,64 @@ data class NewTeamDEO(val name: String)
 
 @Serializable
 data class NewAmalgamationDEO(val name: String, val teams: List<TeamDEO>)
+
+@Serializable
+data class MergeTeamsDEO(val baseTeam: Long, val teamsToMerge: List<Long>) {
+    fun updateInDatabase(): Result<Team> {
+
+        return transaction {
+            val team = Team.findById(baseTeam)
+            if (team != null) {
+                teamsToMerge.forEach { mergeTeamId ->
+                    val mergeTeam = Team.findById(mergeTeamId)
+                    if (mergeTeam != null) {
+                        //First update all amalgamations to point to the base team
+                        Amalgamation.find { Amalgamations.addedTeam eq mergeTeam.id }.forEach {
+                            it.amalgamation = team
+                        }
+                        //Update all DisciplinaryActions
+                        DisciplinaryAction.find { DisciplinaryActions.team eq mergeTeam.id }.forEach {
+                            it.team = team
+                        }
+
+                        //Update all GameReports
+                        GameReport.find { GameReports.teamA eq mergeTeam.id }.forEach {
+                            it.teamA = team
+                        }
+                        GameReport.find { GameReports.teamB eq mergeTeam.id }.forEach {
+                            it.teamB = team
+                        }
+
+                        //Update all Injuries
+                        Injury.find { Injuries.team eq mergeTeam.id }.forEach {
+                            it.team = team
+                        }
+
+                        //Update all TournamentReportTeamPreSelections
+                        TournamentReportTeamPreSelection.find {
+                            TournamentReportTeamPreSelections.team eq mergeTeam.id
+                        }.forEach {
+                            //Avoid duplicates
+                            val bothTeamsInSameReport = TournamentReportTeamPreSelection.find {
+                                TournamentReportTeamPreSelections.report eq it.report.id and
+                                        (TournamentReportTeamPreSelections.team eq team.id)
+                            }.count() > 0
+                            if (!bothTeamsInSameReport) {
+                                it.team = team
+                            } else {
+                                it.delete()
+                            }
+                        }
+
+                        //Delete the team
+                        mergeTeam.delete()
+                    }
+                }
+
+                Result.success(team)
+            } else {
+                Result.failure(Exception("Team not found"))
+            }
+        }
+    }
+}

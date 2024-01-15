@@ -34,6 +34,11 @@ class Api() {
         @Serializable
         @Resource("update")
         class Update(val parent: Team)
+
+
+        @Serializable
+        @Resource("merge")
+        class Merge(val parent: Team)
     }
 
     @Serializable

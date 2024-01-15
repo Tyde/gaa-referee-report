@@ -47,7 +47,7 @@ onMounted(() => {
 
       <TeamSelectField
           :show_add_new_team="true"
-          :show_amalgamate="true"
+          :show_new_amalgamate="true"
           :exclude_team_list="teams_added"
           @team_selected="addTeam"
           :force_hide_exclude_team_list="false"

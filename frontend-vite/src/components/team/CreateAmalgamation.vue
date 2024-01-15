@@ -81,7 +81,7 @@ function unselectTeam(team: Team) {
           :exclude_team_list="selected_teams"
           :force_hide_exclude_team_list="false"
           :show_add_new_team="true"
-          :show_amalgamate="false"
+          :show_new_amalgamate="false"
           @team_selected="on_team_selected"
       />
       <div class="flex flex-row justify-center">

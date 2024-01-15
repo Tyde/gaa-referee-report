@@ -7,6 +7,7 @@ import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import {FilterMatchMode} from "primevue/api";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types/team_types";
+import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";
 
 const store = useAdminStore()
 
@@ -38,13 +39,27 @@ function editTeam(event: DataTableRowEditSaveEvent) {
       })
 }
 
+function teamMerged(mergeInto: Team) {
+  emit('teamUpdated', mergeInto)
+  mergeTeamDialogVisible.value = false
+}
+
 const filters = ref({
   global: {value: null, matchMode: FilterMatchMode.CONTAINS},
   name: {value: null, matchMode: FilterMatchMode.CONTAINS},
 })
+
+const mergeTeamDialogVisible = ref(false);
+const mergeSelectedTeam = ref<Team>();
+
+function startMergeTeam(team: Team) {
+  mergeSelectedTeam.value = team
+  mergeTeamDialogVisible.value = true
+}
 </script>
 
 <template>
+  <div>
     <DataTable
         :value="props.teams"
         edit-mode="row"
@@ -61,7 +76,7 @@ const filters = ref({
                 :exclude_team_list="slotProps.data.amalgamationTeams"
                 :force_hide_exclude_team_list="false"
                 :show_add_new_team="false"
-                :show_amalgamate="false"
+                :show_new_amalgamate="false"
                 :allow_unselect="true"
                 @team_selected="(team) => slotProps.data.amalgamationTeams.push(team)"
                 @team_unselected="(team) => slotProps.data.amalgamationTeams = slotProps.data.amalgamationTeams.filter((it:Team) => it.id !== team.id)"
@@ -82,13 +97,24 @@ const filters = ref({
             </div>
           </template>
           <template v-else>
-            {{data.name}}
+            <div class="flex flex-row items-center">
+              <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
+              <div>
+                <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
+              </div>
+            </div>
           </template>
         </template>
       </Column>
       <Column :rowEditor="true" headerStyle="width:7rem" bodyStyle="text-align:center"></Column>
     </DataTable>
-
+    <MergeTeamDialog
+        v-if="mergeSelectedTeam"
+        v-model:visible="mergeTeamDialogVisible"
+        :selected-team="mergeSelectedTeam"
+        @teamMerged="teamMerged"
+    />
+  </div>
 
 </template>
 

@@ -133,6 +133,16 @@ fun Route.adminApiRouting() {
         }
     }
 
+    post<Api.Team.Merge> {
+        receiveAndHandleDEO<MergeTeamsDEO> { mergeTeamsDEO ->
+            mergeTeamsDEO.updateInDatabase().map {
+                TeamDEO.fromTeam(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
     post<Api.Tournaments.Update> {
         receiveAndHandleDEO<TournamentDEO> { tournamentDEO ->
             tournamentDEO.updateInDatabase().map {

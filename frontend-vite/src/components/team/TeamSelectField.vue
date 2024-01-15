@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+                                                                                                                                                     <script lang="ts" setup>
 import {computed, onMounted, ref} from "vue";
 import CreateTeam from "@/components/team/CreateTeam.vue";
 import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
@@ -13,11 +13,12 @@ interface SearchResultTeam {
 
 const store = useReportStore()
 const props = defineProps<{
-  show_amalgamate: Boolean
+  show_new_amalgamate: Boolean
   show_add_new_team: Boolean
   exclude_team_list?: Team[]
   force_hide_exclude_team_list: Boolean
   allow_unselect?: Boolean
+  hide_amalgamations?: Boolean
 }>()
 
 
@@ -90,6 +91,11 @@ const filtered_list = computed(() => {
   let preparedlist = teamsAvailable.value.sort((a, b) => {
     return a.name.localeCompare(b.name)
   })
+  if (props.hide_amalgamations) {
+    preparedlist = preparedlist.filter(value => {
+      return !value.isAmalgamation
+    })
+  }
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {
 
     let excludelist = props.exclude_team_list
@@ -151,7 +157,7 @@ function unselect_team(team: Team) {
             Add new team <span v-if="searchTerm.length>0">"{{ searchTerm }}"</span> ...
           </li>
           <li
-              v-if="props.show_amalgamate"
+              v-if="props.show_new_amalgamate"
               class="teamselect-add-option p-listbox-item"
               @click="on_start_amalgamation_click()"
           >
