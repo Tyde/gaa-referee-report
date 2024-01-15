@@ -89,12 +89,18 @@ function startMergeTeam(team: Team) {
         </template>
         <template #body="{data}">
           <template v-if="data.isAmalgamation">
-            {{data.name}}
-            <div class="flex flex-row">
-              <div class="bg-gray-300 rounded-xl m-1 p-2 text-sm" v-for="(team, index) in data.amalgamationTeams" :key="team.id">
-                <span>{{ team.name }}</span>
+            <div class="grid grid-cols-2 gap-2 items-center">
+              <div>{{ data.name }}</div>
+              <div class="flex justify-end">
+                <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
+              </div>
+              <div class="col-span-2 flex flex-row">
+                <div class="bg-gray-300 rounded-xl m-1 p-2 text-sm" v-for="(team, index) in data.amalgamationTeams" :key="team.id">
+                  <span>{{ team.name }}</span>
+                </div>
               </div>
             </div>
+
           </template>
           <template v-else>
             <div class="flex flex-row items-center">

@@ -2,6 +2,7 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -72,8 +73,22 @@ data class MergeTeamsDEO(val baseTeam: Long, val teamsToMerge: List<Long>) {
                     if (mergeTeam != null) {
                         //First update all amalgamations to point to the base team
                         Amalgamation.find { Amalgamations.addedTeam eq mergeTeam.id }.forEach {
-                            it.amalgamation = team
+                            it.addedTeam = team
                         }
+
+                        if (mergeTeam.isAmalgamation){
+                            val teamAmalgamationIds = Amalgamation.find { Amalgamations.amalgamation eq team.id }.map { teamAmalgamation ->
+                                teamAmalgamation.addedTeam.id.value
+                            }
+                            Amalgamation.find { Amalgamations.amalgamation eq mergeTeam.id }.forEach { mergeTeamAmalgamation ->
+                                if (teamAmalgamationIds.contains(mergeTeamAmalgamation.addedTeam.id.value)){
+                                    mergeTeamAmalgamation.delete()
+                                } else {
+                                    mergeTeamAmalgamation.amalgamation = team
+                                }
+                            }
+                        }
+
                         //Update all DisciplinaryActions
                         DisciplinaryAction.find { DisciplinaryActions.team eq mergeTeam.id }.forEach {
                             it.team = team

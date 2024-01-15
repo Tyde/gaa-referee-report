@@ -19,6 +19,7 @@ const props = defineProps<{
   force_hide_exclude_team_list: Boolean
   allow_unselect?: Boolean
   hide_amalgamations?: Boolean
+  only_amalgamations?: Boolean
 }>()
 
 
@@ -91,6 +92,11 @@ const filtered_list = computed(() => {
   let preparedlist = teamsAvailable.value.sort((a, b) => {
     return a.name.localeCompare(b.name)
   })
+  if (props.only_amalgamations) {
+    preparedlist = preparedlist.filter(value => {
+      return value.isAmalgamation
+    })
+  }
   if (props.hide_amalgamations) {
     preparedlist = preparedlist.filter(value => {
       return !value.isAmalgamation

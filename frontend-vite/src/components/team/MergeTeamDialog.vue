@@ -9,7 +9,7 @@ import {mergeTeamsOnServer} from "@/utils/api/teams_api";
 
 const props = defineProps<{
   visible: boolean,
-  selectedTeam: Team
+  selectedTeam: Team,
 }>()
 
 const emits = defineEmits<{
@@ -26,6 +26,7 @@ const localVisible = computed({
   }
 })
 
+const amalgamationMode = computed(() => props.selectedTeam.isAmalgamation)
 const store = useAdminStore()
 
 const teamsToMerge = ref<Team[]>([])
@@ -79,8 +80,9 @@ const excludeTeamList = computed(() => {
               :exclude_team_list="excludeTeamList"
               :force_hide_exclude_team_list="true"
               :allow_unselect="true"
-              :hide_amalgamations="true"
+              :hide_amalgamations="!amalgamationMode"
               @team_selected="team => teamsToMerge.push(team)"
+              :only_amalgamations="amalgamationMode"
           />
         </div>
         <div class="flex flex-col justify-end m-2">
