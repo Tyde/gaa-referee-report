@@ -68,7 +68,6 @@ fun Application.configureSecurity() {
                 if (user != null) {
                     UserPrincipal(user)
                 } else {
-                    println("User incorrect. Returning null")
                     null
                 }
             }

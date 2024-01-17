@@ -1,8 +1,10 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.util.GGERefereeConfig
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.net.URI
 import java.time.LocalDateTime
 
 
@@ -400,6 +402,55 @@ data class DisciplinaryActionDEO(
                     "Trying to update a disciplinary action with missing id"
                 )
             )
+        }
+    }
+}
+
+
+data class DisciplinaryActionStringDEO(
+    val id: Long,
+    val teamName: String,
+    val opposingTeamName: String,
+    val firstName: String,
+    val lastName: String,
+    val number: Int,
+    val details: String,
+    val ruleName: String,
+    val tournamentName: String,
+    val tournamentLocation: String,
+    val tournamentDateTime: LocalDateTime,
+    val reportShareLink: String
+) {
+    companion object {
+        fun fromDisciplinaryAction(disciplinaryAction: DisciplinaryAction): DisciplinaryActionStringDEO {
+            return transaction {
+
+                val opposingTeam = setOf(
+                    disciplinaryAction.game.teamA, disciplinaryAction.game.teamB
+                ).first {
+                    it != disciplinaryAction.team
+                }
+
+                val reportShareLink = TournamentReportByIdDEO.fromTournamentReport(
+                    disciplinaryAction.game.report
+                ).createShareLink()
+                    .map { GGERefereeConfig.serverUrl + "/report/share/" + it.uuid }
+                    .getOrElse { GGERefereeConfig.serverUrl }
+                DisciplinaryActionStringDEO(
+                    disciplinaryAction.id.value,
+                    disciplinaryAction.team.name,
+                    opposingTeam.name,
+                    disciplinaryAction.firstName,
+                    disciplinaryAction.lastName,
+                    disciplinaryAction.number,
+                    disciplinaryAction.details,
+                    disciplinaryAction.rule.description,
+                    disciplinaryAction.game.report.tournament.name,
+                    disciplinaryAction.game.report.tournament.location,
+                    disciplinaryAction.game.startTime ?: LocalDateTime.now(),
+                    reportShareLink
+                )
+            }
         }
     }
 }

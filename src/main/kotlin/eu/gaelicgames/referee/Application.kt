@@ -7,8 +7,11 @@ import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import com.typesafe.config.ConfigUtil
+import eu.gaelicgames.referee.data.DisciplinaryAction
+import eu.gaelicgames.referee.data.DisciplinaryActions
 import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.UserRole
+import eu.gaelicgames.referee.data.api.DisciplinaryActionStringDEO
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import eu.gaelicgames.referee.plugins.configureRouting
@@ -54,7 +57,6 @@ fun main() {
         }
     }
 
-    //MailjetClientHandler.sendActivationMail("Daniel Thiem","https://www.google.com", "info@daniel-thiem.de")
 
     embeddedServer(
         Netty,
