@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import {ref} from "vue";
+import {ref, onBeforeMount, computed} from "vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
-import {createAmalgamationOnServer} from "@/utils/api/teams_api";
+import {allTeams, createAmalgamationOnServer} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 
@@ -23,6 +23,37 @@ function on_team_selected(team: Team) {
   selected_teams.value.push(team)
 }
 
+const cachedTeams = ref<Team[]>([])
+
+onBeforeMount(() => {
+  allTeams().catch((error) => {
+    store.newError(error)
+  }).then((teams) => {
+    if(teams) {
+      cachedTeams.value = teams
+    }
+  })
+})
+
+const duplicates = computed(() => {
+  return cachedTeams.value.filter(team => {
+    if(team.isAmalgamation && team.amalgamationTeams) {
+      if(team.amalgamationTeams.length === selected_teams.value.length) {
+
+        let allTeamsInAmalgamation = true
+        for (let otherAmalgamationTeam of team.amalgamationTeams) {
+          let contained = selected_teams.value
+              .filter(it => it.id === otherAmalgamationTeam.id).length > 0
+          allTeamsInAmalgamation = allTeamsInAmalgamation && contained
+
+        }
+
+        return allTeamsInAmalgamation
+      }
+    }
+    return false
+  })
+})
 
 async function create_amalgamation() {
   if (amalgamation_name.value && amalgamation_name.value.length > 0) {
@@ -84,6 +115,10 @@ function unselectTeam(team: Team) {
           :show_new_amalgamate="false"
           @team_selected="on_team_selected"
       />
+      <div v-if="duplicates.length > 0" class="text-lg font-bold p-2 m-2 bg-red-400 rounded-lg">
+        WARNING: The amalgamation with your selection already exists:
+        {{ duplicates.map(it => it.name).join(", ") }}
+      </div>
       <div class="flex flex-row justify-center">
         <div class="m-2">
           <Button class="p-button-rounded" @click="create_amalgamation">Save Amalgamation</Button>
