@@ -20,24 +20,31 @@ import java.util.*
 
 fun Route.sites() {
     get("/login") {
-        call.respond(FreeMarkerContent("login.ftl", null))
+        var invalidCredentials = false
+        if (call.request.queryParameters["invalidCredentials"] != null) {
+            invalidCredentials = true
+        }
+        call.respond(FreeMarkerContent("login.ftl", mapOf("isInvalidCredentialsCase" to invalidCredentials)))
     }
 
     authenticate("auth-form") {
         post("/login") {
             val thisUser = call.principal<UserPrincipal>()
             println(thisUser)
-            thisUser?.let { userPrincipal ->
+            if(thisUser != null) {
                 println("redirect!")
                 val generatedUUID = UUID.randomUUID()
                 transaction {
                     Session.new {
-                        user = userPrincipal.user
+                        user = thisUser.user
                         uuid = generatedUUID
                         expires = LocalDateTime.now().plusDays(1)
                     }
                 }
                 call.sessions.set(UserSession(generatedUUID))
+                call.respondRedirect("/")
+            } else {
+                println("User incorrect. Redirecting to login")
                 call.respondRedirect("/")
             }
         }

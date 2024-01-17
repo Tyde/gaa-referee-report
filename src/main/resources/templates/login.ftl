@@ -1,3 +1,4 @@
+<#-- @ftlvariable name="isInvalidCredentialsCase" type="boolean" value=false -->
 <html>
 <head>
     <title>GGE Referee Report portal</title>
@@ -18,6 +19,12 @@
 <form action="/login" enctype="application/x-www-form-urlencoded" method="post">
     <div class="w3-container flexbox-container w3-card-4 w3-light-grey">
         <div>
+            <#if isInvalidCredentialsCase>
+                <div class="w3-panel w3-red">
+                    <h3>Invalid credentials</h3>
+                    <p>Wrong mail or password. Please try again.</p>
+                </div>
+            </#if>
             <h2>Please login with your referee credentials:</h2>
         <p>
             Your mail:<br>

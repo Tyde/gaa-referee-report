@@ -68,8 +68,12 @@ fun Application.configureSecurity() {
                 if (user != null) {
                     UserPrincipal(user)
                 } else {
+                    println("User incorrect. Returning null")
                     null
                 }
+            }
+            challenge {
+                call.respondRedirect("/login?invalidCredentials")
             }
         }
         session<UserSession>("auth-session") {
@@ -92,7 +96,7 @@ fun Application.configureSecurity() {
                         message = "You are not authorized to call this api"
                     ))
                 } else {
-                    call.respondRedirect("/login")
+                    call.respondText { "You are not authorized to access this page" }
                 }
             }
         }
