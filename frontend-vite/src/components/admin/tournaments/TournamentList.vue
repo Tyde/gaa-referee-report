@@ -7,6 +7,7 @@ import {DatabaseTournament, RegionDEO} from "@/types/tournament_types";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
 import {DateTime} from "luxon";
 import RangedDateTimePicker from "@/components/util/RangedDateTimePicker.vue";
+import {useRouter} from "vue-router";
 
 let store = useAdminStore()
 
@@ -48,6 +49,8 @@ const dateTimeRange = computed(() => {
   return dateRange.value.map(it => DateTime.fromJSDate(it))
 })
 
+
+
 </script>
 
 <template>
@@ -80,6 +83,7 @@ const dateTimeRange = computed(() => {
             :key="tournament.id"
             :tournament="tournament"
         />
+
       </div>
     </div>
   </div>

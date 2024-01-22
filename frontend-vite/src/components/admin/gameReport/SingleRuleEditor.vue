@@ -138,7 +138,7 @@ watch(shadowCopyRule, () => {
 </script>
 
 <template>
-  <div class="rule-card group" :class="{loading:isLoading}">
+  <div class="rule-text-card group" :class="{loading:isLoading}">
     <template v-if="!editing">
       <div>
         <div class="float-left">
@@ -196,13 +196,14 @@ watch(shadowCopyRule, () => {
 
 
 <style scoped>
-.rule-card {
+.rule-text-card {
   @apply p-2 m-1;
   @apply bg-gray-100;
   @apply rounded;
+  @apply w-full;
 }
 
-.rule-card h4 {
+.rule-text-card h4 {
   @apply font-bold;
 }
 
