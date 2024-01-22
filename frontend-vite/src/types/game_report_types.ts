@@ -17,6 +17,7 @@ export interface GameReport {
     extraTime?: ExtraTimeOption,
     umpirePresentOnTime: boolean,
     umpireNotes: string
+    generalNotes: string
 }
 
 
@@ -78,7 +79,8 @@ export const GameReportDEO = z.object({
     extraTime: z.number().optional().nullable(),
     gameType: z.number().optional().nullable(),
     umpirePresentOnTime: z.boolean(),
-    umpireNotes: z.string()
+    umpireNotes: z.string(),
+    generalNotes: z.string().optional().nullable(),
 });
 export type GameReportDEO = z.infer<typeof GameReportDEO>;
 export const CompleteGameReportDEO = z.object({

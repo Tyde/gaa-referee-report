@@ -72,6 +72,13 @@ const gameReportsByTime = computed(() => {
               </div>
             </div>
           </div>
+          <div
+              v-if="gr.generalNotes && gr.generalNotes !== ''"
+              class="flex flex-row justify-center m-2"
+          >
+            <span class="italic">Referee Notes: </span>
+            {{ gr.generalNotes }}
+          </div>
         </div>
         <hr class="border-2">
         <template v-if="allPitchReports.length > 0">

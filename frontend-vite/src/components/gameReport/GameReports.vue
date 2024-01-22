@@ -60,7 +60,8 @@ function newGameReport() {
     umpirePresentOnTime: true,
     umpireNotes: "",
     startTime: estimatedStartingTime,
-    extraTime: store.extraTimeOptions[0]
+    extraTime: store.extraTimeOptions[0],
+    generalNotes: "",
   } as GameReport)
   store.selectedGameReportIndex = store.gameReports.length - 1
   //selectedGameReport.value = store.gameReports[store.gameReports.length-1]

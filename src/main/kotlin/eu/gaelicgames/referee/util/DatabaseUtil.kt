@@ -62,6 +62,9 @@ object DatabaseHandler {
             //Migration 2 - All Tournaments now have a "region" field
             SchemaUtils.createMissingTablesAndColumns(Tournaments)
 
+            //Migration 3 - Add "general_notes" field to GameReports
+            SchemaUtils.createMissingTablesAndColumns(GameReports)
+
         }
     }
 

@@ -58,6 +58,7 @@ export function gameReportDEOToGameReport(
             extraTime: extraTimeVal,
             umpirePresentOnTime: gameReportDEO.umpirePresentOnTime,
             umpireNotes: gameReportDEO.umpireNotes,
+            generalNotes: gameReportDEO.generalNotes??"",
         } as GameReport
     } else {
         return undefined
@@ -80,6 +81,7 @@ function gameReportToGameReportDEO(gameReport: GameReport) {
         "gameType": gameReport.gameType?.id,
         "umpirePresentOnTime": gameReport.umpirePresentOnTime,
         "umpireNotes": gameReport.umpireNotes,
+        "generalNotes": gameReport.generalNotes,
     }
 }
 

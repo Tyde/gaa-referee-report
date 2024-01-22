@@ -169,6 +169,7 @@ object GameReports : LongIdTable() {
     val extraTime = reference("extra_time",ExtraTimeOptions).nullable()
     val umpirePresentOnTime = bool("umpire_present_on_time").default(true)
     val umpireNotes = text("umpire_notes").nullable()
+    val generalNotes = text("general_notes").nullable().default("")
 }
 
 class GameReport(id:EntityID<Long>):LongEntity(id) {
@@ -187,6 +188,7 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var umpireNotes by GameReports.umpireNotes
     val injuries by Injury referrersOn Injuries.game
     val disciplinaryActions by DisciplinaryAction referrersOn DisciplinaryActions.game
+    var generalNotes by GameReports.generalNotes
 
 
     fun teamADisciplinaryActions():SizedIterable<DisciplinaryAction> {

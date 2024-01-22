@@ -169,7 +169,13 @@ onMounted(() => {
 
     </div>
 
-
+    <div class="col-span-2 flex flex-row justify-center">
+      <Textarea
+          v-model="store.selectedGameReport.generalNotes"
+          placeholder="Notes"
+          rows="5"
+          cols="30" />
+    </div>
     <GameTypeEditor
         v-model:visible = "gameTypeEditorVisible"
     />

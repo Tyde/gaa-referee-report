@@ -23,6 +23,7 @@ data class GameReportDEO(
     val extraTime: Long? = null,
     val umpirePresentOnTime: Boolean? = null,
     val umpireNotes: String? = null,
+    val generalNotes: String? = null,
 ) {
     companion object {
         fun fromGameReport(report: GameReport): GameReportDEO {
@@ -40,7 +41,8 @@ data class GameReportDEO(
                     report.gameType?.id?.value,
                     report.extraTime?.id?.value,
                     report.umpirePresentOnTime,
-                    report.umpireNotes
+                    report.umpireNotes,
+                    report.generalNotes
                 )
             }
         }
@@ -92,6 +94,9 @@ data class GameReportDEO(
                         }
                         grUpdate.umpireNotes?.let {
                             this.umpireNotes = it
+                        }
+                        grUpdate.generalNotes?.let {
+                            this.generalNotes = it
                         }
                     }
 
@@ -180,6 +185,9 @@ data class GameReportDEO(
                     }
                     grUpdate.umpireNotes?.let { notes ->
                         originalGameReport.umpireNotes = notes
+                    }
+                    grUpdate.generalNotes?.let { notes ->
+                        originalGameReport.generalNotes = notes
                     }
                     Result.success(originalGameReport)
                 } else {

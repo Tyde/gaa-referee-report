@@ -157,6 +157,13 @@ function gameCodeColor(gameCode: GameCode) {
               </div>
             </div>
           </div>
+          <div
+              v-if="gr.generalNotes && gr.generalNotes !== ''"
+              class="flex flex-row justify-center m-2"
+          >
+            <span class="italic">Referee Notes: </span>
+            {{ gr.generalNotes }}
+          </div>
         </div>
       </div>
     </div>
