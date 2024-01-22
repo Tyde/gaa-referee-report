@@ -19,6 +19,8 @@ const props = defineProps<{
           <div v-if="action.rule?.isCaution" class="rule-card card-yellow"></div>
           <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
           <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
+          <div v-if="action.redCardIssued" class="rule-card-clear-none card-red"></div>
+
           {{action.number}} - {{action.firstName}} {{action.lastName}}: {{action.rule?.description || ''}}<br>
           {{action.details}}
         </li>

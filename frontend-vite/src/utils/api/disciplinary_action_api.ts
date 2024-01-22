@@ -30,6 +30,7 @@ export function fromDisciplinaryActionDEOToDisciplinaryAction(
         number: dADEO.number,
         rule: allRules.find(rule => rule.id == dADEO.rule),
         details: dADEO.details,
+        redCardIssued: dADEO.redCardIssued
     } as DisciplinaryAction
 }
 
@@ -45,7 +46,8 @@ export function fromDisciplinaryActionToDisciplinaryActionDEO(
         number: dA.number,
         rule: dA.rule?.id,
         details: dA.details ?? "",
-        game: gameReportId
+        game: gameReportId,
+        redCardIssued: dA.redCardIssued
     } as DisciplinaryActionDEO
 }
 

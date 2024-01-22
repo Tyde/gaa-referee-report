@@ -37,6 +37,7 @@ export const DisciplinaryActionDEO = z.object({
     number: z.number(),
     rule: z.number(),
     details: z.string(),
+    redCardIssued: z.boolean(),
 })
 export type DisciplinaryActionDEO = z.infer<typeof DisciplinaryActionDEO>
 
@@ -48,6 +49,7 @@ export interface DisciplinaryAction {
     number?: number,
     rule?: Rule,
     details: string,
+    redCardIssued: boolean,
 }
 
 export interface Injury {

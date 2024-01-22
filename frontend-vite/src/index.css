@@ -32,6 +32,11 @@ html {
     clear: both;
 }
 
+.rule-card-clear-none {
+    @apply rule-card;
+    clear: none !important;
+}
+
 .card-yellow {
     background-color: gold;
 }

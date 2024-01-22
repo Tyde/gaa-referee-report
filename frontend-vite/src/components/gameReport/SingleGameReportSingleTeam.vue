@@ -12,7 +12,6 @@ const props = defineProps<{
 }>()
 
 
-
 const displayDisciplinary = ref(false)
 const displayInjuries = ref(false)
 
@@ -108,7 +107,7 @@ function stripRuleCardsFromDescription(description?: string) {
       </div>
       <div class="text-xl col-span-2 p-2 flex flex-col justify-center place-content-center">
         <div class="flex-shrink">Total: {{
-            (currentSingleTeamGameReport?.goals??0) * 3 + (currentSingleTeamGameReport?.points??0)
+            (currentSingleTeamGameReport?.goals ?? 0) * 3 + (currentSingleTeamGameReport?.points ?? 0)
           }}
         </div>
       </div>
@@ -128,10 +127,13 @@ function stripRuleCardsFromDescription(description?: string) {
               :key="action.id"
           >
             <template v-if="action.id">
-            <div v-if="action.rule?.isCaution" class="rule-card card-yellow"></div>
-            <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
-            <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
-            {{action.number}} - {{action.firstName}} {{action.lastName}} - {{stripRuleCardsFromDescription(action.rule?.description)?.substring(0, 25)}} ...
+              <div v-if="action.rule?.isCaution" class="rule-card card-yellow"></div>
+              <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
+              <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
+              <div v-if="action.redCardIssued" class="rule-card-clear-none card-red"></div>
+
+              {{ action.number }} - {{ action.firstName }} {{ action.lastName }} -
+              {{ stripRuleCardsFromDescription(action.rule?.description)?.substring(0, 25) }} ...
             </template>
           </div>
         </div>
@@ -151,7 +153,7 @@ function stripRuleCardsFromDescription(description?: string) {
               :key="injury.id"
           >
             <template v-if="injury.id">
-              {{injury.firstName}} {{injury.lastName}} - {{injury.details.substring(0, 25)}} ...
+              {{ injury.firstName }} {{ injury.lastName }} - {{ injury.details.substring(0, 25) }} ...
             </template>
           </div>
         </div>
@@ -186,7 +188,6 @@ function stripRuleCardsFromDescription(description?: string) {
   width: 22rem;
   max-width: 22rem;
 }
-
 
 
 @media (min-width: 1024px) {

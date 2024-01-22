@@ -104,7 +104,8 @@ function addEmptyDisciplinaryAction() {
       lastName: "",
       number: undefined,
       rule: undefined,
-      details: ""
+      details: "",
+      redCardIssued: false
     })
   }
 }
@@ -197,8 +198,18 @@ onMounted(() => {
               <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
               {{ slotProps.option.description }}
             </div>
+
+
           </template>
         </Dropdown>
+        <div class="p-2 flex flex-row items-center"
+             v-if="dAction.rule?.isCaution || dAction.rule?.isBlack">
+          <div class="checkbox-rule-card card-red"></div>
+          <Checkbox
+              v-model="dAction.redCardIssued"
+              :binary="true"
+          />
+        </div>
         <div class="p-2">
           <InputText
               v-model="dAction.details"
@@ -227,5 +238,11 @@ onMounted(() => {
 
 
 <style scoped>
-
+.checkbox-rule-card {
+  @apply mr-1;
+  float: left;
+  height: 1.5rem;
+  width: 0.75rem;
+  clear: both;
+}
 </style>

@@ -65,6 +65,8 @@ object DatabaseHandler {
             //Migration 3 - Add "general_notes" field to GameReports
             SchemaUtils.createMissingTablesAndColumns(GameReports)
 
+            //Migration 4 - Add "redCardIssued" to DisciplinaryActions
+            SchemaUtils.createMissingTablesAndColumns(DisciplinaryActions)
         }
     }
 

@@ -274,6 +274,7 @@ object DisciplinaryActions : LongIdTable() {
     val number = integer("number")
     val rule = reference("rule",Rules)
     val details = text("details")
+    val redCardIssued = bool("red_card_issued").default(false) //Could be because of yellow-red, or black-red
 }
 
 class DisciplinaryAction(id:EntityID<Long>):LongEntity(id) {
@@ -285,6 +286,7 @@ class DisciplinaryAction(id:EntityID<Long>):LongEntity(id) {
     var number by DisciplinaryActions.number
     var rule by Rule referencedOn DisciplinaryActions.rule
     var details by DisciplinaryActions.details
+    var redCardIssued by DisciplinaryActions.redCardIssued
 }
 
 object Injuries : LongIdTable() {

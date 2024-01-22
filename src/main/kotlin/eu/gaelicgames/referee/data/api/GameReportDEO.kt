@@ -303,6 +303,7 @@ data class DisciplinaryActionDEO(
     val details: String? = null,
     val rule: Long? = null,
     val game: Long? = null,
+    val redCardIssued: Boolean? = null
 ) {
     companion object {
         fun fromDisciplinaryAction(disciplinaryAction: DisciplinaryAction): DisciplinaryActionDEO {
@@ -315,7 +316,8 @@ data class DisciplinaryActionDEO(
                     disciplinaryAction.number,
                     disciplinaryAction.details,
                     disciplinaryAction.rule.id.value,
-                    disciplinaryAction.game.id.value
+                    disciplinaryAction.game.id.value,
+                    disciplinaryAction.redCardIssued
                 )
             }
         }
@@ -345,6 +347,7 @@ data class DisciplinaryActionDEO(
                         this.details = daUpdate.details
                         this.rule = rule
                         this.game = game
+                        this.redCardIssued = daUpdate.redCardIssued ?: false
                     })
                 } else {
                     Result.failure(
@@ -393,6 +396,9 @@ data class DisciplinaryActionDEO(
                             action.rule = r
                         }
                     }
+                    daUpdate.redCardIssued?.let { redCardIssued ->
+                        action.redCardIssued = redCardIssued
+                    }
                     Result.success(action)
                 } else {
                     Result.failure(
@@ -426,7 +432,8 @@ data class DisciplinaryActionStringDEO(
     val tournamentName: String,
     val tournamentLocation: String,
     val tournamentDateTime: LocalDateTime,
-    val reportShareLink: String
+    val reportShareLink: String,
+    val redCardIssued: Boolean
 ) {
     companion object {
         fun fromDisciplinaryAction(disciplinaryAction: DisciplinaryAction): DisciplinaryActionStringDEO {
@@ -455,7 +462,8 @@ data class DisciplinaryActionStringDEO(
                     disciplinaryAction.game.report.tournament.name,
                     disciplinaryAction.game.report.tournament.location,
                     disciplinaryAction.game.startTime ?: LocalDateTime.now(),
-                    reportShareLink
+                    reportShareLink,
+                    disciplinaryAction.redCardIssued
                 )
             }
         }
