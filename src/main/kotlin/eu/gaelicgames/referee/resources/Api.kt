@@ -62,8 +62,13 @@ class Api() {
         class Update(val parent: Tournaments)
 
         @Serializable
+        @Resource("complete_report_public/{id}")
+        class CompleteReportPublic(val parent: Tournaments, val id: Long)
+
+        @Serializable
         @Resource("complete_report/{id}")
         class CompleteReport(val parent: Tournaments, val id: Long)
+
     }
 
     @Serializable

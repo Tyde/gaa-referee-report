@@ -31,15 +31,14 @@ import Column from "primevue/column";
 import Row from "primevue/row";
 import ConfirmDialog from "primevue/confirmdialog";
 import ConfirmationService from "primevue/confirmationservice";
+import Paginator from "primevue/paginator";
 
 
 const router = createRouter({
     history: createWebHashHistory(),
     routes: routes
 })
-const pinia = createPinia()
 const app = createApp(App);
-app.use(pinia)
 app.use(PrimeVue)
 app.use(router)
 app.use(Vue3Mq);
@@ -64,5 +63,9 @@ app.directive('tooltip', Tooltip)
 app.component('DataTable',DataTable)
 app.component('Column',Column)
 app.component('Row',Row)
+app.component('Paginator', Paginator)
 app.component(VueFeather.name,VueFeather)
+const pinia = createPinia()
+app.use(pinia)
+
 app.mount('#app')

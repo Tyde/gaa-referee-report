@@ -6,6 +6,7 @@ import ShowPitchReport from "@/components/showReport/ShowPitchReport.vue";
 import type {Report} from "@/types/report_types";
 import type {GameReport} from "@/types/game_report_types";
 import type {Pitch} from "@/types/pitch_types";
+import {compareGameReportByStartTime} from "@/types/game_report_types";
 
 const props = defineProps<{
   currentReport: Report,
@@ -19,17 +20,7 @@ const tournamentDate = computed(() => {
 })
 
 const gameReportsByTime = computed(() => {
-  return props.allGameReports.sort((a, b) => {
-    if (a.startTime) {
-      if (b.startTime) {
-        return a.startTime > b.startTime ? 1 : -1
-      } else {
-        return -1
-      }
-    } else {
-      return 0
-    }
-  })
+  return props.allGameReports.sort(compareGameReportByStartTime)
 })
 
 

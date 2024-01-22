@@ -1,11 +1,11 @@
 import {defineStore} from "pinia";
-import { ref} from "vue";
+import {computed, ref} from "vue";
 import {ErrorMessage, GameCode} from "@/types";
 import {deleteReportOnServer, getGameCodes, loadMyReports} from "@/utils/api/report_api";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
 import {getSessionInfo, updateMeUser} from "@/utils/api/referee_api";
 import type {DatabaseTournament} from "@/types/tournament_types";
-import type {Referee} from "@/types/referee_types";
+import type {Referee, RefereeWithRoleDEO} from "@/types/referee_types";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
 
 
@@ -15,9 +15,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
     const tournaments = ref<Array<DatabaseTournament>>([])
 
     const isAdmin = ref(false)
-    const me = ref<Referee>({} as Referee)
+    const me = ref<RefereeWithRoleDEO>({} as RefereeWithRoleDEO)
 
-
+    const isCCC = computed(() => {
+        if (me.value.role !== undefined) {
+            return me.value.role == "CCC"
+        }
+        return undefined
+    })
 
     const isLoading = ref<boolean>(false)
     function newError(message: string) {
@@ -42,7 +47,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
 
     async function checkAdmin() {
-        getSessionInfo()
+        await getSessionInfo()
             .then(sessionInfo => me.value = sessionInfo)
             .then(sessionInfo => isAdmin.value = sessionInfo.role == "ADMIN")
             .catch(reason => newError(reason))
@@ -68,8 +73,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     async function updateMe(shadowCopy: Referee) {
         try{
-            let newUser = await updateMeUser(shadowCopy)
-            me.value = shadowCopy
+            await updateMeUser(shadowCopy)
+            me.value.firstName = shadowCopy.firstName
+            me.value.lastName = shadowCopy.lastName
+            me.value.mail = shadowCopy.mail
         } catch (e: any) {
             newError(e)
         }
@@ -77,13 +84,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
 
     return {
-        currentErrors,
+        //currentErrors,
         codes,
         myReports,
         isLoading,
         isAdmin,
         me,
-        newError,
+        isCCC,
+        //newError,
         fetchMyReports,
         findCodeById,
         checkAdmin,

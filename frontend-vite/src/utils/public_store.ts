@@ -10,6 +10,7 @@ import {getPitchVariables} from "@/utils/api/pitch_api";
 import {getGameReportVariables} from "@/utils/api/game_report_api";
 import {loadAllRegions, loadAllTournaments} from "@/utils/api/tournament_api";
 import {ref} from "vue";
+import {PitchPropertyType} from "@/types/pitch_types";
 
 export const usePublicStore = defineStore("public",() =>{
     const codes = ref<Array<GameCode>>([])
@@ -22,7 +23,6 @@ export const usePublicStore = defineStore("public",() =>{
 
 
     const currentErrors = ref<ErrorMessage[]>([])
-
 
     async function loadAuxiliaryInformationFromSerer() {
         const promiseCodes = getGameCodes()
@@ -62,9 +62,49 @@ export const usePublicStore = defineStore("public",() =>{
 
     }
 
+    function getVariablesByType(type: PitchPropertyType) {
+        switch (type) {
+            case PitchPropertyType.goalDimensions:
+                return pitchVariables.value?.goalDimensions || []
+            case PitchPropertyType.goalPosts:
+                return pitchVariables.value?.goalPosts || []
+            case PitchPropertyType.length:
+                return pitchVariables.value?.lengths || []
+            case PitchPropertyType.width:
+                return pitchVariables.value?.widths || []
+            case PitchPropertyType.markingsOptions:
+                return pitchVariables.value?.markingsOptions || []
+            case PitchPropertyType.surface:
+                return pitchVariables.value?.surfaces || []
+        }
+        return []
+    }
+
+    function findCodeById(id: number) {
+        return codes.value.find(it => it.id === id)
+    }
+
     function newError(message: string) {
         currentErrors.value.push(new ErrorMessage(message))
         console.log(message)
+    }
+    async function waitForAllVariablesPresent() {
+        const start_time = new Date().getTime()
+        while (true) {
+            if (
+                codes.value.length > 0 &&
+                rules.value.length > 0 &&
+                gameTypes.value.length > 0 &&
+                extraTimeOptions.value.length > 0 &&
+                pitchVariables.value
+            ) {
+                break
+            }
+            if ((new Date()).getTime() > start_time + 3000) {
+                newError("Timeout waiting for variables")
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
     }
 
     return {
@@ -78,6 +118,9 @@ export const usePublicStore = defineStore("public",() =>{
         currentErrors,
         loadAuxiliaryInformationFromSerer,
         newError,
-        loadTournaments
+        loadTournaments,
+        getVariablesByType,
+        waitForAllVariablesPresent,
+        findCodeById
     }
 });

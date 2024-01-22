@@ -5,7 +5,7 @@ import {computed} from "vue";
 let store = useAdminStore();
 
 let regions = computed(() => {
-  store.regions
+  store.publicStore.regions
 })
 </script>
 

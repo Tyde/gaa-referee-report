@@ -339,6 +339,7 @@ data class CompactTournamentReportDEO(
     val refereeName: String,
     val numGameReports: Long,
     val numTeams: Long,
+    val additionalInformation: String
 ) {
     companion object {
         fun all(): List<CompactTournamentReportDEO> {
@@ -352,6 +353,7 @@ data class CompactTournamentReportDEO(
                         "    TournamentReports.is_submitted,\n" +
                         "    TournamentReports.submit_date,\n" +
                         "    TournamentReports.referee,\n" +
+                        "    TournamentReports.additional_information,\n" +
                         "    U.first_name,\n" +
                         "    U.last_name,\n" +
                         "    (SELECT COUNT(*) FROM GameReports GR WHERE TournamentReports.id = GR.report_id) as \"num_game_reports\",\n" +
@@ -372,7 +374,7 @@ data class CompactTournamentReportDEO(
                             it.getLong("referee"),
                             it.getString("first_name") + " " + it.getString("last_name"),
                             it.getLong("num_game_reports"),
-                            it.getLong("num_teams")
+                            it.getLong("num_teams"), it.getString("additional_information")
                         ))
                     }
                     returnList.toList()
@@ -433,7 +435,8 @@ data class CompactTournamentReportDEO(
                     report.referee.id.value,
                     report.referee.firstName + " " + report.referee.lastName,
                     report.gameReports.count(),
-                    numTeams
+                    numTeams,
+                    report.additionalInformation
                 )
             }
         }

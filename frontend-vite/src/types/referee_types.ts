@@ -7,13 +7,23 @@ export const Referee = z.object({
     mail: z.string(),
 })
 export type Referee = z.infer<typeof Referee>
+
+
+
 export const UpdateRefereeDAO = Referee.partial({
     firstName: true, lastName: true, mail: true
 })
 export type UpdateRefereeDAO = z.infer<typeof UpdateRefereeDAO>
 
 
-export const RefereeRole = z.enum(["ADMIN", "REFEREE", "INACTIVE", "WAITING_FOR_ACTIVATION"])
+export const RefereeRole = z.enum([
+    "ADMIN",
+    "REFEREE",
+    "INACTIVE",
+    "WAITING_FOR_ACTIVATION",
+    "CCC",
+    "CCC_WAITING_FOR_ACTIVATION"
+])
 
 
 export type RefereeRole = z.infer<typeof RefereeRole>

@@ -187,26 +187,7 @@ function stripRuleCardsFromDescription(description?: string) {
   max-width: 22rem;
 }
 
-.rule-card {
-  margin-top: .25rem;
-  margin-right: .3rem;
-  float: left;
-  height: 1rem;
-  width: 0.5rem;
-  clear: both;
-}
 
-.card-yellow {
-  background-color: gold;
-}
-
-.card-black {
-  background-color: black;
-}
-
-.card-red {
-  background-color: red;
-}
 
 @media (min-width: 1024px) {
   .score-button-base {

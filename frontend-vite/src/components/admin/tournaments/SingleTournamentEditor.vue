@@ -19,7 +19,7 @@ let emit = defineEmits<{
 let store = useAdminStore()
 
 function regionIDToRegion(regionID: number): RegionDEO {
-  return store.regions.filter(it => it.id == regionID)[0]
+  return store.publicStore.regions.filter(it => it.id == regionID)[0]
 }
 
 function startEdit() {
@@ -122,7 +122,7 @@ let editedTournament = ref<DatabaseTournament | undefined>()
           <span class="p-float-label">
           <Dropdown
               v-model="editedTournament.region"
-              :options="store.regions"
+              :options="store.publicStore.regions"
               optionLabel="name"
               optionValue="id"
               :inputId="'tournament-region-' + props.tournament.id"

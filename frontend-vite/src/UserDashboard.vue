@@ -4,12 +4,32 @@
 import {useDashboardStore} from "@/utils/dashboard_store";
 import {onMounted} from "vue";
 import {useRoute, useRouter} from "vue-router";
+import {usePublicStore} from "@/utils/public_store";
+
+
+const router = useRouter()
+const route = useRoute()
 
 const store = useDashboardStore()
-store.fetchMyReports()
-store.checkAdmin()
-onMounted(() => {
+const publicStore = usePublicStore()
+publicStore.loadAuxiliaryInformationFromSerer()
+publicStore.loadTournaments()
 
+
+
+onMounted(() => {
+  store.checkAdmin()
+      .then(() => {
+        console.log("isCCC", store.isCCC)
+        if (store.isCCC) {
+          publicStore.loadAuxiliaryInformationFromSerer()
+          publicStore.loadTournaments()
+          console.log("push")
+          router.push({path:'/tournament-reports'})
+        } else {
+          store.fetchMyReports()
+        }
+      })
 })
 
 function newReport() {
@@ -23,18 +43,17 @@ function logout() {
 function navigateToAdmin() {
   location.href = "/admin"
 }
-const router = useRouter()
-const route = useRoute()
+
 </script>
 
 <template>
   <transition-group name="p-message" tag="div">
-    <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
+    <Message v-for="msg in publicStore.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
   </transition-group>
   <div class="flex flex-row justify-center">
     <div class="w-full xl:w-10/12">
       <div class="flex flex-row justify-center flex-wrap md:flex-nowrap no-print">
-        <div class="m-2">
+        <div class="m-2" v-if="!store.isCCC">
           <Button label="Create new report" icon="pi pi-plus" class="m-2" @click="newReport"></Button>
         </div>
         <div class="m-2" v-if="route.path != '/profile'">

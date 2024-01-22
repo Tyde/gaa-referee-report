@@ -64,6 +64,7 @@ export function gameReportDEOToGameReport(
     }
 }
 
+
 function gameReportToGameReportDEO(gameReport: GameReport) {
     return {
         "id": gameReport.id,
@@ -117,7 +118,7 @@ export async function deleteGameReportOnServer(gameReport: GameReport): Promise<
         {id: gameReport.id}
     )
         .then(data => parseAndHandleDEO(data, z.object({id: z.number(),})))
-        .then(deletedGameReport => {
+        .then(() => {
             gameReport.id = -1
             return true
         })

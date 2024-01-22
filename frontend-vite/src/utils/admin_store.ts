@@ -2,95 +2,35 @@ import {defineStore} from "pinia";
 import {ref} from "vue";
 import {
     createPitchPropertyOnServer,
-    deletePitchPropertyOnServer, enablePitchPropertyOnServer,
-    getPitchVariables,
+    deletePitchPropertyOnServer,
+    enablePitchPropertyOnServer,
     pitchDEOtoPitch,
     updatePitchPropertyOnServer
 } from "@/utils/api/pitch_api";
-import type {GameCode} from "@/types";
-import {ErrorMessage, ExtraTimeOption, GameType} from "@/types";
+import {ErrorMessage, GameType} from "@/types";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
-    getGameCodes,
     loadReportDEO
 } from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
-import {getGameReportVariables, uploadNewGameType} from "@/utils/api/game_report_api";
+import {uploadNewGameType} from "@/utils/api/game_report_api";
 import {addRuleOnServer, updateGameTypeOnServer} from "@/utils/api/admin_api";
 import type {NewRuleDEO, Rule} from "@/types/rules_types";
-import type {PitchProperty, PitchVariables} from "@/types/pitch_types";
+import type {PitchProperty} from "@/types/pitch_types";
 import {PitchPropertyType} from "@/types/pitch_types";
-import type {RegionDEO} from "@/types/tournament_types";
-import {loadAllRegions} from "@/utils/api/tournament_api";
+import {usePublicStore} from "@/utils/public_store";
 
 export const useAdminStore = defineStore('admin', () => {
-    const pitchVariables = ref<PitchVariables>()
-    const gameTypes = ref<Array<GameType>>([])
-    const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
-    const rules = ref<Array<Rule>>([])
-    const codes = ref<Array<GameCode>>([])
-    const regions = ref<Array<RegionDEO>>([])
-
+    const publicStore = usePublicStore()
 
     const currentErrors = ref<ErrorMessage[]>([])
 
-    function fetchGameReportVariables() {
-        const promiseCodes = getGameCodes()
-            .then(serverCodes => codes.value = serverCodes)
-            .catch(error => currentErrors.value.push(new ErrorMessage(error)))
-
-        const promiseRules = getRules()
-            .then(serverRules => rules.value = serverRules)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promisePitchVariables = getPitchVariables()
-            .then(serverPitchVariables => pitchVariables.value = serverPitchVariables)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promiseGameReport = getGameReportVariables()
-            .then(gameReportVariables => {
-                gameTypes.value = gameReportVariables.gameTypes
-                extraTimeOptions.value = gameReportVariables.extraTimeOptions
-            })
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promiseRegions = loadAllRegions()
-            .then(it => regions.value = it)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
 
-        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport, promiseRegions])
 
-    }
 
-    function fetchPitchVariables() {
-        getPitchVariables()
-            .then(it => pitchVariables.value = it)
-            .catch(
-                (error) => {
-                    newError(error)
-                }
-            )
-    }
 
-    function getVariablesByType(type: PitchPropertyType) {
-        switch (type) {
-            case PitchPropertyType.goalDimensions:
-                return pitchVariables.value?.goalDimensions || []
-            case PitchPropertyType.goalPosts:
-                return pitchVariables.value?.goalPosts || []
-            case PitchPropertyType.length:
-                return pitchVariables.value?.lengths || []
-            case PitchPropertyType.width:
-                return pitchVariables.value?.widths || []
-            case PitchPropertyType.markingsOptions:
-                return pitchVariables.value?.markingsOptions || []
-            case PitchPropertyType.surface:
-                return pitchVariables.value?.surfaces || []
-        }
-        return []
-    }
 
 
     async function updatePitchVariable(option: PitchProperty, type: PitchPropertyType) {
@@ -106,7 +46,7 @@ export const useAdminStore = defineStore('admin', () => {
                 .catch(reason => newError(reason))
 
         } else {
-            const prop = getVariablesByType(type).find(it => it.id === option.id)
+            const prop = publicStore.getVariablesByType(type).find(it => it.id === option.id)
             if (prop) {
                 prop.name = option.name
                 updatePitchPropertyOnServer(prop)
@@ -120,14 +60,14 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function deletePitchVariable(option: PitchProperty, type: PitchPropertyType) {
-        const prop = getVariablesByType(type).find(it => it.id === option.id)
+        const prop = publicStore.getVariablesByType(type).find(it => it.id === option.id)
         if (prop) {
             deletePitchPropertyOnServer(prop)
                 .then((response) => {
                     if (response.deletionState === "DELETED") {
-                        const index = getVariablesByType(type).indexOf(prop)
+                        const index = publicStore.getVariablesByType(type).indexOf(prop)
                         if (index >= 0) {
-                            getVariablesByType(type).splice(index, 1)
+                            publicStore.getVariablesByType(type).splice(index, 1)
                         }
                     } else if (response.deletionState == "DISABLED") {
                         prop.disabled = true
@@ -140,7 +80,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function enablePitchVariable(option: PitchProperty, type: PitchPropertyType) {
-        const prop = getVariablesByType(type).find(it => it.id === option.id)
+        const prop = publicStore.getVariablesByType(type).find(it => it.id === option.id)
         if (prop) {
             enablePitchPropertyOnServer(prop)
                 .then(() => {
@@ -155,41 +95,23 @@ export const useAdminStore = defineStore('admin', () => {
         currentErrors.value.push(new ErrorMessage(message))
     }
 
-    function findCodeById(id: number) {
-        return codes.value.find(it => it.id === id)
-    }
 
-    async function waitForAllVariablesPresent() {
-        const start_time = new Date().getTime()
-        while (true) {
-            if (
-                codes.value.length > 0 &&
-                rules.value.length > 0 &&
-                gameTypes.value.length > 0 &&
-                extraTimeOptions.value.length > 0 &&
-                pitchVariables.value
-            ) {
-                break
-            }
-            if ((new Date()).getTime() > start_time + 3000) {
-                newError("Timeout waiting for variables")
-            }
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-    }
+
+
 
     async function getCompleteReport(reportId: number) {
         const deo = await loadReportDEO(reportId)
-        await waitForAllVariablesPresent()
-        let currentReport = completeReportDEOToReport(deo, codes.value)
+        await publicStore.waitForAllVariablesPresent()
+        let currentReport = completeReportDEOToReport(deo, publicStore.codes)
         let allGameReports = extractGameReportsFromCompleteReportDEO(
             deo,
             currentReport,
-            gameTypes.value,
-            extraTimeOptions.value,
-            rules.value
+            publicStore.gameTypes,
+            publicStore.extraTimeOptions,
+            publicStore.rules
         )
-        let allPitchReports = deo.pitches?.map(it => pitchDEOtoPitch(it, currentReport, pitchVariables.value!!)) ?? []
+        let allPitchReports = deo.pitches
+            ?.map(it => pitchDEOtoPitch(it, currentReport, publicStore.pitchVariables!!)) ?? []
         return {
             report: currentReport,
             gameReports: allGameReports,
@@ -198,23 +120,23 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     async function updateRuleInStore(rule: Rule) {
-        const index = rules.value.findIndex(it => it.id === rule.id)
+        const index = publicStore.rules.findIndex(it => it.id === rule.id)
         if (index >= 0) {
-            rules.value[index] = rule
+            publicStore.rules[index] = rule
         }
     }
 
     async function deleteRuleInStore(ruleId: number) {
-        const index = rules.value.findIndex(it => it.id === ruleId)
+        const index = publicStore.rules.findIndex(it => it.id === ruleId)
         if (index >= 0) {
-            rules.value.splice(index, 1)
+            publicStore.rules.splice(index, 1)
         }
     }
 
     async function addRule(rule: NewRuleDEO) {
         try {
             await addRuleOnServer(rule)
-            rules.value = await getRules()
+            publicStore.rules = await getRules()
         } catch (e: any) {
             newError(e)
         }
@@ -225,9 +147,9 @@ export const useAdminStore = defineStore('admin', () => {
     async function updateGameType(gameType: GameType) {
         try {
             let result = await updateGameTypeOnServer(gameType)
-            let index = gameTypes.value.findIndex(it => it.id === result.id)
+            let index = publicStore.gameTypes.findIndex(it => it.id === result.id)
             if (index >= 0) {
-                gameTypes.value[index] = result
+                publicStore.gameTypes[index] = result
             }
         } catch (e: any) {
             newError(e)
@@ -237,28 +159,19 @@ export const useAdminStore = defineStore('admin', () => {
     async function createGameType(type: GameType) {
         try {
             let result = await uploadNewGameType(type.name)
-            gameTypes.value.push(result)
+            publicStore.gameTypes.push(result)
         } catch (e: any) {
             newError(e)
         }
     }
 
     return {
-        pitchVariables,
-        gameTypes,
-        extraTimeOptions,
-        rules,
-        codes,
-        regions,
-        fetchGameReportVariables,
-        fetchPitchVariables,
-        getVariablesByType,
+        publicStore,
         updatePitchVariable,
         deletePitchVariable,
         enablePitchVariable,
         currentErrors,
         newError,
-        findCodeById,
         getCompleteReport,
         updateRuleInStore,
         deleteRuleInStore,

@@ -59,7 +59,7 @@ function addNewGameTypeEditor() {
 
   <div class="flex flex-col justify-start w-full">
     <div
-        v-for="gameType in store.gameTypes" :key="gameType.id"
+        v-for="gameType in store.publicStore.gameTypes" :key="gameType.id"
         class="single-game-type-option group">
       <template v-if="editingTypes.filter(it => it.id === gameType.id).length === 1">
         <SingleGameTypeEditor :game-type="gameType" @on_save="onSaveEdit" @on_cancel="onCancelEdit"/>

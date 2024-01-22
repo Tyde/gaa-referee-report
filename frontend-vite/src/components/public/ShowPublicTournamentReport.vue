@@ -2,9 +2,8 @@
 import {usePublicStore} from "@/utils/public_store";
 import {computed, ref} from "vue";
 import {loadPublicTournamentReport} from "@/utils/api/tournament_api";
-import {PublicTournamentReportDEO} from "@/types/tournament_types";
+import {PublicTournamentReportDEO} from "@/types/complete_tournament_types";
 import {DateTime} from "luxon";
-import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisciplinaryActionsAndInjuries.vue";
 import type {GameReportDEO} from "@/types/game_report_types";
 import type {GameCode} from "@/types";
 import type {Team} from "@/types/team_types";
@@ -182,20 +181,5 @@ h3 {
 }
 
 
-.hurling-game {
-  background-color: #c7522a;
-  @apply text-white;
-}
-.camogie-game {
-  background-color: #e5c185;
-}
-.mens-football-game {
-  background-color: #74a892;
 
-}
-.ladies-football-game {
-  background-color: #008585;
-  @apply text-white;
-
-}
 </style>

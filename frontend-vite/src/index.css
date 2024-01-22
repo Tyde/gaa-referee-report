@@ -6,3 +6,40 @@ html {
     font-size: 15px;
 }
 
+.hurling-game {
+    background-color: #c7522a;
+    @apply text-white;
+}
+.camogie-game {
+    background-color: #e5c185;
+}
+.mens-football-game {
+    background-color: #74a892;
+
+}
+.ladies-football-game {
+    background-color: #008585;
+    @apply text-white;
+
+}
+
+.rule-card {
+    margin-top: .25rem;
+    margin-right: .3rem;
+    float: left;
+    height: 1rem;
+    width: 0.5rem;
+    clear: both;
+}
+
+.card-yellow {
+    background-color: gold;
+}
+
+.card-black {
+    background-color: black;
+}
+
+.card-red {
+    background-color: red;
+}

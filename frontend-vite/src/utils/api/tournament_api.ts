@@ -1,7 +1,7 @@
 import type {DateTime} from "luxon";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
-import {DatabaseTournament, PublicTournamentReportDEO, RegionDEO, Tournament} from "@/types/tournament_types";
-import {promise} from "zod";
+import {DatabaseTournament, RegionDEO, Tournament} from "@/types/tournament_types";
+import {CompleteTournamentReportDEO, PublicTournamentReportDEO} from "@/types/complete_tournament_types";
 
 
 export async function loadTournamentsOnDate(date:DateTime):Promise<Array<DatabaseTournament>> {
@@ -41,7 +41,13 @@ export async function loadAllRegions():Promise<Array<RegionDEO>> {
 }
 
 export async function loadPublicTournamentReport(id:number):Promise<PublicTournamentReportDEO> {
-    return fetch("/api/tournament/complete_report/"+id)
+    return fetch("/api/tournament/complete_report_public/"+id)
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, PublicTournamentReportDEO))
+}
+
+export async function loadCompleteTournamentReport(id:number):Promise<CompleteTournamentReportDEO> {
+    return fetch("/api/tournament/complete_report/"+id)
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, CompleteTournamentReportDEO))
 }

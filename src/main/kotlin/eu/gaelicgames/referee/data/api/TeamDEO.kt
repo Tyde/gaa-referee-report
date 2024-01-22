@@ -2,7 +2,6 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -14,6 +13,13 @@ data class TeamDEO(
     companion object {
         fun fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
             return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
+        }
+
+        fun fromTeamId(it:Long):Result<TeamDEO> {
+            return transaction {
+                val teamDEO = Team.findById(it)?.let { fromTeam(it)}
+                teamDEO?.let { Result.success(it) } ?: Result.failure(Exception("Team not found"))
+            }
         }
 
     }

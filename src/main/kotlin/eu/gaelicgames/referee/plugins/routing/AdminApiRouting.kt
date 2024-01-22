@@ -15,10 +15,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 fun Route.adminApiRouting() {
 
 
-    get<Api.Reports.All> {
-        val reports = CompactTournamentReportDEO.all()
-        call.respond(reports)
-    }
+
 
     post<Api.PitchProperty.New> {
         receiveAndHandleDEO<NewPitchVariableDEO> { newDEO ->

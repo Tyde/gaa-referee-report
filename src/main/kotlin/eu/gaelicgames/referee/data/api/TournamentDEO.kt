@@ -104,23 +104,80 @@ data class PublicTournamentReportDEO(
                     (TournamentReports.tournament eq input.id) and
                             (TournamentReports.isSubmitted eq true)
                 }.map {
-                    val tournamentReport = TournamentReport.wrapRow(it)
+                    TournamentReport.wrapRow(it)
                     val gameReport = GameReport.wrapRow(it)
                     PublicGameReportDEO.fromGameReport(gameReport)
                 }
 
-
+                val allTeams = gameReports
+                    .flatMap { listOf(it.gameReport.teamA, it.gameReport.teamB)}
+                    .asSequence()
+                    .distinct()
+                    .filterNotNull()
+                    .map { TeamDEO.fromTeamId(it) }
+                    .filter { it.isSuccess }
+                    .map { it.getOrThrow() }
+                    .toList()
 
                 PublicTournamentReportDEO(
                     TournamentDEO.fromTournament(input),
                     gameReports,
-                    Team.all().map { TeamDEO.fromTeam(it) }
+                    allTeams
                 )
             }
 
         }
 
         fun fromTournamentId(id:Long):PublicTournamentReportDEO {
+            return transaction {
+                val tournament = Tournament.findById(id)
+                if (tournament == null) {
+                    throw IllegalArgumentException("Tournament with id $id does not exist")
+                }
+                fromTournament(tournament)
+            }
+        }
+    }
+}
+
+@Serializable
+data class CompleteTournamentReportDEO(
+    val tournament: TournamentDEO,
+    val games: List<CompleteGameReportWithRefereeReportDEO>,
+    val teams: List<TeamDEO>
+) {
+    companion object {
+        fun fromTournament(input: Tournament): CompleteTournamentReportDEO {
+            return transaction {
+
+                val gameReports = TournamentReports.leftJoin(GameReports).select {
+                    (TournamentReports.tournament eq input.id) and
+                            (TournamentReports.isSubmitted eq true)
+                }.map {
+                    TournamentReport.wrapRow(it)
+                    val gameReport = GameReport.wrapRow(it)
+                    CompleteGameReportWithRefereeReportDEO.fromGameReport(gameReport)
+                }
+
+                val allTeams = gameReports
+                    .flatMap { listOf(it.gameReport.gameReport.teamA, it.gameReport.gameReport.teamB) }
+                    .asSequence()
+                    .distinct()
+                    .filterNotNull()
+                    .map { TeamDEO.fromTeamId(it) }
+                    .filter { it.isSuccess }
+                    .map { it.getOrThrow() }
+                    .toList()
+
+                CompleteTournamentReportDEO(
+                    TournamentDEO.fromTournament(input),
+                    gameReports,
+                    allTeams
+                )
+            }
+        }
+
+        fun fromTournamentId(id:Long):CompleteTournamentReportDEO {
             return transaction {
                 val tournament = Tournament.findById(id)
                 if (tournament == null) {

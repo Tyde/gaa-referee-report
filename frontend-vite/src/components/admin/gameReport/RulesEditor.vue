@@ -9,7 +9,7 @@ import {computed, ref} from "vue";
 const store = useAdminStore()
 
 function rulesByCode(code:GameCode) {
-  const out = store.rules.filter(r => r.code == code.id)
+  const out = store.publicStore.rules.filter(r => r.code == code.id)
   console.log(out)
   return out
 }
@@ -17,13 +17,13 @@ function rulesByCode(code:GameCode) {
 const activeCodeIndex = ref(0)
 
 const currentCode = computed(() => {
-  return store.codes[activeCodeIndex.value]
+  return store.publicStore.codes[activeCodeIndex.value]
 })
 
 const newRuleVisible = ref(false)
 
 
-function addRule(code:GameCode) {
+function addRule() {
   newRuleVisible.value = true
 }
 </script>
@@ -32,10 +32,10 @@ function addRule(code:GameCode) {
 <div class="flex flex-row justify-center">
   <div class="container">
     <TabView v-model:active-index="activeCodeIndex">
-      <TabPanel v-for="code in store.codes" key="id" :header="code.name">
+      <TabPanel v-for="code in store.publicStore.codes" key="id" :header="code.name">
         <div class="flex flex-col">
           <div class="flex flex-row justify-center">
-            <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule(code)"/>
+            <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>
           </div>
           <SingleRuleEditor v-for="rule in rulesByCode(code)" :rule-id="rule.id" :key="rule.id"/>
         </div>

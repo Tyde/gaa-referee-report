@@ -1,10 +1,7 @@
 package eu.gaelicgames.referee.plugins
 
 import at.favre.lib.crypto.bcrypt.BCrypt
-import com.auth0.jwk.JwkProviderBuilder
-import com.typesafe.config.ConfigUtil
 import eu.gaelicgames.referee.data.*
-import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.JWTUtil
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -16,8 +13,6 @@ import io.ktor.server.sessions.*
 import io.ktor.util.*
 import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.concurrent.TimeUnit
-import kotlin.collections.first
 import kotlin.collections.set
 
 fun Application.configureSecurity() {
@@ -53,7 +48,7 @@ fun Application.configureSecurity() {
             passwordParamName = "password"
             validate { credentials ->
                 val pw = credentials.password
-                val hash = BCrypt.withDefaults().hash(12, pw.toCharArray())
+                //val hash = BCrypt.withDefaults().hash(12, pw.toCharArray())
 
                 val user = transaction {
                     val foundUser = User.find { Users.mail.lowerCase() eq credentials.name.lowercase() }
@@ -106,6 +101,30 @@ fun Application.configureSecurity() {
                     if (!foundSessions.empty()) {
                         val foundSession = foundSessions.first()
                         if (foundSession.user.role == UserRole.ADMIN) {
+                            UserPrincipal(foundSession.user)
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+            }
+            challenge {
+                println("Challenge")
+                call.respondRedirect("/login")
+            }
+        }
+
+        session<UserSession>("ccc-session") {
+            validate { session ->
+                transaction {
+                    val foundSessions = Session.find { eu.gaelicgames.referee.data.Sessions.uuid eq session.uuid }
+                    if (!foundSessions.empty()) {
+                        val foundSession = foundSessions.first()
+                        if (foundSession.user.role == UserRole.CCC ||
+                            foundSession.user.role == UserRole.REFEREE ||
+                            foundSession.user.role == UserRole.ADMIN) {
                             UserPrincipal(foundSession.user)
                         } else {
                             null

@@ -6,14 +6,14 @@ import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {Report, ReportDEO} from "@/types/report_types";
 import {
-    TournamentReportShareLinkDEO,
     CompactTournamentReportDEO,
-    CompleteReportDEO,
     NewReportDEO,
+    TournamentReportShareLinkDEO,
     UpdateReportAdditionalInformationDEO
 } from "@/types/report_types";
-import type {GameReport, CompleteGameReportDEO} from "@/types/game_report_types";
+import type {CompleteGameReportDEO, GameReport} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
+import {CompleteReportDEO} from "@/types/complete_report_types";
 
 
 export async function getGameCodes(): Promise<Array<GameCode>> {
@@ -156,7 +156,7 @@ export function ReportDEOToReport(reportDEO:ReportDEO,tournaments:Array<Database
 
     } as Report
 }
-export async function loadAllReports(tournaments:Array<DatabaseTournament>):Promise<Array<CompactTournamentReportDEO>> {
+export async function loadAllReports():Promise<Array<CompactTournamentReportDEO>> {
     return fetch("/api/report/all")
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, CompactTournamentReportDEO.array()))
@@ -178,3 +178,5 @@ export async function shareReportOnServer(reportId:number):Promise<TournamentRep
     return makePostRequest("/api/report/share",{id: reportId})
         .then(data => parseAndHandleDEO(data, TournamentReportShareLinkDEO))
 }
+
+

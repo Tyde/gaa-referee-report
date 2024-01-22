@@ -4,8 +4,6 @@ import {Team} from "@/types/team_types";
 import {GameCode} from "@/types";
 import {DateTime} from "luxon";
 import {Referee} from "@/types/referee_types";
-import {PitchDEO} from "@/types/pitch_types";
-import {CompleteGameReportDEO} from "@/types/game_report_types";
 
 export type Report = z.infer<typeof Report>
 export const Report = z.object({
@@ -40,19 +38,6 @@ export const ReportDEO = z.object({
     }
 )
 export type ReportDEO = z.infer<typeof ReportDEO>
-export const CompleteReportDEO = z.object({
-    id: z.number(),
-    tournament: DatabaseTournament,
-    code: z.number(),
-    additionalInformation: z.string().optional(),
-    isSubmitted: z.boolean(),
-    submitDate: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
-    selectedTeams: Team.array(),
-    gameReports: CompleteGameReportDEO.array(),
-    pitches: PitchDEO.array().nullable(),
-    referee: Referee
-})
-export type CompleteReportDEO = z.infer<typeof CompleteReportDEO>;
 export const CompactTournamentReportDEO = z.object({
     id: z.number(),
     tournament: z.number(),
@@ -63,6 +48,7 @@ export const CompactTournamentReportDEO = z.object({
     refereeName: z.string(),
     numGameReports: z.number(),
     numTeams: z.number(),
+    additionalInformation: z.string(),
 })
 export type CompactTournamentReportDEO = z.infer<typeof CompactTournamentReportDEO>;
 export const NewReportDEO = z.object({

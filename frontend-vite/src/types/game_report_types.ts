@@ -1,4 +1,5 @@
 import type {Report} from "@/types/report_types";
+import {CompactTournamentReportDEO} from "@/types/report_types";
 
 import {DateTime} from "luxon";
 import {z} from "zod";
@@ -17,6 +18,7 @@ export interface GameReport {
     umpirePresentOnTime: boolean,
     umpireNotes: string
 }
+
 
 export const InjuryDEO = z.object({
     id: z.number(),
@@ -86,6 +88,12 @@ export const CompleteGameReportDEO = z.object({
 })
 export type CompleteGameReportDEO = z.infer<typeof CompleteGameReportDEO>;
 
+export const CompleteGameReportWithRefereeReportDEO = z.object({
+    gameReport: CompleteGameReportDEO,
+    refereeReport: CompactTournamentReportDEO
+})
+export type CompleteGameReportWithRefereeReportDEO = z.infer<typeof CompleteGameReportWithRefereeReportDEO>;
+
 export const PublicDisciplinaryActionDEO = z.object({
     id: z.number(),
     team: z.number(),
@@ -99,3 +107,16 @@ export const PublicGameReportDEO = z.object({
 })
 
 export type PublicGameReportDEO = z.infer<typeof PublicGameReportDEO>
+
+
+export function compareGameReportByStartTime(a: GameReport, b: GameReport) {
+    if (a.startTime) {
+        if (b.startTime) {
+            return a.startTime > b.startTime ? 1 : -1
+        } else {
+            return -1
+        }
+    } else {
+        return 0
+    }
+}

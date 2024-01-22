@@ -14,7 +14,8 @@ import type {Report} from "@/types/report_types";
 import type {GameReport} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
-import type {CompleteReportDEO} from "@/types/report_types";
+
+import {CompleteReportDEO} from "@/types/complete_report_types";
 
 const props = defineProps<{
   id?: number

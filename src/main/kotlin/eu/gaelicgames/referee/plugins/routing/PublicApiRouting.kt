@@ -32,7 +32,7 @@ fun Route.publicApiRouting() {
         call.respond(allCodes)
     }
 
-    get<Api.Tournaments.CompleteReport> { completeReport ->
+    get<Api.Tournaments.CompleteReportPublic> { completeReport ->
         val id = completeReport.id
         runCatching {
             PublicTournamentReportDEO.fromTournamentId(id).let {

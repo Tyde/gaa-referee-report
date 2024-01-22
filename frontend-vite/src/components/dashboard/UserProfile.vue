@@ -3,8 +3,10 @@ import {useDashboardStore} from "@/utils/dashboard_store";
 import {computed, ref, watch} from "vue";
 import {updatePasswordOnServer} from "@/utils/api/referee_api";
 import {Referee, UpdateRefereePasswordDAO} from "@/types/referee_types";
+import {usePublicStore} from "@/utils/public_store";
 
 const store = useDashboardStore()
+const publicStore = usePublicStore()
 const meShadowCopy = ref<Referee>({...store.me})
 
 watch(() => store.me, (newVal) => {
@@ -55,11 +57,11 @@ function updatePassword() {
             newPasswordRepeat: ""
           }
         } else {
-          store.newError("Password change failed: " + res.message)
+          publicStore.newError("Password change failed: " + res.message)
         }
       })
       .catch((error) => {
-        store.newError(error)
+        publicStore.newError(error)
       })
   //store.updatePassword(passwordChange.value.oldPassword, passwordChange.value.newPassword)
 }

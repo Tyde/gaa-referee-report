@@ -3,8 +3,9 @@ import {ref} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 
 const store = useAdminStore();
-store.fetchPitchVariables()
-store.fetchGameReportVariables()
+store.publicStore.loadAuxiliaryInformationFromSerer()
+
+
 
 const items = ref([
   {

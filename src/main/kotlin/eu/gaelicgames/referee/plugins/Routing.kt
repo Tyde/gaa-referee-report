@@ -4,10 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
-import eu.gaelicgames.referee.plugins.routing.adminApiRouting
-import eu.gaelicgames.referee.plugins.routing.publicApiRouting
-import eu.gaelicgames.referee.plugins.routing.refereeApiRouting
-import eu.gaelicgames.referee.plugins.routing.sites
+import eu.gaelicgames.referee.plugins.routing.*
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.JWTUtil
 import io.ktor.http.*
@@ -102,6 +99,10 @@ fun Application.configureRouting() {
 
         authenticate("admin-session") {
             adminApiRouting()
+        }
+
+        authenticate("ccc-session") {
+            CCCApiRouting()
         }
 
         post<Api.User.ValidateActivationToken> {

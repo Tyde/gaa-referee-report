@@ -12,7 +12,9 @@ enum class UserRole {
     ADMIN,
     REFEREE,
     INACTIVE,
-    WAITING_FOR_ACTIVATION
+    WAITING_FOR_ACTIVATION,
+    CCC,
+    CCC_WAITING_FOR_ACTIVATION
 }
 
 object Users : LongIdTable() {
@@ -82,6 +84,10 @@ class UserPrincipal(val user:User) : Principal {
             return other.user == user
         }
         return false
+    }
+
+    override fun hashCode(): Int {
+        return user.hashCode()
     }
 }
 

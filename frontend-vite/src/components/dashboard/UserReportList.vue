@@ -3,14 +3,13 @@
 import {useDashboardStore} from "@/utils/dashboard_store";
 import {computed, ref} from "vue";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
-import {DateTime} from "luxon";
 import {useConfirm} from "primevue/useconfirm";
 import {useRouter} from "vue-router";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
-import {shareReportOnServer} from "@/utils/api/report_api";
-import useClipboard from 'vue-clipboard3'
 import ShareReport from "@/components/dashboard/ShareReport.vue";
+import {usePublicStore} from "@/utils/public_store";
 
+const publicStore = usePublicStore()
 const store = useDashboardStore()
 
 const props = defineProps<{
@@ -152,7 +151,7 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
   </DataTable>
   <ShareReport
     :report="reportToShare"
-    @on-error="(err) => store.newError(err)"
+    @on-error="(err) => publicStore.newError(err)"
     @on-success="() => reportToShare = undefined"
     ></ShareReport>
 

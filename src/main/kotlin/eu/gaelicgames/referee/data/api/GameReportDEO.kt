@@ -4,7 +4,6 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.GGERefereeConfig
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.net.URI
 import java.time.LocalDateTime
 
 
@@ -697,6 +696,25 @@ data class CompleteGameReportDEO(
                             it
                         )
                     })
+            }
+        }
+    }
+}
+
+@Serializable
+data class CompleteGameReportWithRefereeReportDEO(
+    val gameReport: CompleteGameReportDEO,
+    val refereeReport: CompactTournamentReportDEO
+) {
+    companion object {
+        fun fromGameReport(gameReport: GameReport): CompleteGameReportWithRefereeReportDEO {
+            return transaction {
+                CompleteGameReportWithRefereeReportDEO(
+                    gameReport = CompleteGameReportDEO.fromGameReport(gameReport),
+                    refereeReport = CompactTournamentReportDEO.fromTournamentReport(
+                        gameReport.report
+                    )
+                )
             }
         }
     }

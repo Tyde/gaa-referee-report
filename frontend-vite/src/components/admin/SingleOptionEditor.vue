@@ -17,7 +17,7 @@ const editingOption = ref<PitchProperty|undefined>()
 const confirm = useConfirm()
 
 const options = computed(() => {
-  return store.getVariablesByType(props.type)
+  return store.publicStore.getVariablesByType(props.type)
 })
 const optionEditInput = ref<Array<ComponentPublicInstance> | null>(null)
 async function waitForInputAvailable() {

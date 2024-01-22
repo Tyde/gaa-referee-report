@@ -117,7 +117,7 @@ function cancelEdit() {
         cols="40"
     />
     <h5>Code:</h5>
-    <Dropdown v-model="rule.code" :options="store.codes" optionLabel="name" optionValue="id" :disabled="isLoading"/>
+    <Dropdown v-model="rule.code" :options="store.publicStore.codes" optionLabel="name" optionValue="id" :disabled="isLoading"/>
     <h5>Card:</h5>
     <SelectButton v-model="selectedCardForButton" :options="cards" class="m-1" optionLabel="label" :disabled="isLoading"/>
     <br>

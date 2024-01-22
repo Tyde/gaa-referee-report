@@ -21,7 +21,7 @@ const askDisableOnly = ref(false)
 
 const isLoading = ref(false)
 const rule = computed(() => {
-  return store.rules.find(r => r.id == props.ruleId)
+  return store.publicStore.rules.find(r => r.id == props.ruleId)
 })
 
 const shadowCopyRule = ref<Rule | undefined>()
@@ -99,8 +99,8 @@ function saveRule() {
         .then(() => {
           editing.value = false
 
-          let index = store.rules.indexOf(rule.value!!)
-          store.rules[index] = shadowCopyRule.value!!
+          let index = store.publicStore.rules.indexOf(rule.value!!)
+          store.publicStore.rules[index] = shadowCopyRule.value!!
           shadowCopyRule.value = undefined
         })
         .catch(e => {
