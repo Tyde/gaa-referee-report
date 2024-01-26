@@ -5,7 +5,9 @@ import com.mailjet.client.MailjetClient
 import com.mailjet.client.MailjetRequest
 import com.mailjet.client.resource.Emailv31
 import eu.gaelicgames.referee.data.api.DisciplinaryActionStringDEO
+import freemarker.cache.ClassTemplateLoader
 import freemarker.template.Configuration
+import io.ktor.server.application.*
 import io.ktor.server.freemarker.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -25,7 +27,9 @@ object MailjetClientHandler {
             .build()
         val client = com.mailjet.client.MailjetClient(options)
         this.mailjetClient = client
-        freeMarkerConfig.setDirectoryForTemplateLoading(File("src/main/resources/templates/"))
+        val templateLoader = ClassTemplateLoader(Application::class.java.classLoader, "templates")
+        //freeMarkerConfig.setDirectoryForTemplateLoading(File("templates/"))
+        freeMarkerConfig.templateLoader = templateLoader
 
 
 
