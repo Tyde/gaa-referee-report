@@ -90,7 +90,8 @@ fun Application.configureSecurity() {
                         message = "You are not authorized to call this api"
                     ))
                 } else {
-                    call.respondText { "You are not authorized to access this page" }
+                    call.respondRedirect("/login")
+
                 }
             }
         }
