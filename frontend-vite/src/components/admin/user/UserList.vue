@@ -89,7 +89,7 @@ const currentMessage = ref<string>("")
         severity="success"
         @click="currentMessage = ''"
         class="mt-2"
-    >{{currentMessageha}}</Message>
+    >{{currentMessage}}</Message>
     <DataTable
         :value="users"
         edit-mode="row"
