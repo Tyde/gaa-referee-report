@@ -5,6 +5,7 @@ import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.MailjetClientHandler
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.IOException
 import java.time.LocalDateTime
 import java.util.*
 
@@ -262,6 +263,46 @@ data class SetRefereeRole(
             } else {
                 Result.failure(IllegalArgumentException("Trying to update a referee with invalid id ${thisReferee.id}"))
             }
+        }
+    }
+}
+
+
+@Serializable
+data class ResetRefereePasswordDEO(
+    val id: Long
+) {
+    fun executePasswordReset(): Result<UpdateRefereePasswordResponse> {
+        val refereeID = this.id
+        return transaction {
+            val referee = User.findById(refereeID)
+            if (referee == null) {
+                return@transaction Result.failure(IllegalArgumentException("Referee with id $refereeID not found"))
+            }
+            val activationUUID = UUID.randomUUID()
+            ActivationToken.new {
+                this.token = activationUUID
+                this.user = referee
+                this.expires = LocalDateTime.now().plusDays(7)
+            }
+
+            val activationString = activationUUID.toString()
+            val activationLink = GGERefereeConfig.serverUrl + "/user/activate/$activationString"
+            val name = referee.firstName + " " + referee.lastName
+            kotlin.runCatching {
+                MailjetClientHandler.sendPasswordResetMail(
+                    name,
+                    activationLink,
+                    referee.mail,
+                )
+            }.fold(
+                onSuccess = {
+                    Result.success(UpdateRefereePasswordResponse(referee.id.value, true))
+                },
+                onFailure = {
+                    Result.failure(IOException("Failed to send password reset mail to $name"))
+                }
+            )
         }
     }
 }

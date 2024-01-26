@@ -293,6 +293,10 @@ class Api() {
         class UpdatePassword(val parent: User)
 
         @Serializable
+        @Resource("reset_password")
+        class ResetPassword(val parent: User)
+
+        @Serializable
         @Resource("new")
         class New(val parent: User)
 

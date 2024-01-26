@@ -110,6 +110,15 @@ fun Route.adminApiRouting() {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
+
+    }
+
+    post<Api.User.ResetPassword> {
+        receiveAndHandleDEO<ResetRefereePasswordDEO> { resetPasswordDEO ->
+            resetPasswordDEO.executePasswordReset().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
     }
 
     post<Api.User.SetRole> {

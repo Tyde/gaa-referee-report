@@ -65,6 +65,35 @@ object MailjetClientHandler {
         println(response.data)
     }
 
+    fun sendPasswordResetMail(refereeName: String, resetLink: String, mail: String) {
+        val payload = JSONArray().put(
+            JSONObject().put(
+                Emailv31.Message.FROM,
+                JSONObject().put("Email", "refereereportsystem@gaelicgames.eu")
+                    .put("Name", "GGE Referee Report System")
+            ).put(
+                Emailv31.Message.TO, JSONArray().put(
+                    JSONObject().put("Email", mail).put("Name", refereeName)
+                )
+            )
+                .put(Emailv31.Message.TEMPLATEID, 5634965)
+                .put(Emailv31.Message.TEMPLATELANGUAGE, true)
+                .put(Emailv31.Message.SUBJECT, "Your password on the GGE Referee Report system has been reset")
+                .put(
+                    Emailv31.Message.VARIABLES,
+                    JSONObject()
+                        .put("reset_link", resetLink)
+                        .put("referee_name", refereeName)
+                )
+        )
+        //println(payload.toString())
+        val request = MailjetRequest(Emailv31.resource).property(
+            Emailv31.MESSAGES, payload
+        )
+        val response = mailjetClient.post(request)
+        println(response.data)
+    }
+
     fun sendRedCardNotification(
         disciplinaryActions: List<DisciplinaryActionStringDEO>,
         mail: String,
