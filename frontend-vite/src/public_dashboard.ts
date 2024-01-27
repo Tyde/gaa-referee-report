@@ -9,7 +9,7 @@ import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/tailwind-light/theme.css';
+import 'primevue/resources/themes/mdc-light-indigo/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
