@@ -163,7 +163,7 @@ watch(shadowCopyRule, () => {
             still is in the database for later reactivation.</p>
           <Button label="Delete" class="m-2 p-button-danger" @click="deleteRule()"/>
           <Button label="Disable" class="m-2 p-button-warning" @click="disableRule()"/>
-          <Button label="Cancel" class="m-2 p-button-secondary" @click="askDeleteOrDisable = false"/>
+          <Button label="Cancel" class="m-2 p-button-info" @click="askDeleteOrDisable = false"/>
         </div>
       </template>
       <template v-if="askDisableOnly">
@@ -172,7 +172,7 @@ watch(shadowCopyRule, () => {
             However it can be disabled so that it isn't selectable for reports.
             Are you sure you want to disable this rule?</p>
           <Button label="Yes" class="m-2 p-button-danger" @click="disableRule()"/>
-          <Button label="Cancel" class="m-2 p-button-secondary" @click="askDisableOnly = false"/>
+          <Button label="Cancel" class="m-2 p-button-info" @click="askDisableOnly = false"/>
         </div>
       </template>
     </template>

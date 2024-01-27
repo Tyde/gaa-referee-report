@@ -78,7 +78,7 @@ function addNewGameTypeEditor() {
     <div v-else class="flex flex-row justify-center m-2 rounded bg-gray-300">
       <Button
           @click="addNewGameTypeEditor"
-          class="p-button-sm p-button-secondary m-1"
+          class="p-button-sm p-button-primary m-1"
           :disabled="editingTypes.filter(it => it.id === -1).length === 1"
       >Add new</Button>
     </div>

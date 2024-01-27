@@ -115,7 +115,7 @@ async function storeOption(option:PitchProperty) {
           </template>
         </div>
         <div class="flex flex-row justify-center m-2 rounded w-96 bg-gray-300">
-          <Button @click="newOption" class="p-button-sm p-button-secondary m-1">Add new</Button>
+          <Button @click="newOption" class="p-button-sm p-button-primary m-1">Add new</Button>
         </div>
       </div>
     <ConfirmDialog :group="dialogOption"></ConfirmDialog>

@@ -60,7 +60,7 @@ onMounted(() => {
         <ul class="selected-teams-list">
           <li v-for="team in teams_added.sort((a,b) => a.name.localeCompare(b.name))">
             <Button
-                class="p-button-rounded p-button-secondary p-button-sm"
+                class="p-button-rounded p-button-primary p-button-sm"
                 @click="removeTeam(team)"
             >
               {{team.name}}  <i class="pi pi-times"></i>

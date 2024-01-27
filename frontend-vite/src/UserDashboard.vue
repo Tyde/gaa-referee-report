@@ -66,7 +66,7 @@ function navigateToAdmin() {
           <Button label="Logout" icon="pi pi-sign-out" class="p-button-danger m-2 ml-2" @click="logout"></Button>
         </div>
         <div class="m-2" v-if="store.isAdmin">
-          <Button label="Admin" icon="pi pi-cog" class="p-button-secondary m-2 ml-2" @click="navigateToAdmin"></Button>
+          <Button label="Admin" icon="pi pi-cog" class="p-button-info m-2 ml-2" @click="navigateToAdmin"></Button>
         </div>
 
       </div>

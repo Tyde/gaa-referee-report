@@ -2,6 +2,7 @@
 import {ref} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 import {useRoute, useRouter} from "vue-router";
+import type {MenuItem} from "primevue/menuitem";
 
 const store = useAdminStore();
 store.publicStore.loadAuxiliaryInformationFromSerer()
@@ -55,7 +56,7 @@ const route = useRoute();
 <template>
   <div>
     <Menubar :model="items" class="no-print" >
-      <template #item="{ item, props, hasSubmenu }">
+      <template #item="{ item, label, props, root, hasSubmenu }">
         <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
           <a v-ripple :href="href" v-bind="props.action" @click="navigate">
             <span :class="item.icon" />
