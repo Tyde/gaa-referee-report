@@ -8,6 +8,7 @@ import NewUserDialog from "@/components/admin/user/NewUserDialog.vue";
 import type {RefereeWithRoleDEO} from "@/types/referee_types";
 import {RefereeRole, SetRefereeRoleDEO} from "@/types/referee_types";
 import {updateUserRole} from "@/utils/api/referee_api";
+import {useToast} from "primevue/usetoast";
 
 const store = useAdminStore();
 const users = ref<RefereeWithRoleDEO[]>([]);
@@ -60,8 +61,7 @@ function resetPassword(user: RefereeWithRoleDEO) {
   resetRefereePasswordOnServer(user)
       .then((resp) => {
         if (resp.success) {
-          currentMessage.value = "Password reset successful. Mail has been sent."
-          setTimeout(() => currentMessage.value = "", 5000)
+          newSuccessMessage("Password reset successful. Mail has been sent.")
         } else {
           store.newError(resp.message ?? "Unknown error")
         }
@@ -69,27 +69,29 @@ function resetPassword(user: RefereeWithRoleDEO) {
       .catch(err => store.newError(err))
 }
 
-const currentMessage = ref<string>("")
+const toast = useToast()
+function newSuccessMessage(message: string) {
+  toast.add({
+    severity: 'success',
+    summary: 'Success',
+    detail: message,
+    life: 3000
+  });
+}
 
 </script>
 
 <template>
   <!-- Button for new user -->
   <div class="flex flex-col items-center w-full">
+    <Toast />
+    <Button
+        label="Register new Referee"
+        icon="pi pi-plus"
+        class="p-button-success p-2 mr-2"
+        @click="showNewUserDialog = true"
+    />
 
-        <Button
-            label="Register new Referee"
-            icon="pi pi-plus"
-            class="p-button-success p-2 mr-2"
-            @click="showNewUserDialog = true"
-        />
-
-    <Message
-        v-if="currentMessage.length > 0"
-        severity="success"
-        @click="currentMessage = ''"
-        class="mt-2"
-    >{{currentMessage}}</Message>
     <DataTable
         :value="users"
         edit-mode="row"

@@ -32,7 +32,8 @@ import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import Message from "primevue/message";
 import Panel from "primevue/panel";
-
+import Toast from "primevue/toast";
+import ToastService from 'primevue/toastservice';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Row from 'primevue/row';
@@ -78,7 +79,8 @@ app.component('Column',Column)
 app.component('Row',Row)
 app.component('BlockUI',BlockUI)
 app.component('Paginator', Paginator)
-
+app.component('Toast', Toast)
+app.use(ToastService);
 
 app.component(VueFeather.name,VueFeather)
 app.mount('#app')
