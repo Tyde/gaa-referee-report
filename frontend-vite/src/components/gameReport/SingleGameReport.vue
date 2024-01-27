@@ -8,7 +8,6 @@ import {useReportStore} from "@/utils/edit_report_store";
 import type {GameReport} from "@/types/game_report_types";
 
 
-
 const props = defineProps<{
   toBeDeleted: boolean
 }>()
@@ -19,9 +18,8 @@ const store = useReportStore()
 const isLoading = ref(false)
 
 
-
-
 const gameTypeEditorVisible = ref(false)
+
 function showGameTypeDialog() {
   gameTypeEditorVisible.value = true
 }
@@ -32,15 +30,15 @@ const gameTypesByName = computed(() => {
   return store.gameTypes.sort((a, b) => a.name > b.name ? 1 : -1)
 })
 
-function deleteThisReport(report:GameReport | undefined) {
-  if(report) {
+function deleteThisReport(report: GameReport | undefined) {
+  if (report) {
     emit('deleteThisReport', report)
   }
 }
 
 
-watch(()=>store.selectedGameReport,(value,oldValue)=> {
-  if(store.selectedGameReport && oldValue && oldValue.id != -1 && !props.toBeDeleted) {
+watch(() => store.selectedGameReport, (value, oldValue) => {
+  if (store.selectedGameReport && oldValue && oldValue.id != -1 && !props.toBeDeleted) {
     store.sendGameReport(oldValue)
         .catch((e) => {
           store.newError(e)
@@ -48,7 +46,7 @@ watch(()=>store.selectedGameReport,(value,oldValue)=> {
   }
 })
 onBeforeUnmount(() => {
-  if(store.selectedGameReport && !props.toBeDeleted) {
+  if (store.selectedGameReport && !props.toBeDeleted) {
     console.log("On before unmount sending Game Report")
     store.sendGameReport(store.selectedGameReport)
         .then(() => {
@@ -59,8 +57,6 @@ onBeforeUnmount(() => {
         })
   }
 })
-
-
 
 
 onMounted(() => {
@@ -88,25 +84,35 @@ onMounted(() => {
             :class="{
                 'to-be-filled':store.selectedGameReport.startTime===undefined
             }"
+            :pt="{
+                input: { class: 'p-1 md:p-2'}
+            }"
         />
 
       </div>
       <div class="field p-2 object-center">
 
-        <div class="flex flex-row md:flex-col items-center justify-center">
+        <div class="flex flex-row md:flex-col items-center md:justify-center">
           <div><label for="umpirePresentCheckBox">Umpires present on time:</label></div>
           <div>
             <input type="checkbox"
-                id="umpirePresentCheckBox"
-                class="w-6 h-6 rounded m-2"
-                v-model="store.selectedGameReport.umpirePresentOnTime"
-                :binary="true"/>
+                   id="umpirePresentCheckBox"
+                   class="w-4 h-4 md:w-6 md:h-6 rounded m-2"
+                   v-model="store.selectedGameReport.umpirePresentOnTime"
+                   :binary="true"
+
+            />
           </div>
         </div>
       </div>
       <div v-if="!store.selectedGameReport?.umpirePresentOnTime" class="field p-2">
         <label for="umpireNotes">Comments on Umpires:</label><br>
-        <InputText id="umpireNotes" v-model="store.selectedGameReport.umpireNotes" type="text"/>
+        <InputText
+            id="umpireNotes"
+            v-model="store.selectedGameReport.umpireNotes"
+            type="text"
+            :pt="{input: { class: 'p-1 md:p-2'}}"
+        />
 
       </div>
       <div class="field p-2">
@@ -120,52 +126,58 @@ onMounted(() => {
             :class="{
                 'to-be-filled':store.selectedGameReport?.extraTime===undefined
             }"
+            :pt="{input: { class: 'p-1 md:p-2'}}"
         >
 
         </Dropdown>
       </div>
-      <div class="p-2 flex flex-row">
+      <div class="p-2 flex flex-row items-center">
         <div class="field pr-2"><label for="gameTypeSelect">Game type:</label><br>
-        <Dropdown
-            id="gameTypeSelect"
-            v-model="store.selectedGameReport.gameType"
-            :options="gameTypesByName"
-            option-label="name"
-            placeholder="Game Type"
-            :class="{
+          <Dropdown
+              id="gameTypeSelect"
+              v-model="store.selectedGameReport.gameType"
+              :options="gameTypesByName"
+              option-label="name"
+              placeholder="Game Type"
+              :class="{
                 'to-be-filled':store.selectedGameReport?.gameType===undefined
-            }"
-            class="w-60"
-            :filter="true"
-            :filter-fields="['name']"
+              }"
+              class="w-60"
+              :filter="true"
+              :filter-fields="['name']"
+              :pt="{input: { class: 'p-1 md:p-2'}}"
 
-        >
+          >
 
 
-        </Dropdown></div>
+          </Dropdown>
+        </div>
         <div class="field pr-2 mt-6">
-          <Button @click="showGameTypeDialog" class="p-button-success h-12 p-button-outlined">
-            <i class="pi pi-plus"></i> </Button>
+          <Button
+              @click="showGameTypeDialog"
+              class="p-button-success h-9 md:h-12 p-button-outlined min-w-0 ">
+            <i class="pi pi-plus"></i></Button>
         </div>
       </div>
 
-      <div class="p-2 mt-6">
+      <div class="p-2 md:mt-6">
         <Button
             @click="deleteThisReport(store.selectedGameReport)"
             class="p-button-danger h-12 p-button-outlined"
-        >Delete this game report</Button>
+        >Delete this game report
+        </Button>
       </div>
     </div>
-    <div  class="single-team-report">
+    <div class="single-team-report">
       <div>Team A:</div>
-    <SingleGameReportSingleTeam
-        :is-team-a = "true" />
+      <SingleGameReportSingleTeam
+          :is-team-a="true"/>
 
     </div>
-    <div  class="single-team-report">
+    <div class="single-team-report">
       <div>Team B:</div>
-    <SingleGameReportSingleTeam
-        :is-team-a = "false" />
+      <SingleGameReportSingleTeam
+          :is-team-a="false"/>
 
     </div>
 
@@ -174,10 +186,10 @@ onMounted(() => {
           v-model="store.selectedGameReport.generalNotes"
           placeholder="Notes"
           rows="5"
-          cols="30" />
+          cols="30"/>
     </div>
     <GameTypeEditor
-        v-model:visible = "gameTypeEditorVisible"
+        v-model:visible="gameTypeEditorVisible"
     />
   </div>
 
@@ -192,6 +204,7 @@ onMounted(() => {
   @apply rounded-lg md:border-0;
 
 }
+
 .to-be-filled {
   @apply ring-2;
   @apply ring-red-400;

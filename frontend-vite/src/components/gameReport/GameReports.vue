@@ -186,7 +186,7 @@ watch(() => store.selectedGameReport, () => {
     </SelectButton>
   </template>
   <template #end>
-    <Button @click="newGameReport" class="p-button-success"><i class="pi pi-plus"></i> </Button>
+    <Button @click="newGameReport" class="p-button-success min-w-0"><i class="pi pi-plus"></i> </Button>
   </template>
 </Toolbar>
 

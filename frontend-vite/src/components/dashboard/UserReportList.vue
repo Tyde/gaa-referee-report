@@ -8,6 +8,7 @@ import {useRouter} from "vue-router";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
 import ShareReport from "@/components/dashboard/ShareReport.vue";
 import {usePublicStore} from "@/utils/public_store";
+import {DateTime} from "luxon";
 
 const publicStore = usePublicStore()
 const store = useDashboardStore()
@@ -35,7 +36,7 @@ const transformedReports = computed(() => {
       ...report,
       codeName: (code?.name ?? ''),
       tournamentName: (tournament?.name ?? ''),
-      tournamentDate: (tournament?.date ?? ''),
+      tournamentDate: (tournament?.date ?? DateTime.now()),
       tournamentLocation: tournament?.location ?? '',
     }
   })
@@ -68,6 +69,7 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
   })
 
 }
+
 </script>
 <template>
 
@@ -76,6 +78,7 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
       :value="transformedReports"
       filterDisplay="menu"
       v-model:filters="filters"
+      class="hidden md:block"
   >
     <Column field="tournamentName" header="Tournament" :sortable="true">
       <template #filter="{filterModel,filterCallback}">
@@ -149,6 +152,52 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
 
     </Column>
   </DataTable>
+
+  <div
+      class="block md:hidden"
+  >
+    <div v-for="report in transformedReports">
+
+          <div>
+            <span class="text-lg font-bold">{{report.tournamentName}} </span><br>
+            {{report.tournamentLocation}} - {{report.tournamentDate.toISODate()}}  <br>
+            {{report.codeName}} <br>
+            {{report.numTeams}} teams, {{report.numGameReports}} game reports
+          </div>
+          <div class="text-lg">{{report.isSubmitted ? 'Submitted' : 'Not submitted'}}</div>
+          <div class="flex flex-row justify-end">
+            <Button
+                v-if="!report.isSubmitted"
+                label="Edit"
+                icon="pi pi-pencil"
+                class="p-button-raised p-button-text"
+                @click="() => editReport(report)"></Button>
+            <Button
+                :label="report.isSubmitted ? 'View' : 'Preview'"
+                icon="pi pi-folder-open"
+                class="p-button-raised p-button-text"
+                @click="() => showReport(report)"
+            />
+            <!-- delete button: -->
+            <Button
+                v-if="!report.isSubmitted"
+                label="Delete"
+                icon="pi pi-trash"
+                class="p-button-raised p-button-text"
+                @click="askDeleteReport(report)"
+            />
+            <!-- share button: -->
+            <Button
+                label="Share"
+                icon="pi pi-share-alt"
+                class="p-button-raised p-button-text"
+                @click="() => reportToShare = report"
+            />
+          </div>
+
+      <Divider />
+    </div>
+  </div>
   <ShareReport
     :report="reportToShare"
     @on-error="(err) => publicStore.newError(err)"

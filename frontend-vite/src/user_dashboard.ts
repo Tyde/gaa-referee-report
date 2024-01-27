@@ -18,6 +18,7 @@ import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
+
 // @ts-ignore
 import { Vue3Mq } from "vue3-mq";
 import Tooltip from "primevue/tooltip";
@@ -32,6 +33,7 @@ import Row from "primevue/row";
 import ConfirmDialog from "primevue/confirmdialog";
 import ConfirmationService from "primevue/confirmationservice";
 import Paginator from "primevue/paginator";
+import Divider from 'primevue/divider';
 
 
 const router = createRouter({
@@ -64,6 +66,7 @@ app.component('DataTable',DataTable)
 app.component('Column',Column)
 app.component('Row',Row)
 app.component('Paginator', Paginator)
+app.component('Divider', Divider)
 app.component(VueFeather.name,VueFeather)
 const pinia = createPinia()
 app.use(pinia)
