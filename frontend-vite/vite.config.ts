@@ -5,8 +5,49 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 const { resolve } = require('path')
 // https://vitejs.dev/config/
+
+
+import { Plugin } from 'vite';
+import {exec} from "child_process";
+
+const gradleAssembler = (): Plugin => {
+  let isWatchMode = false; // Variable to hold the watch mode status
+
+  return {
+    name: 'gradle-assembler',
+    config(config, { command }) {
+      if (command === 'build') {
+        // Check if watch mode is active in the build command
+        isWatchMode = !!config.build?.watch;
+        console.log(`Is watch mode: ${isWatchMode}`);
+      }
+    },
+    buildEnd() {
+      // You can use isWatchMode here
+      if (isWatchMode) {
+
+        console.log('Build ended in watch mode...');
+        const { exec } = require('child_process')
+        exec('./gradlew processResources',{cwd: '../'}, (err, stdout, stderr) => {
+          if (err) {
+            console.error(err)
+            return
+          }
+          console.log(stdout)
+          console.log("Gradle build complete")
+        })
+        // Your logic for handling the end of a build in watch mode
+      }
+    }
+  };
+};
+
 export default defineConfig({
-  plugins: [vue(), vueJsx()],
+  plugins: [
+      vue(),
+      vueJsx(),
+      gradleAssembler()
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
