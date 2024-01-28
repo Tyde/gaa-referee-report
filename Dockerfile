@@ -7,6 +7,7 @@ RUN apt-get install -y curl \
 
 COPY --chown=gradle:gradle [ "build.gradle.kts", "settings.gradle.kts" ,"gradle.properties" , "/home/gradle/src/"]
 COPY --chown=gradle:gradle [ "src/" , "/home/gradle/src/src/"]
+COPY --chown=gradle:gradle [ "gaa-referee-report-common/" , "/home/gradle/src/gaa-referee-report-common/"]
 COPY --chown=gradle:gradle [ "frontend-vite/" , "/home/gradle/src/frontend-vite/"]
 
 
