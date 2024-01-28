@@ -27,8 +27,11 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
-dependencies {
+java.sourceSets["main"].java {
+    srcDir("gaa-referee-report-common/src/main/kotlin")
+}
 
+dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")

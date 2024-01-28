@@ -13,7 +13,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 fun Route.publicApiRouting() {
     get<Api.Rules> {
         val rules = transaction {
-            Rule.all().map { RuleDEO.fromRule(it) }
+            Rule.all().map { RuleDEO.fromRule(it)  }
         }
         call.respond(rules)
     }

@@ -1,0 +1,3 @@
+[submodule "gaa-referee-report-common"]
+	path = gaa-referee-report-common
+	url = https://github.com/Tyde/gaa-referee-report-common.git
