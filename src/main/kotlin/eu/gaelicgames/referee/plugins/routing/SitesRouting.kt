@@ -2,6 +2,7 @@ package eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.CompleteReportDEO
+import eu.gaelicgames.referee.data.api.fromTournamentReport
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.resources.Report
 import eu.gaelicgames.referee.resources.UserRes

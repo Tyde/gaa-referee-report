@@ -1,7 +1,7 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.api.CompactTournamentReportDEO
-import eu.gaelicgames.referee.data.api.CompleteTournamentReportDEO
+
+import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.resources.Api
 import io.ktor.http.*
 import io.ktor.server.application.*
