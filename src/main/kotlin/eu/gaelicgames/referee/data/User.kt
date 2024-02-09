@@ -98,8 +98,8 @@ class Session(id:EntityID<Long>) : LongEntity(id) {
                     val session = SessionWithUserData.fromSession(foundSessions.first())
                     if(foundSessions.first().expires < LocalDateTime.now().plusHours(6)) {
                         foundSessions.first().expires = LocalDateTime.now().plusDays(1)
-                        CacheUtil.cacheSession(session)
                     }
+                    CacheUtil.cacheSession(session)
                     Result.success(session)
                 } else {
                     Result.failure(Exception("Session not found"))

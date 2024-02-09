@@ -1,8 +1,12 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.util.CacheUtil.deleteCache
+import eu.gaelicgames.referee.util.CacheUtil.getCache
+import eu.gaelicgames.referee.util.CacheUtil.setCache
 import eu.gaelicgames.referee.util.GGERefereeConfig
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
@@ -234,15 +238,19 @@ fun DeleteGameReportDEO.deleteFromDatabase(): Result<Boolean> {
     }
 
 
-fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
-    return transaction {
-        val etos = ExtraTimeOption.all().map {
-            ExtraTimeOptionDEO.fromExtraTimeOption(it)
-        }
-        val gts = GameType.all().map {
-            GameTypeDEO.fromGameType(it)
-        }
-        GameReportClassesDEO(etos, gts)
+suspend fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
+    return GameReportClassesDEO.getCache().getOrElse {
+        suspendedTransactionAsync {
+            val etos = ExtraTimeOption.all().map {
+                ExtraTimeOptionDEO.fromExtraTimeOption(it)
+            }
+            val gts = GameType.all().map {
+                GameTypeDEO.fromGameType(it)
+            }
+            val dbgrc = GameReportClassesDEO(etos, gts)
+            dbgrc.setCache()
+            dbgrc
+        }.await()
     }
 }
 
@@ -565,7 +573,8 @@ fun GameTypeDEO.Companion.fromGameType(gameType: GameType): GameTypeDEO {
         )
     }
 }
-fun GameTypeDEO.createInDatabase(): Result<GameType> {
+suspend fun GameTypeDEO.createInDatabase(): Result<GameType> {
+    GameReportClassesDEO.deleteCache()
     val gUpdate = this
     if (gUpdate.id == null && gUpdate.name.isNotBlank()) {
         return Result.success(transaction {
@@ -579,7 +588,8 @@ fun GameTypeDEO.createInDatabase(): Result<GameType> {
     )
 }
 
-fun GameTypeDEO.updateInDatabase(): Result<GameType> {
+suspend fun GameTypeDEO.updateInDatabase(): Result<GameType> {
+    GameReportClassesDEO.deleteCache()
     val gUpdate = this
     if (gUpdate.id != null) {
         return transaction {

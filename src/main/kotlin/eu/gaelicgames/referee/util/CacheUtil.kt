@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import java.util.*
 
 
+
 object CacheUtil {
     private lateinit var client:KredsClient
     /*init {
@@ -36,6 +37,12 @@ object CacheUtil {
     private const val KEY_TOURNAMENT_REPORT = "tournamentReport"
 
     private const val KEY_PUBLIC_TOURNAMENT_REPORT = "publicTournamentReport"
+
+    private const val KEY_TEAMS = "teams"
+
+    private const val KEY_GAME_REPORT_CLASSES = "gameReportClasses"
+
+
 
     suspend fun getCachedReport(id:Long):Result<CompleteReportDEO> {
         client.run {
@@ -209,4 +216,63 @@ object CacheUtil {
             }
         }
     }
+
+    suspend fun cacheTeamList(teams:List<TeamDEO>):Result<Unit> {
+        client.run {
+            return kotlin.runCatching {
+                set(
+                    KEY_TEAMS,
+                    Json.encodeToString(teams))
+            }
+        }
+    }
+
+    suspend fun getCachedTeamList():Result<List<TeamDEO>> {
+        client.run {
+            val teamsString = get(KEY_TEAMS)
+            if(teamsString != null) {
+                return kotlin.runCatching {
+                    Json.decodeFromString<List<TeamDEO>>(teamsString)
+                }
+            }
+            return Result.failure(Exception("Teams not found"))
+        }
+    }
+
+    suspend fun deleteCachedTeamList():Result<Unit> {
+        client.run {
+            return kotlin.runCatching {
+                del(KEY_TEAMS)
+            }
+        }
+    }
+
+
+    suspend fun GameReportClassesDEO.setCache() {
+        client.run {
+            set(
+                KEY_GAME_REPORT_CLASSES,
+                Json.encodeToString(this@setCache))
+        }
+    }
+
+    suspend fun GameReportClassesDEO.Companion.getCache():Result<GameReportClassesDEO> {
+        client.run {
+            val classesString = get(KEY_GAME_REPORT_CLASSES)
+            if(classesString != null) {
+                return kotlin.runCatching {
+                    Json.decodeFromString<GameReportClassesDEO>(classesString)
+                }
+            }
+            return Result.failure(Exception("Game report classes not found"))
+        }
+    }
+    suspend fun GameReportClassesDEO.Companion.deleteCache() {
+        client.run {
+            del(KEY_GAME_REPORT_CLASSES)
+        }
+    }
+
+
+
 }

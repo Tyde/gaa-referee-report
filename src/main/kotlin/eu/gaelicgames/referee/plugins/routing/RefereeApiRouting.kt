@@ -38,20 +38,50 @@ fun Route.refereeApiRouting() {
     get<Api.Reports.Get> { get ->
         val reportId = get.id
         if (reportId >= 0) {
-            val report = CacheUtil.getCachedReport(reportId)
-                .getOrElse {
-                    suspendedTransactionAsync {
-                        val reportDB = TournamentReport.findById(reportId)
-                        if (reportDB != null) {
-                            CompleteReportDEO.fromTournamentReport(reportDB)
-                        } else {
-                            ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found")
-                        }
-                    }.await()
+            val report = CacheUtil.getCachedReport(reportId).recoverCatching {
+                suspendedTransactionAsync {
+                    val reportDB = TournamentReport.findById(reportId)
+                    if (reportDB != null) {
+                        CompleteReportDEO.fromTournamentReport(reportDB)
+                    } else {
+                       throw Exception("Report under given id not found")
+                        //call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found"))
+                    }
+                }.await()
+            }
+            if(report.isSuccess) {
+                val user = call.principal<UserPrincipal>()
+                val report = report.getOrThrow()
+                val role = user?.user?.role
+                if(role == UserRole.ADMIN) {
+                    call.respond(report)
+                } else if (role == UserRole.CCC) {
+                    if(report.isSubmitted) {
+                        call.respond(report)
+                    } else {
+                        call.respond(ApiError(
+                            ApiErrorOptions.NOT_AUTHORIZED,
+                            "Report can only be accessed by CCC after submission"
+                        ))
+                    }
+                } else {
+                    if(report.referee.id == user?.user?.id?.value) {
+                        call.respond(report)
+                    } else {
+                        call.respond(ApiError(
+                            ApiErrorOptions.NOT_AUTHORIZED,
+                            "Report can only be accessed by the referee who created it"
+                        ))
+                    }
                 }
-
-
-            call.respond(report)
+            } else {
+                call.respond(
+                    ApiError(
+                        ApiErrorOptions.NOT_FOUND,
+                        report.exceptionOrNull()?.message?: "Unknown error"
+                    )
+                )
+            }
 
         } else {
             call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report id must be positive"))
@@ -82,6 +112,7 @@ fun Route.refereeApiRouting() {
 
     post<Api.NewTeam> {
         receiveAndHandleDEO<NewTeamDEO> { newTeam ->
+            CacheUtil.deleteCachedTeamList()
             val newTeamDB = transaction {
                 Team.new {
                     name = newTeam.name
@@ -95,6 +126,7 @@ fun Route.refereeApiRouting() {
 
     post<Api.NewAmalgamation> {
         receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
+            CacheUtil.deleteCachedTeamList()
             val newAmalgamationDB = transaction {
                 val amalgamation_base = Team.new {
                     name = newAmalgamation.name

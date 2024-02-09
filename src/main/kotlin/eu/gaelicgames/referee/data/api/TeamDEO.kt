@@ -1,6 +1,7 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.util.CacheUtil
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -14,7 +15,8 @@ fun TeamDEO.Companion.fromTeamId(it:Long):Result<TeamDEO> {
         teamDEO?.let { Result.success(it) } ?: Result.failure(Exception("Team not found"))
     }
 }
-fun TeamDEO.updateInDatabase(): Result<Team> {
+suspend fun TeamDEO.updateInDatabase(): Result<Team> {
+    CacheUtil.deleteCachedTeamList()
     val thisTeam = this
     return transaction {
         val team = Team.findById(thisTeam.id)
@@ -52,8 +54,8 @@ fun TeamDEO.updateInDatabase(): Result<Team> {
 
 
 
-fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
-
+suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
+    CacheUtil.deleteCachedTeamList()
     return transaction {
         val team = Team.findById(baseTeam)
         if (team != null) {
