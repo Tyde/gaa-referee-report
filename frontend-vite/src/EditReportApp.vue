@@ -278,7 +278,7 @@ function navigate(stage:ReportEditStage) {
       </div>
       <div class="flex flex-row justify-center">
         <Button
-            v-if="store.report.gameCode"
+            :disabled="store.report.gameCode === undefined"
             class="p-button-rounded p-button-lg m-2"
             @click="start_report"
         >Start Report
