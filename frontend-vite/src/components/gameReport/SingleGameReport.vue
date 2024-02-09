@@ -47,7 +47,7 @@ watch(() => store.selectedGameReport, (value, oldValue) => {
 })
 onBeforeUnmount(() => {
   if (store.selectedGameReport && !props.toBeDeleted) {
-    console.log("On before unmount sending Game Report")
+    //console.log("On before unmount sending Game Report")
     store.sendGameReport(store.selectedGameReport)
         .then(() => {
           console.log("Game Report sent")
@@ -69,7 +69,7 @@ onMounted(() => {
   <div class="grid grid-cols-2" v-if="store.selectedGameReport !== undefined">
     <div class="col-span-2 flex flex-wrap flex-col md:flex-row justify-center content-center">
       <div class="field p-2">
-        <label for="timeStartGame">Throw in time:</label><br>
+        <label for="timeStartGame">{{ $t('gameReport.throwInTime') }}:</label><br>
         <Calendar
             :model-value="store.selectedGameReport?.startTime?.toJSDate()"
             @update:model-value="(nD:Date) => {
@@ -94,7 +94,7 @@ onMounted(() => {
       <div class="field p-2 object-center">
 
         <div class="flex flex-row md:flex-col items-center md:justify-center">
-          <div><label for="umpirePresentCheckBox">Umpires present on time:</label></div>
+          <div><label for="umpirePresentCheckBox">{{ $t('gameReport.umpiresPresentOnTime') }}:</label></div>
           <div>
             <input type="checkbox"
                    id="umpirePresentCheckBox"
@@ -107,7 +107,7 @@ onMounted(() => {
         </div>
       </div>
       <div v-if="!store.selectedGameReport?.umpirePresentOnTime" class="field p-2">
-        <label for="umpireNotes">Comments on Umpires:</label><br>
+        <label for="umpireNotes">{{ $t('gameReport.commentOnUmpires') }}:</label><br>
         <InputText
             id="umpireNotes"
             v-model="store.selectedGameReport.umpireNotes"
@@ -117,13 +117,13 @@ onMounted(() => {
 
       </div>
       <div class="field p-2">
-        <label for="extraTimeSelect">Extra time:</label><br>
+        <label for="extraTimeSelect">{{ $t('gameReport.extraTime') }}:</label><br>
         <Dropdown
             id="extraTimeSelect"
             v-model="store.selectedGameReport.extraTime"
             :options="store.extraTimeOptions"
             option-label="name"
-            placeholder="Extra Time"
+            :placeholder="$t('gameReport.extraTime')"
             :class="{
                 'to-be-filled':store.selectedGameReport?.extraTime===undefined
             }"
@@ -133,13 +133,13 @@ onMounted(() => {
         </Dropdown>
       </div>
       <div class="p-2 flex flex-row items-center">
-        <div class="field pr-2"><label for="gameTypeSelect">Game type:</label><br>
+        <div class="field pr-2"><label for="gameTypeSelect">{{ $t('gameReport.gameType') }}:</label><br>
           <Dropdown
               id="gameTypeSelect"
               v-model="store.selectedGameReport.gameType"
               :options="gameTypesByName"
               option-label="name"
-              placeholder="Game Type"
+              :placeholder="$t('gameReport.gameType')"
               :class="{
                 'to-be-filled':store.selectedGameReport?.gameType===undefined
               }"
@@ -165,18 +165,17 @@ onMounted(() => {
         <Button
             @click="deleteThisReport(store.selectedGameReport)"
             class="p-button-danger h-12 p-button-outlined"
-        >Delete this game report
-        </Button>
+        >{{ $t('gameReport.deleteGameReport') }}</Button>
       </div>
     </div>
     <div class="single-team-report">
-      <div>Team A:</div>
+      <div>{{ $t('gameReport.teamA') }}:</div>
       <SingleGameReportSingleTeam
           :is-team-a="true"/>
 
     </div>
     <div class="single-team-report">
-      <div>Team B:</div>
+      <div>{{ $t('gameReport.teamB') }}:</div>
       <SingleGameReportSingleTeam
           :is-team-a="false"/>
 
@@ -185,7 +184,7 @@ onMounted(() => {
     <div class="col-span-2 flex flex-row justify-center">
       <Textarea
           v-model="store.selectedGameReport.generalNotes"
-          placeholder="Notes"
+          :placeholder="$t('gameReport.notes')"
           rows="5"
           cols="30"/>
     </div>

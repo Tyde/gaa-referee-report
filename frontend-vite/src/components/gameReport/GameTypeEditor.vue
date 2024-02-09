@@ -51,24 +51,24 @@ const proposedExistingAlternatives = computed(() => {
       :closable="true"
       :close-on-escape="true"
       :modal="true"
-      header="Add game type"
+      :header="$t('gameReport.addGameType')"
   >
-    <div class="grid grid-cols-2">
+    <div class="grid grid-cols-1">
       <div>
         <InputText
             v-model="newGameType"
-            class="p-2"
-            placeholder="New game type"
+            class="p-2 m-2"
+            :placeholder="$t('gameReport.newGameType')"
         />
         <Button
-            class="p-2"
+            class="p-2 m-2"
             @click="storeGameType"
         >
-          Save
+          {{ $t('gameReport.addGameType') }}
         </Button>
       </div>
       <div v-if="newGameType.length>2">
-        Existing alternatives:
+        {{ $t('gameReport.gameTypeExistingAlternatives') }}
         <ul>
           <li
               v-for="gameType in proposedExistingAlternatives"

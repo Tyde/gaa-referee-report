@@ -10,6 +10,7 @@ import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import {delay} from "@/utils/api/api_utils";
 import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
 import type {Pitch} from "@/types/pitch_types";
+import {useI18n} from "vue-i18n";
 /*
 const props = defineProps<{
   tournament: DatabaseTournament,
@@ -19,12 +20,13 @@ const props = defineProps<{
 }>()*/
 const store = useReportStore()
 
+const {t} = useI18n()
 const emit = defineEmits<{
   (e: 'navigate', stage:ReportEditStage): void
 }>()
 const tournamentIssues = computed(() => {
   if (store.report.tournament == undefined) {
-    return "There is currently no tournament selected for this report. Please fix this before submitting."
+    return t("report.issues.noTournamentSelected")
   } else {
     return ""
   }
@@ -326,7 +328,7 @@ function goToGameReport(id:number | undefined) {
           v-if="isUploadingToServer"
           class="bg-blue-200 rounded p-4 text-center">
         <i class="pi pi-spin pi-spinner"></i>
-        &nbsp;Updating Database
+        {{ $t('report.updatingDatabase') }}
       </div>
       <div
           v-if="tournamentIssues.trim().length > 0"
@@ -348,64 +350,64 @@ function goToGameReport(id:number | undefined) {
         <span v-else>...</span>&nbsp;vs.&nbsp;
         <span v-if="gris.gameReport.teamBReport.team">{{ gris.gameReport.teamBReport.team.name }}</span>
         <span v-else>...</span>
-        &nbsp;has the following issues:
+        {{ $t('report.issues.hasFollowingIssues') }}:
         <ul>
           <li v-for="issue in gris.issues">
             <template v-if="issue===GameReportIssue.NoGameType">
-              No game type selected
+              {{ $t('report.issues.noGameTypeSelected') }}:
             </template>
             <template v-else-if="issue===GameReportIssue.NoStartingTime">
-              No starting time selected
+              {{ $t('report.issues.noStartingTimeSelected') }}:
             </template>
             <template v-else-if="issue===GameReportIssue.NoExtraTimeOption">
-              No extra time option selected
+              {{ $t('report.issues.noExtraTimeOptionSelected') }}:
             </template>
             <template v-else-if="issue===GameReportIssue.NoTeamA">
-              No team A selected
+              {{ $t('report.issues.noTeamASelected') }}:
             </template>
             <template v-else-if="issue===GameReportIssue.NoTeamB">
-              No team B selected
+              {{ $t('report.issues.noTeamBSelected') }}:
             </template>
             <template v-else-if="issue===GameReportIssue.NoScores">
-              No scores entered - This might be correct if the game was a draw.
+              {{ $t('report.issues.noScoresEntered') }}:
             </template>
             <!-- go to report button -->
             <br><Button
               class="p-button-info p-button-raised p-button-text"
               @click="goToGameReport(gris.gameReport.id)"
-          >Go to report</Button>
+          > {{ $t('report.issues.goToGameReport') }}:</Button>
           </li>
           <template v-for="inIssues in gris.injuriesIssues">
             <li v-for="issue in inIssues.issues">
               <template v-if="issue===InjuryIssue.NoDetails">
-                No details entered for Injury of {{ inIssues.action.firstName }} {{ inIssues.action.lastName }}
+                {{ $t('report.issues.injuryNoDetails') }}: {{ inIssues.action.firstName }} {{ inIssues.action.lastName }}
               </template>
               <template v-if="issue===InjuryIssue.NoName">
-                Missing name for Injury with details: {{ inIssues.action.details }}
+                {{ $t('report.issues.injuryNoName') }}:: {{ inIssues.action.details }}
               </template>
               <br><Button
                 class="p-button-info p-button-raised p-button-text"
                 @click="goToGameReport(gris.gameReport.id)"
-            >Go to report</Button>
+            >{{ $t('report.issues.goToGameReport') }}:</Button>
             </li>
           </template>
           <template v-for="disIssues in gris.disciplinaryActionIssues">
             <li v-for="issue in disIssues.issues">
               <template v-if="issue===DisciplinaryActionIssue.NoName">
-                Missing name for disciplinary action with details: {{ disIssues.action.details }}
+                {{ $t('report.issues.disciplinaryActionNoName') }}:: {{ disIssues.action.details }}
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoNumber">
-                Missing number for disciplinary action of {{ disIssues.action.firstName }} {{
+                {{ $t('report.issues.disciplinaryActionNoNumber') }}{{ disIssues.action.firstName }} {{
                   disIssues.action.lastName
                 }}
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoRule">
-                Missing rule for disciplinary action of {{ disIssues.action.firstName }} {{ disIssues.action.lastName }}
+                {{ $t('report.issues.disciplinaryActionNoRule') }} {{ disIssues.action.firstName }} {{ disIssues.action.lastName }}
               </template>
               <br><Button
                 class="p-button-info p-button-raised p-button-text"
                 @click="goToGameReport(gris.gameReport.id)"
-            >Go to report</Button>
+            >{{ $t('report.issues.goToGameReport') }}</Button>
             </li>
           </template>
         </ul>
@@ -415,30 +417,30 @@ function goToGameReport(id:number | undefined) {
           v-for="prTuple in pitchReportIssues"
           class="bg-red-300 rounded-lg p-4 m-4">
         <span v-if="prTuple[0].name">{{ prTuple[0].name }}</span>
-        <span v-else>Unnamed pitch</span>
-        &nbsp;has the following issues:
+        <span v-else>{{ $t('pitchReport.unnamedPitch') }}</span>
+        &nbsp;{{ $t('report.issues.hasFollowingIssues') }}:
         <ul>
           <li v-for="issue in prTuple[1]">
             <template v-if="issue===PitchReportIssue.NoName">
-              No name entered
+              {{ $t('report.issues.pitchNoName') }}
             </template>
             <template v-else-if="issue===PitchReportIssue.NoSurface">
-              No surface selected
+              {{ $t('report.issues.pitchNoSurface') }}
             </template>
             <template v-else-if="issue===PitchReportIssue.MissingDimension">
-              At least one pitch dimension is missing
+              {{ $t('report.issues.pitchMissingDimension') }}
             </template>
             <template v-else-if="issue===PitchReportIssue.MarkingsIncomplete">
-              Markings incomplete
+              {{ $t('report.issues.pitchMarkingsIncomplete') }}
             </template>
             <template v-else-if="issue===PitchReportIssue.GoalInfoIncomplete">
-              Goal information incomplete
+              {{ $t('report.issues.pitchGoalInfoIncomplete') }}
             </template>
           </li>
         </ul>
       </div>
       <div class="field p-2 justify-center flex-col text-center">
-        <label for="additionalInfo">Additional comments for the report:</label><br>
+        <label for="additionalInfo">{{ $t('report.additionalInformation') }}:</label><br>
 
         <Textarea
             id="additionalInfo"
@@ -454,7 +456,7 @@ function goToGameReport(id:number | undefined) {
           @click="submitReport"
           class="w-full m-4"
       >
-        Submit report
+        {{ $t('report.submit') }}
       </Button>
 
       <!--

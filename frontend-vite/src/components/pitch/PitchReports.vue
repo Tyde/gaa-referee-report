@@ -63,7 +63,7 @@ const pitchReportIndices = computed(() => {
           <template #option="slotProps">
             <span
                 v-if="store.pitchReports[slotProps.option].name">{{ store.pitchReports[slotProps.option].name }}</span>
-            <span v-else>Unnamed Pitch</span>
+            <span v-else>{{ $t('pitchReport.unnamedPitch') }}</span>
 
           </template>
         </SelectButton>
@@ -74,7 +74,7 @@ const pitchReportIndices = computed(() => {
     </Toolbar>
     <div v-else class="flex flex-row justify-center mt-2 p-4 bg-gray-300 ">
       <div class="text-center" v-if="store.pitchReports.length===0">
-        <p class="text-lg">No pitch reports yet. Create the first:</p>
+        <p class="text-lg">{{ $t('pitchReport.noPitchReports') }}:</p>
         <Button class="p-button-success" @click="newPitch"><i class="pi pi-plus"></i></Button>
       </div>
     </div>
@@ -97,15 +97,15 @@ const pitchReportIndices = computed(() => {
         :modal="true"
     >
       <template #header>
-        <span>Delete Pitch Report</span>
+        <span>{{ $t('pitchReport.confirmDeleteTitle') }}</span>
       </template>
 
-      <p>Are you sure you want to delete this pitch report?</p>
+      <p>{{ $t('pitchReport.confirmDeleteText') }}</p>
       <span v-if="pitchToDelete?.name">{{ pitchToDelete.name }}</span>
 
       <template #footer>
-        <Button class="p-button-danger" @click="deletePitch">Delete</Button>
-        <Button class="p-button-secondary" @click="cancelDeletePitchDialog">Cancel</Button>
+        <Button class="p-button-danger" @click="deletePitch">{{ $t('general.delete') }}</Button>
+        <Button class="p-button-secondary" @click="cancelDeletePitchDialog">{{ $t('general.cancel') }}</Button>
       </template>
     </Dialog>
   </div>

@@ -90,10 +90,10 @@ function unselectTeam(team: Team) {
 
 <template>
   <div class="w-fill shadow-xl p-2 bg-gray-100 border-gray-500 rounded-xl">
-    <h3>Create new Amalgamation</h3>
+    <h3>{{ $t('teamSelect.newAmalgamationTitle') }}</h3>
     <div class="w-fill">
       <div class="mt-2 text-center">
-        <label for="amalgamation_name">Enter amalgamation name</label>
+        <label for="amalgamation_name">{{ $t('teamSelect.newAmalgamationName') }}</label>
         <div class="m-1">
           <InputText id="amalgamation_name" v-model="amalgamation_name" type="text"/>
         </div>
@@ -116,15 +116,15 @@ function unselectTeam(team: Team) {
           @team_selected="on_team_selected"
       />
       <div v-if="duplicates.length > 0" class="text-lg font-bold p-2 m-2 bg-red-400 rounded-lg">
-        WARNING: The amalgamation with your selection already exists:
+        {{ $t('teamSelect.warningAlreadyExistingAmalgamation') }}:
         {{ duplicates.map(it => it.name).join(", ") }}
       </div>
       <div class="flex flex-row justify-center">
         <div class="m-2">
-          <Button class="p-button-rounded" @click="create_amalgamation">Save Amalgamation</Button>
+          <Button class="p-button-rounded" @click="create_amalgamation">{{ $t('general.submit') }}</Button>
         </div>
         <div class="m-2">
-          <Button class="p-button-secondary p-button-rounded" @click="cancel">Cancel creating Amalgamation</Button>
+          <Button class="p-button-secondary p-button-rounded" @click="cancel">{{ $t('general.cancel') }}</Button>
         </div>
       </div>
     </div>

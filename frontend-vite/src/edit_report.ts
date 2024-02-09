@@ -18,17 +18,26 @@ import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
+import {messages} from "./i18n/edit_report/edit_report_i18n";
 // @ts-ignore
 import { Vue3Mq } from "vue3-mq";
 import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
 import Message from "primevue/message";
+import {createI18n} from "vue-i18n";
 
+
+const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages
+})
 const pinia = createPinia()
 const app = createApp(App);
 app.use(pinia)
 app.use(PrimeVue)
 app.use(Vue3Mq);
+app.use(i18n)
 app.component('Card',Card)
 app.component('Button',Button)
 app.component('Listbox',Listbox)

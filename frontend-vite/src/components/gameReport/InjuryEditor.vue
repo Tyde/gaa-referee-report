@@ -3,6 +3,7 @@ import {computed, onMounted, onUpdated, watch} from "vue";
 import {deleteInjuryOnServer, injuryIsBlank} from "@/utils/api/injuries_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Injury} from "@/types/game_report_types";
+import {useI18n} from "vue-i18n";
 
 const store = useReportStore()
 const props = defineProps<{
@@ -57,8 +58,9 @@ function closeDialog() {
 
 }
 
+const {t} = useI18n()
 const injuryDialogTitle = computed(() => {
-  return "Injuries for " + selectedTeam.value?.name
+  return t("gameReport.injuriesTitle") + " " + selectedTeam.value?.name
 })
 watch(()=>selectedInjuryArray, () => {
   //Always add empty injury if there is no empty row
@@ -121,20 +123,20 @@ onMounted(() => {
         <div class="p-2">
           <InputText
               v-model="injury.firstName"
-              placeholder="First name"
+              :placeholder="$t('gameReport.player.firstName')"
           />
         </div>
         <div class="p-2">
           <InputText
               v-model="injury.lastName"
-              placeholder="Last name"
+              :placeholder="$t('gameReport.player.lastName')"
           />
         </div>
         <div class="p-2">
           <InputText
               v-model="injury.details"
 
-              placeholder="Description"
+              :placeholder="$t('gameReport.description')"
           />
         </div>
         <div class="p-2" v-if="!injuryIsBlank(injury)">

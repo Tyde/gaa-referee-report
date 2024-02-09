@@ -54,7 +54,7 @@ const dateString = computed(() => {
 <template>
   <Card>
     <template #title>
-      Create new Tournament
+      {{ $t('tournament.create') }}
     </template>
     <template #content>
       <template v-if="allowChangeDate">
@@ -64,16 +64,16 @@ const dateString = computed(() => {
                   dateFormat="yy-mm-dd"/>
       </template>
       <template v-else> <h3>Date: {{ dateString }}</h3>
-        <Button class="p-button-secondary" @click="allowChangeDate = true">Change Date</Button>
+        <Button class="p-button-secondary" @click="allowChangeDate = true">{{ $t('tournament.changeDate') }}</Button>
       </template>
       <br><br>
       <span class="p-float-label">
         <InputText v-model="editedTournament.name" id="name"/>
-        <label for="name">Enter tournament name</label>
+        <label for="name">{{ $t('tournament.enterName') }}</label>
       </span><br>
       <span class="p-float-label">
         <InputText v-model="editedTournament.location" id="location"/>
-        <label for="location">Enter tournament location</label>
+        <label for="location">{{ $t('tournament.enterLocation') }}</label>
       </span><br>
 
         <Dropdown
@@ -82,14 +82,14 @@ const dateString = computed(() => {
             :options="store.regions"
             option-label="name"
             option-value="id"
-            placeholder="Select a region"
+            :placeholder="$t('tournament.selectRegion')"
             />
       <div class="flex flex-row">
         <div class="m-2">
-          <Button @click="save_tournament">Submit</Button>
+          <Button @click="save_tournament">{{ $t('general.submit') }}</Button>
         </div>
         <div class="m-2">
-          <Button @click="emit('canceled')" class="p-button-danger">Cancel</Button>
+          <Button @click="emit('canceled')" class="p-button-danger">{{ $t('general.cancel') }}</Button>
         </div>
       </div>
     </template>

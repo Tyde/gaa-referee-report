@@ -6,6 +6,7 @@ import {
 } from "@/utils/api/disciplinary_action_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {DisciplinaryAction} from "@/types/game_report_types";
+import {useI18n} from "vue-i18n";
 
 const store = useReportStore()
 const props = defineProps<{
@@ -73,8 +74,10 @@ function closeDialog() {
       })
 }
 
+const {t} = useI18n()
+
 const disciplinaryDialogTitle = computed(() => {
-  return "Disciplinary Action for " +  selectedTeam.value?.name
+  return t("gameReport.disciplinaryActionTitle")+ " " +  selectedTeam.value?.name
 })
 
 
@@ -149,14 +152,14 @@ onMounted(() => {
           <InputText
               v-model="dAction.firstName"
               class="w-52"
-              placeholder="First name"
+              :placeholder="$t('gameReport.player.firstName')"
           />
         </div>
         <div class="p-2">
           <InputText
               v-model="dAction.lastName"
               class="w-52"
-              placeholder="Last name"
+              :placeholder="$t('gameReport.player.lastName')"
           />
         </div>
 
@@ -165,7 +168,7 @@ onMounted(() => {
               v-model="dAction.number"
               class="w-20"
               input-class="w-20"
-              placeholder="Number"
+              :placeholder="$t('gameReport.player.number')"
           />
         </div>
 
@@ -177,7 +180,7 @@ onMounted(() => {
             :show-clear="true"
             class="dropdown-disciplinary m-2"
             input-class="dropdown-disciplinary"
-            placeholder="Rule:"
+            :placeholder="$t('gameReport.rule')"
             :filter="true"
             :filter-fields="['description']"
         >
@@ -214,7 +217,7 @@ onMounted(() => {
           <InputText
               v-model="dAction.details"
 
-              placeholder="Description"
+              :placeholder="$t('gameReport.description')"
           />
         </div>
         <div v-if="!disciplinaryActionIsBlank(dAction)">

@@ -49,12 +49,12 @@ onBeforeUnmount(() => {
     <div v-if="pitch.name?.trim().length===0" class="rounded-xl border border-amber-400
             bg-amber-200 text-center text-lg font-sans text-gray-700
             p-4 m-4">
-      Please enter a name for the pitch! Otherwise the data wont be stored
+      {{ $t('pitchReport.enterNameReminder') }}
     </div>
     <div class="flex-col flex grow">
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
-          <label for="pitchName">Name:</label><br>
+          <label for="pitchName">{{ $t('pitchReport.name') }}:</label><br>
           <div
               :class="{
                 'to-be-filled':pitch.name.trim().length===0
@@ -63,13 +63,13 @@ onBeforeUnmount(() => {
             <InputText
                 id="pitchName"
                 v-model="pitch.name"
-                placeholder="Pitch #X"
+                :placeholder="$t('pitchReport.pitchNamePlaceholder')"
             />
           </div>
         </div>
         <div class="field p-2">
 
-          <label for="surfaceSelect">Surface:</label><br>
+          <label for="surfaceSelect">{{ $t('pitchReport.surface') }}:</label><br>
 
           <Dropdown
               id="surfaceSelect"
@@ -79,7 +79,7 @@ onBeforeUnmount(() => {
             }"
               :options="store.enabledPitchVariables?.surfaces"
               option-label="name"
-              placeholder="Surface"
+              :placeholder="$t('pitchReport.surface')"
           >
           </Dropdown>
         </div>
@@ -87,7 +87,7 @@ onBeforeUnmount(() => {
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
-          <label for="lengthSelect">Length:</label><br>
+          <label for="lengthSelect">{{ $t('pitchReport.length') }}:</label><br>
           <Dropdown
               id="lengthSelect"
               v-model="pitch.length"
@@ -96,13 +96,13 @@ onBeforeUnmount(() => {
             }"
               :options="store.enabledPitchVariables?.lengths"
               option-label="name"
-              placeholder="Length"
+              :placeholder="$t('pitchReport.length')"
           >
           </Dropdown>
         </div>
         <div class="field p-2">
 
-          <label for="widthSelect">Width:</label><br>
+          <label for="widthSelect">{{ $t('pitchReport.width') }}:</label><br>
           <Dropdown
               id="widthSelect"
               v-model="pitch.width"
@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
             }"
               :options="store.enabledPitchVariables?.widths"
               option-label="name"
-              placeholder="Width"
+              :placeholder="$t('pitchReport.width')"
           >
           </Dropdown>
         </div>
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
-          <label for="smallSquareSelect">Small square markings:</label><br>
+          <label for="smallSquareSelect">{{ $t('pitchReport.smallSquareMarkings') }}:</label><br>
           <Dropdown
               id="smallSquareSelect"
               v-model="pitch.smallSquareMarkings"
@@ -129,13 +129,13 @@ onBeforeUnmount(() => {
               :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
-              placeholder="Small square markings"
+              :placeholder="$t('pitchReport.smallSquareMarkings')"
           >
           </Dropdown>
         </div>
         <div class="field p-2">
 
-          <label for="penaltySquareSelect">Penalty square markings:</label><br>
+          <label for="penaltySquareSelect">{{ $t('pitchReport.penaltySquareMarkings') }}:</label><br>
           <Dropdown
               id="penaltySquareSelect"
               v-model="pitch.penaltySquareMarkings"
@@ -145,13 +145,13 @@ onBeforeUnmount(() => {
               :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
-              placeholder="Penalty square markings"
+              :placeholder="$t('pitchReport.penaltySquareMarkings')"
           >
           </Dropdown>
         </div>
         <div class="field p-2">
 
-          <label for="thirteenMarkignsSelect">13m markings:</label><br>
+          <label for="thirteenMarkignsSelect">{{ $t('pitchReport.thirteenMeterMarkings') }}:</label><br>
           <Dropdown
               id="thirteenMarkignsSelect"
               v-model="pitch.thirteenMeterMarkings"
@@ -161,13 +161,13 @@ onBeforeUnmount(() => {
               :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
-              placeholder="13m markings"
+              :placeholder="$t('pitchReport.thirteenMeterMarkings')"
           >
           </Dropdown>
         </div>
         <div class="field p-2">
 
-          <label for="twentyMarkignsSelect">20m markings:</label><br>
+          <label for="twentyMarkignsSelect">{{ $t('pitchReport.twentyMeterMarkings') }}:</label><br>
           <Dropdown
               id="twentyMarkignsSelect"
               v-model="pitch.twentyMeterMarkings"
@@ -177,13 +177,13 @@ onBeforeUnmount(() => {
               :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
-              placeholder="20m markings"
+              :placeholder="$t('pitchReport.twentyMeterMarkings')"
           >
           </Dropdown>
         </div>
         <div class="field p-2">
 
-          <label for="longMarkingsSelect">45m/65m markings:</label><br>
+          <label for="longMarkingsSelect">{{ $t('pitchReport.longMarkings') }}:</label><br>
           <Dropdown
               id="longMarkingsSelect"
               v-model="pitch.longMeterMarkings"
@@ -193,7 +193,7 @@ onBeforeUnmount(() => {
               :options="store.enabledPitchVariables?.markingsOptions"
               class="markings-options"
               option-label="name"
-              placeholder="45m/65m markings"
+              :placeholder="$t('pitchReport.longMarkings')"
           >
           </Dropdown>
         </div>
@@ -201,7 +201,7 @@ onBeforeUnmount(() => {
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
-          <label for="goalpostsSelect">Goalposts:</label><br>
+          <label for="goalpostsSelect">{{ $t('pitchReport.goalPosts') }}:</label><br>
           <Dropdown
               id="goalpostsSelect"
               v-model="pitch.goalPosts"
@@ -210,13 +210,13 @@ onBeforeUnmount(() => {
             }"
               :options="store.enabledPitchVariables?.goalPosts"
               option-label="name"
-              placeholder="Goalposts"
+              :placeholder="$t('pitchReport.goalPosts')"
           >
           </Dropdown>
         </div>
         <div class="field p-2">
 
-          <label for="goalDimsSelect">Goal dimensions:</label><br>
+          <label for="goalDimsSelect">{{ $t('pitchReport.goalDimensions') }}:</label><br>
           <Dropdown
               id="goalDimsSelect"
               v-model="pitch.goalDimensions"
@@ -225,14 +225,14 @@ onBeforeUnmount(() => {
             }"
               :options="store.enabledPitchVariables?.goalDimensions"
               option-label="name"
-              placeholder="Goalposts"
+              :placeholder="$t('pitchReport.goalDimensions')"
           >
           </Dropdown>
         </div>
       </div>
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
-          <label for="additionalInfo">Additional info:</label><br>
+          <label for="additionalInfo">{{ $t('pitchReport.additionalInformation') }}:</label><br>
 
           <InputText
               id="additionalInfo"
@@ -247,7 +247,7 @@ onBeforeUnmount(() => {
         <Button
             @click="deleteThisReport(store.selectedPitchReport)"
             class="p-button-danger"
-          >Delete this pitch report</Button>
+          >{{ $t('pitchReport.delete') }}</Button>
       </div>
     </div>
   </div>

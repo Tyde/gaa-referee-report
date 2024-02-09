@@ -14,7 +14,6 @@ const emit = defineEmits<{
 }>()
 
 onMounted(()=> {
-  console.log("Mounted CreateTeam")
   new_team_name.value = props.rough_team_name || ""
 })
 const new_team_name = ref("")
@@ -35,14 +34,14 @@ async function send_new_team_to_server() {
 </script>
 
 <template>
-  <label for="new_team_name">Name of new team:</label><br>
+  <label for="new_team_name">{{ $t('teamSelect.newTeamName') }}</label><br>
   <InputText id="new_team_name" :disabled="is_loading" v-model="new_team_name" /><br>
   <div class="flex flex-row">
     <div class="m-2">
-      <Button @click="send_new_team_to_server">Send</Button>
+      <Button @click="send_new_team_to_server">{{ $t('general.submit') }}</Button>
     </div>
     <div class="m-2">
-      <Button @click="emit('on_cancel')">Cancel</Button>
+      <Button @click="emit('on_cancel')">{{ $t('general.cancel') }}</Button>
     </div>
   </div>
 </template>

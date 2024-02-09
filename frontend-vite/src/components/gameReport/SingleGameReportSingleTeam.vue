@@ -66,13 +66,13 @@ function stripRuleCardsFromDescription(description?: string) {
         :show-clear="true"
         class="col-span-4"
         option-label="name"
-        placeholder="Select a Team"
+        :placeholder="$t('gameReport.selectTeam')"
     >
     </Dropdown>
     <template v-if="currentSingleTeamGameReport.team">
       <div class="flex justify-center p-2">
         <div>
-          <label for="goals_team">Goals</label><br>
+          <label for="goals_team">{{ $t('gameReport.goals') }}</label><br>
           <InputNumber
               id="goals_team"
               v-model="currentSingleTeamGameReport.goals"
@@ -89,7 +89,7 @@ function stripRuleCardsFromDescription(description?: string) {
       </div>
       <div class="flex justify-center p-2">
         <div>
-          <label for="points_team">Points</label><br>
+          <label for="points_team">{{ $t('gameReport.points') }}</label><br>
           <InputNumber
               id="points_team"
               v-model="currentSingleTeamGameReport.points"
@@ -106,7 +106,7 @@ function stripRuleCardsFromDescription(description?: string) {
         </div>
       </div>
       <div class="text-xl col-span-2 p-2 flex flex-col justify-center place-content-center">
-        <div class="flex-shrink">Total: {{
+        <div class="flex-shrink">{{ $t('gameReport.total') }}: {{
             (currentSingleTeamGameReport?.goals ?? 0) * 3 + (currentSingleTeamGameReport?.points ?? 0)
           }}
         </div>
@@ -119,7 +119,7 @@ function stripRuleCardsFromDescription(description?: string) {
             @click="openDisciplinaryDialog"
             class="flex-shrink"
         >
-          Edit Disciplinary Actions ({{ currentSingleTeamGameReport.disciplinaryActions.length - 1 }})
+          {{ $t('gameReport.editDisciplinaryActions') }} ({{ currentSingleTeamGameReport.disciplinaryActions.length - 1 }})
         </Button>
         <div class="text-sm flex flex-col">
           <div
@@ -145,7 +145,7 @@ function stripRuleCardsFromDescription(description?: string) {
             class="flex-shrink"
             @click="openInjuryDialog"
         >
-          Edit Injuries ({{ currentSingleTeamGameReport.injuries.length - 1 }})
+          {{ $t('gameReport.editInjuries') }} ({{ currentSingleTeamGameReport.injuries.length - 1 }})
         </Button>
         <div class="text-sm flex flex-col">
           <div

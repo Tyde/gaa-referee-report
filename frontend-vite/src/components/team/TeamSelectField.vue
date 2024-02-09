@@ -150,7 +150,7 @@ function unselect_team(team: Team) {
       <div class="mx-auto w-min">
         <span class="p-float-label">
               <InputText id="search_term" v-model="searchTerm"/>
-              <label for="search_term">Enter team name to search</label>
+              <label for="search_term">{{ $t('teamSelect.enterNameForSearch') }}</label>
             </span>
       </div>
       <div class="listbox team-selector-box">
@@ -160,14 +160,14 @@ function unselect_team(team: Team) {
               class="p-listbox-item teamselect-add-option"
               @click="on_add_team_click()"
           >
-            Add new team <span v-if="searchTerm.length>0">"{{ searchTerm }}"</span> ...
+            {{ $t('teamSelect.addNewTeam') }} <span v-if="searchTerm.length>0">"{{ searchTerm }}"</span> ...
           </li>
           <li
               v-if="props.show_new_amalgamate"
               class="teamselect-add-option p-listbox-item"
               @click="on_start_amalgamation_click()"
           >
-            Add new amalgamation
+            {{ $t('teamSelect.addNewAmalgamation') }}
             <span v-if="searchTerm.length>0">"{{ searchTerm }}"</span>
             ...
           </li>
@@ -190,7 +190,7 @@ function unselect_team(team: Team) {
             <template v-if="srt.team.isAmalgamation">
               {{ srt.team.name }} - Amalgamation
               <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
-                Already in selection
+                {{ $t('teamSelect.alreadyInSelection') }}
               </p>
               <!-- unselect icon -->
               <p v-if="srt.team.amalgamationTeams" class="amalgamation_subtitle">
@@ -201,7 +201,7 @@ function unselect_team(team: Team) {
             <template v-else>
               {{ srt.team.name }}
               <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
-                Already in selection <i
+                {{ $t('teamSelect.alreadyInSelection') }} <i
                   v-if="thisTeamInExludedList(srt.team) && props.allow_unselect"
                   class="pi pi-times hover:cursor-pointer mr-2"
                   @click.stop="emit('team_unselected', srt.team)"/>

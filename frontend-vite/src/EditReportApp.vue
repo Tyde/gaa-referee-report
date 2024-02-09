@@ -11,8 +11,10 @@ import SubmitReport from "@/components/SubmitReport.vue";
 import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 import type {DatabaseTournament} from "@/types/tournament_types";
+import {useI18n} from "vue-i18n";
 
 const store = useReportStore()
+
 
 
 
@@ -25,12 +27,22 @@ const allStages = ref([
   ReportEditStage.Submit
 ])
 
-const translateStageToName = new Map<ReportEditStage, string>();
-translateStageToName.set(ReportEditStage.SelectTournament, "Select Tournament")
-translateStageToName.set(ReportEditStage.SelectTeams, "Select Teams")
-translateStageToName.set(ReportEditStage.EditGameReports, "Edit Game Reports")
-translateStageToName.set(ReportEditStage.EditPitchReports, "Edit Pitch Reports")
-translateStageToName.set(ReportEditStage.Submit, "Submit")
+const i18 = useI18n()
+const {t} = i18
+const translateStageToName = ref(new Map<ReportEditStage, string>());
+translateStageToName.value.set(ReportEditStage.SelectTournament, t("sections.selectTournament"))
+translateStageToName.value.set(ReportEditStage.SelectTeams, t("sections.selectTeams"))
+translateStageToName.value.set(ReportEditStage.EditGameReports, t("sections.editGameReports"))
+translateStageToName.value.set(ReportEditStage.EditPitchReports, t("sections.editPitchReports"))
+translateStageToName.value.set(ReportEditStage.Submit, t("sections.submitReport"))
+watch(i18.locale, () => {
+  console.log("New locale",i18.locale)
+  translateStageToName.value.set(ReportEditStage.SelectTournament, t("sections.selectTournament"))
+  translateStageToName.value.set(ReportEditStage.SelectTeams, t("sections.selectTeams"))
+  translateStageToName.value.set(ReportEditStage.EditGameReports, t("sections.editGameReports"))
+  translateStageToName.value.set(ReportEditStage.EditPitchReports, t("sections.editPitchReports"))
+  translateStageToName.value.set(ReportEditStage.Submit, t("sections.submitReport"))
+})
 const reportStarted = ref(false)
 
 
@@ -38,7 +50,7 @@ const reportStarted = ref(false)
 const calcStageOptions = computed(() => {
   return allStages.value.map(stage => {
     let obj = {
-      name: translateStageToName.get(stage) || "",
+      name: translateStageToName.value.get(stage) || "",
       disabled: false,
       stage: stage
     }
@@ -224,9 +236,15 @@ function backToDashboard() {
 function navigate(stage:ReportEditStage) {
   current_stage.value = stage
 }
+
 </script>
 
 <template>
+  <div class="xl:absolute m-2">
+    <select v-model="$i18n.locale" class="p-2">
+      <option v-for="locale in $i18n.availableLocales" :key="`locale-${locale}`" :value="locale">{{ locale }}</option>
+    </select>
+  </div>
 
   <div class="mx-auto w-full xl:w-[47rem] navigation-bar">
     <SelectButton
@@ -281,7 +299,7 @@ function navigate(stage:ReportEditStage) {
             :disabled="store.report.gameCode === undefined"
             class="p-button-rounded p-button-lg m-2"
             @click="start_report"
-        >Start Report
+        >{{ $t("report.start") }}
         </Button>
       </div>
     </div>
@@ -291,7 +309,7 @@ function navigate(stage:ReportEditStage) {
     <Button
         class="p-button-success"
         @click="() => navigate(ReportEditStage.Submit)">
-      Submit report
+      {{ $t("report.submit") }}
     </Button>
   </div>
   </div>
@@ -301,7 +319,7 @@ function navigate(stage:ReportEditStage) {
     <Button
         class="p-button-outlined p-button-secondary"
         @click="backToDashboard">
-      Back to dashboard
+      {{ $t("navigation.backToDashboard") }}
     </Button>
   </div>
   </div>
@@ -313,7 +331,7 @@ function navigate(stage:ReportEditStage) {
       :close-on-escape="false"
       :modal="true"
       content-class="loading-dialog"
-  ><div class="shrink">Loading ... </div></Dialog>
+  ><div class="shrink">{{ $t("navigation.loading") }} </div></Dialog>
 
 </template>
 <style>

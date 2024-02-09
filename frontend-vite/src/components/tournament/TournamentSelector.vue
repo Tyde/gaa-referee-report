@@ -77,16 +77,16 @@ onMounted(() => {
 
     <div v-if="!show_create_new_tournament">
       <h2>
-        Select a tournament
+        {{ $t('tournament.select') }}
       </h2>
       <div v-if="store.report.tournament" class="text-center mb-2">
 
-        Selected tournament: {{ store.report.tournament.name }} - {{ store.report.tournament.location }} -
+        {{ $t('tournament.selected') }}: {{ store.report.tournament.name }} - {{ store.report.tournament.location }} -
         {{ store.report.tournament.date.toISODate() }}
       </div>
 
       <div class="flex flex-row justify-center">
-        <div class="pr-3 flex items-center"><label for="dateformat">Date of Tournament: </label></div>
+        <div class="pr-3 flex items-center"><label for="dateformat">{{ $t('tournament.date') }}: </label></div>
         <div>
           <Calendar id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
         </div>
@@ -96,13 +96,13 @@ onMounted(() => {
           <li
               v-if="loading"
               class="p-listbox-item">
-            Loading...
+            {{ $t('navigation.loading') }}
           </li>
           <li
               v-if="showingRecentTournaments && found_tournaments.length >0"
               class=" italic bg-amber-200 hover:bg-amber-200 p-listbox-item"
           >
-            Showing recent tournaments
+            {{ $t('tournament.recent') }}
           </li>
           <li
               v-for="tournament in found_tournaments"
@@ -120,13 +120,13 @@ onMounted(() => {
               @click="show_create_new_tournament=true"
 
           >
-            Tournament not in list? Create new ...
+            {{ $t('tournament.notInListCreateQuestion') }}
           </li>
           <li
               v-else
               class="p-listbox-item tournamentselect-add-option"
               @click="showNewTournamentDialogWithoutDate">
-            Tournament not in list? Create new ...
+            {{ $t('tournament.notInListCreateQuestion') }}
           </li>
         </ul>
       </div>

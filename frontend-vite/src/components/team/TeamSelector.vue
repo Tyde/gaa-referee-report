@@ -40,7 +40,7 @@ onMounted(() => {
 
 <template>
   <div class="mx-auto m-2 w-full md:w-10/12 xl:w-5/12">
-    <h2>Select the clubs, that will be part of this report</h2>
+    <h2>{{ $t('teamSelect.selectReportTeams') }}</h2>
     <div>
 
 

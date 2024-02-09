@@ -136,7 +136,6 @@ async function deleteReport() {
 
 const gameReportsListIndices = computed(() => {
   let indices = []
-  console.log("Update indices list " + store.gameReports.length)
   for(let i = 0; i < store.gameReports.length; i++) {
     indices.push(i)
   }
@@ -214,10 +213,10 @@ watch(() => store.selectedGameReport, () => {
       :modal="true"
   >
     <template #header>
-      <span>Delete Game Report</span>
+      <span>{{ $t('gameReport.deleteConfirmTitle') }}</span>
     </template>
 
-      <p>Are you sure you want to delete this game report?</p>
+      <p>{{ $t('gameReport.deleteConfirmText') }}</p>
       <span v-if="reportToDelete?.startTime">{{reportToDelete.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
       <span v-if="reportToDelete?.teamAReport.team">{{reportToDelete.teamAReport.team.name}}</span>
       <span v-else>...</span>&nbsp;vs.&nbsp;
@@ -225,8 +224,8 @@ watch(() => store.selectedGameReport, () => {
       <span v-else>...</span>
 
     <template #footer>
-      <Button @click="deleteReport" class="p-button-danger">Delete</Button>
-      <Button @click="cancelDeleteReport" class="p-button-secondary">Cancel</Button>
+      <Button @click="deleteReport" class="p-button-danger">{{ $t('general.delete') }}</Button>
+      <Button @click="cancelDeleteReport" class="p-button-secondary">{{ $t('general.cancel') }}</Button>
     </template>
   </Dialog>
 
