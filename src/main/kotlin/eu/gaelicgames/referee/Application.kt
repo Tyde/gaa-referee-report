@@ -19,6 +19,7 @@ import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.util.*
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import kotlin.random.Random
@@ -29,7 +30,6 @@ suspend fun main() {
     DatabaseHandler.createSchema()
     DatabaseHandler.populate_base_data()
 
-    CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)
 
     transaction {
         if (User.all().count() == 0L) {
@@ -71,6 +71,8 @@ suspend fun main() {
 }
 
 fun Application.refereeApplicationModule() {
+    runBlocking {  CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)}
+
     configureTemplating()
     configureSerialization()
     configureSecurity()

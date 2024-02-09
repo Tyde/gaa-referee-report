@@ -20,10 +20,9 @@ services:
       REDIS_PORT: "6379"
       REDIS_PASSWORD: "password"
   cache:
-    image: redis:7
-    command: redis-server --requirepass password
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+    image: 'redis/redis-stack-server:latest'
+    ports:
+      - '100.119.152.42:9985:8001'
 
 volumes:
   database:

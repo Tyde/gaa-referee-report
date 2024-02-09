@@ -24,6 +24,7 @@ object CacheUtil {
         client = newClient(
             Endpoint.from(address)
         )
+        println("Client initialized: $client")
         if(password.isNotEmpty()) {
             client.auth(password)
         }
