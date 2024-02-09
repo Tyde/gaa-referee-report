@@ -72,15 +72,12 @@ fun Application.configureSecurity() {
         }
         session<UserSession>("auth-session") {
             validate { session ->
-                transaction {
-                    val foundSessions = Session.find { eu.gaelicgames.referee.data.Sessions.uuid eq session.uuid }
-                    if (!foundSessions.empty()) {
-                        val foundSession = foundSessions.first()
-                        UserPrincipal(foundSession.user)
-                    } else {
-                        null
-                    }
-                }
+                Session.validateSession(session.uuid).map {
+                    transaction { User.findById(it.user.id) }
+                        ?.let { UserPrincipal(it) }
+                }.getOrNull()
+
+
             }
             challenge {
                 if(this.call.request.uri.startsWith("/api")) {
@@ -97,7 +94,19 @@ fun Application.configureSecurity() {
         }
         session<UserSession>("admin-session") {
             validate { session ->
+                Session.validateSession(session.uuid).map {
+                    transaction { User.findById(it.user.id) }
+                        ?.let {
+                            if(it.role == UserRole.ADMIN) {
+                                UserPrincipal(it)
+                            } else {
+                                null
+                            }
+                        }
+                }.getOrNull()
+                /*
                 transaction {
+
                     val foundSessions = Session.find { eu.gaelicgames.referee.data.Sessions.uuid eq session.uuid }
                     if (!foundSessions.empty()) {
                         val foundSession = foundSessions.first()
@@ -109,7 +118,7 @@ fun Application.configureSecurity() {
                     } else {
                         null
                     }
-                }
+                }*/
             }
             challenge {
                 println("Challenge")
@@ -119,6 +128,19 @@ fun Application.configureSecurity() {
 
         session<UserSession>("ccc-session") {
             validate { session ->
+                Session.validateSession(session.uuid).map {
+                    transaction { User.findById(it.user.id) }
+                        ?.let {
+                            if(it.role == UserRole.CCC ||
+                                it.role == UserRole.REFEREE ||
+                                it.role == UserRole.ADMIN) {
+                                UserPrincipal(it)
+                            } else {
+                                null
+                            }
+                        }
+                }.getOrNull()
+                /*
                 transaction {
                     val foundSessions = Session.find { eu.gaelicgames.referee.data.Sessions.uuid eq session.uuid }
                     if (!foundSessions.empty()) {
@@ -133,7 +155,7 @@ fun Application.configureSecurity() {
                     } else {
                         null
                     }
-                }
+                }*/
             }
             challenge {
                 println("Challenge")

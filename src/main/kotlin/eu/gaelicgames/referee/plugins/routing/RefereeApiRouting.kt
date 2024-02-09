@@ -4,14 +4,17 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
+import eu.gaelicgames.referee.util.CacheUtil
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.resources.*
+import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.resources.post
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
@@ -35,14 +38,21 @@ fun Route.refereeApiRouting() {
     get<Api.Reports.Get> { get ->
         val reportId = get.id
         if (reportId >= 0) {
-            call.respond(transaction {
-                val report = TournamentReport.findById(reportId)
-                if (report != null) {
-                    CompleteReportDEO.fromTournamentReport(report)
-                } else {
-                    ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found")
+            val report = CacheUtil.getCachedReport(reportId)
+                .getOrElse {
+                    suspendedTransactionAsync {
+                        val reportDB = TournamentReport.findById(reportId)
+                        if (reportDB != null) {
+                            CompleteReportDEO.fromTournamentReport(reportDB)
+                        } else {
+                            ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found")
+                        }
+                    }.await()
                 }
-            })
+
+
+            call.respond(report)
+
         } else {
             call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report id must be positive"))
         }
@@ -171,7 +181,7 @@ fun Route.refereeApiRouting() {
         val user = call.principal<UserPrincipal>()?.user
         if (user != null) {
             receiveAndHandleDEO<DeleteTournamentReportDEO> { deo ->
-                deo.deleteChecked(user).map{deo}.getOrElse {
+                deo.deleteChecked(user).map { deo }.getOrElse {
                     ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
                 }
             }
@@ -198,8 +208,8 @@ fun Route.refereeApiRouting() {
 
     post<Api.GameReports.Delete> {
         val user = call.principal<UserPrincipal>()?.user!!
-        receiveAndHandleDEO<DeleteGameReportDEO> {  deo ->
-            deo.deleteChecked(user).map{deo}.getOrElse {
+        receiveAndHandleDEO<DeleteGameReportDEO> { deo ->
+            deo.deleteChecked(user).map { deo }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
@@ -213,7 +223,7 @@ fun Route.refereeApiRouting() {
     }
     post<Api.GameReports.DisciplinaryAction.Delete> {
         val user = call.principal<UserPrincipal>()?.user!!
-        receiveAndHandleDEO<DeleteDisciplinaryActionDEO> {  deo ->
+        receiveAndHandleDEO<DeleteDisciplinaryActionDEO> { deo ->
             deo.deleteChecked(user).map { deo }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -345,7 +355,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleDisciplinaryAct
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doUpdate: Boolean) {
-    receiveAndHandleDEO<InjuryDEO> {  deo ->
+    receiveAndHandleDEO<InjuryDEO> { deo ->
         val updatedReport = if (doUpdate) {
             deo.updateInDatabase()
         } else {

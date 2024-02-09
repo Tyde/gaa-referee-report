@@ -291,7 +291,7 @@ async function submitReport() {
         store.newError(e)
       })
     }
-    submitReportToServer(store.report).then(() => {
+    submitReportToServer(store.report).then(async () => {
       location.href = "/#/report/" + store.report.id
     }).catch((e) => {
       store.newError(e)

@@ -1,14 +1,21 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.util.CacheUtil
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
-fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
-    return transaction {
-        PitchVariablesDEO(
+suspend fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
+    val cachedVars = CacheUtil.getCachedPitchVariables()
+    if (cachedVars.isSuccess) {
+        return cachedVars.getOrThrow()
+    }
+
+    return suspendedTransactionAsync {
+        val variables = PitchVariablesDEO(
             surfaces = PitchSurfaceOption.all().map { it.toPitchPropertyDEO() },
             lengths = PitchLengthOption.all().map { it.toPitchPropertyDEO() },
             widths = PitchWidthOption.all().map { it.toPitchPropertyDEO() },
@@ -16,7 +23,9 @@ fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
             goalPosts = PitchGoalpostsOption.all().map { it.toPitchPropertyDEO() },
             goalDimensions = PitchGoalDimensionOption.all().map { it.toPitchPropertyDEO() },
         )
-    }
+        CacheUtil.cachePitchVariables(variables)
+        variables
+    }.await()
 }
 
 fun PitchPropertyType.toDBClass(): LongEntityClass<LongEntity> {
@@ -32,8 +41,9 @@ fun PitchPropertyType.toDBClass(): LongEntityClass<LongEntity> {
 }
 
 
-fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdateDEO> {
+suspend fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
+    CacheUtil.deleteCachedPitchVariables()
     return transaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
@@ -46,8 +56,9 @@ fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdateDEO> {
     }
 }
 
-fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO> {
+suspend fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO> {
     val pvUpdate = this
+    CacheUtil.deleteCachedPitchVariables()
     return transaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
@@ -65,8 +76,9 @@ fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO> {
     }
 }
 
-fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
+suspend fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
+    CacheUtil.deleteCachedPitchVariables()
     return transaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
@@ -82,8 +94,9 @@ fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
 
 
 
-fun NewPitchVariableDEO.createInDatabase(): Result<PitchVariableUpdateDEO> {
+suspend fun NewPitchVariableDEO.createInDatabase(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
+    CacheUtil.deleteCachedPitchVariables()
     return transaction {
         val obj = when (pvUpdate.type) {
             PitchPropertyType.SURFACE -> PitchSurfaceOption.new { name = pvUpdate.name }

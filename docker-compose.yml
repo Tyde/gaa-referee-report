@@ -1,4 +1,5 @@
 version: '3'
+
 services:
   app:
     image: 'ghcr.io/tyde/gaa-referee-report:master'
@@ -15,6 +16,14 @@ services:
       ADMIN_LAST_NAME: "User"
       ADMIN_EMAIL: "home@admin.com"
       ADMIN_PASSWORD: "password"
+      REDIS_HOST: "cache"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "password"
+  cache:
+    image: redis:7
+    command: redis-server --requirepass password
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
 
 volumes:
   database:

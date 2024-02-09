@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.DisciplinaryAction
 import eu.gaelicgames.referee.data.DisciplinaryActions
 import eu.gaelicgames.referee.data.GameCode
 import eu.gaelicgames.referee.data.Rule
+import eu.gaelicgames.referee.util.CacheUtil
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -22,8 +23,9 @@ fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
 }
 
 
-fun RuleDEO.updateInDatabase(): Result<Rule> {
+suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
     val rUpdate = this
+    CacheUtil.deleteCachedRules()
     return transaction {
         val rule = Rule.findById(rUpdate.id)
         if(rule != null) {
@@ -45,7 +47,8 @@ fun RuleDEO.updateInDatabase(): Result<Rule> {
 }
 
 
-fun ModifyRulesDEOState.delete(): Result<Boolean> {
+suspend fun ModifyRulesDEOState.delete(): Result<Boolean> {
+    CacheUtil.deleteCachedRules()
     return transaction {
         val rule = Rule.findById(this@delete.id)
         if(rule != null) {
@@ -65,7 +68,8 @@ fun ModifyRulesDEOState.delete(): Result<Boolean> {
     }
 }
 
-fun ModifyRulesDEOState.toggleDisabledState(): Result<Rule> {
+suspend fun ModifyRulesDEOState.toggleDisabledState(): Result<Rule> {
+    CacheUtil.deleteCachedRules()
     return transaction {
         val rule = Rule.findById(this@toggleDisabledState.id)
         if (rule != null) {
@@ -96,7 +100,8 @@ fun ModifyRulesDEOState.isDeletable(): Result<RuleIsDeletableDEO> {
 
 
 
-fun NewRuleDEO.createInDatabase():Result<Rule> {
+suspend fun NewRuleDEO.createInDatabase():Result<Rule> {
+    CacheUtil.deleteCachedRules()
     val newRule = this
     return transaction {
         val code = GameCode.findById(newRule.code)

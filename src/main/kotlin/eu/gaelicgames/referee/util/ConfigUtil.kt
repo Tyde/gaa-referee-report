@@ -16,6 +16,10 @@ object GGERefereeConfig {
     private var adminMail : String
     private var adminPassword : String
 
+    var redisHost : String
+    var redisPort : Int
+    var redisPassword : String = ""
+
 
 
     init {
@@ -30,6 +34,10 @@ object GGERefereeConfig {
         val configAdminMail = Key("admin.mail", stringType)
         val configAdminPassword = Key("admin.password", stringType)
 
+        val configRedisHost = Key("redis.host", stringType)
+        val configRedisPort = Key("redis.port", intType)
+        val configRedisPassword = Key("redis.password", stringType)
+
         mailjetPublicKey = config[configMailjetPublicKey]
         mailjetSecretKey = config[configMailjetSecretKey]
         serverUrl = config[configBaseUrl]
@@ -39,7 +47,9 @@ object GGERefereeConfig {
         adminMail = config[configAdminMail]
         adminPassword = config[configAdminPassword]
 
-
+        redisHost = config[configRedisHost]
+        redisPort = config[configRedisPort]
+        redisPassword = config[configRedisPassword]
 
 
     }

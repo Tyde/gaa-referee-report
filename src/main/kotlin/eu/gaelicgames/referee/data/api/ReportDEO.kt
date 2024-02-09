@@ -1,16 +1,24 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.util.CacheUtil
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
 
 
-fun CompleteReportDEO.Companion.fromTournamentReport(tournamentReport: TournamentReport): CompleteReportDEO {
-    return transaction {
-        CompleteReportDEO(
+suspend fun CompleteReportDEO.Companion.fromTournamentReport(
+    tournamentReport: TournamentReport
+): CompleteReportDEO  = coroutineScope {
+    val report =  transaction {
+        val report = CompleteReportDEO(
             id = tournamentReport.id.value,
             tournament = TournamentDEO.fromTournament(tournamentReport.tournament),
             code = tournamentReport.code.id.value,
@@ -28,8 +36,14 @@ fun CompleteReportDEO.Companion.fromTournamentReport(tournamentReport: Tournamen
             },
             referee = RefereeDEO.fromReferee(tournamentReport.referee)
         )
+        report
     }
+    if(tournamentReport.isSubmitted) {
+        launch { CacheUtil.cacheReport(report) }
+    }
+    return@coroutineScope report
 }
+
 fun TournamentReportByIdDEO.Companion.fromTournamentReport(tournamentReport: TournamentReport): TournamentReportByIdDEO {
     return transaction {
         TournamentReportByIdDEO(
@@ -37,18 +51,22 @@ fun TournamentReportByIdDEO.Companion.fromTournamentReport(tournamentReport: Tou
         )
     }
 }
-fun TournamentReportByIdDEO.submitInDatabase():Result<TournamentReport> {
+suspend fun TournamentReportByIdDEO.submitInDatabase():Result<TournamentReport> {
     val stdeo = this
-    return transaction {
+
+    return suspendedTransactionAsync {
         val report = TournamentReport.findById(stdeo.id)
         if (report != null) {
+            CacheUtil.deleteCachedCompleteTournamentReport(report.tournament.id.value)
+            CacheUtil.deleteCachedPublicTournamentReport(report.tournament.id.value)
+
             report.isSubmitted = true
             report.submitDate = LocalDateTime.now()
             Result.success(report)
         } else {
             Result.failure(IllegalArgumentException("TournamentReport not found"))
         }
-    }
+    }.await()
 }
 
 fun TournamentReportByIdDEO.createShareLink():Result<TournamentReportShareLinkDEO> {

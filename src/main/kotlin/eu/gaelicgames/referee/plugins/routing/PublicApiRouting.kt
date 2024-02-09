@@ -3,17 +3,24 @@ package eu.gaelicgames.referee.plugins.routing
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.resources.Api
+import eu.gaelicgames.referee.util.CacheUtil
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.publicApiRouting() {
     get<Api.Rules> {
-        val rules = transaction {
-            Rule.all().map { RuleDEO.fromRule(it)  }
+        val cacheResult = CacheUtil.getCachedRules()
+        val rules = cacheResult.getOrElse {
+            suspendedTransactionAsync {
+                val rules = Rule.all().map { RuleDEO.fromRule(it)  }
+                CacheUtil.cacheRules(rules)
+                rules
+            }.await()
         }
         call.respond(rules)
     }

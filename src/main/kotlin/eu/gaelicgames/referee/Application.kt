@@ -23,11 +23,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import kotlin.random.Random
 
-fun main() {
+suspend fun main() {
 
     DatabaseHandler.init()
     DatabaseHandler.createSchema()
     DatabaseHandler.populate_base_data()
+
+    CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)
 
     transaction {
         if (User.all().count() == 0L) {

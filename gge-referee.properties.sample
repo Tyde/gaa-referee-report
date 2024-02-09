@@ -7,3 +7,7 @@ admin.first_name=
 admin.last_name=
 admin.mail=
 admin.password=
+
+redis.host=localhost
+redis.port=6379
+redis.password=
