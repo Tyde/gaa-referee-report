@@ -73,6 +73,7 @@ onMounted(() => {
         <Calendar
             :model-value="store.selectedGameReport?.startTime?.toJSDate()"
             @update:model-value="(nD:Date) => {
+              console.log('Updated Start Time', nD)
               if(store.selectedGameReport){
                 store.selectedGameReport.startTime = DateTime.fromJSDate(nD)
               }

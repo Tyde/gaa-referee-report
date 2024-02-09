@@ -38,9 +38,16 @@ const filteredRules = computed(() => {
   return store.rules.filter(rule => rule.code == store.report.gameCode.id)
 })
 function newGameReport() {
+
   let estimatedStartingTime = store.selectedGameReport?.startTime?.plus({
     minutes: 30
   })
+  if(!estimatedStartingTime) {
+    estimatedStartingTime = store.report.tournament.date?.set({
+      hour: 9,
+      minute: 0
+    })
+  }
   store.gameReports.push({
     report:store.report,
     teamAReport : {
