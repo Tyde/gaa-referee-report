@@ -3,7 +3,6 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.MailjetClientHandler
-import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.IOException
 import java.time.LocalDateTime

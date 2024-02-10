@@ -2,7 +2,6 @@
 import {ref} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 import {useRoute, useRouter} from "vue-router";
-import type {MenuItem} from "primevue/menuitem";
 
 const store = useAdminStore();
 store.publicStore.loadAuxiliaryInformationFromSerer()
