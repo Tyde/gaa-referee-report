@@ -32,6 +32,11 @@ services:
       ADMIN_LAST_NAME: "Name"
       ADMIN_MAIL: "mail"
       ADMIN_PASSWORD: "password"
+      REDIS_HOST: "cache"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "password"
+  cache:
+    image: 'redis/redis-stack-server:latest'
   backup:
     image: jareware/docker-volume-backup:2.4.0
     volumes:

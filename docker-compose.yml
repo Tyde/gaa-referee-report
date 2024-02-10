@@ -21,8 +21,6 @@ services:
       REDIS_PASSWORD: "password"
   cache:
     image: 'redis/redis-stack-server:latest'
-    ports:
-      - '100.119.152.42:9985:8001'
 
 volumes:
   database:
