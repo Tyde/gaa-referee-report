@@ -4,9 +4,30 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
     return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
+}
+
+suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
+    return CacheUtil.getCachedTeamList()
+        .getOrElse {
+            suspendedTransactionAsync {
+                val dbTeams = Team.all().map {
+                    if (!it.isAmalgamation) {
+                        TeamDEO.fromTeam(it)
+                    } else {
+                        val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
+                            TeamDEO.fromTeam(amlgm.addedTeam)
+                        }
+                        TeamDEO.fromTeam(it, addedTeams)
+                    }
+                }
+                CacheUtil.cacheTeamList(dbTeams)
+                dbTeams
+            }.await()
+        }
 }
 
 fun TeamDEO.Companion.fromTeamId(it:Long):Result<TeamDEO> {

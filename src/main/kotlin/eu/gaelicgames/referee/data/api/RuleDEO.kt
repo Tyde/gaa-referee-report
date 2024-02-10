@@ -1,11 +1,9 @@
 package eu.gaelicgames.referee.data.api
 
-import eu.gaelicgames.referee.data.DisciplinaryAction
-import eu.gaelicgames.referee.data.DisciplinaryActions
 import eu.gaelicgames.referee.data.GameCode
 import eu.gaelicgames.referee.data.Rule
 import eu.gaelicgames.referee.util.CacheUtil
-import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
@@ -22,13 +20,24 @@ fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
     }
 }
 
+suspend fun RuleDEO.Companion.allRules(): List<RuleDEO> {
+    return CacheUtil.getCachedRules()
+        .getOrElse {
+            suspendedTransactionAsync {
+                val rules = Rule.all().map { RuleDEO.fromRule(it) }
+                CacheUtil.cacheRules(rules)
+                rules
+            }.await()
+        }
+}
+
 
 suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
     val rUpdate = this
     CacheUtil.deleteCachedRules()
     return transaction {
         val rule = Rule.findById(rUpdate.id)
-        if(rule != null) {
+        if (rule != null) {
             GameCode.findById(rUpdate.code)?.let {
                 rule.code = it
             }
@@ -51,8 +60,8 @@ suspend fun ModifyRulesDEOState.delete(): Result<Boolean> {
     CacheUtil.deleteCachedRules()
     return transaction {
         val rule = Rule.findById(this@delete.id)
-        if(rule != null) {
-            if(rule.isDeletable()) {
+        if (rule != null) {
+            if (rule.isDeletable()) {
                 rule.delete()
                 Result.success(true)
             } else {
@@ -97,15 +106,12 @@ fun ModifyRulesDEOState.isDeletable(): Result<RuleIsDeletableDEO> {
 }
 
 
-
-
-
-suspend fun NewRuleDEO.createInDatabase():Result<Rule> {
+suspend fun NewRuleDEO.createInDatabase(): Result<Rule> {
     CacheUtil.deleteCachedRules()
     val newRule = this
     return transaction {
         val code = GameCode.findById(newRule.code)
-        if(code != null) {
+        if (code != null) {
             Result.success(Rule.new {
                 this.code = code
                 this.isCaution = newRule.isCaution

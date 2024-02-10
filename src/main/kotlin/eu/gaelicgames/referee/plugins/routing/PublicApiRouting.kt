@@ -14,15 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.publicApiRouting() {
     get<Api.Rules> {
-        val cacheResult = CacheUtil.getCachedRules()
-        val rules = cacheResult.getOrElse {
-            suspendedTransactionAsync {
-                val rules = Rule.all().map { RuleDEO.fromRule(it)  }
-                CacheUtil.cacheRules(rules)
-                rules
-            }.await()
-        }
-        call.respond(rules)
+        call.respond(RuleDEO.allRules())
     }
 
     get<Api.GameReportVariables> {
@@ -33,10 +25,7 @@ fun Route.publicApiRouting() {
         call.respond(PitchVariablesDEO.load())
     }
     get<Api.Codes> {
-        val allCodes = transaction {
-            GameCode.all().map { GameCodeDEO(it) }
-        }
-        call.respond(allCodes)
+        call.respond(GameCodeDEO.allGameCodes())
     }
 
     get<Api.Tournaments.CompleteReportPublic> { completeReport ->
@@ -63,5 +52,10 @@ fun Route.publicApiRouting() {
             Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
         }
         call.respond(tournaments)
+    }
+
+    get<Api.TeamsAvailable> {
+        val teams = TeamDEO.allTeamList()
+        call.respond(teams)
     }
 }

@@ -46,26 +46,7 @@ fun Application.configureRouting() {
         publicApiRouting()
 
 
-        get<Api.TeamsAvailable> {
-            val teams = CacheUtil.getCachedTeamList()
-                .getOrElse {
-                    suspendedTransactionAsync {
-                    val dbTeams = Team.all().map {
-                        if (!it.isAmalgamation) {
-                            TeamDEO.fromTeam(it)
-                        } else {
-                            val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
-                                TeamDEO.fromTeam(amlgm.addedTeam)
-                            }
-                            TeamDEO.fromTeam(it, addedTeams)
-                        }
-                    }
-                    CacheUtil.cacheTeamList(dbTeams)
-                    dbTeams
-                }.await()
-            }
-            call.respond(teams)
-        }
+
 
         post<Api.Login> {
             try {
