@@ -50,6 +50,12 @@ export const routes = [
     {
         path: "/referees/",
         component: UserList,
+        props: {refereeMode: true}
+    },
+    {
+        path: "/ccc/",
+        component: UserList,
+        props: {refereeMode: false}
     },
     {
         path: "/teams",

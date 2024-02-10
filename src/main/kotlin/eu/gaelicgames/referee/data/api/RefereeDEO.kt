@@ -32,25 +32,35 @@ fun RefereeDEO.updateInDatabase():Result<User> {
     }
 }
 
+fun generateActivationLink(referee: User): String {
+    val activationUUID = UUID.randomUUID()
+    ActivationToken.new {
+        this.token = activationUUID
+        this.user = referee
+        this.expires = LocalDateTime.now().plusDays(7)
+    }
+
+    val activationString = activationUUID.toString()
+    return GGERefereeConfig.serverUrl + "/user/activate/$activationString"
+}
+
 fun NewRefereeDEO.createInDatabase(): Result<User> {
     val thisReferee = this
     return transaction {
+        val extractedRole = if (thisReferee.isReferee) {
+            UserRole.WAITING_FOR_ACTIVATION
+        } else {
+            UserRole.CCC_WAITING_FOR_ACTIVATION
+        }
         val referee = User.new {
             firstName = thisReferee.firstName
             lastName = thisReferee.lastName
             mail = thisReferee.mail
             password = "".toByteArray()
-            role = UserRole.WAITING_FOR_ACTIVATION
-        }
-        val activationUUID = UUID.randomUUID()
-        ActivationToken.new {
-            this.token = activationUUID
-            this.user = referee
-            this.expires = LocalDateTime.now().plusDays(7)
+            role = extractedRole
         }
 
-        val activationString = activationUUID.toString()
-        val activationLink = GGERefereeConfig.serverUrl + "/user/activate/$activationString"
+        val activationLink = generateActivationLink(referee)
         println(activationLink)
         val name = "${referee.firstName} ${referee.lastName}"
         kotlin.runCatching {
@@ -98,10 +108,20 @@ fun NewPasswordByTokenDEO.updatePassword(): Result<User> {
             val token = ActivationToken.find { ActivationTokens.token eq uuid.getOrThrow() }
                 .firstOrNull()
             if (token != null) {
+
                 if (token.expires.isAfter(LocalDateTime.now())) {
+                    val expectedRole = if (token.user.role == UserRole.WAITING_FOR_ACTIVATION) {
+                        UserRole.REFEREE
+                    } else if (token.user.role == UserRole.CCC_WAITING_FOR_ACTIVATION) {
+                        UserRole.CCC
+                    } else {
+                        token.user.role //Password reset
+                    }
+                    println("Expected role: $expectedRole")
                     val user = token.user
                     user.password = User.hashPassword(thisToken.password)
-                    user.role = UserRole.REFEREE
+                    user.role = expectedRole
+                    token.delete()
                     Result.success(user)
                 } else {
                     Result.failure(IllegalArgumentException("Token expired"))
@@ -205,15 +225,8 @@ fun ResetRefereePasswordDEO.executePasswordReset(): Result<UpdateRefereePassword
         if (referee == null) {
             return@transaction Result.failure(IllegalArgumentException("Referee with id $refereeID not found"))
         }
-        val activationUUID = UUID.randomUUID()
-        ActivationToken.new {
-            this.token = activationUUID
-            this.user = referee
-            this.expires = LocalDateTime.now().plusDays(7)
-        }
+        val activationLink = generateActivationLink(referee)
 
-        val activationString = activationUUID.toString()
-        val activationLink = GGERefereeConfig.serverUrl + "/user/activate/$activationString"
         val name = referee.firstName + " " + referee.lastName
         kotlin.runCatching {
             MailjetClientHandler.sendPasswordResetMail(

@@ -46,7 +46,11 @@ const items = ref([
   }, {
     label: "Referees",
     route: "/referees"
+  },{
+    label: "CCC",
+    route: "/ccc"
   }
+
 ])
 const route = useRoute();
 

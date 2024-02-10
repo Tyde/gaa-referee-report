@@ -2,12 +2,13 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref} from "vue";
-import {addRefereeOnServer} from "@/utils/api/admin_api";
-import type {Referee, NewReferee} from "@/types/referee_types";
+import {addUserOnServer} from "@/utils/api/admin_api";
+import type {Referee, NewUser} from "@/types/referee_types";
 
 const store = useAdminStore()
 const props = defineProps<{
-  visible: boolean
+  visible: boolean,
+  refereeMode: boolean
 }>()
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void,
@@ -29,14 +30,15 @@ function closeDialog() {
 }
 
 
-const newUser = ref<NewReferee>({})
+const newUser = ref<NewUser>({})
 
 const isLoading = ref(false)
 
 function addNewReferee() {
   if (newUser.value.firstName && newUser.value.lastName && newUser.value.mail) {
     isLoading.value = true
-    addRefereeOnServer(newUser.value)
+    newUser.value.isReferee = props.refereeMode
+    addUserOnServer(newUser.value)
         .then((referee: Referee) => {
           closeDialog()
           isLoading.value = false
@@ -56,7 +58,7 @@ function addNewReferee() {
       v-model:visible="localVisible"
       :closable="false"
       :close-on-escape="false"
-      header="Add new Referee"
+      :header="refereeMode ? 'Add new Referee' : 'Add new CCC member'"
       :modal="true"
   >
     <BlockUI :blocked="isLoading">

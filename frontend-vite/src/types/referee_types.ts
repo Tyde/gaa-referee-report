@@ -50,10 +50,11 @@ export const SetRefereeRoleDEO = z.object({
 })
 export type SetRefereeRoleDEO = z.infer<typeof SetRefereeRoleDEO>
 
-export interface NewReferee {
+export interface NewUser {
     firstName?: string,
     lastName?: string,
     mail?: string,
+    isReferee?: boolean, // if false, the user is a CCC member
 }
 
 

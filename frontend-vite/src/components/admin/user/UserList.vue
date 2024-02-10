@@ -2,7 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {getAllUsers, resetRefereePasswordOnServer, updateUserOnServer} from "@/utils/api/admin_api";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import NewUserDialog from "@/components/admin/user/NewUserDialog.vue";
 import type {RefereeWithRoleDEO} from "@/types/referee_types";
@@ -12,6 +12,24 @@ import {useToast} from "primevue/usetoast";
 
 const store = useAdminStore();
 const users = ref<RefereeWithRoleDEO[]>([]);
+
+const restrictRoles = computed(() => {
+  if(props.refereeMode) {
+    return ["REFEREE", "INACTIVE", "ADMIN", "WAITING_FOR_ACTIVATION"]
+  } else {
+    return ["CCC","CCC_WAITING_FOR_ACTIVATION"]
+  }
+})
+
+const filteredUsers = computed(() => {
+  return users.value.filter(it => restrictRoles.value.includes(it.role))
+})
+
+
+
+const props = defineProps<{
+  refereeMode: boolean,
+}>()
 
 const editingUsers = ref<RefereeWithRoleDEO[]>([]);
 const showNewUserDialog = ref(false);
@@ -86,14 +104,14 @@ function newSuccessMessage(message: string) {
   <div class="flex flex-col items-center w-full">
     <Toast />
     <Button
-        label="Register new Referee"
+        :label="refereeMode ? 'Register new Referee' : 'Register new CCC member'"
         icon="pi pi-plus"
         class="p-button-success p-2 mr-2"
         @click="showNewUserDialog = true"
     />
 
     <DataTable
-        :value="users"
+        :value="filteredUsers"
         edit-mode="row"
         v-model:editing-rows="editingUsers"
         @row-edit-save="editUser"
@@ -149,6 +167,7 @@ function newSuccessMessage(message: string) {
     <NewUserDialog
         v-model:visible="showNewUserDialog"
         @newRefereeAdded="() => updateUserList()"
+        :referee-mode="refereeMode"
     />
   </div>
 </template>

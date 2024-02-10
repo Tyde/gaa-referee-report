@@ -3,7 +3,7 @@ import {GameType} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
 import {Referee, RefereeWithRoleDEO, UpdateRefereePasswordResponse} from "@/types/referee_types";
-import type {NewReferee} from "@/types/referee_types";
+import type {NewUser} from "@/types/referee_types";
 import {NewRuleDEO, Rule} from "@/types/rules_types";
 import {DatabaseTournament, databaseTournamentToTournamentDAO} from "@/types/tournament_types";
 
@@ -47,7 +47,7 @@ export async function updateUserOnServer(user: Referee) {
         .then(data => parseAndHandleDEO(data, Referee))
 }
 
-export async function addRefereeOnServer(user: NewReferee) {
+export async function addUserOnServer(user: NewUser) {
     return makePostRequest("/api/user/new", user)
         .then(data => parseAndHandleDEO(data, Referee))
 }

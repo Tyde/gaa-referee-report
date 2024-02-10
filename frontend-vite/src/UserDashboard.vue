@@ -21,7 +21,7 @@ onMounted(() => {
   store.checkAdmin()
       .then(() => {
         console.log("isCCC", store.isCCC)
-        if (store.isCCC) {
+        if (store.isCCC && route.path == '/') {
           publicStore.loadAuxiliaryInformationFromSerer()
           publicStore.loadTournaments()
           console.log("push")
@@ -44,6 +44,14 @@ function navigateToAdmin() {
   location.href = "/admin"
 }
 
+function navigateToHome() {
+  if(store.isCCC) {
+    router.push({path:'/tournament-reports'})
+  } else {
+    router.push({path:'/'})
+  }
+}
+
 </script>
 
 <template>
@@ -60,7 +68,7 @@ function navigateToAdmin() {
           <Button label="Profile" icon="pi pi-file" class="m-2" @click="router.push('/profile')"></Button>
         </div>
         <div class="m-2" v-if="route.path != '/'">
-          <Button label="Home" icon="pi pi-home" class="m-2" @click="router.push('/')"></Button>
+          <Button label="Home" icon="pi pi-home" class="m-2" @click="navigateToHome"></Button>
         </div>
         <div class="m-2">
           <Button label="Logout" icon="pi pi-sign-out" class="p-button-danger m-2 ml-2" @click="logout"></Button>
