@@ -32,6 +32,10 @@ export const editReportES = {
         },
         updatingDatabase: 'Actualizando base de datos...',
         additionalInformation: 'Comentarios adicionales para el informe',
+        couldNotSaveDataConfirm: 'No se pudieron guardar los datos antes de abandonar la página. ¿Estás seguro de que quieres irte?',
+        couldNotSaveDataTitle: 'No se pudieron guardar los datos',
+        couldNotSaveDataContinue: 'Continuar editando',
+        couldNotSaveDataLeave: 'Salir sin guardar',
     },
     navigation: {
         backToDashboard: 'Volver al tablero',

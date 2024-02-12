@@ -12,6 +12,7 @@ import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import {useI18n} from "vue-i18n";
+import {useConfirm} from "primevue/useconfirm";
 
 const store = useReportStore()
 
@@ -229,8 +230,29 @@ onMounted(() => {
 
 })
 
+
+const confirmDialog = useConfirm()
+
 function backToDashboard() {
-  location.href = "/"
+  store.uploadDataToServerBeforeLeaving().then(() => {
+    console.log("No issues, leaving")
+    location.href = "/"
+  }).catch((msg) => {
+    //alert("Could not save data: " + msg)
+    confirmDialog.require({
+      message: t("report.couldNotSaveDataConfirm")+"\n"+msg,
+      header: t("report.couldNotSaveDataTitle"),
+      icon: 'pi pi-exclamation-triangle',
+      rejectClass: 'p-button-secondary p-button-outlined',
+      rejectLabel: t("report.couldNotSaveDataLeave"),
+      acceptLabel: t("report.couldNotSaveDataContinue"),
+      accept: () => {
+      },
+      reject: () => {
+        location.href = "/"
+      }
+    });
+  })
 }
 
 function navigate(stage:ReportEditStage) {
@@ -332,7 +354,7 @@ function navigate(stage:ReportEditStage) {
       :modal="true"
       content-class="loading-dialog"
   ><div class="shrink">{{ $t("navigation.loading") }} </div></Dialog>
-
+  <ConfirmDialog></ConfirmDialog>
 </template>
 <style>
 .loading-dialog {

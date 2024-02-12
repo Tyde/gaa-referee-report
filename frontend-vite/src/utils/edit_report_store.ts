@@ -12,7 +12,13 @@ import {
     getGameCodes,
     loadReportDEO
 } from "@/utils/api/report_api";
-import {deletePitchOnServer, getPitchVariables, pitchDEOtoPitch, uploadPitch} from "@/utils/api/pitch_api";
+import {
+    checkPitchReadForUpload,
+    deletePitchOnServer,
+    getPitchVariables,
+    pitchDEOtoPitch,
+    uploadPitch
+} from "@/utils/api/pitch_api";
 import {
     createGameReport,
     deleteGameReportOnServer,
@@ -28,6 +34,12 @@ import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
 import {loadAllRegions} from "@/utils/api/tournament_api";
 import {RegionDEO} from "@/types/tournament_types";
+import {
+    disciplinaryActionIssuesForGameReport,
+    GameReportIssue,
+    GameReportIssues, injuryIssuesForGameReport,
+    PitchReportIssue
+} from "@/types/issue_types";
 
 
 export enum ReportEditStage {
@@ -187,7 +199,7 @@ export const useReportStore = defineStore('report', () => {
      * @param gameReport the game report to be created
      * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
      */
-    async function sendGameReport(gameReport: GameReport, allowAsync: boolean = false) {
+    async function sendGameReport(gameReport: GameReport, allowAsync: boolean = false, throwIfNotReady: boolean = false) {
 
         if(!allowAsync) await waitForAllTransfersDone()
         if (checkGameReportMinimal(gameReport)) {
@@ -200,6 +212,10 @@ export const useReportStore = defineStore('report', () => {
             } else {
                 gameReport.id = await trackTransfer(createGameReport(gameReport))
             }
+        } else {
+            if(throwIfNotReady) {
+                throw new Error(`Game report "id: ${gameReport.id}" not ready for upload`)
+            }
         }
     }
 
@@ -211,11 +227,20 @@ export const useReportStore = defineStore('report', () => {
      * @param pitchReport the pitch report to be created/updated
      * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
      */
-    async function sendPitchReport(pitchReport: Pitch, allowAsync: boolean = false) {
+    async function sendPitchReport(pitchReport: Pitch, allowAsync: boolean = false, throwIfNotReady: boolean = false) {
         //Warning! Only use allowAsync if you already checked before that
         // all transfers are completed.
         if(!allowAsync) await waitForAllTransfersDone()
-        return trackTransfer(uploadPitch(pitchReport))
+        if(checkPitchReadForUpload(pitchReport)) {
+
+            return trackTransfer(
+                uploadPitch(pitchReport)
+            )
+        } else {
+            if(throwIfNotReady) {
+                throw new Error(`Pitch "name: ${pitchReport.name},id: ${pitchReport.id}" not ready for upload`)
+            }
+        }
     }
 
     /**
@@ -315,6 +340,82 @@ export const useReportStore = defineStore('report', () => {
         console.log(message)
     }
 
+
+    const pitchReportIssues = computed(() => {
+        return pitchReports.value.map((pitch) => {
+            let issues: Array<PitchReportIssue> = []
+            if (pitch.name.trim().length == 0) {
+                issues.push(PitchReportIssue.NoName)
+            }
+            if (pitch.surface == undefined) {
+                issues.push(PitchReportIssue.NoSurface)
+            }
+            if (pitch.length == undefined || pitch.width == undefined) {
+                issues.push(PitchReportIssue.MissingDimension)
+            }
+            if (pitch.smallSquareMarkings == undefined ||
+                pitch.penaltySquareMarkings == undefined ||
+                pitch.thirteenMeterMarkings == undefined ||
+                pitch.twentyMeterMarkings == undefined ||
+                pitch.longMeterMarkings == undefined
+            ) {
+                issues.push(PitchReportIssue.MarkingsIncomplete)
+            }
+            if (pitch.goalPosts == undefined ||
+                pitch.goalDimensions == undefined
+            ) {
+                issues.push(PitchReportIssue.GoalInfoIncomplete)
+            }
+            return ([pitch, issues] as [Pitch, Array<PitchReportIssue>])
+        }).filter(([pitch, issues]) => issues.length > 0)
+    })
+
+    const gameReportIssues = computed(() => {
+        return gameReports.value.map((gameReport) => {
+            let issues: Array<GameReportIssue> = []
+            if (gameReport.gameType == undefined) {
+                issues.push(GameReportIssue.NoGameType)
+            }
+            if (gameReport.startTime == undefined) {
+                issues.push(GameReportIssue.NoStartingTime)
+            }
+            if (gameReport.extraTime == undefined) {
+                issues.push(GameReportIssue.NoExtraTimeOption)
+            }
+            if (gameReport.teamAReport.team == undefined) {
+                issues.push(GameReportIssue.NoTeamA)
+            }
+            if (gameReport.teamBReport.team == undefined) {
+                issues.push(GameReportIssue.NoTeamB)
+            }
+            if ((gameReport.teamAReport?.goals || 0) +
+                (gameReport.teamBReport?.goals || 0) +
+                (gameReport.teamAReport?.points || 0) +
+                (gameReport.teamBReport?.points || 0) == 0) {
+                issues.push(GameReportIssue.NoScores)
+            }
+            let daIssues = disciplinaryActionIssuesForGameReport(gameReport)
+            let inIssues = injuryIssuesForGameReport(gameReport)
+
+
+            return new GameReportIssues(gameReport, issues, daIssues, inIssues)
+        }).filter((gris) => (gris.issues.length +
+            gris.injuriesIssues.length +
+            gris.disciplinaryActionIssues.length) > 0)
+    })
+    async function uploadDataToServerBeforeLeaving() {
+        await waitForAllTransfersDone()
+        const promises:Promise<any>[] = []
+
+        if (selectedPitchReport.value) {
+            promises.push(sendPitchReport(selectedPitchReport.value, true,true))
+        }
+        if (selectedGameReport.value) {
+            promises.push(sendGameReport(selectedGameReport.value, true, true))
+        }
+        return Promise.all(promises)
+    }
+
     return {
         report,
         gameReports,
@@ -342,6 +443,9 @@ export const useReportStore = defineStore('report', () => {
         sendInjury,
         waitForAllTransfersDone,
         deletePitchReport,
-        newError
+        newError,
+        uploadDataToServerBeforeLeaving,
+        pitchReportIssues,
+        gameReportIssues
     }
 })

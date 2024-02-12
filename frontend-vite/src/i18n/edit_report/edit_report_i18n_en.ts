@@ -32,7 +32,10 @@ export const editReportEN = {
         },
         updatingDatabase: 'Updating database...',
         additionalInformation: 'Additional comments for the report',
-
+        couldNotSaveDataConfirm: 'Could not save data before leaving the page. Are you sure you want to leave?',
+        couldNotSaveDataTitle: 'Could not save data',
+        couldNotSaveDataContinue: 'Continue editing',
+        couldNotSaveDataLeave: 'Leave without saving',
     },
     navigation: {
         backToDashboard: 'Back to dashboard',

@@ -24,7 +24,7 @@ export async function getPitchVariables():Promise<PitchVariables> {
         .then(pitchVariablesDEOtoPitchVariables)
 }
 
-function checkPitchReadForUpload(pitch:Pitch):boolean {
+export function checkPitchReadForUpload(pitch:Pitch):boolean {
     return pitch.name!=undefined && pitch.name.trim().length > 0
 }
 
@@ -105,7 +105,7 @@ export async function uploadPitch(pitch:Pitch) {
                 }
             )
     } else {
-        return Promise.reject("Pitch not ready for upload")
+        return Promise.reject(`Pitch "name: ${pitch.name},id: ${pitch.id}" not ready for upload`)
     }
 
 }

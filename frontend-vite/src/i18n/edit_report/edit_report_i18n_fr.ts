@@ -32,6 +32,10 @@ export const editReportFR = {
         },
         updatingDatabase: 'Mise à jour de la base de données...',
         additionalInformation: 'Commentaires supplémentaires pour le rapport',
+        couldNotSaveDataConfirm: 'Impossible de sauvegarder les données avant de quitter la page. Êtes-vous sûr de vouloir partir ?',
+        couldNotSaveDataTitle: 'Impossible de sauvegarder les données',
+        couldNotSaveDataContinue: 'Continuer l’édition',
+        couldNotSaveDataLeave: 'Quitter sans sauvegarder',
     },
     navigation: {
         backToDashboard: 'Retour au tableau de bord',

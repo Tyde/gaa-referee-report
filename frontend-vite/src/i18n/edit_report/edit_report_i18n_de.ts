@@ -32,6 +32,10 @@ export const editReportDE = {
         },
         updatingDatabase: 'Datenbank wird aktualisiert...',
         additionalInformation: 'Zusätzliche Kommentare zum Bericht',
+        couldNotSaveDataConfirm: 'Daten konnten nicht gespeichert werden, bevor die Seite verlassen wurde. Bist du sicher, dass du gehen möchtest?',
+        couldNotSaveDataTitle: 'Fehler beim speichern der Daten',
+        couldNotSaveDataContinue: 'Weiter bearbeiten',
+        couldNotSaveDataLeave: 'Ohne Speichern verlassen',
 
     },
     navigation: {
