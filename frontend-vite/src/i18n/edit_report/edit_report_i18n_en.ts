@@ -17,6 +17,7 @@ export const editReportEN = {
             noExtraTimeOptionSelected: 'No extra time option selected',
             noTeamASelcted: 'No team A selected',
             noTeamBSelcted: 'No team B selected',
+            teamAEqualTeamB: 'Team A and Team B are the same',
             noScoresEntered: 'No scores entered - This might be correct if the game was a draw.',
             goToGameReport: 'Go to game report',
             injuryNoDetails: 'No details entered for Injury of',
@@ -94,6 +95,7 @@ export const editReportEN = {
         addGameType: 'Add game type',
         newGameType: 'New game type',
         gameTypeExistingAlternatives: 'Existing alternatives',
+        alertIfBothTeamsAreTheSame: 'You selected the same team for both teams. Please fix this before submitting the report.',
     },
     pitchReport: {
         unnamedPitch: 'Unnamed pitch',

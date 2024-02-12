@@ -17,6 +17,7 @@ export const editReportDE = {
             noExtraTimeOptionSelected: 'Keine Option für Verlängerung ausgewählt',
             noTeamASelcted: 'Kein Team A ausgewählt',
             noTeamBSelcted: 'Kein Team B ausgewählt',
+            teamAEqualTeamB: 'Team A und Team B sind die gleichen',
             noScoresEntered: 'Keine Ergebnisse eingegeben - Dies könnte korrekt sein, wenn das Spiel unentschieden endete.',
             goToGameReport: 'Zum Spielbericht',
             injuryNoDetails: 'Keine Details für Verletzung von',
@@ -95,6 +96,8 @@ export const editReportDE = {
         addGameType: 'Spieltyp hinzufügen',
         newGameType: 'Neuer Spieltyp',
         gameTypeExistingAlternatives: 'Existierende Alternativen',
+        alertIfBothTeamsAreTheSame: 'Du hast das gleiche Team für beide Mannschaften ausgewählt. Bitte korrigiere dies, bevor du den Bericht abschickst.',
+
     },
     pitchReport: {
         unnamedPitch: 'Unbenannter Platz',

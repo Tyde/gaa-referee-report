@@ -2,20 +2,16 @@
 
 import {computed, onMounted, ref, watch} from "vue";
 import {DateTime} from "luxon";
-import {disciplinaryActionIsBlank} from "@/utils/api/disciplinary_action_api";
 import {submitReportToServer, updateReportAdditionalInformation} from "@/utils/api/report_api";
 import debounce from "debounce"
 import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import {delay} from "@/utils/api/api_utils";
-import type {GameReport} from "@/types/game_report_types";
 import {useI18n} from "vue-i18n";
 import {
   DisciplinaryActionIssue,
-  DisciplinaryActionIssues, disciplinaryActionIssuesForGameReport,
   GameReportIssue,
   GameReportIssues,
   InjuryIssue,
-  injuryIssuesForGameReport,
   PitchReportIssue
 } from "@/types/issue_types";
 /*
@@ -209,6 +205,9 @@ function goToGameReport(id:number | undefined) {
             </template>
             <template v-else-if="issue===GameReportIssue.NoScores">
               {{ $t('report.issues.noScoresEntered') }}:
+            </template>
+            <template v-else-if="issue===GameReportIssue.TeamAEqualTeamB">
+              {{ $t('report.issues.teamAEqualTeamB') }}:
             </template>
             <!-- go to report button -->
             <br><Button

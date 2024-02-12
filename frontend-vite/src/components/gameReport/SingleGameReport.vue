@@ -30,6 +30,13 @@ const gameTypesByName = computed(() => {
   return store.gameTypes.sort((a, b) => a.name > b.name ? 1 : -1)
 })
 
+const teamAEqualTeamB = computed(() => {
+  if (store.selectedGameReport && store.selectedGameReport.teamAReport.team) {
+    return store.selectedGameReport.teamAReport.team === store.selectedGameReport.teamBReport.team
+  }
+  return false
+})
+
 function deleteThisReport(report: GameReport | undefined) {
   if (report) {
     emit('deleteThisReport', report)
@@ -167,6 +174,9 @@ onMounted(() => {
             class="p-button-danger h-12 p-button-outlined"
         >{{ $t('gameReport.deleteGameReport') }}</Button>
       </div>
+    </div>
+    <div v-if="teamAEqualTeamB" class="col-span-2 flex flex-row justify-center bg-amber-400 rounded p-2 text-lg">
+      {{ $t('gameReport.alertIfBothTeamsAreTheSame')}}
     </div>
     <div class="single-team-report">
       <div>{{ $t('gameReport.teamA') }}:</div>

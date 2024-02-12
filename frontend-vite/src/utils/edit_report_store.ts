@@ -394,6 +394,9 @@ export const useReportStore = defineStore('report', () => {
                 (gameReport.teamBReport?.points || 0) == 0) {
                 issues.push(GameReportIssue.NoScores)
             }
+            if(gameReport.teamAReport.team == gameReport.teamBReport.team) {
+                issues.push(GameReportIssue.TeamAEqualTeamB)
+            }
             let daIssues = disciplinaryActionIssuesForGameReport(gameReport)
             let inIssues = injuryIssuesForGameReport(gameReport)
 

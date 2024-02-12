@@ -24,6 +24,7 @@ export enum GameReportIssue {
     NoScores,
     InjuriesIncomplete,
     DisciplinaryActionsIncomplete,
+    TeamAEqualTeamB,
 }
 
 
