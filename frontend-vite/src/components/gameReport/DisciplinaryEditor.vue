@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import {computed, onMounted, watch} from "vue";
-import {
-  deleteDisciplinaryActionOnServer,
-  disciplinaryActionIsBlank,
-} from "@/utils/api/disciplinary_action_api";
+import {deleteDisciplinaryActionOnServer, disciplinaryActionIsBlank,} from "@/utils/api/disciplinary_action_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {DisciplinaryAction} from "@/types/game_report_types";
 import {useI18n} from "vue-i18n";
@@ -39,8 +36,6 @@ const emits = defineEmits<{
 }>()
 
 
-
-
 const localVisible = computed({
   get() {
     return props.visible
@@ -55,7 +50,7 @@ async function uploadActionsToServer() {
   if (store.selectedGameReport?.id) {
     await store.waitForAllTransfersDone()
     for (let action of selectedDisciplinaryActions.value) {
-      store.sendDisciplinaryAction(action,store.selectedGameReport,true)
+      store.sendDisciplinaryAction(action, store.selectedGameReport, true)
           .catch((error) => {
             store.newError(error)
           })
@@ -77,14 +72,13 @@ function closeDialog() {
 const {t} = useI18n()
 
 const disciplinaryDialogTitle = computed(() => {
-  return t("gameReport.disciplinaryActionTitle")+ " " +  selectedTeam.value?.name
+  return t("gameReport.disciplinaryActionTitle") + " " + selectedTeam.value?.name
 })
 
 
-
-watch(()=>selectedDisciplinaryActions, () => {
+watch(() => selectedDisciplinaryActions, () => {
   generateEmptydAFields()
-},{deep:true,immediate:true})
+}, {deep: true, immediate: true})
 
 function generateEmptydAFields() {
   let newActions = selectedDisciplinaryActions.value
@@ -98,7 +92,7 @@ function generateEmptydAFields() {
 
 
 function addEmptyDisciplinaryAction() {
-  if(selectedTeam.value) {
+  if (selectedTeam.value) {
     console.log("adding empty disciplinary action")
     selectedDisciplinaryActions.value.push({
       id: undefined,
@@ -148,17 +142,17 @@ onMounted(() => {
   >
     <div v-for="dAction in selectedDisciplinaryActions">
       <div class="flex flex-row flex-wrap">
-        <div class="p-2">
+        <div class="p-2 w-1/2 md:w-auto">
           <InputText
               v-model="dAction.firstName"
-              class="w-52"
+              class="w-full md:w-52"
               :placeholder="$t('gameReport.player.firstName')"
           />
         </div>
-        <div class="p-2">
+        <div class="p-2 w-1/2 md:w-auto">
           <InputText
               v-model="dAction.lastName"
-              class="w-52"
+              class="w-full md:w-52"
               :placeholder="$t('gameReport.player.lastName')"
           />
         </div>
@@ -173,50 +167,55 @@ onMounted(() => {
         </div>
 
         <!-- Rule: {{dAction.rule?.id}}-->
+        <div class="flex flex-col">
+          <Dropdown
+              v-model="dAction.rule"
+              :options="filteredRules"
+              :show-clear="true"
+              class="dropdown-disciplinary m-2"
+              input-class="dropdown-disciplinary"
+              :placeholder="$t('gameReport.rule')"
+              :filter="true"
+              :filter-fields="['description']"
+              :pt="{item: {class: 'whitespace-break-spaces md:whitespace-nowrap'}}"
+          >
+            <template #value="slotProps">
+              <div v-if="slotProps.value" class="p-disciplinary ">
+                <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
+                <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
+                <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
+                {{ slotProps.value.description.substring(0, 20) }} ...
+              </div>
+              <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
+            </template>
+            <template #option="slotProps">
 
-        <Dropdown
-            v-model="dAction.rule"
-            :options="filteredRules"
-            :show-clear="true"
-            class="dropdown-disciplinary m-2"
-            input-class="dropdown-disciplinary"
-            :placeholder="$t('gameReport.rule')"
-            :filter="true"
-            :filter-fields="['description']"
-        >
-          <template #value="slotProps">
-            <div v-if="slotProps.value" class="p-disciplinary">
-              <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
-              <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
-              <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-              {{ slotProps.value.description }}
-            </div>
-            <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
-          </template>
-          <template #option="slotProps">
+              <div>
+                <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
+                <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
+                <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
+                {{ slotProps.option.description }}
+              </div>
 
-            <div>
-              <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
-              <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
-              <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-              {{ slotProps.option.description }}
-            </div>
-
-
-          </template>
-        </Dropdown>
-        <div class="p-2 flex flex-row items-center"
+            </template>
+          </Dropdown>
+          <div v-if="dAction.rule" class="w-[22rem] p-2">
+            {{ dAction.rule?.description }}
+          </div>
+        </div>
+        <div class="p-2 flex flex-col"
              v-if="dAction.rule?.isCaution || dAction.rule?.isBlack">
-          <div class="checkbox-rule-card card-red"></div>
-          <Checkbox
-              v-model="dAction.redCardIssued"
-              :binary="true"
-          />
+          <div class="flex flex-row items-center h-12">
+            <div class="checkbox-rule-card card-red"></div>
+            <Checkbox
+                v-model="dAction.redCardIssued"
+                :binary="true"
+            />
+          </div>
         </div>
         <div class="p-2">
           <InputText
               v-model="dAction.details"
-
               :placeholder="$t('gameReport.description')"
           />
         </div>

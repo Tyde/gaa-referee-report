@@ -120,15 +120,18 @@ onMounted(() => {
   >
     <div v-for="injury in selectedInjuryArray">
       <div class="flex flex-row flex-wrap">
-        <div class="p-2">
+        <div class="p-2 w-1/2 md:w-auto">
           <InputText
               v-model="injury.firstName"
+              class="w-full md:w-52"
               :placeholder="$t('gameReport.player.firstName')"
           />
         </div>
-        <div class="p-2">
+        <div class="p-2 w-1/2 md:w-auto">
           <InputText
               v-model="injury.lastName"
+              class="w-full md:w-52"
+
               :placeholder="$t('gameReport.player.lastName')"
           />
         </div>
