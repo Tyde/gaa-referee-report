@@ -8,14 +8,12 @@ import eu.gaelicgames.referee.data.api.DisciplinaryActionStringDEO
 import freemarker.cache.ClassTemplateLoader
 import freemarker.template.Configuration
 import io.ktor.server.application.*
-import io.ktor.server.freemarker.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 import java.io.StringWriter
 
 object MailjetClientHandler {
-    lateinit var mailjetClient: MailjetClient
+    var mailjetClient: MailjetClient
     val freeMarkerConfig = Configuration(Configuration.VERSION_2_3_32)
 
     init {
@@ -25,7 +23,7 @@ object MailjetClientHandler {
             .apiKey(GGERefereeConfig.mailjetPublicKey)
             .apiSecretKey(GGERefereeConfig.mailjetSecretKey)
             .build()
-        val client = com.mailjet.client.MailjetClient(options)
+        val client = MailjetClient(options)
         this.mailjetClient = client
         val templateLoader = ClassTemplateLoader(Application::class.java.classLoader, "templates")
         //freeMarkerConfig.setDirectoryForTemplateLoading(File("templates/"))
@@ -94,24 +92,32 @@ object MailjetClientHandler {
         println(response.data)
     }
 
+    data class MailReceiverNamePair(val name:String,val mail:String)
+
     fun sendRedCardNotification(
         disciplinaryActions: List<DisciplinaryActionStringDEO>,
-        mail: String,
-        receiverName: String
+        receiver: List<MailReceiverNamePair>,
     ) {
         val redCardContent =mapOf("disciplinaryActions" to disciplinaryActions)
         val template = freeMarkerConfig.getTemplate("redCardMail.ftl")
         val stringWriter = StringWriter()
         template.process(redCardContent, stringWriter)
+
+
+        val receiverJSONArray = JSONArray()
+        receiver.map {
+            JSONObject().put("Email", it.mail).put("Name",it.name)
+        }.forEach {
+            receiverJSONArray.put(it)
+        }
+
         val payload = JSONArray().put(
             JSONObject().put(
                 Emailv31.Message.FROM,
                 JSONObject().put("Email", "refereereportsystem@gaelicgames.eu")
                     .put("Name", "GGE Referee Report System")
             ).put(
-                Emailv31.Message.TO, JSONArray().put(
-                    JSONObject().put("Email", mail).put("Name", receiverName)
-                )
+                Emailv31.Message.TO, receiverJSONArray
             )
                 .put(Emailv31.Message.TEMPLATEID, 5584303)
                 .put(Emailv31.Message.TEMPLATELANGUAGE, true)

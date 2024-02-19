@@ -1,30 +1,25 @@
 package eu.gaelicgames.referee
 
-import io.ktor.server.application.Application
-import at.favre.lib.crypto.bcrypt.BCrypt
-import com.mailjet.client.ClientOptions
-import com.natpryce.konfig.ConfigurationProperties
-import com.natpryce.konfig.Key
-import com.natpryce.konfig.stringType
-import com.typesafe.config.ConfigUtil
-import eu.gaelicgames.referee.data.DisciplinaryAction
-import eu.gaelicgames.referee.data.DisciplinaryActions
 import eu.gaelicgames.referee.data.User
-import eu.gaelicgames.referee.data.UserRole
-import eu.gaelicgames.referee.data.api.DisciplinaryActionStringDEO
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import eu.gaelicgames.referee.plugins.configureRouting
 import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
-import eu.gaelicgames.referee.util.*
+import eu.gaelicgames.referee.services.NotifyCCCService
+import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.DatabaseHandler
+import eu.gaelicgames.referee.util.GGERefereeConfig
+import eu.gaelicgames.referee.util.MockDataGenerator
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.File
-import kotlin.random.Random
 
-suspend fun main() {
+suspend fun main() = runBlocking<Unit> {
 
     DatabaseHandler.init()
     DatabaseHandler.createSchema()
@@ -49,6 +44,7 @@ suspend fun main() {
     }
 
 
+
     System.getenv("ADD_MOCK_DATA")?.let {
         println("Adding mock data")
         MockDataGenerator.addMockUsers()
@@ -58,6 +54,12 @@ suspend fun main() {
             MockDataGenerator.addMockTournamentReport()
         }
     }
+
+    launch (Dispatchers.Default) {
+        val notifyCCCService = NotifyCCCService(this)
+        notifyCCCService.start()
+    }
+
 
 
     embeddedServer(
@@ -71,10 +73,22 @@ suspend fun main() {
 }
 
 fun Application.refereeApplicationModule() {
-    runBlocking {  CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)}
+    runBlocking {
+        CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)
+    }
+
+
+
+
+
+
+
+
+    runBlocking { delay(100L) }
 
     configureTemplating()
     configureSerialization()
     configureSecurity()
     configureRouting()
+
 }

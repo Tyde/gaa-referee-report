@@ -5,11 +5,12 @@ import eu.gaelicgames.referee.util.CacheUtil.deleteCache
 import eu.gaelicgames.referee.util.CacheUtil.getCache
 import eu.gaelicgames.referee.util.CacheUtil.setCache
 import eu.gaelicgames.referee.util.GGERefereeConfig
-import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.between
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
 import java.time.LocalDateTime
-
 
 
 fun GameReportDEO.Companion.fromGameReport(report: GameReport): GameReportDEO {
@@ -403,6 +404,73 @@ fun DisciplinaryActionStringDEO.Companion.fromDisciplinaryAction(disciplinaryAct
             reportShareLink,
             disciplinaryAction.redCardIssued
         )
+    }
+}
+
+fun DisciplinaryActionStringDEO.Companion.getRedCardsIssuedOnThisDay(day: LocalDate = LocalDate.now()):List<DisciplinaryActionStringDEO> {
+    return transaction {
+
+        val tA = Teams.alias("tA")
+        val tB = Teams.alias("tB")
+        TournamentReports
+            .leftJoin(Tournaments)
+            .leftJoin(GameReports)
+            .join(tA,JoinType.LEFT,GameReports.teamA,tA[Teams.id])
+            .join(tB,JoinType.LEFT,GameReports.teamB,tB[Teams.id])
+            .leftJoin(DisciplinaryActions)
+            .leftJoin(Rules)
+            .selectAll()
+            .adjustWhere {
+                TournamentReports.submitDate.between(
+                    day.atStartOfDay(),
+                    day.plusDays(1).atStartOfDay()
+                ) and (
+                    Rules.isRed or DisciplinaryActions.redCardIssued
+                )
+            }.map {
+                val dA = DisciplinaryAction.wrapRow(it)
+                val dATeamId = it[DisciplinaryActions.team]
+                val teamA = Team.wrapRow(it,tA)
+                val teamB = Team.wrapRow(it,tB)
+                val tournamentReport = TournamentReport.wrapRow(it)
+                val gameReport = GameReport.wrapRow(it)
+                val rule = Rule.wrapRow(it)
+                val tournament = Tournament.wrapRow(it)
+
+                val opposingTeam = setOf(
+                    teamA, teamB
+                ).first {
+                    it.id != dATeamId
+                }
+                val dATeam = setOf(
+                    teamA, teamB
+                ).first {
+                    it.id == dATeamId
+                }
+                val reportShareLink = TournamentReportByIdDEO.fromTournamentReport(
+                    tournamentReport
+                ).createShareLink()
+                    .map { GGERefereeConfig.serverUrl + "/report/share/" + it.uuid }
+                    .getOrElse { GGERefereeConfig.serverUrl }
+
+                DisciplinaryActionStringDEO(
+                    dA.id.value,
+                    dATeam.name,
+                    opposingTeam.name,
+                    dA.firstName,
+                    dA.lastName,
+                    dA.number,
+                    dA.details,
+                    rule.description,
+                    tournament.name,
+                    tournament.location,
+                    gameReport.startTime ?: LocalDateTime.now(),
+                    reportShareLink,
+                    dA.redCardIssued
+                )
+
+            }
+
     }
 }
 
