@@ -37,6 +37,9 @@
         <p>
             <input type="submit" class="w3-button w3-indigo" value="Login">
         </p>
+            <p class="w3-center" style="font-size: small">
+                To reset your password, please contact the GGE IT Officer
+            </p>
         </div>
     </div>
 </form>
