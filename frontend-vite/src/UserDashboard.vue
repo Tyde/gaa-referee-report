@@ -74,6 +74,9 @@ function navigateToHome() {
           <Button label="Logout" icon="pi pi-sign-out" class="p-button-danger m-2 ml-2" @click="logout"></Button>
         </div>
         <div class="m-2" v-if="store.isAdmin">
+          <Button label="CCC Overview" icon="pi pi-th-large" class="p-button-help m-2 ml-2" @click="router.push('/tournament-reports')"></Button>
+        </div>
+        <div class="m-2" v-if="store.isAdmin">
           <Button label="Admin" icon="pi pi-cog" class="p-button-info m-2 ml-2" @click="navigateToAdmin"></Button>
         </div>
 
