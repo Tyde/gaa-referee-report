@@ -79,13 +79,6 @@ fun Application.refereeApplicationModule() {
 
 
 
-
-
-
-
-
-    runBlocking { delay(100L) }
-
     configureTemplating()
     configureSerialization()
     configureSecurity()
