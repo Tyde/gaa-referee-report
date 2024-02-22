@@ -13,7 +13,7 @@ const emit = defineEmits<{
 function setToAllTime() {
   localDateRange.value = [
     DateTime.fromMillis(0).toJSDate(),
-    DateTime.now().toJSDate()
+    DateTime.now().plus({year:1}).toJSDate()
   ]
 }
 
