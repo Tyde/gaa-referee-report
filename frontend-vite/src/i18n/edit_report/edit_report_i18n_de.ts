@@ -65,6 +65,17 @@ export const editReportDE = {
         newAmalgamationTitle: 'Neue Spielgemeinschaft erstellen',
         newAmalgamationName: 'Name der neuen Spielgemeinschaft',
         warningAlreadyExistingAmalgamation: 'WARNUNG: Die Spielgemeinschaft mit dieser Auswahl existiert bereits',
+        selectedTeams: 'Ausgewähle Vereine',
+        newSquadsButton: 'Teilmannschaften erstellen',
+        useSquadPrefix: 'Verwende',
+        removeFromList: 'Von der Liste entfernen',
+        splitTeam: {
+            title: 'Neue Teilmannschaft',
+            infoSelected: 'Ausgewähltes Basisteam',
+            selectNumberOf: 'Wählen Sie die Anzahl der zu erstellenden Teilmannschaft',
+            wouldCreateFollowing: 'Diese Aktion würde die folgenden Teilmannschaften erstellen',
+            modifyNames: 'Namen ändern'
+        }
     },
     gameReport: {
         deleteConfirmTitle: 'Spielbericht löschen',

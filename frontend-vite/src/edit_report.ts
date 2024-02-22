@@ -27,6 +27,7 @@ import Message from "primevue/message";
 import {createI18n} from "vue-i18n";
 import ConfirmationService from "primevue/confirmationservice";
 import ConfirmDialog from "primevue/confirmdialog";
+import SplitButton from "primevue/splitbutton";
 
 
 const i18n = createI18n({
@@ -53,6 +54,8 @@ app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)
 app.component('Textarea', Textarea)
 app.component('Message', Message)
+app.component('SplitButton',SplitButton)
+
 app.directive('tooltip', Tooltip)
 app.component('ConfirmDialog', ConfirmDialog)
 app.use(ConfirmationService);

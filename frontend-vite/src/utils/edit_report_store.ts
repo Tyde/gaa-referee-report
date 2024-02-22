@@ -1,10 +1,7 @@
 import {defineStore} from "pinia";
 import {computed, ref} from "vue";
-import type {
-    ExtraTimeOption,
-    GameType,
-    GameCode
-} from "@/types";
+import type {ExtraTimeOption, GameCode, GameType} from "@/types";
+import {ErrorMessage} from "@/types";
 import {getRules, uploadDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {
     completeReportDEOToReport,
@@ -26,7 +23,6 @@ import {
     updateGameReport
 } from "@/utils/api/game_report_api";
 import {checkGameReportMinimal} from "@/utils/gobal_functions";
-import {ErrorMessage} from "@/types";
 import {uploadInjury} from "@/utils/api/injuries_api";
 import type {Report} from "@/types/report_types";
 import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
@@ -37,9 +33,12 @@ import {RegionDEO} from "@/types/tournament_types";
 import {
     disciplinaryActionIssuesForGameReport,
     GameReportIssue,
-    GameReportIssues, injuryIssuesForGameReport,
+    GameReportIssues,
+    injuryIssuesForGameReport,
     PitchReportIssue
 } from "@/types/issue_types";
+import type {Team} from "@/types/team_types";
+import {loadAllTeams} from "@/utils/api/teams_api";
 
 
 export enum ReportEditStage {
@@ -64,6 +63,8 @@ export const useReportStore = defineStore('report', () => {
     const regions = ref<Array<RegionDEO>>([])
 
     const currentErrors = ref<ErrorMessage[]>([])
+
+    const allTeams = ref<Team[]>([])
 
 
     const enabledPitchVariables = computed(() => {
@@ -136,7 +137,39 @@ export const useReportStore = defineStore('report', () => {
             })
             .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
-        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport, promiseRegions])
+        const promiseTeams = loadAllTeamsFromServer()
+
+        return Promise.all([
+            promiseCodes,
+            promiseRules,
+            promisePitchVariables,
+            promiseGameReport,
+            promiseRegions,
+            promiseTeams
+        ])
+    }
+
+    async function loadAllTeamsFromServer() {
+        return loadAllTeams()
+            .then(teams => {
+                allTeams.value = teams
+            })
+            .catch(reason => newError(reason))
+    }
+
+    function findSquadsForTeam(team:Team) {
+        return allTeams.value.filter((fiTeam) => {
+            if (fiTeam.isAmalgamation &&
+                fiTeam.amalgamationTeams &&
+                fiTeam.amalgamationTeams.length==1 &&
+                fiTeam.amalgamationTeams[0].id == team.id
+            ) {
+                return true
+            }
+            return  false
+        }).sort((a, b) => {
+            return a.name.localeCompare(b.name)
+        })
     }
 
     async function loadReport(id: number) {
@@ -436,7 +469,10 @@ export const useReportStore = defineStore('report', () => {
         selectedGameReportPassesMinimalRequirements,
         selectedPitchReportIndex,
         selectedPitchReport,
+        allTeams,
+        findSquadsForTeam,
         loadAuxiliaryInformationFromSerer,
+        loadAllTeamsFromServer,
         loadReport,
         addNewGameType,
         deleteGameReport,

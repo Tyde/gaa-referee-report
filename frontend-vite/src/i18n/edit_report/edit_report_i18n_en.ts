@@ -64,6 +64,17 @@ export const editReportEN = {
         newAmalgamationTitle: 'Create new amalgamation',
         newAmalgamationName: 'Name of new amalgamation',
         warningAlreadyExistingAmalgamation: 'WARNING: The amalgamation with your selection already exists',
+        selectedTeams: 'Selected teams',
+        newSquadsButton: 'Introduce squads',
+        useSquadPrefix: 'Use',
+        removeFromList: 'Remove from list',
+        splitTeam: {
+            title: 'New sub squad',
+            infoSelected: 'Selected base team',
+            selectNumberOf: 'Select the number of sub squads to be created',
+            wouldCreateFollowing: 'This action would create the following sub squads',
+            modifyNames: 'Modify names'
+        }
     },
     gameReport: {
         deleteConfirmTitle: 'Delete Game Report',

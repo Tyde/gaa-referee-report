@@ -3,11 +3,13 @@ import {onMounted, ref} from "vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
+import CreateSplitTeam from "@/components/team/CreateSplitTeam.vue";
+import {useI18n} from "vue-i18n";
 
 const emit = defineEmits(['submit-teams'])
 
 const store = useReportStore()
-
+const {t} = useI18n()
 enum TeamSelectorModal {
   NoModal,
   CreateTeamModal,
@@ -29,8 +31,73 @@ function removeTeam(team:Team) {
   emit('submit-teams',teams_added.value)
 }
 
+const showSelect = ref(true)
+const selectedSplitBaseTeam = ref<Team>()
+function onSplitCanceled() {
+  showSelect.value = true
+  selectedSplitBaseTeam.value = undefined
+}
+
+function onSplitSuccessful(teams: Team[]) {
+  store.loadAllTeamsFromServer()
+  showSelect.value = true
+  if(selectedSplitBaseTeam.value) {
+    removeTeam(selectedSplitBaseTeam.value)
+  }
+  selectedSplitBaseTeam.value = undefined
+  teams.forEach((team) => {
+    addTeam(team)
+  })
+  emit('submit-teams',teams_added.value)
+}
+
+function onSplitClick(team: Team) {
+  showSelect.value = false
+  selectedSplitBaseTeam.value = team
+}
+
+function calculateSplitButtonModel(team: Team) {
+  let list =  [{
+    label:t('teamSelect.removeFromList'),
+    command: () => {
+      removeTeam(team)
+    }
+  }]
 
 
+  if(!team.isAmalgamation) {
+    list.unshift({
+      label: t('teamSelect.newSquadsButton')+' ('+team.name+' A, .. B, ...)',
+      command: () => {
+        onSplitClick(team)
+      }
+    })
+  }
+  let squads = store.findSquadsForTeam(team)
+  squads.reverse()
+  squads.forEach((squad) => {
+    list.unshift({
+      label: t('teamSelect.useSquadPrefix')+' '+squad.name,
+      command: () => {
+        swapTeam(team,squad)
+      }
+    })
+  })
+
+  return list
+}
+
+function swapTeam(beforeTeam:Team, afterTeam:Team) {
+  let index = teams_added.value.indexOf(beforeTeam)
+  if(index >= 0) {
+    teams_added.value.splice(
+        index,
+        1,
+        afterTeam
+    )
+    emit('submit-teams',teams_added.value)
+  }
+}
 
 onMounted(() => {
   teams_added.value.length = 0
@@ -50,24 +117,35 @@ onMounted(() => {
           :show_new_amalgamate="true"
           :exclude_team_list="teams_added"
           @team_selected="addTeam"
+          @team_unselected="removeTeam"
           :force_hide_exclude_team_list="false"
           :allow_unselect="false"
+          :show_hide_squad_box="true"
+
       />
+      <template v-if="selectedSplitBaseTeam != undefined">
+        <CreateSplitTeam
+            :base-team="selectedSplitBaseTeam"
+            @on_new_team_split="onSplitSuccessful"
+            @on_cancel="onSplitCanceled"
+        />
+      </template>
 
 
       <template v-if="teams_added.length>0">
-        Selected teams:<br>
+        {{ $t('teamSelect.selectedTeams') }}:<br>
         <ul class="selected-teams-list">
           <li v-for="team in teams_added.sort((a,b) => a.name.localeCompare(b.name))">
-            <Button
-                class="p-button-rounded p-button-primary p-button-sm"
+            <SplitButton
                 @click="removeTeam(team)"
-            >
-              {{team.name}}  <i class="pi pi-times"></i>
-            </Button>
+                :label = "team.name"
+                :model="calculateSplitButtonModel(team)"
+            />
           </li>
         </ul>
       </template>
+
+
 
 
     </div>

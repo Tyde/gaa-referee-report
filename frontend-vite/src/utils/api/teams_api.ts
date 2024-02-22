@@ -10,7 +10,7 @@ export async function createTeam(name: string): Promise<Team> {
         .then(data => parseAndHandleDEO(data, Team))
 }
 
-export async function allTeams(): Promise<Array<Team>> {
+export async function loadAllTeams(): Promise<Array<Team>> {
     return fetch("/api/teams_available")
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, Team.array()))

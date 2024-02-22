@@ -64,6 +64,17 @@ export const editReportES = {
         newAmalgamationTitle: 'Crear nueva fusión',
         newAmalgamationName: 'Nombre de la nueva fusión',
         warningAlreadyExistingAmalgamation: 'ADVERTENCIA: La fusión con su selección ya existe',
+        selectedTeams: 'Equipos seleccionados',
+        newSquadsButton: 'Crear subescuadra',
+        useSquadPrefix: 'Usar',
+        removeFromList: 'Eliminar de la lista',
+        splitTeam: {
+            title: 'Nueva subescuadra',
+            infoSelected: 'Equipo base seleccionado',
+            selectNumberOf: 'Seleccionar el número de subescuadras a crear',
+            wouldCreateFollowing: 'Esta acción crearía las siguientes subescuadras',
+            modifyNames: 'Modificar nombres'
+        }
     },
     gameReport: {
         deleteConfirmTitle: 'Eliminar informe de juego',

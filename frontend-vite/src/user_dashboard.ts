@@ -18,6 +18,7 @@ import Dialog from "primevue/dialog";
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
+import SplitButton from 'primevue/splitbutton';
 
 // @ts-ignore
 import { Vue3Mq } from "vue3-mq";
@@ -57,7 +58,7 @@ app.component('InputNumber',InputNumber)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('ConfirmDialog',ConfirmDialog)
-
+app.component('SplitButton',SplitButton)
 app.component('Toolbar',Toolbar)
 app.component('Textarea', Textarea)
 app.component('Message', Message)

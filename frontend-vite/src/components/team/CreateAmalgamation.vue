@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import {ref, onBeforeMount, computed} from "vue";
+import {computed, onBeforeMount, ref} from "vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
-import {allTeams, createAmalgamationOnServer} from "@/utils/api/teams_api";
+import {createAmalgamationOnServer} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 
@@ -23,20 +23,13 @@ function on_team_selected(team: Team) {
   selected_teams.value.push(team)
 }
 
-const cachedTeams = ref<Team[]>([])
 
 onBeforeMount(() => {
-  allTeams().catch((error) => {
-    store.newError(error)
-  }).then((teams) => {
-    if(teams) {
-      cachedTeams.value = teams
-    }
-  })
+  store.loadAllTeamsFromServer()
 })
 
 const duplicates = computed(() => {
-  return cachedTeams.value.filter(team => {
+  return store.allTeams.filter(team => {
     if(team.isAmalgamation && team.amalgamationTeams) {
       if(team.amalgamationTeams.length === selected_teams.value.length) {
 
@@ -114,6 +107,7 @@ function unselectTeam(team: Team) {
           :show_add_new_team="true"
           :show_new_amalgamate="false"
           @team_selected="on_team_selected"
+          :show_hide_squad_box="true"
       />
       <div v-if="duplicates.length > 0" class="text-lg font-bold p-2 m-2 bg-red-400 rounded-lg">
         {{ $t('teamSelect.warningAlreadyExistingAmalgamation') }}:

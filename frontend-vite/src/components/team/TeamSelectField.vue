@@ -1,8 +1,8 @@
-                                                                                                                                                     <script lang="ts" setup>
-import {computed, onMounted, ref} from "vue";
+<script lang="ts" setup>
+import {computed, onMounted, ref, watch} from "vue";
 import CreateTeam from "@/components/team/CreateTeam.vue";
 import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
-import {allTeams} from "@/utils/api/teams_api";
+import {loadAllTeams} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 
@@ -13,13 +13,38 @@ interface SearchResultTeam {
 
 const store = useReportStore()
 const props = defineProps<{
+  /**
+   * Show the option to create a new amalgamation
+   */
   show_new_amalgamate: Boolean
+  /**
+   * Show the option to create a new team
+   */
   show_add_new_team: Boolean
+  /**
+   * Teams included in this list will not appear in the select list
+   */
   exclude_team_list?: Team[]
+  /**
+   * The exclude team list will only be excluded when this is set to true
+   */
   force_hide_exclude_team_list: Boolean
+  /**
+   * Allows the option to deselect selected teams
+   */
   allow_unselect?: Boolean
+  /**
+   * Hides all amalgamations
+   */
   hide_amalgamations?: Boolean
+  /**
+   * Only shows amalgamations
+   */
   only_amalgamations?: Boolean
+  /**
+   * Allow the option to split a team that is selected
+   */
+  show_hide_squad_box?: Boolean
 }>()
 
 
@@ -32,8 +57,14 @@ const searchTerm = ref("")
 const showSelect = ref(true)
 const showNewTeam = ref(false)
 const showNewAmalgamation = ref(false)
-const teamsAvailable = ref(<Team[]>[])
+//const teamsAvailable = ref(<Team[]>[])
 const isLoading = ref(false)
+const hide_squads = ref(props.show_hide_squad_box)
+
+watch(() => props.show_hide_squad_box, (value, oldValue, onCleanup) => {
+  console.log("Changed props value from ",oldValue," to ",value)
+  hide_squads.value = value
+}, {immediate: true})
 
 function on_team_click(team: Team) {
   if (!thisTeamInExludedList(team)) {
@@ -61,19 +92,12 @@ function on_start_amalgamation_click() {
   showNewAmalgamation.value = true
 }
 
+
 async function fetch_available_teams() {
   isLoading.value = true
-  try {
-    teamsAvailable.value = await allTeams()
-        .catch((error) => {
-          store.newError(error)
-          return []
-        })
-  } catch (e) {
-    console.error(e)
-  } finally {
-    isLoading.value = false
-  }
+  store.loadAllTeamsFromServer()
+      .finally(() => isLoading.value = false)
+
 }
 
 onMounted(() => {
@@ -89,7 +113,7 @@ function classForTeam(team: Team): string {
 }
 
 const filtered_list = computed(() => {
-  let preparedlist = teamsAvailable.value.sort((a, b) => {
+  let preparedlist = store.allTeams.sort((a, b) => {
     return a.name.localeCompare(b.name)
   })
   if (props.only_amalgamations) {
@@ -100,6 +124,14 @@ const filtered_list = computed(() => {
   if (props.hide_amalgamations) {
     preparedlist = preparedlist.filter(value => {
       return !value.isAmalgamation
+    })
+  }
+  if (hide_squads.value) {
+    preparedlist = preparedlist.filter(value => {
+      if (value.isAmalgamation && value.amalgamationTeams && value.amalgamationTeams.length == 1) {
+        return false
+      }
+      return true
     })
   }
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {
@@ -147,11 +179,26 @@ function unselect_team(team: Team) {
     <h2 v-if="showSelect">Select teams:</h2>
     <template v-if="showSelect">
 
-      <div class="mx-auto w-min">
-        <span class="p-float-label">
-              <InputText id="search_term" v-model="searchTerm"/>
-              <label for="search_term">{{ $t('teamSelect.enterNameForSearch') }}</label>
-            </span>
+      <div class="flex flex-row justify-evenly items-stretch">
+        <div class="md:w-32 grow"></div>
+        <div class="self-center w-min ">
+          <span class="p-float-label">
+            <InputText id="search_term" v-model="searchTerm"/>
+            <label for="search_term">{{ $t('teamSelect.enterNameForSearch') }}</label>
+          </span>
+        </div>
+
+
+        <label v-if="show_hide_squad_box" for="hide_squads" class="flex justify-center items-center md:w-32 grow">
+          <Checkbox
+              v-model="hide_squads"
+              input-id="hide_squads"
+              binary
+              class="mr-2"
+          />
+          Hide squads (.. A, .. B)</label>
+        <div v-else class="md:w-32 grow"></div>
+
       </div>
       <div class="listbox team-selector-box">
         <ul class="p-listbox-list">
@@ -183,12 +230,19 @@ function unselect_team(team: Team) {
               v-for="srt in filtered_list"
               :key="srt.search_score"
               :class="[{
-                  amalgamation_item: srt.team.isAmalgamation,
+                  amalgamation_item: srt.team.isAmalgamation &&
+                                      srt.team.amalgamationTeams &&
+                                      srt.team.amalgamationTeams.length > 1,
+                  squad_item: srt.team.isAmalgamation &&
+                                      srt.team.amalgamationTeams &&
+                                      srt.team.amalgamationTeams.length == 1
                 },classForTeam(srt.team)]"
               @click="on_team_click(srt.team)"
           >
             <template v-if="srt.team.isAmalgamation">
-              {{ srt.team.name }} - Amalgamation
+              {{ srt.team.name }} -
+              <template v-if="srt.team.amalgamationTeams!!.length > 1">Amalgamation</template>
+              <template v-else>Squad</template>
               <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
                 {{ $t('teamSelect.alreadyInSelection') }}
               </p>
@@ -200,12 +254,14 @@ function unselect_team(team: Team) {
             </template>
             <template v-else>
               {{ srt.team.name }}
-              <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
-                {{ $t('teamSelect.alreadyInSelection') }} <i
-                  v-if="thisTeamInExludedList(srt.team) && props.allow_unselect"
-                  class="pi pi-times hover:cursor-pointer mr-2"
-                  @click.stop="emit('team_unselected', srt.team)"/>
-              </p>
+              <div class="float-right flex flex-row justify-end">
+                <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
+                  {{ $t('teamSelect.alreadyInSelection') }} <i
+                    v-if="thisTeamInExludedList(srt.team) && props.allow_unselect"
+                    class="pi pi-times hover:cursor-pointer mr-2"
+                    @click.stop="emit('team_unselected', srt.team)"/>
+                </p>
+              </div>
 
             </template>
           </li>
@@ -232,27 +288,33 @@ function unselect_team(team: Team) {
 </template>
 
 <style scoped>
-h2{
+h2 {
   @apply text-xl;
   @apply text-center;
   @apply font-bold;
   @apply mb-2;
 }
+
 .listbox {
   @apply m-2;
   @apply border-2 border-gray-400 rounded;
 }
 
-.listbox li{
+.listbox li {
   @apply pt-3 pb-3 pl-2 pr-2;
   @apply hover:bg-gray-200 hover:cursor-pointer;
 }
+
 .team-selector-box {
   @apply h-96 overflow-scroll;
 }
 
 .amalgamation_item {
   background-color: burlywood;
+}
+
+.squad_item {
+  @apply bg-blue-300
 }
 
 .amalgamation_subtitle {
@@ -263,7 +325,6 @@ h2{
 }
 
 .already-selected-subtitle {
-  @apply float-right;
   @apply text-sm;
   @apply mt-1;
 }

@@ -64,6 +64,17 @@ export const editReportFR = {
         newAmalgamationTitle: 'Créer une nouvelle fusion',
         newAmalgamationName: 'Nom de la nouvelle fusion',
         warningAlreadyExistingAmalgamation: 'AVERTISSEMENT : La fusion avec votre sélection existe déjà',
+        selectedTeams: 'Équipes sélectionnées',
+        newSquadsButton: 'Créer des sous-équipes',
+        useSquadPrefix: 'Utilise',
+        removeFromList: 'Retirer de la liste',
+        splitTeam: {
+            title: 'Nouvelle sous-équipe',
+            infoSelected: 'Équipe de base sélectionnée',
+            selectNumberOf: 'Sélectionnez le nombre de sous-équipes à créer',
+            wouldCreateFollowing: 'Cette action créerait les sous-équipes suivantes',
+            modifyNames: 'Modifier les noms'
+        }
     },
     gameReport: {
         deleteConfirmTitle: 'Supprimer le rapport de match',
