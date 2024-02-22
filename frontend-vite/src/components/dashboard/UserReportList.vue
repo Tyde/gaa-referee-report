@@ -154,7 +154,7 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
   </DataTable>
 
   <div
-      class="block md:hidden"
+      class="block m-2 md:hidden"
   >
     <div v-for="report in transformedReports">
 
