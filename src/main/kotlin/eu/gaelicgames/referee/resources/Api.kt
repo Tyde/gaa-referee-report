@@ -69,6 +69,10 @@ class Api() {
         @Resource("complete_report/{id}")
         class CompleteReport(val parent: Tournaments, val id: Long)
 
+        @Serializable
+        @Resource("delete")
+        class Delete(val parent: Tournaments)
+
     }
 
     @Serializable

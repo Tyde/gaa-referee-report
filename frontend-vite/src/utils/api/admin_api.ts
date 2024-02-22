@@ -67,3 +67,9 @@ export async function updateTournamentOnServer(tournament: DatabaseTournament) {
     return makePostRequest("/api/tournament/update", data)
         .then(data => parseAndHandleDEO(data, DatabaseTournament))
 }
+
+export async function deleteTournamentOnServer(tournament: DatabaseTournament) {
+    let data = {id: tournament.id}
+    return makePostRequest("api/tournament/delete", data)
+        .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
+}

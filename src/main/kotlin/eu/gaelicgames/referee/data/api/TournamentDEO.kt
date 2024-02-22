@@ -2,6 +2,8 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
@@ -157,7 +159,26 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournamentId(id: Long): Co
 }
 
 
-
+suspend fun DeleteCompleteTournamentDEO.delete():Result<Long> {
+    val tournamentID = this.id
+    CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
+    CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
+    return suspendedTransactionAsync {
+        addLogger(StdOutSqlLogger)
+        val tournament = Tournament.findById(tournamentID)
+        if(tournament != null) {
+            println("About to delete $tournament")
+            val tournamentReports = TournamentReport.find { TournamentReports.tournament eq tournament.id }
+            tournamentReports.forEach { tr ->
+                tr.deleteComplete()
+            }
+            tournament.delete()
+            Result.success(tournamentID)
+        } else {
+            Result.failure(Exception("Tournament with id $tournamentID not found"))
+        }
+    }.await()
+}
 
 
 

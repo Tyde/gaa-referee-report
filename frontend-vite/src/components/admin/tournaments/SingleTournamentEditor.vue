@@ -1,11 +1,17 @@
 <script setup lang="ts">
 
-import {DatabaseTournament, databaseTournamentToTournamentDAO, RegionDEO} from "@/types/tournament_types";
+import {
+  DatabaseTournament,
+  databaseTournamentToTournamentDAO,
+  RegionDEO,
+  type Tournament
+} from "@/types/tournament_types";
 import {ref} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 import {updateTournamentOnServer} from "@/utils/api/admin_api";
 import {DateTime} from "luxon";
 import {useRouter} from "vue-router";
+import {useConfirm} from "primevue/useconfirm";
 
 let props = defineProps<{
   tournament: DatabaseTournament
@@ -69,6 +75,36 @@ const router = useRouter()
 
 function goToCompleteTournamentReport(id: number) {
   router.push({path: "/tournament-reports/complete/" + id})
+}
+
+const confirm = useConfirm()
+function createTournamentButtonModel(tournament: DatabaseTournament) {
+  return [
+    {
+      label: 'Delete Tournament',
+      command: () => {
+        console.log("to be deleted: ",tournament)
+        confirm.require( {
+          message: 'Are you sure you want to delete the tournament '
+              +tournament.name
+              +' in '
+              +tournament.location
+              +" on "
+              +tournament.date.toISODate()+ "?\n This will delete all reports for that tournament.",
+          header: "Delete tournament?",
+          icon: "pi pi-exlamation-triangle",
+          rejectClass: 'p-button-secondary p-button-outlined',
+          rejectLabel: 'Cancel',
+          acceptLabel: 'Save',
+          accept() {
+              store.deleteTournament(tournament)
+          },
+          reject() {
+          },
+        })
+      }
+    }
+  ]
 }
 </script>
 
@@ -148,9 +184,14 @@ function goToCompleteTournamentReport(id: number) {
         </div>
       </template>
     </div>
-    <Button @click="goToCompleteTournamentReport(props.tournament.id)" text class="w-36">
-      Complete Tournament Report
-    </Button>
+    <SplitButton
+        @click="goToCompleteTournamentReport(props.tournament.id)"
+        class="w-56 m-2"
+        label="Complete Tournament Report"
+        :model="createTournamentButtonModel(props.tournament)"
+    >
+
+    </SplitButton>
   </div>
 
 </template>

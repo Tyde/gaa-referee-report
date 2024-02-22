@@ -15,11 +15,12 @@ import {
 } from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {uploadNewGameType} from "@/utils/api/game_report_api";
-import {addRuleOnServer, updateGameTypeOnServer} from "@/utils/api/admin_api";
+import {addRuleOnServer, deleteTournamentOnServer, updateGameTypeOnServer} from "@/utils/api/admin_api";
 import type {NewRuleDEO, Rule} from "@/types/rules_types";
 import type {PitchProperty} from "@/types/pitch_types";
 import {PitchPropertyType} from "@/types/pitch_types";
 import {usePublicStore} from "@/utils/public_store";
+import type {DatabaseTournament} from "@/types/tournament_types";
 
 export const useAdminStore = defineStore('admin', () => {
     const publicStore = usePublicStore()
@@ -165,6 +166,16 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    async function deleteTournament(tournament: DatabaseTournament) {
+        deleteTournamentOnServer(tournament)
+            .catch(e=>newError(e))
+            .then((res) => {
+                if(res) {
+                    publicStore.loadTournaments()
+                }
+            })
+    }
+
     return {
         publicStore,
         updatePitchVariable,
@@ -177,6 +188,7 @@ export const useAdminStore = defineStore('admin', () => {
         deleteRuleInStore,
         updateGameType,
         addRule,
-        createGameType
+        createGameType,
+        deleteTournament
     }
 })

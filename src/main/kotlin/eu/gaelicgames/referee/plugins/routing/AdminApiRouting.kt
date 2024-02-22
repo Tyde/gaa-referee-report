@@ -170,6 +170,15 @@ fun Route.adminApiRouting() {
     }
 
 
+    post<Api.Tournaments.Delete> {
+        receiveAndHandleDEO<DeleteCompleteTournamentDEO> { deleteDEO ->
+            deleteDEO.delete().map { deleteDEO }.getOrElse {
+                ApiError(ApiErrorOptions.DELETE_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+
     /*
         get<Api.User.Activate> { activate ->
             val uuid = UUID.fromString(activate.uuid)

@@ -41,7 +41,6 @@ const gradleAssembler = (): Plugin => {
     }
   };
 };
-
 export default defineConfig({
   plugins: [
       vue(),

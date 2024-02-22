@@ -11,9 +11,9 @@ import {useRouter} from "vue-router";
 
 let store = useAdminStore()
 
-const tournaments = ref<DatabaseTournament[]>([])
+//const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
-  return tournaments.value.sort((a, b) => {
+  return store.publicStore.tournaments.sort((a, b) => {
     return a.date.diff(b.date).milliseconds < 0 ? 1 : -1
   })
 })
@@ -34,16 +34,17 @@ const tournamentsFiltered = computed(() => {
 })
 
 const selectedRegion = ref<RegionDEO | undefined>(undefined)
-const isLoading = ref(true)
+const isLoading = ref(false)
 
 
 
+/*
 onMounted(() => {
   loadAllTournaments()
       .then(it => tournaments.value = it)
       .catch(e => store.newError(e))
       .finally(() => isLoading.value = false)
-})
+})*/
 const dateRange = ref<Date[]>([DateTime.now().minus({days: 180}).toJSDate(), new Date()])
 const dateTimeRange = computed(() => {
   return dateRange.value.map(it => DateTime.fromJSDate(it))
@@ -87,6 +88,8 @@ const dateTimeRange = computed(() => {
       </div>
     </div>
   </div>
+  <ConfirmDialog></ConfirmDialog>
+
 </template>
 
 <style scoped>
