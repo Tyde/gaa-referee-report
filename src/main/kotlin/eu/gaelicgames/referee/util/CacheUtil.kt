@@ -14,6 +14,7 @@ import java.util.*
 
 object CacheUtil {
     private var client:KredsClient? = null
+    private lateinit var password:String
     /*init {
         client = newClient(
             Endpoint.from("127.0.0.1:6379")
@@ -25,6 +26,7 @@ object CacheUtil {
             connectTimeOutMillis = 2500
         ).build()
         println("Trying to connect to Cache")
+        this.password = password
         try {
             client = newClient(
                 Endpoint.from(address),
@@ -32,7 +34,8 @@ object CacheUtil {
             )
             println("Client initialized: $client")
             if(password.isNotEmpty()) {
-                client?.auth(password)
+                val res = client?.auth(password)
+                println(res)
             }
             client?.clientInfo()
         } catch (e: Exception) {
@@ -56,6 +59,9 @@ object CacheUtil {
 
     suspend fun <R> runClient(block: suspend KredsClient.() -> Result<R>):Result<R> {
         if(client != null) {
+            if(password.isNotEmpty()) {
+                client?.auth(password)
+            }
             return client!!.block()
         } else {
             return Result.failure(Exception("Not connected to cache"))
