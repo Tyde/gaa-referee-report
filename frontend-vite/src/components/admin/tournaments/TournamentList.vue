@@ -45,7 +45,7 @@ onMounted(() => {
       .catch(e => store.newError(e))
       .finally(() => isLoading.value = false)
 })*/
-const dateRange = ref<Date[]>([DateTime.now().minus({days: 180}).toJSDate(), new Date()])
+const dateRange = ref<Date[]>([DateTime.now().minus({days: 180}).toJSDate(), DateTime.now().plus({years:1}).toJSDate()])
 const dateTimeRange = computed(() => {
   return dateRange.value.map(it => DateTime.fromJSDate(it))
 })
