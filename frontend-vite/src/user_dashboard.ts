@@ -35,6 +35,7 @@ import ConfirmDialog from "primevue/confirmdialog";
 import ConfirmationService from "primevue/confirmationservice";
 import Paginator from "primevue/paginator";
 import Divider from 'primevue/divider';
+import MultiSelect from "primevue/multiselect";
 
 
 const router = createRouter({
@@ -68,6 +69,7 @@ app.component('Column',Column)
 app.component('Row',Row)
 app.component('Paginator', Paginator)
 app.component('Divider', Divider)
+app.component('MultiSelect', MultiSelect)
 app.component(VueFeather.name,VueFeather)
 const pinia = createPinia()
 app.use(pinia)

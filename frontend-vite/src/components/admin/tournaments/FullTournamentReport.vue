@@ -66,6 +66,37 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
 
 }
 
+const referees = computed(() => {
+  return gameReports
+      ?.value
+      ?.filter((obj, index, self) => {
+        const found = self.findIndex((it) => {
+          return it.report.referee.id === obj.report.referee.id
+        })
+        return index === found
+      })
+      ?.map(it => it.report.referee)
+      ?.map(it => {
+        return {
+          ...it,
+          fullName: it.firstName + " " + it.lastName
+        }
+      })
+})
+
+const gameCodes = computed(() => {
+  return store.codes.filter(it => {
+        return gameReports?.value?.some(gr => gr.report.gameCode.id === it.id)
+      }
+  )
+})
+
+const gameTypes = computed(() => {
+  return store.gameTypes.filter(it => {
+    return gameReports?.value?.some(gr => gr.gameType?.id === it.id)
+  })
+})
+
 
 const gameReports = computed(() => {
   if (rawTournamentReportDEO.value) {
@@ -74,6 +105,46 @@ const gameReports = computed(() => {
   } else {
     return [] as Array<GameReport>
   }
+})
+
+const selectedReferees = ref<Referee[]>([])
+const onlyShowRedCardReports = ref(false)
+const selectedCodes = ref<GameCode[]>([])
+const selectedGameTypes = ref<GameCode[]>([])
+
+const filteredGameReports = computed(() => {
+  return gameReports
+      ?.value
+      ?.filter(it => {
+        if (selectedReferees.value.length > 0) {
+          return selectedReferees.value.some(ref => ref.id === it.report.referee.id)
+        } else {
+          return true
+        }
+      })
+      ?.filter(it => {
+        if (onlyShowRedCardReports.value) {
+          return it.teamAReport.disciplinaryActions.some(da => da.redCardIssued || da.rule?.isRed) ||
+              it.teamBReport.disciplinaryActions.some(da => da.redCardIssued || da.rule?.isRed)
+        } else {
+          return true
+        }
+      })
+      ?.filter(it => {
+        if (selectedCodes.value.length > 0) {
+          return selectedCodes.value.some(code => code.id === it.report.gameCode.id)
+        } else {
+          return true
+        }
+      })
+      ?.filter(it => {
+        if (selectedGameTypes.value.length > 0) {
+          return selectedGameTypes.value.some(gt => gt.id === it.gameType?.id)
+        } else {
+          return true
+        }
+      })
+
 })
 
 const allAdditionalInfo = computed(() => {
@@ -94,6 +165,7 @@ const allAdditionalInfo = computed(() => {
       ?.filter(it => it.info !== "")
 })
 
+
 const formattedAdditionalInfoString = computed(() => {
   return allAdditionalInfo.value?.map(it => {
     return it.referee + ": " + it.info
@@ -103,7 +175,7 @@ onMounted(() => {
 
 })
 
-const gameCodeColorMap: {[key: string]:string} = {
+const gameCodeColorMap: { [key: string]: string } = {
   "Hurling": 'hurling-game',
   "Camogie": 'camogie-game',
   "Mens Football": 'mens-football-game',
@@ -127,16 +199,64 @@ function gameCodeColor(gameCode: GameCode) {
           <span class="italic">Additional Information: </span><br>
           <span v-html="formattedAdditionalInfoString"></span>
         </div>
+        <div>
+          <h3>Filter</h3>
+          <div class="filter-row">
+            <label for="filter">Filter by Referee</label>
+            <div>
+              <Button v-if="selectedReferees.length > 0" link @click="selectedReferees = []">Clear</Button>
+              <MultiSelect
+                  :options="referees"
+                  v-model="selectedReferees"
+                  option-label="fullName"
+                  placeholder="Select Referee"
+              >
+              </MultiSelect>
+            </div>
 
+          </div>
+          <div class="filter-row">
+            <label for="filter">Only show Reports with red card:</label>
+            <Checkbox
+                v-model="onlyShowRedCardReports"
+                binary
+            />
+
+          </div>
+          <div class="filter-row">
+            <label for="filter">Filter by code:</label>
+            <div>
+              <Button v-if="selectedCodes.length > 0" link @click="selectedCodes = []">Clear</Button>
+              <MultiSelect
+                  :options="gameCodes"
+                  v-model="selectedCodes"
+                  option-label="name"
+                  placeholder="Select Game Code"/>
+            </div>
+
+          </div>
+          <div class="filter-row">
+            <label for="filter">Filter by game type:</label>
+            <div>
+              <Button v-if="selectedGameTypes.length > 0" link @click="selectedGameTypes = []">Clear</Button>
+              <MultiSelect
+                  :options="gameTypes"
+                  v-model="selectedGameTypes"
+                  option-label="name"
+                  placeholder="Select Game Type"/>
+            </div>
+
+          </div>
+
+        </div>
         <h2>Game Reports</h2>
         <div
-            v-for="gr in gameReports" class="game-report-style"
+            v-for="gr in filteredGameReports" class="game-report-style"
             key="gr.report.id"
             :class="gameCodeColor(gr.report.gameCode)"
         >
-          {{gr.id}}
-          <h3>{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{gr.report.gameCode.name}}</h3>
-          <h3>Referee: {{ gr.report.referee.firstName}} {{gr.report.referee.lastName}}</h3>
+          <h3>{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{ gr.report.gameCode.name }}</h3>
+          <h3>Referee: {{ gr.report.referee.firstName }} {{ gr.report.referee.lastName }}</h3>
           <h3>
             <template v-if="gr.umpirePresentOnTime">Umpires present on time</template>
             <template v-else>Umpires not present on time. Note: {{ gr.umpireNotes }}</template>
@@ -192,6 +312,11 @@ h3 {
 
 .game-report-style {
   @apply pt-6 p-4 border-t-2 border-t-gray-600 break-inside-avoid;
+}
+
+.filter-row {
+  @apply flex flex-row justify-between items-center;
+  @apply mt-2;
 }
 
 </style>
