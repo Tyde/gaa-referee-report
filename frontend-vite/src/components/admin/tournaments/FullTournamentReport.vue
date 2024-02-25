@@ -14,6 +14,7 @@ import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisc
 import {GameCode} from "@/types";
 import ShowPitchReport from "@/components/showReport/ShowPitchReport.vue";
 import {pitchDEOtoPitch} from "@/utils/api/pitch_api";
+import type {Pitch} from "@/types/pitch_types";
 
 const props = defineProps<{
   id: string
@@ -48,7 +49,7 @@ const pitchReports = computed(() => {
         }
         return undefined
       }
-  ).filter(it => it !== undefined)
+  ).filter(it => it !== undefined) as Array<Pitch>
 })
 
 function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
