@@ -27,7 +27,7 @@ function showGameTypeDialog() {
 
 const sendingCreateRequest = ref(false)
 const gameTypesByName = computed(() => {
-  return store.gameTypes.sort((a, b) => a.name > b.name ? 1 : -1)
+  return store.gameTypes.toSorted((a, b) => a.name > b.name ? 1 : -1)
 })
 
 const teamAEqualTeamB = computed(() => {

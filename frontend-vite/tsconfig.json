@@ -9,7 +9,9 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "strict": true
+    "strict": true,
+    "lib": ["ES2023.Array", "ESNext", "DOM"]
+
   },
 
   "references": [

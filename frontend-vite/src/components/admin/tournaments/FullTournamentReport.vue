@@ -70,7 +70,7 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
 const gameReports = computed(() => {
   if (rawTournamentReportDEO.value) {
     return transformDEO(rawTournamentReportDEO.value)
-        .sort(compareGameReportByStartTime)
+        .toSorted(compareGameReportByStartTime)
   } else {
     return [] as Array<GameReport>
   }

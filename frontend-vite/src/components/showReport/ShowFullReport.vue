@@ -20,7 +20,7 @@ const tournamentDate = computed(() => {
 })
 
 const gameReportsByTime = computed(() => {
-  return props.allGameReports.sort(compareGameReportByStartTime)
+  return props.allGameReports.toSorted(compareGameReportByStartTime)
 })
 
 

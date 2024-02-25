@@ -25,7 +25,7 @@ loadPublicTournamentReport(Number(id))
 
 let gameReportsByTime = computed(() => {
 
-    return report.value?.games.sort((first,second) => {
+    return report.value?.games.toSorted((first,second) => {
       return first.gameReport.startTime.diff(second.gameReport.startTime).milliseconds < 0 ? -1 : 1
     })
         .filter(it => {

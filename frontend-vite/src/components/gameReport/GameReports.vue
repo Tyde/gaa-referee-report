@@ -21,7 +21,7 @@ const store = useReportStore()
 
 
 const sortedGameReports = computed(() => {
-  return store.gameReports.sort((a, b) => {
+  return store.gameReports.toSorted((a, b) => {
     if(a.startTime) {
       if(b.startTime) {
         return a.startTime > b.startTime ? 1 : -1

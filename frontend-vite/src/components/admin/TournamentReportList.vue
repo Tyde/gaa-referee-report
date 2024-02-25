@@ -18,9 +18,12 @@ const publicStore = usePublicStore()
 const router = useRouter()
 const isLoading = ref(true)
 
+const first = ref(0)
+const rows = ref(10)
+
 const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
-  return tournaments.value.sort((a, b) => {
+  return tournaments.value.toSorted((a, b) => {
     return a.date.diff(b.date).milliseconds < 0 ? 1 : -1
   })
 })
@@ -79,6 +82,7 @@ onMounted(() => {
       .catch(e => publicStore.newError(e))
   loadAllReports()
       .then(it => {
+        console.log("reports loaded")
         reports.value = it
         isLoading.value = false
       })
@@ -94,8 +98,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
   reportToShare.value = report
 }
 
-const first = ref(0)
-const rows = ref(10)
+
 </script>
 
 <template>

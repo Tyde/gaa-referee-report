@@ -11,7 +11,7 @@ function regionIDToRegion(regionID: number): RegionDEO {
 
 
 const tournamentsSortedByDate = computed(() => {
-  return store.tournaments.sort((a, b) => {
+  return store.tournaments.toSorted((a, b) => {
     return a.date.diff(b.date).milliseconds < 0 ? 1 : -1
   }).filter(tournament => {
     if (selectedRegion.value) {

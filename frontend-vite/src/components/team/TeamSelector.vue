@@ -135,7 +135,7 @@ onMounted(() => {
       <template v-if="teams_added.length>0">
         {{ $t('teamSelect.selectedTeams') }}:<br>
         <ul class="selected-teams-list">
-          <li v-for="team in teams_added.sort((a,b) => a.name.localeCompare(b.name))">
+          <li v-for="team in teams_added.toSorted((a,b) => a.name.localeCompare(b.name))">
             <SplitButton
                 @click="removeTeam(team)"
                 :label = "team.name"

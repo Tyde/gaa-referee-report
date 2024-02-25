@@ -113,7 +113,7 @@ function classForTeam(team: Team): string {
 }
 
 const filtered_list = computed(() => {
-  let preparedlist = store.allTeams.sort((a, b) => {
+  let preparedlist = store.allTeams.toSorted((a, b) => {
     return a.name.localeCompare(b.name)
   })
   if (props.only_amalgamations) {

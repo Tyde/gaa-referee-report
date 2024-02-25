@@ -13,7 +13,7 @@ let store = useAdminStore()
 
 //const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
-  return store.publicStore.tournaments.sort((a, b) => {
+  return store.publicStore.tournaments.toSorted((a, b) => {
     return a.date.diff(b.date).milliseconds < 0 ? 1 : -1
   })
 })
