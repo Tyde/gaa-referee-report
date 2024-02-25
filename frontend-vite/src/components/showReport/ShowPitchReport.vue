@@ -1,10 +1,13 @@
 <script setup lang="ts">
 
 import type {Pitch} from "@/types/pitch_types";
+import {onMounted} from "vue";
 
 let props = defineProps<{
-  pitchReport: Pitch
+  pitchReport: Pitch,
+  showRefereeName?: Boolean
 }>()
+
 
 </script>
 
@@ -13,6 +16,7 @@ let props = defineProps<{
     <!-- Options: length, width, surface, penaltySquareMarkings, smallSquareMarkings
     thirteenMeterMarkings, twentyMeterMarkings, longMeterMarkings, goalPosts, goalDimensions -->
     <h3>{{ pitchReport.name }}</h3>
+    <h4 v-if="showRefereeName">Report by {{pitchReport.report.referee.firstName}} {{pitchReport.report.referee.lastName}} </h4>
     <div class="flex flex-wrap break-inside-avoid">
       <div class="pitch-report-option">
         <h5>Length</h5>
@@ -83,5 +87,9 @@ h5 {
 }
 h3 {
   @apply text-center text-lg;
+}
+h4 {
+  @apply my-4;
+  @apply text-center italic;
 }
 </style>

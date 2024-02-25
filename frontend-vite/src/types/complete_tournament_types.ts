@@ -2,12 +2,14 @@ import {z} from "zod";
 import {CompleteGameReportWithRefereeReportDEO, PublicGameReportDEO} from "@/types/game_report_types";
 import {Team} from "@/types/team_types";
 import {DatabaseTournament} from "@/types/tournament_types";
+import {PitchDEO} from "@/types/pitch_types";
 
 export const CompleteTournamentReportDEO = z.lazy(() =>
     z.object({
         tournament: DatabaseTournament,
         games: CompleteGameReportWithRefereeReportDEO.array(),
-        teams: Team.array()
+        teams: Team.array(),
+        pitches: z.array(PitchDEO)
     })
 )
 

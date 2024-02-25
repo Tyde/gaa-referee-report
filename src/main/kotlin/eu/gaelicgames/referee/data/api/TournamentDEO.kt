@@ -2,10 +2,7 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -115,10 +112,11 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): Publ
 suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tournament): CompleteTournamentReportDEO {
     return suspendedTransactionAsync {
 
-        val gameReports = TournamentReports.leftJoin(GameReports).select {
+        val where: SqlExpressionBuilder.() -> Op<Boolean> = {
             (TournamentReports.tournament eq input.id) and
                     (TournamentReports.isSubmitted eq true)
-        }.map {
+        }
+        val gameReports = TournamentReports.leftJoin(GameReports).select(where).map {
             TournamentReport.wrapRow(it)
             val gameReport = GameReport.wrapRow(it)
             CompleteGameReportWithRefereeReportDEO.fromGameReport(gameReport)
@@ -134,10 +132,17 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
             .map { it.getOrThrow() }
             .toList()
 
+        val allPitchReports = TournamentReports.leftJoin(Pitches).select(where).map {
+            TournamentReport.wrapRow(it)
+            val pitch = Pitch.wrapRow(it)
+            PitchDEO.fromPitch(pitch)
+        }
+
         val deo = CompleteTournamentReportDEO(
             TournamentDEO.fromTournament(input),
             gameReports,
-            allTeams
+            allTeams,
+            allPitchReports
         )
         CacheUtil.cacheCompleteTournamentReport(deo)
         deo

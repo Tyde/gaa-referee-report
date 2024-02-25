@@ -39,7 +39,8 @@ import Column from 'primevue/column';
 import Row from 'primevue/row';
 import BlockUI from "primevue/blockui";
 import Paginator from "primevue/paginator";
-import SplitButton from "primevue/splitbutton";                     //optional for row
+import SplitButton from "primevue/splitbutton";
+import MultiSelect from "primevue/multiselect";                     //optional for row
 
 
 const router = createRouter({
@@ -82,6 +83,7 @@ app.component('BlockUI',BlockUI)
 app.component('Paginator', Paginator)
 app.component('Toast', Toast)
 app.component('SplitButton',SplitButton)
+app.component('MultiSelect', MultiSelect)
 app.use(ToastService);
 
 app.component(VueFeather.name,VueFeather)

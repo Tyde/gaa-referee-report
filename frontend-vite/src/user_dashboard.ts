@@ -36,6 +36,8 @@ import ConfirmationService from "primevue/confirmationservice";
 import Paginator from "primevue/paginator";
 import Divider from 'primevue/divider';
 import MultiSelect from "primevue/multiselect";
+import Accordion from "primevue/accordion";
+import AccordionTab from "primevue/accordiontab";
 
 
 const router = createRouter({
@@ -70,6 +72,8 @@ app.component('Row',Row)
 app.component('Paginator', Paginator)
 app.component('Divider', Divider)
 app.component('MultiSelect', MultiSelect)
+app.component('Accordion', Accordion)
+app.component('AccordionTab', AccordionTab)
 app.component(VueFeather.name,VueFeather)
 const pinia = createPinia()
 app.use(pinia)

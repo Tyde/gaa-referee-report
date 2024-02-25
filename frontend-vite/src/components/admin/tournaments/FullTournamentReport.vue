@@ -12,6 +12,8 @@ import {gameReportDEOToGameReport} from "@/utils/api/game_report_api";
 import {DateTime} from "luxon";
 import ShowDisciplinaryActionsAndInjuries from "@/components/showReport/ShowDisciplinaryActionsAndInjuries.vue";
 import {GameCode} from "@/types";
+import ShowPitchReport from "@/components/showReport/ShowPitchReport.vue";
+import {pitchDEOtoPitch} from "@/utils/api/pitch_api";
 
 const props = defineProps<{
   id: string
@@ -30,6 +32,23 @@ const tournament = computed(() => {
 })
 const tournamentDate = computed(() => {
   return tournament.value?.date.toISODate()
+})
+
+const pitchReports = computed(() => {
+  return rawTournamentReportDEO.value?.pitches?.map(pitchDEO => {
+        const report = gameReports.value
+            ?.map(it => it.report)
+            ?.find(it => it.id === pitchDEO.report)
+        if(report && store.pitchVariables) {
+          return pitchDEOtoPitch(
+              pitchDEO,
+              report,
+              store.pitchVariables
+          )
+        }
+        return undefined
+      }
+  ).filter(it => it !== undefined)
 })
 
 function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
@@ -185,6 +204,21 @@ const gameCodeColorMap: { [key: string]: string } = {
 function gameCodeColor(gameCode: GameCode) {
   return gameCodeColorMap[gameCode.name]
 }
+
+function scrollToPitchReports() {
+  const pitchReports = document.getElementById('pitch-reports')
+  if (pitchReports) {
+    pitchReports.scrollIntoView({behavior: "smooth"})
+  }
+}
+
+function scrollToGameReports() {
+  const gameReports = document.getElementById('game-reports')
+  if (gameReports) {
+    gameReports.scrollIntoView({behavior: "smooth"})
+  }
+}
+
 </script>
 
 <template>
@@ -199,8 +233,8 @@ function gameCodeColor(gameCode: GameCode) {
           <span class="italic">Additional Information: </span><br>
           <span v-html="formattedAdditionalInfoString"></span>
         </div>
-        <div>
-          <h3>Filter</h3>
+        <Accordion :active-index="null" >
+          <AccordionTab header="Filter">
           <div class="filter-row">
             <label for="filter">Filter by Referee</label>
             <div>
@@ -247,9 +281,12 @@ function gameCodeColor(gameCode: GameCode) {
             </div>
 
           </div>
-
+          </AccordionTab>
+        </Accordion>
+        <div class="flex flex-row justify-center">
+          <Button  link @click="scrollToPitchReports">Scroll to Pitch Reports</Button>
         </div>
-        <h2>Game Reports</h2>
+        <h2 id="game-reports">Game Reports</h2>
         <div
             v-for="gr in filteredGameReports" class="game-report-style"
             key="gr.report.id"
@@ -292,6 +329,12 @@ function gameCodeColor(gameCode: GameCode) {
 
           </div>
         </div>
+
+        <h2 id="pitch-reports">Pitch Reports</h2>
+        <div class="flex flex-row justify-center">
+          <Button  link @click="scrollToGameReports">Scroll to Game Reports</Button>
+        </div>
+        <ShowPitchReport v-for="pitchReport in pitchReports" :key="pitchReport?.id" :pitch-report="pitchReport" :show-referee-name="true"/>
       </div>
     </div>
   </div>
@@ -317,6 +360,7 @@ h3 {
 .filter-row {
   @apply flex flex-row justify-between items-center;
   @apply mt-2;
+  @apply min-h-9;
 }
 
 </style>
