@@ -51,7 +51,7 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
       additionalInformation: it.refereeReport.additionalInformation,
       isSubmitted: it.refereeReport.isSubmitted,
       submitDate: it.refereeReport.submitDate ?? undefined,
-      referee: referee
+      referee: referee,
     } as Report
     let gr = it.gameReport
     return gameReportDEOToGameReport(
@@ -79,6 +79,12 @@ const gameReports = computed(() => {
 const allAdditionalInfo = computed(() => {
   return gameReports
       ?.value
+      ?.filter((obj, index, self) => {
+        const found = self.findIndex((it) => {
+          return it.report.referee.id === obj.report.referee.id
+        })
+        return index === found
+      })
       ?.map(it => {
         return {
           info: it.report.additionalInformation ?? "",
@@ -118,8 +124,8 @@ function gameCodeColor(gameCode: GameCode) {
         <h2>Tournament: {{ tournamentDate }} - {{ tournament?.name ?? "" }} in
           {{ tournament?.location ?? "" }}</h2>
         <div v-if="allAdditionalInfo && allAdditionalInfo.length > 0">
-          <span class="italic">Additional Information: </span>
-          {{ formattedAdditionalInfoString }}
+          <span class="italic">Additional Information: </span><br>
+          <span v-html="formattedAdditionalInfoString"></span>
         </div>
 
         <h2>Game Reports</h2>
@@ -128,6 +134,7 @@ function gameCodeColor(gameCode: GameCode) {
             key="gr.report.id"
             :class="gameCodeColor(gr.report.gameCode)"
         >
+          {{gr.id}}
           <h3>{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{gr.report.gameCode.name}}</h3>
           <h3>Referee: {{ gr.report.referee.firstName}} {{gr.report.referee.lastName}}</h3>
           <h3>
@@ -161,8 +168,8 @@ function gameCodeColor(gameCode: GameCode) {
               v-if="gr.generalNotes && gr.generalNotes !== ''"
               class="flex flex-row justify-center m-2"
           >
-            <span class="italic">Referee Notes: </span>
-            {{ gr.generalNotes }}
+            <span class="italic">Referee Notes: </span>&nbsp;{{ gr.generalNotes }}
+
           </div>
         </div>
       </div>
