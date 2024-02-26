@@ -104,7 +104,7 @@ function saveRule() {
           editing.value = false
 
           let index = store.publicStore.rules.indexOf(rule.value!!)
-          store.publicStore.rules[index] = shadowCopyRule.value!!
+          store.publicStore.rules[index] = ruleForUpdate
           shadowCopyRule.value = undefined
         })
         .catch(e => {
