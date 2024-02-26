@@ -122,7 +122,6 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
     <Column>
       <template #body="{data}">
         <Button
-            v-if="!data.isSubmitted"
             label="Edit"
             icon="pi pi-pencil"
             class="p-button-raised p-button-text"
@@ -167,7 +166,6 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
           <div class="text-lg">{{report.isSubmitted ? 'Submitted' : 'Not submitted'}}</div>
           <div class="flex flex-row justify-end">
             <Button
-                v-if="!report.isSubmitted"
                 label="Edit"
                 icon="pi pi-pencil"
                 class="p-button-raised p-button-text"
