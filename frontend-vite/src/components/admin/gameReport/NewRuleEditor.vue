@@ -4,6 +4,7 @@ import {useAdminStore} from "@/utils/admin_store";
 import type {GameCode} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
 import type {NewRuleDEO} from "@/types/rules_types";
+import {updateRuleOnServer} from "@/utils/api/admin_api";
 
 const store = useAdminStore()
 
@@ -42,10 +43,10 @@ onMounted(() => {
 
 
 const cards = [
-  {label: "No card"},
-  {label: "Caution"},
-  {label: "Black card"},
-  {label: "Red card"},
+  {label: "No card", id: 0},
+  {label: "Caution", id: 1},
+  {label: "Black card", id: 2},
+  {label: "Red card", id: 3}
 ]
 
 const selectedCardForButton = ref(cards[0])
@@ -64,7 +65,6 @@ watch(rule, () => {
   } else {
     selectedCardForButton.value = cards[0]
   }
-  console.log(selectedCardForButton.value)
 })
 
 watch(() => props.code, () => {
@@ -78,7 +78,12 @@ const isLoading = ref(false)
 async function saveRule() {
   if (rule.value) {
     isLoading.value = true
-    store.addRule(rule.value)
+    const ruleForUpdate = JSON.parse(JSON.stringify(rule.value))
+    ruleForUpdate.isCaution = selectedCardForButton.value.id == 1
+    ruleForUpdate.isBlack = selectedCardForButton.value.id == 2
+    ruleForUpdate.isRed = selectedCardForButton.value.id == 3
+
+    store.addRule(ruleForUpdate)
         .then(() => {
           reset()
           isLoading.value = false

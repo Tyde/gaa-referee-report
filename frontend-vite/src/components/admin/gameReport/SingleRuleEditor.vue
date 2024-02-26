@@ -95,7 +95,11 @@ function deleteRule() {
 
 function saveRule() {
   if (shadowCopyRule.value) {
-    updateRuleOnServer(shadowCopyRule.value)
+    const ruleForUpdate = JSON.parse(JSON.stringify(shadowCopyRule.value))
+    ruleForUpdate.isCaution = selectedCardInCopy.value.id == 1
+    ruleForUpdate.isBlack = selectedCardInCopy.value.id == 2
+    ruleForUpdate.isRed = selectedCardInCopy.value.id == 3
+    updateRuleOnServer(ruleForUpdate)
         .then(() => {
           editing.value = false
 
@@ -110,10 +114,10 @@ function saveRule() {
 }
 
 const cards = [
-  {label: "No card"},
-  {label: "Caution"},
-  {label: "Black card"},
-  {label: "Red card"},
+  {label: "No card", id: 0},
+  {label: "Caution", id: 1},
+  {label: "Black card", id: 2},
+  {label: "Red card", id: 3}
 ]
 
 const selectedCardInCopy = ref(cards[0])
@@ -132,7 +136,6 @@ watch(shadowCopyRule, () => {
   } else {
     selectedCardInCopy.value = cards[0]
   }
-  console.log(selectedCardInCopy.value)
 })
 
 </script>

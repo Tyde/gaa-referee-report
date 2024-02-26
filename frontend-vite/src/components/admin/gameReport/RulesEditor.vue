@@ -10,7 +10,6 @@ const store = useAdminStore()
 
 function rulesByCode(code:GameCode) {
   const out = store.publicStore.rules.filter(r => r.code == code.id)
-  console.log(out)
   return out
 }
 
