@@ -192,16 +192,11 @@ watch(() => store.selectedGameReport, () => {
     </SelectButton>
   </template>
   <template #end>
-    <Button @click="newGameReport" class="p-button-success min-w-0"><i class="pi pi-plus"></i> </Button>
+    <Button @click="newGameReport" class="p-button-success min-w-0"><i class="pi pi-plus"></i> <template v-if="store.gameReports.length < 2">&nbsp;Add another game report</template></Button>
   </template>
 </Toolbar>
 
-<!--       v-model="selectedGameReport"
-      v-if="selectedGameReport"
-      :rules="filteredRules"
-      :extra-time-options="store.extraTimeOptions"
-      :game-types="store.gameTypes"
-      :index="currentReportIndex" -->
+
   <SingleGameReport
       v-if="store.selectedGameReport"
       @delete-this-report="(report) => startDeleteReport(report)"

@@ -112,11 +112,10 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): Publ
 suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tournament): CompleteTournamentReportDEO {
     return suspendedTransactionAsync {
 
-        val where: SqlExpressionBuilder.() -> Op<Boolean> = {
+        val gameReports = TournamentReports.innerJoin(GameReports).select{
             (TournamentReports.tournament eq input.id) and
                     (TournamentReports.isSubmitted eq true)
-        }
-        val gameReports = TournamentReports.leftJoin(GameReports).select(where).map {
+        }.map {
             TournamentReport.wrapRow(it)
             val gameReport = GameReport.wrapRow(it)
             CompleteGameReportWithRefereeReportDEO.fromGameReport(gameReport)
@@ -132,7 +131,12 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
             .map { it.getOrThrow() }
             .toList()
 
-        val allPitchReports = TournamentReports.leftJoin(Pitches).select(where).map {
+        val tljp =TournamentReports.innerJoin(Pitches)
+        val tljps =tljp.select{
+            (TournamentReports.tournament eq input.id) and
+                    (TournamentReports.isSubmitted eq true)
+        }
+        val allPitchReports = tljps.map {
             TournamentReport.wrapRow(it)
             val pitch = Pitch.wrapRow(it)
             PitchDEO.fromPitch(pitch)
