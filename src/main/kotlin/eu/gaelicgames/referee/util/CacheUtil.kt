@@ -1,15 +1,15 @@
 package eu.gaelicgames.referee.util
 
-import eu.gaelicgames.referee.data.GameCodeDEO
 import eu.gaelicgames.referee.data.SessionWithUserData
 import eu.gaelicgames.referee.data.api.*
-import io.github.crackthecodeabhi.kreds.connection.*
+import io.github.crackthecodeabhi.kreds.connection.Endpoint
+import io.github.crackthecodeabhi.kreds.connection.KredsClient
+import io.github.crackthecodeabhi.kreds.connection.KredsClientConfig
+import io.github.crackthecodeabhi.kreds.connection.newClient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-
 import kotlinx.serialization.json.Json
 import java.util.*
-
 
 
 object CacheUtil {
@@ -90,6 +90,15 @@ object CacheUtil {
 
     }
 
+
+    suspend fun deleteCachedReport(id:Long):Result<Unit> {
+        return runClient {
+            kotlin.runCatching {
+                del("$KEY_REPORT:$id")
+                Unit
+            }
+        }
+    }
 
     suspend fun getCachedCompleteTournamentReport(tournamentID:Long):Result<CompleteTournamentReportDEO> {
         return runClient {

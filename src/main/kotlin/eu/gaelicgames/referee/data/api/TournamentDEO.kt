@@ -2,7 +2,11 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -15,26 +19,32 @@ fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
     }
 }
 
-fun TournamentDEO.updateInDatabase(): Result<Tournament> {
+suspend fun TournamentDEO.updateInDatabase(): Result<Tournament> {
     val thisDEO = this
-    return transaction {
+    return newSuspendedTransaction {
         val region = Region.findById(thisDEO.region)
         if (region == null) {
-            return@transaction Result.failure(
+            return@newSuspendedTransaction Result.failure(
                 IllegalArgumentException("Region with id ${thisDEO.region} does not exist")
             )
         }
         val tournament = Tournament.findById(thisDEO.id)
         if (tournament == null) {
-            return@transaction Result.failure(
+            return@newSuspendedTransaction Result.failure(
                 IllegalArgumentException("Tournament with id ${thisDEO.id} does not exist")
             )
         }
+        CacheUtil.deleteCachedCompleteTournamentReport(tournament.id.value)
+        CacheUtil.deleteCachedPublicTournamentReport(tournament.id.value)
+        TournamentReport.find { TournamentReports.tournament eq tournament.id }.forEach {
+            CacheUtil.deleteCachedReport(it.id.value)
+        }
+
         tournament.name = thisDEO.name
         tournament.location = thisDEO.location
         tournament.date = thisDEO.date
         tournament.region = region
-        return@transaction Result.success(tournament)
+        return@newSuspendedTransaction Result.success(tournament)
     }
 }
 

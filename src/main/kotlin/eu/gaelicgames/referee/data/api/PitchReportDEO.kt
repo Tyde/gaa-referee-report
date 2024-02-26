@@ -4,6 +4,8 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -63,7 +65,7 @@ suspend fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
         if (obj is PitchPropertyEntity) {
-            if(Pitches.isPitchPropertyReferenced(obj)) {
+            if (Pitches.isPitchPropertyReferenced(obj)) {
                 obj.disabled = true
                 Result.success(DeletePitchVariableResultDEO(pvUpdate.id, DeletionState.DISABLED))
             } else {
@@ -90,8 +92,6 @@ suspend fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
         }
     }
 }
-
-
 
 
 suspend fun NewPitchVariableDEO.createInDatabase(): Result<PitchVariableUpdateDEO> {
@@ -132,12 +132,20 @@ fun PitchReportDEO.Companion.fromPitchReport(pitchReport: Pitch): PitchReportDEO
     }
 }
 
-fun PitchReportDEO.createInDatabase(): Result<Pitch> {
+suspend fun Transaction.clearCacheForPitchReport(pitch: Pitch) {
+
+    val report = pitch.report
+    clearCacheForTournamentReport(report)
+
+}
+
+suspend fun PitchReportDEO.createInDatabase(): Result<Pitch> {
     val pUpdate = this
     if (pUpdate.name.isNotBlank()) {
-        return transaction {
+        return newSuspendedTransaction {
             val report = TournamentReport.findById(pUpdate.report)
             if (report != null) {
+                clearCacheForTournamentReport(report)
                 Result.success(Pitch.new {
                     this.name = pUpdate.name
                     this.report = report
@@ -186,13 +194,13 @@ fun PitchReportDEO.createInDatabase(): Result<Pitch> {
 }
 
 
-fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
+suspend fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
     val pUpdate = this
     if (pUpdate.id != null && pUpdate.name.isNotBlank()) {
-        return transaction {
+        return newSuspendedTransaction {
             val report = TournamentReport.findById(pUpdate.report)
             if (report != null) {
-
+                clearCacheForTournamentReport(report)
                 val pitch = Pitch.findById(pUpdate.id)
                 if (pitch != null) {
                     pitch.name = pUpdate.name
@@ -230,13 +238,13 @@ fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
                     pUpdate.additionalInformation?.let {
                         pitch.additionalInformation = it
                     }
-                    return@transaction Result.success(pitch)
+                    return@newSuspendedTransaction Result.success(pitch)
                 } else {
-                    return@transaction Result.failure(IllegalArgumentException("PitchReport not found"))
+                    return@newSuspendedTransaction Result.failure(IllegalArgumentException("PitchReport not found"))
                 }
 
             } else {
-                return@transaction Result.failure(IllegalArgumentException("Report id not valid"))
+                return@newSuspendedTransaction Result.failure(IllegalArgumentException("Report id not valid"))
             }
         }
     } else {
@@ -244,11 +252,11 @@ fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
     }
 }
 
-fun DeletePitchReportDEO.deleteChecked(user: User):Result<Boolean> {
+suspend fun DeletePitchReportDEO.deleteChecked(user: User): Result<Boolean> {
     val deleteId = this.id
-    return transaction {
+    return newSuspendedTransaction {
         Pitch.findById(deleteId)?.let {
-            if(it.report.referee.id == user.id) {
+            if (it.report.referee.id == user.id) {
                 deleteFromDatabase()
             } else {
                 Result.failure(IllegalArgumentException("No rights - User is not the author of this pitch report"))
@@ -258,11 +266,12 @@ fun DeletePitchReportDEO.deleteChecked(user: User):Result<Boolean> {
 }
 
 
-fun DeletePitchReportDEO.deleteFromDatabase(): Result<Boolean> {
+suspend fun DeletePitchReportDEO.deleteFromDatabase(): Result<Boolean> {
     val deleteId = this.id
-    return transaction {
+    return newSuspendedTransaction {
         val pitch = Pitch.findById(deleteId)
         if (pitch != null) {
+            clearCacheForPitchReport(pitch)
             pitch.delete()
             Result.success(true)
         } else {

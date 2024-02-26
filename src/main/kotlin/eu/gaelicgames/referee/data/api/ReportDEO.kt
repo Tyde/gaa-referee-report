@@ -2,22 +2,30 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.count
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
 
 
+suspend fun Transaction.clearCacheForTournamentReport(report: TournamentReport) {
+    val tournamentID = report.tournament.id.value
+    CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
+    CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
+    CacheUtil.deleteCachedReport(report.id.value)
+
+}
+
 suspend fun CompleteReportDEO.Companion.fromTournamentReport(
     tournamentReport: TournamentReport
-): CompleteReportDEO  = coroutineScope {
-    val report =  transaction {
+): CompleteReportDEO = coroutineScope {
+    val report = transaction {
         val report = CompleteReportDEO(
             id = tournamentReport.id.value,
             tournament = TournamentDEO.fromTournament(tournamentReport.tournament),
@@ -38,7 +46,7 @@ suspend fun CompleteReportDEO.Companion.fromTournamentReport(
         )
         report
     }
-    if(tournamentReport.isSubmitted) {
+    if (tournamentReport.isSubmitted) {
         launch { CacheUtil.cacheReport(report) }
     }
     return@coroutineScope report
@@ -51,14 +59,14 @@ fun TournamentReportByIdDEO.Companion.fromTournamentReport(tournamentReport: Tou
         )
     }
 }
-suspend fun TournamentReportByIdDEO.submitInDatabase():Result<TournamentReport> {
+
+suspend fun TournamentReportByIdDEO.submitInDatabase(): Result<TournamentReport> {
     val stdeo = this
 
     return suspendedTransactionAsync {
         val report = TournamentReport.findById(stdeo.id)
         if (report != null) {
-            CacheUtil.deleteCachedCompleteTournamentReport(report.tournament.id.value)
-            CacheUtil.deleteCachedPublicTournamentReport(report.tournament.id.value)
+            clearCacheForTournamentReport(report)
 
             report.isSubmitted = true
             report.submitDate = LocalDateTime.now()
@@ -69,15 +77,16 @@ suspend fun TournamentReportByIdDEO.submitInDatabase():Result<TournamentReport> 
     }.await()
 }
 
-fun TournamentReportByIdDEO.createShareLink():Result<TournamentReportShareLinkDEO> {
+fun TournamentReportByIdDEO.createShareLink(): Result<TournamentReportShareLinkDEO> {
     val stdeo = this
     return transaction {
         val report = TournamentReport.findById(stdeo.id)
         if (report != null) {
             var share = TournamentReportShareLink.find { TournamentReportShareLinks.report eq report.id }.firstOrNull()
-            if(share == null){
+            if (share == null) {
                 var uuid = UUID.randomUUID()
-                while(TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull() != null){
+                while (TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }
+                        .firstOrNull() != null) {
                     uuid = UUID.randomUUID()
                 }
                 share = TournamentReportShareLink.new {
@@ -102,12 +111,13 @@ fun UpdateReportAdditionalInformationDEO.Companion.fromTournamentReportReport(re
     }
 }
 
-fun UpdateReportAdditionalInformationDEO.updateInDatabase(): Result<TournamentReport> {
+suspend fun UpdateReportAdditionalInformationDEO.updateInDatabase(): Result<TournamentReport> {
     val update = this
-    if(update.additionalInformation.isNotBlank()) {
-        return transaction {
+    if (update.additionalInformation.isNotBlank()) {
+        return newSuspendedTransaction {
             val report = TournamentReport.findById(update.id)
             if (report != null) {
+                clearCacheForTournamentReport(report)
                 report.additionalInformation = update.additionalInformation
                 Result.success(report)
             } else {
@@ -161,14 +171,15 @@ fun NewTournamentReportDEO.storeInDatabase(user: User): TournamentReport? {
     }
 }
 
-fun NewTournamentReportDEO.updateInDatabase(): Result<TournamentReport> {
+suspend fun NewTournamentReportDEO.updateInDatabase(): Result<TournamentReport> {
     val trUpdate = this
     if (trUpdate.id != null) {
-        return transaction {
+        return newSuspendedTransaction {
             val report = TournamentReport.findById(trUpdate.id)
             val tournament = Tournament.findById(trUpdate.tournament)
             val gameCode = GameCode.findById(trUpdate.gameCode)
             if (report != null && tournament != null && gameCode != null) {
+                clearCacheForTournamentReport(report)
                 report.tournament = tournament
                 report.code = gameCode
                 val connections = TournamentReportTeamPreSelection.find {
@@ -252,12 +263,13 @@ fun TournamentReportDEO.createInDatabase(referee: User): TournamentReport? {
     return null
 }
 
-fun TournamentReportDEO.updateInDatabase(): TournamentReport? {
+suspend fun TournamentReportDEO.updateInDatabase(): TournamentReport? {
     val rUpdate = this
     if (rUpdate.id != null) {
-        return transaction {
+        return newSuspendedTransaction {
             val report = TournamentReport.findById(rUpdate.id)
             if (report != null) {
+                clearCacheForTournamentReport(report)
                 rUpdate.tournament?.let {
                     Tournament.findById(it)
                 }?.let {
@@ -288,30 +300,30 @@ fun TournamentReportDEO.updateInDatabase(): TournamentReport? {
 }
 
 
-
-
 fun CompactTournamentReportDEO.Companion.all(): List<CompactTournamentReportDEO> {
     return transaction {
 
 
-        exec("SELECT\n" +
-                "    TournamentReports.id,\n" +
-                "    TournamentReports.tournament,\n" +
-                "    TournamentReports.code,\n" +
-                "    TournamentReports.is_submitted,\n" +
-                "    TournamentReports.submit_date,\n" +
-                "    TournamentReports.referee,\n" +
-                "    TournamentReports.additional_information,\n" +
-                "    U.first_name,\n" +
-                "    U.last_name,\n" +
-                "    (SELECT COUNT(*) FROM GameReports GR WHERE TournamentReports.id = GR.report_id) as \"num_game_reports\",\n" +
-                "    (SELECT COUNT(*) FROM TournamentReportTeamPreSelections TRTPS WHERE TournamentReports.id = TRTPS.report) as \"num_teams\"\n" +
-                "FROM TournamentReports\n" +
-                "         LEFT JOIN Users U on TournamentReports.referee = U.id\n" +
-                "\n" +
-                "GROUP BY TournamentReports.id;") {
+        exec(
+            "SELECT\n" +
+                    "    TournamentReports.id,\n" +
+                    "    TournamentReports.tournament,\n" +
+                    "    TournamentReports.code,\n" +
+                    "    TournamentReports.is_submitted,\n" +
+                    "    TournamentReports.submit_date,\n" +
+                    "    TournamentReports.referee,\n" +
+                    "    TournamentReports.additional_information,\n" +
+                    "    U.first_name,\n" +
+                    "    U.last_name,\n" +
+                    "    (SELECT COUNT(*) FROM GameReports GR WHERE TournamentReports.id = GR.report_id) as \"num_game_reports\",\n" +
+                    "    (SELECT COUNT(*) FROM TournamentReportTeamPreSelections TRTPS WHERE TournamentReports.id = TRTPS.report) as \"num_teams\"\n" +
+                    "FROM TournamentReports\n" +
+                    "         LEFT JOIN Users U on TournamentReports.referee = U.id\n" +
+                    "\n" +
+                    "GROUP BY TournamentReports.id;"
+        ) {
             val returnList = mutableListOf<CompactTournamentReportDEO>()
-            while(it.next()) {
+            while (it.next()) {
                 returnList.add(
                     CompactTournamentReportDEO(
                         it.getLong("id"),
@@ -323,10 +335,11 @@ fun CompactTournamentReportDEO.Companion.all(): List<CompactTournamentReportDEO>
                         it.getString("first_name") + " " + it.getString("last_name"),
                         it.getLong("num_game_reports"),
                         it.getLong("num_teams"), it.getString("additional_information")
-                    ))
+                    )
+                )
             }
             returnList.toList()
-        }?: emptyList()
+        } ?: emptyList()
 
 
     }
@@ -356,30 +369,29 @@ fun CompactTournamentReportDEO.Companion.fromTournamentReport(report: Tournament
 }
 
 
-
-
 /**
  * This function deletes the tournament report from the database
  * it will not check if the user is allowed to delete the report
  */
-fun DeleteTournamentReportDEO.deleteFromDatabase(): Result<Boolean> {
+suspend fun DeleteTournamentReportDEO.deleteFromDatabase(): Result<Boolean> {
     val id = this.id
-    return transaction {
-        TournamentReport.findById(id)?.let{ it->
+    return newSuspendedTransaction {
+        TournamentReport.findById(id)?.let { it ->
+            clearCacheForTournamentReport(it)
             it.deleteComplete()
             Result.success(true)
         } ?: Result.failure(Exception("TournamentReport with id $id not found"))
     }
 }
 
-fun DeleteTournamentReportDEO.deleteChecked(user: User) :Result<Boolean> {
+suspend fun DeleteTournamentReportDEO.deleteChecked(user: User): Result<Boolean> {
     val id = this.id
-    val hasRights =  transaction {
-        TournamentReport.findById(id)?.let{ it->
+    val hasRights = transaction {
+        TournamentReport.findById(id)?.let { it ->
             it.referee == user || user.role == UserRole.ADMIN
         } ?: false
     }
-    if(hasRights) {
+    if (hasRights) {
         return deleteFromDatabase()
     }
     return Result.failure(Exception("User has no rights to delete TournamentReport with id $id"))
