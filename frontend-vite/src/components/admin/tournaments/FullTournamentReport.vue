@@ -4,7 +4,7 @@ import {usePublicStore} from "@/utils/public_store";
 import {computed, onMounted, ref} from "vue";
 import {loadCompleteTournamentReport} from "@/utils/api/tournament_api";
 import {Report} from "@/types/report_types";
-import type {GameReport} from "@/types/game_report_types";
+import type {GameReport, SingleTeamGameReport} from "@/types/game_report_types";
 import {compareGameReportByStartTime} from "@/types/game_report_types";
 import {CompleteTournamentReportDEO} from "@/types/complete_tournament_types";
 import {Referee} from "@/types/referee_types";
@@ -127,6 +127,10 @@ const gameReports = computed(() => {
   }
 })
 
+function calcuateTotalPoints(teamReport: SingleTeamGameReport) {
+  return (teamReport.goals ?? 0) * 3 + (teamReport.points ?? 0)
+}
+
 const selectedReferees = ref<Referee[]>([])
 const onlyShowRedCardReports = ref(false)
 const selectedCodes = ref<GameCode[]>([])
@@ -220,6 +224,18 @@ function scrollToGameReports() {
   }
 }
 
+function isTeamAWinner(gr:GameReport) {
+  let teamATotal = calcuateTotalPoints(gr.teamAReport);
+  let teamBTotal = calcuateTotalPoints(gr.teamBReport);
+  if(teamATotal > teamBTotal) {
+    return 1
+  } else if(teamATotal < teamBTotal) {
+    return -1
+  } else {
+    return 0
+  }
+}
+
 </script>
 
 <template>
@@ -305,17 +321,17 @@ function scrollToGameReports() {
           <div class="flex flex-row">
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
-                <div class="flex flex-row">
+                <div class="flex flex-row" :class="{'font-bold':isTeamAWinner(gr)==1}">
                   <div class="flex-1">{{ gr.teamAReport.team?.name }}</div>
-                  <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }}</div>
+                  <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }} ({{calcuateTotalPoints(gr.teamAReport)}})</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamAReport"/>
               </div>
             </div>
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
-                <div class="flex flex-row">
-                  <div class="flex-1 text-right">{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }}</div>
+                <div class="flex flex-row" :class="{'font-bold':isTeamAWinner(gr)==-1}">
+                  <div class="flex-1 text-right" >{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }} ({{calcuateTotalPoints(gr.teamBReport)}})</div>
                   <div class="flex-1 text-right">{{ gr.teamBReport.team?.name }}</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamBReport"/>
