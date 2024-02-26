@@ -102,7 +102,8 @@ function addEmptyDisciplinaryAction() {
       number: undefined,
       rule: undefined,
       details: "",
-      redCardIssued: false
+      redCardIssued: false,
+      forTeamOfficial: false,
     })
   }
 }
@@ -163,9 +164,18 @@ onMounted(() => {
               class="w-20"
               input-class="w-20"
               :placeholder="$t('gameReport.player.number')"
+              :disabled="dAction.forTeamOfficial"
           />
         </div>
-
+        <div class="p-2 flex flex-col">
+          <div class="flex flex-row items-center h-12">
+            <div class="mr-2">T.O.?</div>
+            <Checkbox
+                v-model="dAction.forTeamOfficial"
+                :binary="true"
+            />
+          </div>
+        </div>
         <!-- Rule: {{dAction.rule?.id}}-->
         <div class="flex flex-col">
           <Dropdown

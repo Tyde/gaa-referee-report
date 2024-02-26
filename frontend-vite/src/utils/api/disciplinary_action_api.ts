@@ -30,7 +30,8 @@ export function fromDisciplinaryActionDEOToDisciplinaryAction(
         number: dADEO.number,
         rule: allRules.find(rule => rule.id == dADEO.rule),
         details: dADEO.details,
-        redCardIssued: dADEO.redCardIssued
+        redCardIssued: dADEO.redCardIssued,
+        forTeamOfficial: dADEO.number == -1
     } as DisciplinaryAction
 }
 
@@ -43,7 +44,7 @@ export function fromDisciplinaryActionToDisciplinaryActionDEO(
         team: dA.team?.id,
         firstName: dA.firstName,
         lastName: dA.lastName,
-        number: dA.number,
+        number: dA.forTeamOfficial ? -1 : dA.number,
         rule: dA.rule?.id,
         details: dA.details ?? "",
         game: gameReportId,
@@ -55,7 +56,7 @@ export function  checkActionReadyForUpload(dAction: DisciplinaryAction) {
     return dAction.rule != undefined &&
         (dAction.firstName != "" ||
             dAction.lastName != "") &&
-        dAction.number != undefined
+        (dAction.number != undefined || dAction.forTeamOfficial)
 }
 
 export async function uploadDisciplinaryAction(action: DisciplinaryAction, gameReportId:number):Promise<number> {
@@ -82,7 +83,7 @@ export async function uploadDisciplinaryAction(action: DisciplinaryAction, gameR
 export function disciplinaryActionIsBlank(disciplinaryAction: DisciplinaryAction) {
     return disciplinaryAction.firstName.trim().length == 0 &&
         disciplinaryAction.lastName.trim().length == 0 &&
-        !disciplinaryAction.number &&
+        (!disciplinaryAction.number && !disciplinaryAction.forTeamOfficial) &&
         !disciplinaryAction.rule &&
         disciplinaryAction.details.trim().length == 0
 }

@@ -50,6 +50,7 @@ export interface DisciplinaryAction {
     rule?: Rule,
     details: string,
     redCardIssued: boolean,
+    forTeamOfficial: boolean,
 }
 
 export interface Injury {

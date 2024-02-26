@@ -131,8 +131,8 @@ function stripRuleCardsFromDescription(description?: string) {
               <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
               <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
               <div v-if="action.redCardIssued" class="rule-card-clear-none card-red"></div>
-
-              {{ action.number }} - {{ action.firstName }} {{ action.lastName }} -
+              <template v-if="action.number && action.number >= 0">{{ action.number }}</template>
+              <template v-else-if="action.forTeamOfficial"> T.O. </template> - {{ action.firstName }} {{ action.lastName }} -
               {{ stripRuleCardsFromDescription(action.rule?.description)?.substring(0, 25) }} ...
             </template>
           </div>

@@ -20,8 +20,8 @@ const props = defineProps<{
           <div v-if="action.rule?.isRed" class="rule-card card-red"></div>
           <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
           <div v-if="action.redCardIssued" class="rule-card-clear-none card-red"></div>
-
-          {{action.number}} - {{action.firstName}} {{action.lastName}}: {{action.rule?.description || ''}}<br>
+          <template v-if="action.number && action.number >= 0">{{ action.number }}</template>
+          <template v-else-if="action.forTeamOfficial"> T.O. </template> - {{action.firstName}} {{action.lastName}}: {{action.rule?.description || ''}}<br>
           {{action.details}}
         </li>
       </ul>
