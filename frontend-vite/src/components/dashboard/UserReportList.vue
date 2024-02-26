@@ -28,6 +28,13 @@ const filters = ref({
   },
 
 })
+
+type TransformedTournamentReport = CompactTournamentReportDEO & {
+  codeName: string,
+  tournamentName: string,
+  tournamentDate: DateTime,
+  tournamentLocation: string,
+}
 const transformedReports = computed(() => {
   return props.reports.map(report => {
     let code = store.findCodeById(report.code)
@@ -38,7 +45,7 @@ const transformedReports = computed(() => {
       tournamentName: (tournament?.name ?? ''),
       tournamentDate: (tournament?.date ?? DateTime.now()),
       tournamentLocation: tournament?.location ?? '',
-    }
+    } as TransformedTournamentReport
   })
 })
 
@@ -93,7 +100,7 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
       </template>
     </Column>
     <Column field="tournamentDate" header="Date" :sortable="true">
-      <template #body="{data}">
+      <template #body="{data} : {data:TransformedTournamentReport}">
         {{ data.tournamentDate.toISODate() }}
       </template>
       <template #filter="{filterModel,filterCallback}">
