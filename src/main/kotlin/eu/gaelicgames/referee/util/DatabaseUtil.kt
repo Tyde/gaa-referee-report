@@ -18,6 +18,8 @@ object DatabaseHandler {
     fun init(testing:Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
         if (testing) {
             db = if(usePostgres) {
+                println("Trying to connect to postgres")
+                println("Host: ${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}")
                 Database.connect(
                     "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
                     driver = "org.postgresql.Driver",
