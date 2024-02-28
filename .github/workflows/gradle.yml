@@ -78,7 +78,7 @@ jobs:
         REDIS_PASSWORD: ""
     - name: Upload test results
       uses: actions/upload-artifact@v2
-      if: failure()
+      if: failure() || always()
       with:
         name: test-results
         path: /home/runner/work/gaa-referee-report/gaa-referee-report/build/reports/tests/test/
