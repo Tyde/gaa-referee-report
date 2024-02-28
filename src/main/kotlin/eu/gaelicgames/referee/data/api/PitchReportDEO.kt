@@ -2,21 +2,22 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.lockedTransaction
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
 
 
 suspend fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
-    val cachedVars = CacheUtil.getCachedPitchVariables()
+    val cachedVars = runBlocking {
+        CacheUtil.getCachedPitchVariables()
+    }
     if (cachedVars.isSuccess) {
         return cachedVars.getOrThrow()
     }
 
-    return suspendedTransactionAsync {
+    return lockedTransaction {
         val variables = PitchVariablesDEO(
             surfaces = PitchSurfaceOption.all().map { it.toPitchPropertyDEO() },
             lengths = PitchLengthOption.all().map { it.toPitchPropertyDEO() },
@@ -25,9 +26,11 @@ suspend fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
             goalPosts = PitchGoalpostsOption.all().map { it.toPitchPropertyDEO() },
             goalDimensions = PitchGoalDimensionOption.all().map { it.toPitchPropertyDEO() },
         )
-        CacheUtil.cachePitchVariables(variables)
+        runBlocking {
+            CacheUtil.cachePitchVariables(variables)
+        }
         variables
-    }.await()
+    }
 }
 
 fun PitchPropertyType.toDBClass(): LongEntityClass<LongEntity> {
@@ -45,8 +48,10 @@ fun PitchPropertyType.toDBClass(): LongEntityClass<LongEntity> {
 
 suspend fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
-    CacheUtil.deleteCachedPitchVariables()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedPitchVariables()
+    }
+    return lockedTransaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
         if (obj is PitchPropertyEntity) {
@@ -60,8 +65,10 @@ suspend fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdat
 
 suspend fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO> {
     val pvUpdate = this
-    CacheUtil.deleteCachedPitchVariables()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedPitchVariables()
+    }
+    return lockedTransaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
         if (obj is PitchPropertyEntity) {
@@ -80,8 +87,10 @@ suspend fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO
 
 suspend fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
-    CacheUtil.deleteCachedPitchVariables()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedPitchVariables()
+    }
+    return lockedTransaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
         if (obj is PitchPropertyEntity) {
@@ -96,8 +105,10 @@ suspend fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
 
 suspend fun NewPitchVariableDEO.createInDatabase(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
-    CacheUtil.deleteCachedPitchVariables()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedPitchVariables()
+    }
+    return lockedTransaction {
         val obj = when (pvUpdate.type) {
             PitchPropertyType.SURFACE -> PitchSurfaceOption.new { name = pvUpdate.name }
             PitchPropertyType.LENGTH -> PitchLengthOption.new { name = pvUpdate.name }
@@ -111,8 +122,8 @@ suspend fun NewPitchVariableDEO.createInDatabase(): Result<PitchVariableUpdateDE
 }
 
 
-fun PitchReportDEO.Companion.fromPitchReport(pitchReport: Pitch): PitchReportDEO {
-    return transaction {
+suspend fun PitchReportDEO.Companion.fromPitchReport(pitchReport: Pitch): PitchReportDEO {
+    return lockedTransaction {
         PitchReportDEO(
             id = pitchReport.id.value,
             name = pitchReport.name,
@@ -132,17 +143,19 @@ fun PitchReportDEO.Companion.fromPitchReport(pitchReport: Pitch): PitchReportDEO
     }
 }
 
-suspend fun Transaction.clearCacheForPitchReport(pitch: Pitch) {
+fun Transaction.clearCacheForPitchReport(pitch: Pitch) {
 
     val report = pitch.report
-    clearCacheForTournamentReport(report)
+    runBlocking {
+        clearCacheForTournamentReport(report)
+    }
 
 }
 
 suspend fun PitchReportDEO.createInDatabase(): Result<Pitch> {
     val pUpdate = this
     if (pUpdate.name.isNotBlank()) {
-        return newSuspendedTransaction {
+        return lockedTransaction {
             val report = TournamentReport.findById(pUpdate.report)
             if (report != null) {
                 clearCacheForTournamentReport(report)
@@ -197,7 +210,7 @@ suspend fun PitchReportDEO.createInDatabase(): Result<Pitch> {
 suspend fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
     val pUpdate = this
     if (pUpdate.id != null && pUpdate.name.isNotBlank()) {
-        return newSuspendedTransaction {
+        return lockedTransaction {
             val report = TournamentReport.findById(pUpdate.report)
             if (report != null) {
                 clearCacheForTournamentReport(report)
@@ -238,13 +251,13 @@ suspend fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
                     pUpdate.additionalInformation?.let {
                         pitch.additionalInformation = it
                     }
-                    return@newSuspendedTransaction Result.success(pitch)
+                    return@lockedTransaction Result.success(pitch)
                 } else {
-                    return@newSuspendedTransaction Result.failure(IllegalArgumentException("PitchReport not found"))
+                    return@lockedTransaction Result.failure(IllegalArgumentException("PitchReport not found"))
                 }
 
             } else {
-                return@newSuspendedTransaction Result.failure(IllegalArgumentException("Report id not valid"))
+                return@lockedTransaction Result.failure(IllegalArgumentException("Report id not valid"))
             }
         }
     } else {
@@ -254,7 +267,7 @@ suspend fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
 
 suspend fun DeletePitchReportDEO.deleteChecked(user: User): Result<Boolean> {
     val deleteId = this.id
-    return newSuspendedTransaction {
+    return lockedTransaction {
         Pitch.findById(deleteId)?.let {
             if (it.report.referee.id == user.id) {
                 deleteFromDatabase()
@@ -268,10 +281,12 @@ suspend fun DeletePitchReportDEO.deleteChecked(user: User): Result<Boolean> {
 
 suspend fun DeletePitchReportDEO.deleteFromDatabase(): Result<Boolean> {
     val deleteId = this.id
-    return newSuspendedTransaction {
+    return lockedTransaction {
         val pitch = Pitch.findById(deleteId)
         if (pitch != null) {
-            clearCacheForPitchReport(pitch)
+            runBlocking {
+                clearCacheForPitchReport(pitch)
+            }
             pitch.delete()
             Result.success(true)
         } else {
@@ -280,8 +295,8 @@ suspend fun DeletePitchReportDEO.deleteFromDatabase(): Result<Boolean> {
     }
 }
 
-fun PitchDEO.Companion.fromPitch(pitch: Pitch): PitchDEO {
-    return transaction {
+suspend fun PitchDEO.Companion.fromPitch(pitch: Pitch): PitchDEO {
+    return lockedTransaction {
         PitchDEO(
             id = pitch.id.value,
             report = pitch.report.id.value,

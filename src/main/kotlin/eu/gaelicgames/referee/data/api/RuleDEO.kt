@@ -3,11 +3,12 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.GameCode
 import eu.gaelicgames.referee.data.Rule
 import eu.gaelicgames.referee.util.CacheUtil
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
+import eu.gaelicgames.referee.util.lockedTransaction
+import kotlinx.coroutines.runBlocking
 
-fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
-    return transaction {
+
+suspend fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
+    return lockedTransaction {
         RuleDEO(
             rule.id.value,
             rule.code.id.value,
@@ -23,19 +24,22 @@ fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
 suspend fun RuleDEO.Companion.allRules(): List<RuleDEO> {
     return CacheUtil.getCachedRules()
         .getOrElse {
-            suspendedTransactionAsync {
+            lockedTransaction {
                 val rules = Rule.all().map { RuleDEO.fromRule(it) }
                 CacheUtil.cacheRules(rules)
                 rules
-            }.await()
+            }
         }
+
 }
 
 
 suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
     val rUpdate = this
-    CacheUtil.deleteCachedRules()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedRules()
+    }
+    return lockedTransaction {
         val rule = Rule.findById(rUpdate.id)
         if (rule != null) {
             GameCode.findById(rUpdate.code)?.let {
@@ -57,8 +61,10 @@ suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
 
 
 suspend fun ModifyRulesDEOState.delete(): Result<Boolean> {
-    CacheUtil.deleteCachedRules()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedRules()
+    }
+    return lockedTransaction {
         val rule = Rule.findById(this@delete.id)
         if (rule != null) {
             if (rule.isDeletable()) {
@@ -78,8 +84,10 @@ suspend fun ModifyRulesDEOState.delete(): Result<Boolean> {
 }
 
 suspend fun ModifyRulesDEOState.toggleDisabledState(): Result<Rule> {
-    CacheUtil.deleteCachedRules()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedRules()
+    }
+    return lockedTransaction {
         val rule = Rule.findById(this@toggleDisabledState.id)
         if (rule != null) {
             rule.isDisabled = !rule.isDisabled
@@ -92,8 +100,8 @@ suspend fun ModifyRulesDEOState.toggleDisabledState(): Result<Rule> {
     }
 }
 
-fun ModifyRulesDEOState.isDeletable(): Result<RuleIsDeletableDEO> {
-    return transaction {
+suspend fun ModifyRulesDEOState.isDeletable(): Result<RuleIsDeletableDEO> {
+    return lockedTransaction {
         val rule = Rule.findById(this@isDeletable.id)
         if (rule != null) {
             Result.success(RuleIsDeletableDEO(rule.id.value, rule.isDeletable()))
@@ -107,9 +115,11 @@ fun ModifyRulesDEOState.isDeletable(): Result<RuleIsDeletableDEO> {
 
 
 suspend fun NewRuleDEO.createInDatabase(): Result<Rule> {
+
     CacheUtil.deleteCachedRules()
+
     val newRule = this
-    return transaction {
+    return lockedTransaction {
         val code = GameCode.findById(newRule.code)
         if (code != null) {
             Result.success(Rule.new {

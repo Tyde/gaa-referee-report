@@ -18,11 +18,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 
 suspend fun main() = runBlocking<Unit> {
 
     DatabaseHandler.init()
     DatabaseHandler.createSchema()
+    transaction {
+        if (User.all().count() == 0L) {
+
+            if (File("data/data.db").exists()) {
+                DatabaseHandler.migrateSQLiteToPostgres()
+            }
+        }
+    }
     DatabaseHandler.populate_base_data()
 
 

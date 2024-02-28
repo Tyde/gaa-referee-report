@@ -1,21 +1,52 @@
 package eu.gaelicgames.referee.util
 
+import com.typesafe.config.ConfigUtil
 import eu.gaelicgames.referee.data.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.statements.Statement
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.Month
 
+val USE_POSTGRES = true
 
 object DatabaseHandler {
     var db: Database? = null
-    fun init() {
-        db = Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
+    fun init(testing:Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
+        if (testing) {
+            db = if(usePostgres) {
+                Database.connect(
+                    "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
+                    driver = "org.postgresql.Driver",
+                    user = "root",
+                    password = ""
+                )
+            } else {
+                Database.connect("jdbc:sqlite:data/test.db", "org.sqlite.JDBC")
+            }
+        } else {
+            db = if(usePostgres) {
+                Database.connect(
+                    "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
+                    driver = "org.postgresql.Driver",
+                    user = GGERefereeConfig.postgresUser,
+                    password = GGERefereeConfig.postgresPassword
+                )
+            } else {
+                Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
+            }
+        }
     }
 
     val tables = listOf(
@@ -203,10 +234,150 @@ object DatabaseHandler {
         }
     }
 
+    data class DependencyNode(
+        val table: LongIdTable,
+        val dependsOn: MutableList<DependencyNode>,
+        val isReferencedBy: MutableList<DependencyNode> = mutableListOf()
+    )
+
+    fun constructDependencyTree(): List<DependencyNode> {
+        val nodes = tables.map{it -> DependencyNode(it, mutableListOf(), mutableListOf())}
+        tables.forEach { table ->
+            val dependsOn = table.foreignKeys.map { it.targetTable }.distinct()
+            val dependsOnNodes = dependsOn.map { targetTable ->
+                nodes.find { it.table == targetTable } ?: throw Exception("Table $table depends on $targetTable, but $targetTable is not in the list of tables")
+            }
+            val myNode = nodes.find { it.table == table } ?: throw Exception("Table $table is not in the list of tables")
+            myNode.dependsOn.addAll(dependsOnNodes)
+            dependsOnNodes.forEach { it.isReferencedBy.add(myNode) }
+        }
+        return nodes
+    }
+
+    fun migrateSQLiteToPostgres() {
+        val sqliteDB = Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
+        val postgresDB = Database.connect(
+            "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
+            driver = "org.postgresql.Driver",
+            user = GGERefereeConfig.postgresUser,
+            password = GGERefereeConfig.postgresPassword
+        )
+
+        transaction(postgresDB) {
+            for (table in tables) {
+                SchemaUtils.create(table)
+            }
+        }
+
+
+
+
+
+        transaction(sqliteDB) {
+            val treeNodes = constructDependencyTree()
+            val tablesMigrated = mutableListOf<Table>()
+            val tableCount = tables.size
+            while (tablesMigrated.size < tableCount) {
+                val tablesToMigrate = treeNodes.filter { node ->
+                    node.dependsOn.all { it.table in tablesMigrated }
+                }.filter { it.table !in tablesMigrated}
+                println("Next set of tables to migrate:")
+                tablesToMigrate.forEach { println(it.table.tableName) }
+                for (tableNode in tablesToMigrate) {
+                    val table = tableNode.table
+                    println("Migrating ${table.tableName}")
+                    val insertStatement = "INSERT INTO ${tableNode.table.tableName} ("
+                    val columns = tableNode.table.columns.joinToString(",") { "\""+it.name+"\"" }
+                    val values = tableNode.table.columns.joinToString(",") { "?" }
+                    val insertStatementEnd = ") VALUES ($values);"
+                    val statementString = insertStatement + columns + insertStatementEnd
+                    println(statementString)
+                    table.selectAll().map {
+                        val params = table.columns.map { column ->
+                            Pair(column.columnType,it[column])
+                        }
+                        println("Inserting $params")
+                        transaction(postgresDB) {
+                            try {
+                                val statement = this.connection.prepareStatement(
+                                    statementString,
+                                    false
+                                )
+                                statement.fillParameters(params)
+                                statement.executeUpdate()
+                            } catch (e: Exception) {
+                                println("Error inserting $params")
+                                e.printStackTrace()
+                            }
+
+                        }
+                    }
+
+                    transaction(postgresDB) {
+                        val maxval = table.slice (table.id.max())
+                            .selectAll()
+                            .firstOrNull()
+                            ?.get(table.id.max())
+
+                        maxval?.let {
+                            val sequenceName = "${table.tableName}_${table.id.name}_seq"
+                            val nextVal = "SELECT setval('$sequenceName', ${maxval.value + 1});"
+                            this.connection.prepareStatement(nextVal, arrayOf("setval")).executeQuery()
+
+                        }
+                    }
+
+                    tablesMigrated.add(tableNode.table)
+                }
+
+            }
+
+        }
+
+
+
+
+    }
+
+}
+
+val tansactionMutex = Mutex()
+suspend fun <T>lockedTransaction(statement: suspend Transaction.() -> T): T {
+    return transaction {
+            runBlocking{
+                statement()
+            }
+        }
+
 }
 
 fun main() {
-    DatabaseHandler.populate_base_data()
+    /*DatabaseHandler.init(testing = false, usePostgres = false)
+    DatabaseHandler.createSchema()
+    transaction {
+        val treeNodes = DatabaseHandler.constructDependencyTree()
+
+        val tablesMigrated = mutableListOf<Table>()
+        val tableCount = DatabaseHandler.tables.size
+        while (tablesMigrated.size < tableCount) {
+            val tablesToMigrate = treeNodes.filter { it.dependsOn.all { it.table in tablesMigrated } }
+            for (tableNode in tablesToMigrate) {
+                println("Migrating ${tableNode.table.tableName}")
+                val res = tableNode.table.selectAll().map { row ->
+                    val insertStatement = "INSERT INTO ${tableNode.table.tableName} ("
+                    val columns = tableNode.table.columns.joinToString(",") { it.name }
+                    val values = tableNode.table.columns.joinToString(",") { "?" }
+                    val insertStatementEnd = ") VALUES ($values)"
+                    insertStatement + columns + insertStatementEnd
+                }
+                println(res)
+                tablesMigrated.add(tableNode.table)
+            }
+        }
+    }*/
+    DatabaseHandler.migrateSQLiteToPostgres()
+
+
 }
 
 

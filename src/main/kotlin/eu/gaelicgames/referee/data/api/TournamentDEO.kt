@@ -2,17 +2,18 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.lockedTransaction
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
 
-fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
+suspend fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
 
-    return transaction {
+    return lockedTransaction {
         TournamentDEO(
             input.id.value, input.name, input.location, input.date, input.region.id.value
         )
@@ -21,41 +22,56 @@ fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
 
 suspend fun TournamentDEO.updateInDatabase(): Result<Tournament> {
     val thisDEO = this
-    return newSuspendedTransaction {
+    return lockedTransaction {
         val region = Region.findById(thisDEO.region)
         if (region == null) {
-            return@newSuspendedTransaction Result.failure(
+            return@lockedTransaction Result.failure(
                 IllegalArgumentException("Region with id ${thisDEO.region} does not exist")
             )
         }
         val tournament = Tournament.findById(thisDEO.id)
         if (tournament == null) {
-            return@newSuspendedTransaction Result.failure(
+            return@lockedTransaction Result.failure(
                 IllegalArgumentException("Tournament with id ${thisDEO.id} does not exist")
             )
         }
-        CacheUtil.deleteCachedCompleteTournamentReport(tournament.id.value)
-        CacheUtil.deleteCachedPublicTournamentReport(tournament.id.value)
+        if (thisDEO.name.isBlank() || thisDEO.location.isBlank()) {
+            return@lockedTransaction Result.failure(
+                IllegalArgumentException("Name and location cannot be empty")
+            )
+        }
+        runBlocking {
+            CacheUtil.deleteCachedCompleteTournamentReport(tournament.id.value)
+            CacheUtil.deleteCachedPublicTournamentReport(tournament.id.value)
+        }
+
         TournamentReport.find { TournamentReports.tournament eq tournament.id }.forEach {
-            CacheUtil.deleteCachedReport(it.id.value)
+            runBlocking {
+                CacheUtil.deleteCachedReport(it.id.value)
+            }
         }
 
         tournament.name = thisDEO.name
         tournament.location = thisDEO.location
         tournament.date = thisDEO.date
         tournament.region = region
-        return@newSuspendedTransaction Result.success(tournament)
+        return@lockedTransaction Result.success(tournament)
     }
 }
 
 
-fun NewTournamentDEO.storeInDatabase(): Result<Tournament> {
+suspend fun NewTournamentDEO.storeInDatabase(): Result<Tournament> {
     val thisDEO = this
-    return transaction {
+    return lockedTransaction {
         val region = Region.findById(thisDEO.region)
         if (region == null) {
-            return@transaction Result.failure(
+            return@lockedTransaction Result.failure(
                 IllegalArgumentException("Region with id ${thisDEO.region} does not exist")
+            )
+        }
+        if (name.isBlank() || location.isBlank()) {
+            return@lockedTransaction Result.failure(
+                IllegalArgumentException("Name and location cannot be empty")
             )
         }
         val tournament = Tournament.new {
@@ -64,7 +80,7 @@ fun NewTournamentDEO.storeInDatabase(): Result<Tournament> {
             date = thisDEO.date
             this.region = region
         }
-        return@transaction Result.success(tournament)
+        return@lockedTransaction Result.success(tournament)
     }
 }
 
@@ -74,7 +90,7 @@ fun RegionDEO.Companion.fromRegion(input: Region): RegionDEO {
 
 
 suspend fun PublicTournamentReportDEO.Companion.fromTournament(input: Tournament): PublicTournamentReportDEO {
-    return suspendedTransactionAsync {
+    return lockedTransaction {
 
         val gameReports = TournamentReports.leftJoin(GameReports).select {
             (TournamentReports.tournament eq input.id) and
@@ -87,7 +103,6 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournament(input: Tournament
 
         val allTeams = gameReports
             .flatMap { listOf(it.gameReport.teamA, it.gameReport.teamB) }
-            .asSequence()
             .distinct()
             .filterNotNull()
             .map { TeamDEO.fromTeamId(it) }
@@ -100,27 +115,31 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournament(input: Tournament
             gameReports,
             allTeams
         )
-        CacheUtil.cachePublicTournamentReport(ptr)
+        runBlocking {
+            CacheUtil.cachePublicTournamentReport(ptr)
+        }
         ptr
-    }.await()
+    }
 
 }
 
 
-suspend fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTournamentReportDEO {
-    return CacheUtil.getCachedPublicTournamentReport(id)
-        .getOrElse {
-            suspendedTransactionAsync {
-                val tournament = Tournament.findById(id)
-                    ?: throw IllegalArgumentException("Tournament with id $id does not exist")
-                fromTournament(tournament)
-            }.await()
-        }
+fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTournamentReportDEO {
+    return runBlocking {
+        CacheUtil.getCachedPublicTournamentReport(id)
+            .getOrElse {
+                suspendedTransactionAsync {
+                    val tournament = Tournament.findById(id)
+                        ?: throw IllegalArgumentException("Tournament with id $id does not exist")
+                    fromTournament(tournament)
+                }.await()
+            }
 
+    }
 }
 
 suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tournament): CompleteTournamentReportDEO {
-    return suspendedTransactionAsync {
+    return lockedTransaction {
 
         val gameReports = TournamentReports.innerJoin(GameReports).select{
             (TournamentReports.tournament eq input.id) and
@@ -133,8 +152,8 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
 
         val allTeams = gameReports
             .flatMap { listOf(it.gameReport.gameReport.teamA, it.gameReport.gameReport.teamB) }
-            .asSequence()
-            .distinct()
+            .asFlow()
+            .distinctUntilChanged()
             .filterNotNull()
             .map { TeamDEO.fromTeamId(it) }
             .filter { it.isSuccess }
@@ -158,31 +177,37 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
             allTeams,
             allPitchReports
         )
-        CacheUtil.cacheCompleteTournamentReport(deo)
+        runBlocking {
+            CacheUtil.cacheCompleteTournamentReport(deo)
+        }
         deo
-    }.await()
+    }
 }
 
 
-suspend fun CompleteTournamentReportDEO.Companion.fromTournamentId(id: Long): CompleteTournamentReportDEO {
-    CacheUtil.getCachedCompleteTournamentReport(id).onSuccess {
-        return it
-    }
-    return suspendedTransactionAsync {
-        val tournament = Tournament.findById(id)
-        if (tournament == null) {
-            throw IllegalArgumentException("Tournament with id $id does not exist")
+fun CompleteTournamentReportDEO.Companion.fromTournamentId(id: Long): CompleteTournamentReportDEO {
+    return runBlocking {
+        CacheUtil.getCachedCompleteTournamentReport(id).onSuccess {
+            return@runBlocking it
         }
-        fromTournament(tournament)
-    }.await()
+        return@runBlocking lockedTransaction {
+            val tournament = Tournament.findById(id)
+            if (tournament == null) {
+                throw IllegalArgumentException("Tournament with id $id does not exist")
+            }
+            fromTournament(tournament)
+        }
+    }
 }
 
 
 suspend fun DeleteCompleteTournamentDEO.delete():Result<Long> {
     val tournamentID = this.id
-    CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
-    CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
-    return suspendedTransactionAsync {
+    runBlocking {
+        CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
+        CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
+    }
+    return lockedTransaction {
         addLogger(StdOutSqlLogger)
         val tournament = Tournament.findById(tournamentID)
         if(tournament != null) {
@@ -196,7 +221,7 @@ suspend fun DeleteCompleteTournamentDEO.delete():Result<Long> {
         } else {
             Result.failure(Exception("Tournament with id $tournamentID not found"))
         }
-    }.await()
+    }
 }
 
 

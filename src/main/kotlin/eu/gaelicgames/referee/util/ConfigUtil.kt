@@ -20,6 +20,11 @@ object GGERefereeConfig {
     var redisPort : Int
     var redisPassword : String = ""
 
+    var postgresHost : String
+    var postgresPort : Int
+    var postgresDatabase : String
+    var postgresUser : String
+    var postgresPassword : String
 
 
     init {
@@ -38,6 +43,12 @@ object GGERefereeConfig {
         val configRedisPort = Key("redis.port", intType)
         val configRedisPassword = Key("redis.password", stringType)
 
+        val configPostgresHost = Key("postgres.host", stringType)
+        val configPostgresPort = Key("postgres.port", intType)
+        val configPostgresDatabase = Key("postgres.database", stringType)
+        val configPostgresUser = Key("postgres.user", stringType)
+        val configPostgresPassword = Key("postgres.password", stringType)
+
         mailjetPublicKey = config[configMailjetPublicKey]
         mailjetSecretKey = config[configMailjetSecretKey]
         serverUrl = config[configBaseUrl]
@@ -50,6 +61,12 @@ object GGERefereeConfig {
         redisHost = config[configRedisHost]
         redisPort = config[configRedisPort]
         redisPassword = config[configRedisPassword]
+
+        postgresHost = config[configPostgresHost]
+        postgresPort = config[configPostgresPort]
+        postgresDatabase = config[configPostgresDatabase]
+        postgresUser = config[configPostgresUser]
+        postgresPassword = config[configPostgresPassword]
 
 
     }

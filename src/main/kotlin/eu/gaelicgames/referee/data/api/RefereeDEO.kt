@@ -3,7 +3,7 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.MailjetClientHandler
-import org.jetbrains.exposed.sql.transactions.transaction
+import eu.gaelicgames.referee.util.lockedTransaction
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.*
@@ -16,9 +16,9 @@ fun RefereeDEO.Companion.fromReferee(referee: User): RefereeDEO {
         mail = referee.mail,
     )
 }
-fun RefereeDEO.updateInDatabase():Result<User> {
+suspend fun RefereeDEO.updateInDatabase():Result<User> {
     val thisReferee = this
-    return transaction {
+    return lockedTransaction {
         val referee = User.findById(thisReferee.id)
         if (referee != null) {
             referee.firstName = thisReferee.firstName
@@ -43,9 +43,9 @@ fun generateActivationLink(referee: User): String {
     return GGERefereeConfig.serverUrl + "/user/activate/$activationString"
 }
 
-fun NewRefereeDEO.createInDatabase(): Result<User> {
+suspend fun NewRefereeDEO.createInDatabase(): Result<User> {
     val thisReferee = this
-    return transaction {
+    return lockedTransaction {
         val extractedRole = if (thisReferee.isReferee) {
             UserRole.WAITING_FOR_ACTIVATION
         } else {
@@ -75,9 +75,9 @@ fun NewRefereeDEO.createInDatabase(): Result<User> {
     }
 }
 
-fun TokenDEO.validate(): Result<User> {
+suspend fun TokenDEO.validate(): Result<User> {
     val thisToken = this
-    return transaction {
+    return lockedTransaction {
         val uuid = kotlin.runCatching { UUID.fromString(thisToken.token) }
         if (uuid.isSuccess) {
             val token = ActivationToken.find { ActivationTokens.token eq uuid.getOrThrow() }
@@ -99,9 +99,9 @@ fun TokenDEO.validate(): Result<User> {
 }
 
 
-fun NewPasswordByTokenDEO.updatePassword(): Result<User> {
+suspend fun NewPasswordByTokenDEO.updatePassword(): Result<User> {
     val thisToken = this
-    return transaction {
+    return lockedTransaction {
         val uuid = kotlin.runCatching { UUID.fromString(thisToken.token) }
         if (uuid.isSuccess) {
             val token = ActivationToken.find { ActivationTokens.token eq uuid.getOrThrow() }
@@ -109,12 +109,16 @@ fun NewPasswordByTokenDEO.updatePassword(): Result<User> {
             if (token != null) {
 
                 if (token.expires.isAfter(LocalDateTime.now())) {
-                    val expectedRole = if (token.user.role == UserRole.WAITING_FOR_ACTIVATION) {
-                        UserRole.REFEREE
-                    } else if (token.user.role == UserRole.CCC_WAITING_FOR_ACTIVATION) {
-                        UserRole.CCC
-                    } else {
-                        token.user.role //Password reset
+                    val expectedRole = when (token.user.role) {
+                        UserRole.WAITING_FOR_ACTIVATION -> {
+                            UserRole.REFEREE
+                        }
+                        UserRole.CCC_WAITING_FOR_ACTIVATION -> {
+                            UserRole.CCC
+                        }
+                        else -> {
+                            token.user.role //Password reset
+                        }
                     }
                     println("Expected role: $expectedRole")
                     val user = token.user
@@ -135,9 +139,9 @@ fun NewPasswordByTokenDEO.updatePassword(): Result<User> {
 }
 
 
-fun LoginDEO.validate(): Result<User> {
+suspend fun LoginDEO.validate(): Result<User> {
     val thisLogin = this
-    return transaction {
+    return lockedTransaction {
         val user = User.find { Users.mail eq thisLogin.mail }.firstOrNull()
         if (user != null) {
 
@@ -162,9 +166,9 @@ fun RefereeWithRoleDEO.Companion.fromUser(user: User): RefereeWithRoleDEO {
     )
 }
 
-fun UpdateRefereeDAO.updateInDatabase(): Result<User> {
+suspend fun UpdateRefereeDAO.updateInDatabase(): Result<User> {
     val thisReferee = this
-    return transaction {
+    return lockedTransaction {
         val referee = User.findById(thisReferee.id)
         if (referee != null) {
             if (thisReferee.firstName != null) {
@@ -185,9 +189,9 @@ fun UpdateRefereeDAO.updateInDatabase(): Result<User> {
 
 
 
-fun UpdateRefereePasswordDAO.updateInDatabase(): Result<UpdateRefereePasswordResponse> {
+suspend fun UpdateRefereePasswordDAO.updateInDatabase(): Result<UpdateRefereePasswordResponse> {
     val thisReferee = this
-    return transaction {
+    return lockedTransaction {
         val referee = User.findById(thisReferee.id)
         if (referee != null) {
             if (referee.verifyPassword(thisReferee.oldPassword)) {
@@ -203,9 +207,9 @@ fun UpdateRefereePasswordDAO.updateInDatabase(): Result<UpdateRefereePasswordRes
 }
 
 
-fun SetRefereeRole.updateInDatabase(): Result<User> {
+suspend fun SetRefereeRole.updateInDatabase(): Result<User> {
     val thisReferee = this
-    return transaction {
+    return lockedTransaction {
         val referee = User.findById(thisReferee.id)
         if (referee != null) {
             referee.role = thisReferee.role
@@ -217,12 +221,12 @@ fun SetRefereeRole.updateInDatabase(): Result<User> {
 }
 
 
-fun ResetRefereePasswordDEO.executePasswordReset(): Result<UpdateRefereePasswordResponse> {
+suspend fun ResetRefereePasswordDEO.executePasswordReset(): Result<UpdateRefereePasswordResponse> {
     val refereeID = this.id
-    return transaction {
+    return lockedTransaction {
         val referee = User.findById(refereeID)
         if (referee == null) {
-            return@transaction Result.failure(IllegalArgumentException("Referee with id $refereeID not found"))
+            return@lockedTransaction Result.failure(IllegalArgumentException("Referee with id $refereeID not found"))
         }
         val activationLink = generateActivationLink(referee)
 

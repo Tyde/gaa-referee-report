@@ -2,44 +2,47 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
-import kotlinx.serialization.Serializable
+import eu.gaelicgames.referee.util.lockedTransaction
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
+
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
     return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
 }
 
 suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
     return CacheUtil.getCachedTeamList()
-        .getOrElse {
-            suspendedTransactionAsync {
-                val dbTeams = Team.all().map {
-                    if (!it.isAmalgamation) {
-                        TeamDEO.fromTeam(it)
-                    } else {
-                        val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
-                            TeamDEO.fromTeam(amlgm.addedTeam)
+            .getOrElse {
+                 lockedTransaction {
+                    val dbTeams = Team.all().map {
+                        if (!it.isAmalgamation) {
+                            TeamDEO.fromTeam(it)
+                        } else {
+                            val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
+                                TeamDEO.fromTeam(amlgm.addedTeam)
+                            }
+                            TeamDEO.fromTeam(it, addedTeams)
                         }
-                        TeamDEO.fromTeam(it, addedTeams)
                     }
+                    CacheUtil.cacheTeamList(dbTeams)
+                    dbTeams
                 }
-                CacheUtil.cacheTeamList(dbTeams)
-                dbTeams
-            }.await()
-        }
+            }
+
 }
 
-fun TeamDEO.Companion.fromTeamId(it:Long):Result<TeamDEO> {
-    return transaction {
+suspend fun TeamDEO.Companion.fromTeamId(it:Long):Result<TeamDEO> {
+    return  lockedTransaction {
         val teamDEO = Team.findById(it)?.let { fromTeam(it)}
         teamDEO?.let { Result.success(it) } ?: Result.failure(Exception("Team not found"))
     }
 }
 suspend fun TeamDEO.updateInDatabase(): Result<Team> {
+
     CacheUtil.deleteCachedTeamList()
+
     val thisTeam = this
-    return transaction {
+    return  lockedTransaction {
         val team = Team.findById(thisTeam.id)
         if (team != null) {
             team.name = thisTeam.name
@@ -64,7 +67,7 @@ suspend fun TeamDEO.updateInDatabase(): Result<Team> {
                             (Amalgamations.addedTeam.notInList(thisTeam.amalgamationTeams.map { it.id }))
                 }.forEach { it.delete() }
             } else if (thisTeam.isAmalgamation && thisTeam.amalgamationTeams == null) {
-                return@transaction Result.failure(Exception("Amalgamation teams not provided"))
+                return@lockedTransaction Result.failure(Exception("Amalgamation teams not provided"))
             }
             Result.success(team)
         } else {
@@ -76,8 +79,10 @@ suspend fun TeamDEO.updateInDatabase(): Result<Team> {
 
 
 suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
-    CacheUtil.deleteCachedTeamList()
-    return transaction {
+    runBlocking {
+        CacheUtil.deleteCachedTeamList()
+    }
+    return lockedTransaction {
         val team = Team.findById(baseTeam)
         if (team != null) {
             teamsToMerge.forEach { mergeTeamId ->

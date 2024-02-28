@@ -63,14 +63,18 @@ dependencies {
 
     implementation("org.xerial:sqlite-jdbc:3.39.2.0")
     implementation("com.h2database:h2:2.1.212")
+    implementation("org.postgresql:postgresql:42.7.1")
 
     implementation("org.flywaydb:flyway-core:9.1.3")
 
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")
 
+    testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+}
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.register("buildNPM") {

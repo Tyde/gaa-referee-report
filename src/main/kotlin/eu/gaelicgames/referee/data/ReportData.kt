@@ -106,6 +106,9 @@ class TournamentReport(id:EntityID<Long>):LongEntity(id) {
             GameReport.find { GameReports.report eq report.id }.forEach {
                 it.deleteComplete()
             }
+            TournamentReportShareLink.find { TournamentReportShareLinks.report eq report.id }.forEach {
+                it.delete()
+            }
             report.delete()
         }
     }

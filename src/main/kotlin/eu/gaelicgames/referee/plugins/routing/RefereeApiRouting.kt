@@ -5,6 +5,7 @@ import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -13,8 +14,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
@@ -39,46 +39,51 @@ fun Route.refereeApiRouting() {
         val reportId = get.id
         if (reportId >= 0) {
             val report = CacheUtil.getCachedReport(reportId).recoverCatching {
-                suspendedTransactionAsync {
-                    val reportDB = TournamentReport.findById(reportId)
-                    if (reportDB != null) {
-                        CompleteReportDEO.fromTournamentReport(reportDB)
-                    } else {
-                       throw Exception("Report under given id not found")
-                        //call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found"))
-                    }
-                }.await()
+                val reportDB = lockedTransaction {
+                    TournamentReport.findById(reportId)
+                }
+                if (reportDB != null) {
+                    CompleteReportDEO.fromTournamentReport(reportDB)
+                } else {
+                    throw Exception("Report under given id not found")
+                    //call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found"))
+                }
+
             }
-            if(report.isSuccess) {
+            if (report.isSuccess) {
                 val user = call.principal<UserPrincipal>()
                 val report = report.getOrThrow()
                 val role = user?.user?.role
-                if(role == UserRole.ADMIN) {
+                if (role == UserRole.ADMIN) {
                     call.respond(report)
                 } else if (role == UserRole.CCC) {
-                    if(report.isSubmitted) {
+                    if (report.isSubmitted) {
                         call.respond(report)
                     } else {
-                        call.respond(ApiError(
-                            ApiErrorOptions.NOT_AUTHORIZED,
-                            "Report can only be accessed by CCC after submission"
-                        ))
+                        call.respond(
+                            ApiError(
+                                ApiErrorOptions.NOT_AUTHORIZED,
+                                "Report can only be accessed by CCC after submission"
+                            )
+                        )
                     }
                 } else {
-                    if(report.referee.id == user?.user?.id?.value) {
+                    if (report.referee.id == user?.user?.id?.value) {
                         call.respond(report)
                     } else {
-                        call.respond(ApiError(
-                            ApiErrorOptions.NOT_AUTHORIZED,
-                            "Report can only be accessed by the referee who created it"
-                        ))
+                        call.respond(
+                            ApiError(
+                                ApiErrorOptions.NOT_AUTHORIZED,
+                                "Report can only be accessed by the referee who created it"
+                            )
+                        )
                     }
                 }
             } else {
                 call.respond(
                     ApiError(
                         ApiErrorOptions.NOT_FOUND,
-                        report.exceptionOrNull()?.message?: "Unknown error"
+                        report.exceptionOrNull()?.message ?: "Unknown error"
                     )
                 )
             }
@@ -91,7 +96,7 @@ fun Route.refereeApiRouting() {
     get<Api.Reports.My> {
         val user = call.principal<UserPrincipal>()
         if (user != null) {
-            call.respond(transaction {
+            call.respond(newSuspendedTransaction {
                 val reports = TournamentReport.find { TournamentReports.referee eq user.user.id }
                 reports.map { CompactTournamentReportDEO.fromTournamentReport(it) }
             })
@@ -148,7 +153,7 @@ fun Route.refereeApiRouting() {
 
     get<Api.Tournaments.FindByDate> { findByDate ->
         val date = LocalDate.parse(findByDate.date)
-        val tournaments = transaction {
+        val tournaments = newSuspendedTransaction {
             Tournament.find { Tournaments.date eq date }.map {
                 TournamentDEO.fromTournament(it)
             }
@@ -248,9 +253,12 @@ fun Route.refereeApiRouting() {
     }
 
     post<Api.GameReports.DisciplinaryAction.New> {
+        println("new DA:" + Thread.currentThread().name)
         handleDisciplinaryActionInput(doUpdate = false)
     }
     post<Api.GameReports.DisciplinaryAction.Update> {
+        println("Update DA:" + Thread.currentThread().name)
+
         handleDisciplinaryActionInput(doUpdate = true)
     }
     post<Api.GameReports.DisciplinaryAction.Delete> {
@@ -296,17 +304,17 @@ fun Route.refereeApiRouting() {
 
 
     get<Api.RulesForCode> { rules ->
-        val code = transaction {
+        val code = lockedTransaction {
             rules.code?.let {
                 GameCode.find { GameCodes.id eq it.toLong() }.firstOrNull()
             }
         }
         val data = if (code != null) {
-            transaction {
+            newSuspendedTransaction {
                 Rule.find { Rules.code eq code.id }.map { RuleDEO.fromRule(it) }
             }
         } else {
-            transaction {
+            newSuspendedTransaction {
                 Rule.all().map { RuleDEO.fromRule(it) }
             }
         }

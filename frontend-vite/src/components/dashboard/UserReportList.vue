@@ -52,6 +52,24 @@ const transformedReports = computed(() => {
 function editReport(report: CompactTournamentReportDEO) {
   location.href = "/report/edit/" + report.id
 }
+
+
+function confirmEditReport(report: CompactTournamentReportDEO) {
+  if (report.isSubmitted && report.submitDate && report.submitDate.plus({days: 3}) < DateTime.now()) {
+    confirm.require({
+      message: `This report is already submitted. Are you sure you want to edit it?`,
+      header: 'Edit Report',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => editReport(report),
+      reject: () => {
+        console.log("reject")
+      }
+    })
+  } else {
+
+  }
+}
+
 const router = useRouter()
 function showReport(report: CompactTournamentReportDEO) {
   router.push("/report/" + report.id)
@@ -76,6 +94,8 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
   })
 
 }
+
+
 
 </script>
 <template>
