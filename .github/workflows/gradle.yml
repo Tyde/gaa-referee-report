@@ -63,3 +63,14 @@ jobs:
         POSTGRES_PORT: 5432
         POSTGRES_USER: root
         POSTGRES_PASSWORD: testing
+        POSTGRES_DATABASE: testing
+        SERVER_URL: "https://local.eu"
+        MAILJET_PUBLIC: "abv"
+        MAILJET_SECRET: "def"
+        ADMIN_FIRST_NAME: "Test"
+        ADMIN_LAST_NAME: "User"
+        ADMIN_MAIL: "test@user.de"
+        ADMIN_PASSWORD: "12345"
+        REDIS_HOST: "cache"
+        REDIS_PORT: "6379"
+        REDIS_PASSWORD: ""
