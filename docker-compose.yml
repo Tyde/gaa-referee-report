@@ -32,6 +32,9 @@ services:
       POSTGRES_USER: "referee"
       POSTGRES_PASSWORD: 'password'
       POSTGRES_DB: 'referee'
+    volumes:
+      - pgsqldata:/var/lib/postgresql/data
 
 volumes:
   database:
+  pgsqldata:
