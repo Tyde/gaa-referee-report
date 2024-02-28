@@ -79,4 +79,4 @@ jobs:
       if: failure()
       with:
         name: test-results
-        path: gaa-referee-report/build/reports/tests/test/
+        path: /home/runner/work/gaa-referee-report/gaa-referee-report/build/reports/tests/test/
