@@ -27,7 +27,7 @@ jobs:
         image: postgres
         # Provide the password for postgres
         env:
-          POSTGRES_PASSWORD: ""
+          POSTGRES_PASSWORD: "testing"
           POSTGRES_DB: testing
           POSTGRES_USER: root
         # Set health checks to wait until postgres has started
@@ -62,3 +62,4 @@ jobs:
         POSTGRES_HOST: postgres
         POSTGRES_PORT: 5432
         POSTGRES_USER: root
+        POSTGRES_PASSWORD: testing

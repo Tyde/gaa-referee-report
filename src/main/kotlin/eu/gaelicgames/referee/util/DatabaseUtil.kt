@@ -1,23 +1,15 @@
 package eu.gaelicgames.referee.util
 
-import com.typesafe.config.ConfigUtil
 import eu.gaelicgames.referee.data.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.statements.InsertStatement
-import org.jetbrains.exposed.sql.statements.Statement
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.time.LocalDate
-import java.time.Month
 
 val USE_POSTGRES = true
 
@@ -30,7 +22,7 @@ object DatabaseHandler {
                     "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
                     driver = "org.postgresql.Driver",
                     user = "root",
-                    password = ""
+                    password = "testing"
                 )
             } else {
                 Database.connect("jdbc:sqlite:data/test.db", "org.sqlite.JDBC")
@@ -214,7 +206,7 @@ object DatabaseHandler {
                     resource
                 )
             )
-            var format = CSVFormat.Builder
+            val format = CSVFormat.Builder
                 .create(CSVFormat.EXCEL)
                 .setDelimiter(';')
                 .setHeader()
@@ -341,7 +333,6 @@ object DatabaseHandler {
 
 }
 
-val tansactionMutex = Mutex()
 suspend fun <T>lockedTransaction(statement: suspend Transaction.() -> T): T {
     return transaction {
             runBlocking{
