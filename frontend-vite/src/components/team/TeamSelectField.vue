@@ -2,7 +2,6 @@
 import {computed, onMounted, ref, watch} from "vue";
 import CreateTeam from "@/components/team/CreateTeam.vue";
 import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
-import {loadAllTeams} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 
@@ -101,6 +100,7 @@ async function fetch_available_teams() {
 }
 
 onMounted(() => {
+
   fetch_available_teams()
 })
 

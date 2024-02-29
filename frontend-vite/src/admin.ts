@@ -40,7 +40,9 @@ import Row from 'primevue/row';
 import BlockUI from "primevue/blockui";
 import Paginator from "primevue/paginator";
 import SplitButton from "primevue/splitbutton";
-import MultiSelect from "primevue/multiselect";                     //optional for row
+import MultiSelect from "primevue/multiselect";
+import {createI18n} from "vue-i18n";
+import {messages} from "@/i18n/edit_report/edit_report_i18n";                     //optional for row
 
 
 const router = createRouter({
@@ -48,12 +50,17 @@ const router = createRouter({
     routes: routes
 })
 
-
+const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages
+})
 const pinia = createPinia()
 const app = createApp(App);
 app.use(PrimeVue)
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 app.use(ConfirmationService)
 app.component('Card',Card)
 app.component('Button',Button)

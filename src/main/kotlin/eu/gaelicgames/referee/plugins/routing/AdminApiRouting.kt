@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
+import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.post
@@ -90,7 +91,7 @@ fun Route.adminApiRouting() {
     }
 
     get<Api.User.All> {
-        val users = transaction {
+        val users = lockedTransaction {
             User.all().map { RefereeWithRoleDEO.fromUser(it) }
         }
         call.respond(users)
@@ -98,7 +99,7 @@ fun Route.adminApiRouting() {
 
     post<Api.User.Update> {
         receiveAndHandleDEO<RefereeDEO> { refereeDEO ->
-            refereeDEO.updateInDatabase().map { transaction { RefereeDEO.fromReferee(it) }}.getOrElse {
+            refereeDEO.updateInDatabase().map { lockedTransaction { RefereeDEO.fromReferee(it) } }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }

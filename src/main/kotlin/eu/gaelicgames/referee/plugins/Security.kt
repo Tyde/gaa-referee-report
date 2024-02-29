@@ -3,6 +3,7 @@ package eu.gaelicgames.referee.plugins
 import at.favre.lib.crypto.bcrypt.BCrypt
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.JWTUtil
+import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -50,7 +51,7 @@ fun Application.configureSecurity() {
                 val pw = credentials.password
                 //val hash = BCrypt.withDefaults().hash(12, pw.toCharArray())
 
-                val user = transaction {
+                val user = lockedTransaction {
                     val foundUser = User.find { Users.mail.lowerCase() eq credentials.name.lowercase() }
                     var loginUser: User? = null
                     for (user in foundUser) {
@@ -73,7 +74,7 @@ fun Application.configureSecurity() {
         session<UserSession>("auth-session") {
             validate { session ->
                 Session.validateSession(session.uuid).map {
-                    transaction { User.findById(it.user.id) }
+                    lockedTransaction { User.findById(it.user.id) }
                         ?.let { UserPrincipal(it) }
                 }.getOrNull()
 
@@ -95,7 +96,7 @@ fun Application.configureSecurity() {
         session<UserSession>("admin-session") {
             validate { session ->
                 Session.validateSession(session.uuid).map {
-                    transaction { User.findById(it.user.id) }
+                    lockedTransaction { User.findById(it.user.id) }
                         ?.let {
                             if(it.role == UserRole.ADMIN) {
                                 UserPrincipal(it)
@@ -129,7 +130,7 @@ fun Application.configureSecurity() {
         session<UserSession>("ccc-session") {
             validate { session ->
                 Session.validateSession(session.uuid).map {
-                    transaction { User.findById(it.user.id) }
+                    lockedTransaction { User.findById(it.user.id) }
                         ?.let {
                             if(it.role == UserRole.CCC ||
                                 it.role == UserRole.REFEREE ||

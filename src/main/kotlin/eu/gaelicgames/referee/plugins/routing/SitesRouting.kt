@@ -7,6 +7,7 @@ import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.resources.Report
 import eu.gaelicgames.referee.resources.UserRes
 import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -37,7 +38,7 @@ fun Route.sites() {
             if(thisUser != null) {
                 println("redirect!")
                 val generatedUUID = UUID.randomUUID()
-                val session = transaction {
+                val session = lockedTransaction {
                     val dbSession = Session.new {
                         user = thisUser.user
                         uuid = generatedUUID
@@ -66,7 +67,7 @@ fun Route.sites() {
 
     get<Report.Share> { share ->
         val uuid = UUID.fromString(share.uuid)
-        val report = transaction {
+        val report = lockedTransaction {
             TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull()
         }
         if (report != null) {
@@ -153,7 +154,7 @@ fun Route.sites() {
         }
 
         get<Report.Show> { show ->
-            val reportExists = transaction {
+            val reportExists = lockedTransaction {
                 TournamentReport.findById(show.id) != null
             }
             val resource =

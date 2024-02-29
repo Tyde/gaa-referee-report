@@ -82,7 +82,9 @@ const excludeTeamList = computed(() => {
               :allow_unselect="true"
               :hide_amalgamations="!amalgamationMode"
               @team_selected="team => teamsToMerge.push(team)"
+              @team_unselected="team => teamsToMerge = teamsToMerge.filter(it => it.id !== team.id)"
               :only_amalgamations="amalgamationMode"
+              :show_hide_squad_box="false"
           />
         </div>
         <div class="flex flex-col justify-end m-2">

@@ -6,10 +6,7 @@ import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.services.NotifyCCCService
-import eu.gaelicgames.referee.util.CacheUtil
-import eu.gaelicgames.referee.util.DatabaseHandler
-import eu.gaelicgames.referee.util.GGERefereeConfig
-import eu.gaelicgames.referee.util.MockDataGenerator
+import eu.gaelicgames.referee.util.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -24,7 +21,7 @@ suspend fun main() = runBlocking<Unit> {
 
     DatabaseHandler.init()
     DatabaseHandler.createSchema()
-    transaction {
+    lockedTransaction {
         if (User.all().count() == 0L) {
 
             if (File("data/data.db").exists()) {
@@ -35,7 +32,7 @@ suspend fun main() = runBlocking<Unit> {
     DatabaseHandler.populate_base_data()
 
 
-    transaction {
+    lockedTransaction {
         if (User.all().count() == 0L) {
             /*
             println("No Admin user registered. Do that now:")

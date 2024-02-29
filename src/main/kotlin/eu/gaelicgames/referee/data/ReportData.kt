@@ -1,9 +1,7 @@
 package eu.gaelicgames.referee.data
 
-import eu.gaelicgames.referee.data.Team.Companion.optionalBackReferencedOn
-import eu.gaelicgames.referee.data.Team.Companion.referrersOn
 import eu.gaelicgames.referee.data.api.PitchPropertyDEO
-import eu.gaelicgames.referee.resources.Api
+import eu.gaelicgames.referee.util.lockedTransaction
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -12,9 +10,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
-
 
 
 object Teams : LongIdTable() {
@@ -94,9 +90,9 @@ class TournamentReport(id:EntityID<Long>):LongEntity(id) {
     val gameReports by GameReport referrersOn GameReports.report
     val pitches by Pitch referrersOn Pitches.report
 
-    fun deleteComplete() {
+    suspend fun deleteComplete() {
         val report = this
-        transaction {
+        lockedTransaction {
             TournamentReportTeamPreSelections.deleteWhere {
                 TournamentReportTeamPreSelections.report eq report.id
             }
@@ -194,16 +190,16 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var generalNotes by GameReports.generalNotes
 
 
-    fun teamADisciplinaryActions():SizedIterable<DisciplinaryAction> {
-        return transaction {
+    suspend fun teamADisciplinaryActions():SizedIterable<DisciplinaryAction> {
+        return lockedTransaction {
             DisciplinaryAction.find {
                 (DisciplinaryActions.game eq this@GameReport.id) and
                         (DisciplinaryActions.team eq teamA.id)
             }
         }
     }
-    fun teamBDisciplinaryActions():SizedIterable<DisciplinaryAction> {
-        return transaction {
+    suspend fun teamBDisciplinaryActions():SizedIterable<DisciplinaryAction> {
+        return lockedTransaction {
             DisciplinaryAction.find {
                 (DisciplinaryActions.game eq this@GameReport.id) and
                         (DisciplinaryActions.team eq teamB.id)
@@ -212,16 +208,16 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     }
 
 
-    fun teamAInjuries():SizedIterable<Injury> {
-        return transaction {
+    suspend fun teamAInjuries():SizedIterable<Injury> {
+        return lockedTransaction {
             Injury.find {
                 (Injuries.game eq this@GameReport.id) and
                         (Injuries.team eq teamA.id)
             }
         }
     }
-    fun teamBInjuries():SizedIterable<Injury> {
-        return transaction {
+    suspend fun teamBInjuries():SizedIterable<Injury> {
+        return lockedTransaction {
             Injury.find {
                 (Injuries.game eq this@GameReport.id) and
                         (Injuries.team eq teamB.id)
@@ -229,9 +225,9 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
         }
     }
 
-    fun deleteComplete() {
+    suspend fun deleteComplete() {
         val game = this
-        transaction {
+        lockedTransaction {
             Injuries.deleteWhere {
                 Injuries.game eq game.id
             }
@@ -262,8 +258,8 @@ class Rule(id:EntityID<Long>):LongEntity(id) {
     var description by Rules.description
     var isDisabled by Rules.isDisabled
 
-    fun isDeletable(): Boolean {
-        return transaction {
+    suspend fun isDeletable(): Boolean {
+        return lockedTransaction {
             DisciplinaryAction.find { DisciplinaryActions.rule eq this@Rule.id }.empty()
         }
     }
@@ -423,26 +419,26 @@ object Pitches : LongIdTable() {
     fun isPitchPropertyReferenced(pitchProperty:PitchPropertyEntity):Boolean {
         return when(pitchProperty) {
             is PitchSurfaceOption -> {
-                Pitches.select { Pitches.surface eq pitchProperty.id }.count() > 0
+                Pitches.selectAll().where { surface eq pitchProperty.id }.count() > 0
             }
             is PitchLengthOption -> {
-                Pitches.select { Pitches.length eq pitchProperty.id }.count() > 0
+                Pitches.selectAll().where { length eq pitchProperty.id }.count() > 0
             }
             is PitchWidthOption -> {
-                Pitches.select { Pitches.width eq pitchProperty.id }.count() > 0
+                Pitches.selectAll().where { width eq pitchProperty.id }.count() > 0
             }
             is PitchMarkingsOption -> {
-                Pitches.select { Pitches.smallSquareMarkings eq pitchProperty.id }.count() > 0 ||
-                Pitches.select { Pitches.penaltySquareMarkings eq pitchProperty.id }.count() > 0 ||
-                Pitches.select { Pitches.thirteenMeterMarkings eq pitchProperty.id }.count() > 0 ||
-                Pitches.select { Pitches.twentyMeterMarkings eq pitchProperty.id }.count() > 0 ||
-                Pitches.select { Pitches.longMeterMarkings eq pitchProperty.id }.count() > 0
+                Pitches.selectAll().where { smallSquareMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.selectAll().where { penaltySquareMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.selectAll().where { thirteenMeterMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.selectAll().where { twentyMeterMarkings eq pitchProperty.id }.count() > 0 ||
+                Pitches.selectAll().where { longMeterMarkings eq pitchProperty.id }.count() > 0
             }
             is PitchGoalpostsOption -> {
-                Pitches.select { Pitches.goalPosts eq pitchProperty.id }.count() > 0
+                Pitches.selectAll().where { goalPosts eq pitchProperty.id }.count() > 0
             }
             is PitchGoalDimensionOption -> {
-                Pitches.select { Pitches.goalDimensions eq pitchProperty.id }.count() > 0
+                Pitches.selectAll().where { goalDimensions eq pitchProperty.id }.count() > 0
             }
             else -> {
                 false

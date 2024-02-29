@@ -1,11 +1,10 @@
 package eu.gaelicgames.referee.data
 
 import at.favre.lib.crypto.bcrypt.BCrypt
-import eu.gaelicgames.referee.data.api.RefereeDEO
 import eu.gaelicgames.referee.data.api.RefereeWithRoleDEO
-import eu.gaelicgames.referee.data.api.fromReferee
 import eu.gaelicgames.referee.data.api.fromUser
 import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.server.auth.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.LongEntity
@@ -14,9 +13,9 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
+
 enum class UserRole {
     ADMIN, //0
     REFEREE, //1
@@ -122,8 +121,8 @@ data class SessionWithUserData(
     val expires: LocalDateTime
 ) {
     companion object {
-        fun fromSession(session: Session): SessionWithUserData {
-            return transaction {
+        suspend fun fromSession(session: Session): SessionWithUserData {
+            return lockedTransaction {
                 SessionWithUserData(
                     session.uuid.toString(),
                     RefereeWithRoleDEO.fromUser(session.user),

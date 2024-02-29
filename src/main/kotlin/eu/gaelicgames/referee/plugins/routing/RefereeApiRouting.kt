@@ -25,7 +25,7 @@ fun Route.refereeApiRouting() {
         if (user != null) {
             call.respond(
                 RefereeWithRoleDEO.fromUser(
-                    transaction {
+                    lockedTransaction {
                         User.findById(user.user.id)
                     }!!
                 )
@@ -118,7 +118,7 @@ fun Route.refereeApiRouting() {
     post<Api.NewTeam> {
         receiveAndHandleDEO<NewTeamDEO> { newTeam ->
             CacheUtil.deleteCachedTeamList()
-            val newTeamDB = transaction {
+            val newTeamDB = lockedTransaction {
                 Team.new {
                     name = newTeam.name
                     isAmalgamation = false
@@ -132,7 +132,7 @@ fun Route.refereeApiRouting() {
     post<Api.NewAmalgamation> {
         receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
             CacheUtil.deleteCachedTeamList()
-            val newAmalgamationDB = transaction {
+            val newAmalgamationDB = lockedTransaction {
                 val amalgamation_base = Team.new {
                     name = newAmalgamation.name
                     isAmalgamation = true

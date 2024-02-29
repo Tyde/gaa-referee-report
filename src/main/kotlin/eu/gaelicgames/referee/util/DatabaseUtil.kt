@@ -1,12 +1,11 @@
 package eu.gaelicgames.referee.util
 
 import eu.gaelicgames.referee.data.*
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -15,13 +14,13 @@ val USE_POSTGRES = true
 
 object DatabaseHandler {
     var db: Database? = null
-    fun init(testing:Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
+    fun init(testing: Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
         if (testing) {
-            db = if(usePostgres) {
+            db = if (usePostgres) {
                 println("Trying to connect to postgres")
                 println("Host: ${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}")
                 Database.connect(
-                    "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
+                    "jdbc:pgsql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
                     driver = "org.postgresql.Driver",
                     user = "root",
                     password = "testing"
@@ -30,9 +29,9 @@ object DatabaseHandler {
                 Database.connect("jdbc:sqlite:data/test.db", "org.sqlite.JDBC")
             }
         } else {
-            db = if(usePostgres) {
+            db = if (usePostgres) {
                 Database.connect(
-                    "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
+                    "jdbc:pgsql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
                     driver = "org.postgresql.Driver",
                     user = GGERefereeConfig.postgresUser,
                     password = GGERefereeConfig.postgresPassword
@@ -69,6 +68,7 @@ object DatabaseHandler {
         ActivationTokens,
         TournamentReportShareLinks
     )
+
     fun createSchema() {
         transaction {
             for (table in tables) {
@@ -183,19 +183,19 @@ object DatabaseHandler {
             val allGameCodes = transaction { GameCode.all().map { it } }
             val hurlingCode = allGameCodes.find { it.name == "Hurling" }
             hurlingCode?.let {
-                populate_rules_of_code("hurling.csv",it)
+                populate_rules_of_code("hurling.csv", it)
             }
             val ladiesFootball = allGameCodes.find { it.name == "Ladies Football" }
             ladiesFootball?.let {
-                populate_rules_of_code("ladiesfootball.csv",it)
+                populate_rules_of_code("ladiesfootball.csv", it)
             }
             val mensFootball = allGameCodes.find { it.name == "Mens Football" }
             mensFootball?.let {
-                populate_rules_of_code("mensfootball.csv",it)
+                populate_rules_of_code("mensfootball.csv", it)
             }
             val camogie = allGameCodes.find { it.name == "Camogie" }
             camogie?.let {
-                populate_rules_of_code("camogie.csv",it)
+                populate_rules_of_code("camogie.csv", it)
             }
         }
     }
@@ -213,9 +213,9 @@ object DatabaseHandler {
                 .setDelimiter(';')
                 .setHeader()
                 .build()
-            val csvParser = CSVParser(reader,format)
+            val csvParser = CSVParser(reader, format)
             transaction {
-                for(csvRecord in csvParser) {
+                for (csvRecord in csvParser) {
                     Rules.insert {
                         it[code] = selcted_code.id
                         it[isCaution] = csvRecord["isCaution"] == "1"
@@ -235,13 +235,15 @@ object DatabaseHandler {
     )
 
     fun constructDependencyTree(): List<DependencyNode> {
-        val nodes = tables.map{it -> DependencyNode(it, mutableListOf(), mutableListOf())}
+        val nodes = tables.map { it -> DependencyNode(it, mutableListOf(), mutableListOf()) }
         tables.forEach { table ->
             val dependsOn = table.foreignKeys.map { it.targetTable }.distinct()
             val dependsOnNodes = dependsOn.map { targetTable ->
-                nodes.find { it.table == targetTable } ?: throw Exception("Table $table depends on $targetTable, but $targetTable is not in the list of tables")
+                nodes.find { it.table == targetTable }
+                    ?: throw Exception("Table $table depends on $targetTable, but $targetTable is not in the list of tables")
             }
-            val myNode = nodes.find { it.table == table } ?: throw Exception("Table $table is not in the list of tables")
+            val myNode =
+                nodes.find { it.table == table } ?: throw Exception("Table $table is not in the list of tables")
             myNode.dependsOn.addAll(dependsOnNodes)
             dependsOnNodes.forEach { it.isReferencedBy.add(myNode) }
         }
@@ -274,21 +276,21 @@ object DatabaseHandler {
             while (tablesMigrated.size < tableCount) {
                 val tablesToMigrate = treeNodes.filter { node ->
                     node.dependsOn.all { it.table in tablesMigrated }
-                }.filter { it.table !in tablesMigrated}
+                }.filter { it.table !in tablesMigrated }
                 println("Next set of tables to migrate:")
                 tablesToMigrate.forEach { println(it.table.tableName) }
                 for (tableNode in tablesToMigrate) {
                     val table = tableNode.table
                     println("Migrating ${table.tableName}")
                     val insertStatement = "INSERT INTO ${tableNode.table.tableName} ("
-                    val columns = tableNode.table.columns.joinToString(",") { "\""+it.name+"\"" }
+                    val columns = tableNode.table.columns.joinToString(",") { "\"" + it.name + "\"" }
                     val values = tableNode.table.columns.joinToString(",") { "?" }
                     val insertStatementEnd = ") VALUES ($values);"
                     val statementString = insertStatement + columns + insertStatementEnd
                     println(statementString)
                     table.selectAll().map {
                         val params = table.columns.map { column ->
-                            Pair(column.columnType,it[column])
+                            Pair(column.columnType, it[column])
                         }
                         println("Inserting $params")
                         transaction(postgresDB) {
@@ -308,7 +310,7 @@ object DatabaseHandler {
                     }
 
                     transaction(postgresDB) {
-                        val maxval = table.slice (table.id.max())
+                        val maxval = table.slice(table.id.max())
                             .selectAll()
                             .firstOrNull()
                             ?.get(table.id.max())
@@ -329,18 +331,14 @@ object DatabaseHandler {
         }
 
 
-
-
     }
 
 }
 
-suspend fun <T>lockedTransaction(statement: suspend Transaction.() -> T): T {
-    return transaction {
-            runBlocking{
-                statement()
-            }
-        }
+suspend fun <T> lockedTransaction(statement: suspend Transaction.() -> T): T {
+    return newSuspendedTransaction {
+        statement()
+    }
 
 }
 

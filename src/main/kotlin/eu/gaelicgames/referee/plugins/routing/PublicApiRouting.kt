@@ -1,18 +1,17 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.GameCodeDEO
+import eu.gaelicgames.referee.data.Region
+import eu.gaelicgames.referee.data.Tournament
+import eu.gaelicgames.referee.data.allGameCodes
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.resources.Api
-import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.publicApiRouting() {
     get<Api.Rules> {
@@ -43,14 +42,14 @@ fun Route.publicApiRouting() {
     }
 
     get<Api.Regions.All> {
-        val regions = newSuspendedTransaction {
+        val regions = lockedTransaction {
             Region.all().map { RegionDEO.fromRegion(it) }
         }
         call.respond(regions)
     }
 
     get<Api.Tournaments.All> {
-        val tournaments = newSuspendedTransaction {
+        val tournaments = lockedTransaction {
             Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
         }
         call.respond(tournaments)

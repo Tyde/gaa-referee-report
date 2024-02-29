@@ -7,11 +7,9 @@ import eu.gaelicgames.referee.util.CacheUtil.getCache
 import eu.gaelicgames.referee.util.CacheUtil.setCache
 import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.lockedTransaction
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.between
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -114,10 +112,10 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
     )
 }
 
-fun GameReportDEO.updateInDatabase(): Result<GameReport> {
+suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
 
     if (this.id != null) {
-        return transaction{
+        return lockedTransaction{
             val grUpdate = this@updateInDatabase
             val originalGameReport = GameReport.findById(this@updateInDatabase.id)
             if (originalGameReport != null) {
@@ -345,12 +343,12 @@ suspend fun DisciplinaryActionDEO.createInDatabase(): Result<DisciplinaryAction>
     }
 }
 
-fun DisciplinaryActionDEO.updateInDatabase(): Result<DisciplinaryAction> {
+suspend fun DisciplinaryActionDEO.updateInDatabase(): Result<DisciplinaryAction> {
     val daUpdate = this
 
     if (daUpdate.id != null) {
         println("Start update for ${daUpdate.id}")
-        return transaction{
+        return lockedTransaction{
             val action = DisciplinaryAction.findById(daUpdate.id)
             if (action != null) {
                 val game = action.game
