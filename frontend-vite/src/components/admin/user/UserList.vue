@@ -158,7 +158,13 @@ function newSuccessMessage(message: string) {
               class="mr-2 p-button-rounded p-button-secondary"
               @click="() => resetPassword(data)"></Button>
 
+
           <span v-if="data.role === RefereeRole.Enum.WAITING_FOR_ACTIVATION"> Did not set password yet. </span>
+          <Button
+              v-if="data.role == RefereeRole.Enum.WAITING_FOR_ACTIVATION"
+              label="Resend Activation Mail"
+              class="mr-2 p-button-rounded p-button-secondary"
+              @click="() => resetPassword(data)"></Button>
         </template>
       </Column>
       <Column :rowEditor="true" headerStyle="width:7rem" bodyStyle="text-align:center"></Column>
