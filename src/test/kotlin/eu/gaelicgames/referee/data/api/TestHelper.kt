@@ -113,7 +113,7 @@ object TestHelper {
             generalNotes = "def"
         )
         val result = deo.createInDatabase()
-        assert(result.isSuccess)
+        assert(result.isSuccess, { "GameReport creation failed: ${result.exceptionOrNull()}" })
         val gameReport = result.getOrNull()
         assert(gameReport != null)
         return gameReport

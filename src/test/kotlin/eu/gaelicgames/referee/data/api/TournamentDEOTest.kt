@@ -194,6 +194,7 @@ class TournamentDEOTest {
                     additionalInformation = ""
                     isSubmitted = true
                 }
+                commit()
                 val trd = TestHelper.TournamentReportData(
                     tr,
                     tr.id.value,
