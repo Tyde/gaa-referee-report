@@ -98,7 +98,7 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.User.Update> {
-        receiveAndHandleDEO<RefereeDEO> { refereeDEO ->
+        receiveAndHandleDEO<RefereeWithRoleDEO> { refereeDEO ->
             refereeDEO.updateInDatabase().map { lockedTransaction { RefereeDEO.fromReferee(it) } }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }

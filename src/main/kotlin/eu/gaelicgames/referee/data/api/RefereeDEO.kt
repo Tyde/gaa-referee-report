@@ -16,7 +16,7 @@ fun RefereeDEO.Companion.fromReferee(referee: User): RefereeDEO {
         mail = referee.mail,
     )
 }
-suspend fun RefereeDEO.updateInDatabase():Result<User> {
+suspend fun RefereeWithRoleDEO.updateInDatabase():Result<User> {
     val thisReferee = this
     return lockedTransaction {
         val referee = User.findById(thisReferee.id)
