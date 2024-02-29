@@ -20,7 +20,7 @@ object DatabaseHandler {
                 println("Trying to connect to postgres")
                 println("Host: ${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}")
                 Database.connect(
-                    "jdbc:pgsql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
+                    "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/testing",
                     driver = "org.postgresql.Driver",
                     user = "root",
                     password = "testing"
@@ -31,7 +31,7 @@ object DatabaseHandler {
         } else {
             db = if (usePostgres) {
                 Database.connect(
-                    "jdbc:pgsql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
+                    "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
                     driver = "org.postgresql.Driver",
                     user = GGERefereeConfig.postgresUser,
                     password = GGERefereeConfig.postgresPassword
