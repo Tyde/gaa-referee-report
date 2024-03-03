@@ -104,6 +104,7 @@ export const PublicDisciplinaryActionDEO = z.object({
     team: z.number(),
     rule: z.number(),
     game: z.number(),
+    redCardIssued: z.boolean()
 })
 export const PublicGameReportDEO = z.object({
     gameReport: GameReportDEO,
