@@ -1,9 +1,6 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.GameCodeDEO
-import eu.gaelicgames.referee.data.Region
-import eu.gaelicgames.referee.data.Tournament
-import eu.gaelicgames.referee.data.allGameCodes
+import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.lockedTransaction
@@ -12,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.selectAll
 
 fun Route.publicApiRouting() {
     get<Api.Rules> {
@@ -51,7 +49,9 @@ fun Route.publicApiRouting() {
 
     get<Api.Tournaments.All> {
         val tournaments = lockedTransaction {
-            Tournament.all().sortedBy { it.date }.map { TournamentDEO.fromTournament(it) }
+            Tournaments.selectAll().sortedBy { Tournaments.date }.map {
+                TournamentDEO.wrapRow(it)
+            }
         }
         call.respond(tournaments)
     }

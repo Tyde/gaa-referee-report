@@ -2,9 +2,12 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.GameCode
 import eu.gaelicgames.referee.data.Rule
+import eu.gaelicgames.referee.data.Rules
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.selectAll
 
 
 suspend fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
@@ -21,11 +24,24 @@ suspend fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
     }
 }
 
+suspend fun RuleDEO.Companion.wrapRow(row: ResultRow): RuleDEO {
+    val id = row[Rules.id].value
+    val code = row[Rules.code].value
+    val isCaution = row[Rules.isCaution]
+    val isBlack = row[Rules.isBlack]
+    val isRed = row[Rules.isRed]
+    val description = row[Rules.description]
+    val isDisabled = row[Rules.isDisabled]
+    return RuleDEO(id, code, isCaution, isBlack, isRed, description, isDisabled)
+}
+
 suspend fun RuleDEO.Companion.allRules(): List<RuleDEO> {
     return CacheUtil.getCachedRules()
         .getOrElse {
             lockedTransaction {
-                val rules = Rule.all().map { RuleDEO.fromRule(it) }
+                val rules = Rules.selectAll().map {
+                    RuleDEO.wrapRow(it)
+                }
                 CacheUtil.cacheRules(rules)
                 rules
             }
