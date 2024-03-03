@@ -12,14 +12,17 @@ import io.ktor.server.routing.*
 fun Route.CCCApiRouting() {
 
     get<Api.Tournaments.CompleteReport> { completeReport ->
+        println("Start of serving complete report")
         val id = completeReport.id
         runCatching {
             CompleteTournamentReportDEO.fromTournamentId(id).let {
                 call.respond(it)
             }
         }.onFailure {
+            it.printStackTrace()
             call.respond(HttpStatusCode.NotFound)
         }
+        println("End of serving complete report")
     }
 
     get<Api.Reports.All> {

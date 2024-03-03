@@ -1,6 +1,10 @@
 package eu.gaelicgames.referee.util
 
 import eu.gaelicgames.referee.data.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.newSingleThreadContext
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.jetbrains.exposed.dao.id.LongIdTable
@@ -30,15 +34,21 @@ object DatabaseHandler {
             }
         } else {
             db = if (usePostgres) {
+                val config = DatabaseConfig {
+                    useNestedTransactions = false
+                }
+
                 Database.connect(
                     "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
                     driver = "org.postgresql.Driver",
                     user = GGERefereeConfig.postgresUser,
-                    password = GGERefereeConfig.postgresPassword
+                    password = GGERefereeConfig.postgresPassword,
+                    databaseConfig = config
                 )
             } else {
                 Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
             }
+
         }
     }
 
@@ -335,8 +345,9 @@ object DatabaseHandler {
 
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 suspend fun <T> lockedTransaction(statement: suspend Transaction.() -> T): T {
-    return newSuspendedTransaction {
+    return newSuspendedTransaction(newFixedThreadPoolContext(4,"Database")) {
         statement()
     }
 

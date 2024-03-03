@@ -3,12 +3,12 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 
 suspend fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
@@ -18,6 +18,17 @@ suspend fun TournamentDEO.Companion.fromTournament(input: Tournament): Tournamen
             input.id.value, input.name, input.location, input.date, input.region.id.value
         )
     }
+}
+
+suspend fun TournamentDEO.Companion.wrapRow(row: ResultRow): TournamentDEO {
+
+    val id = row[Tournaments.id].value
+    val name = row[Tournaments.name]
+    val location = row[Tournaments.location]
+    val date = row[Tournaments.date]
+    val region = row[Tournaments.region].value
+    return TournamentDEO(id, name, location, date, region)
+
 }
 
 suspend fun TournamentDEO.updateInDatabase(): Result<Tournament> {
@@ -138,42 +149,60 @@ fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTourna
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tournament): CompleteTournamentReportDEO {
     return lockedTransaction {
 
-        val gameReports = TournamentReports.innerJoin(GameReports).select{
+        println("Before inner join")
+        val gameReports = TournamentReports.innerJoin(GameReports).select {
             (TournamentReports.tournament eq input.id) and
                     (TournamentReports.isSubmitted eq true)
         }.map {
-            TournamentReport.wrapRow(it)
-            val gameReport = GameReport.wrapRow(it)
-            CompleteGameReportWithRefereeReportDEO.fromGameReport(gameReport)
+            val tr = TournamentReport.wrapRow(it)
+            val rep = CompleteGameReportWithRefereeReportDEO.wrapRow(it, tr)
+            rep
         }
 
-        val allTeams = gameReports
+        val allTeamIds = gameReports
             .flatMap { listOf(it.gameReport.gameReport.teamA, it.gameReport.gameReport.teamB) }
-            .asFlow()
-            .distinctUntilChanged()
+            .distinct()
             .filterNotNull()
+
+        val (join,addedTeamAlias) = TeamDEO.wrapJoinQuery()
+        val allTeams = join.selectAll().where { Teams.id inList allTeamIds }
+            .map {
+                TeamDEO.wrapJoinedRow(it, addedTeamAlias)
+            }.toList().groupBy { it.id }.map {(id,tDEOList) ->
+                val template =tDEOList.first()
+                TeamDEO(
+                    name = template.name,
+                    id= template.id,
+                    isAmalgamation = template.isAmalgamation,
+                    amalgamationTeams = tDEOList.flatMap { it.amalgamationTeams?: listOf() }
+                )
+
+            }
+
+
+        /*
+        val allTeams = Teams.selectAll().where { Teams.id inList allTeamIds}
             .map { TeamDEO.fromTeamId(it) }
             .filter { it.isSuccess }
             .map { it.getOrThrow() }
-            .toList()
+            .toList()*/
 
-        val tljp =TournamentReports.innerJoin(Pitches)
-        val tljps =tljp.select{
+        val tljp = TournamentReports.innerJoin(Pitches)
+        val tljps = tljp.selectAll().where {
             (TournamentReports.tournament eq input.id) and
                     (TournamentReports.isSubmitted eq true)
         }
         val allPitchReports = tljps.map {
-            TournamentReport.wrapRow(it)
-            val pitch = Pitch.wrapRow(it)
-            PitchDEO.fromPitch(pitch)
+            PitchDEO.wrapRow(it)
         }
 
         val deo = CompleteTournamentReportDEO(
             TournamentDEO.fromTournament(input),
-            gameReports,
+            gameReports.toList(),
             allTeams,
             allPitchReports
         )
@@ -201,7 +230,7 @@ fun CompleteTournamentReportDEO.Companion.fromTournamentId(id: Long): CompleteTo
 }
 
 
-suspend fun DeleteCompleteTournamentDEO.delete():Result<Long> {
+suspend fun DeleteCompleteTournamentDEO.delete(): Result<Long> {
     val tournamentID = this.id
     runBlocking {
         CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
@@ -210,7 +239,7 @@ suspend fun DeleteCompleteTournamentDEO.delete():Result<Long> {
     return lockedTransaction {
         addLogger(StdOutSqlLogger)
         val tournament = Tournament.findById(tournamentID)
-        if(tournament != null) {
+        if (tournament != null) {
             println("About to delete $tournament")
             val tournamentReports = TournamentReport.find { TournamentReports.tournament eq tournament.id }
             tournamentReports.forEach { tr ->

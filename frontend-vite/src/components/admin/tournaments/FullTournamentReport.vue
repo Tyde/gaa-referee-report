@@ -24,7 +24,9 @@ const store = usePublicStore()
 
 const rawTournamentReportDEO = ref<CompleteTournamentReportDEO>()
 loadCompleteTournamentReport(parseInt(props.id))
-    .then(it => rawTournamentReportDEO.value = it)
+    .then(it => {
+      rawTournamentReportDEO.value = it
+    })
     .catch(e => store.newError(e))
 
 
@@ -33,6 +35,10 @@ const tournament = computed(() => {
 })
 const tournamentDate = computed(() => {
   return tournament.value?.date.toISODate()
+})
+
+const isLoading = computed(() => {
+  return rawTournamentReportDEO.value === undefined
 })
 
 const pitchReports = computed(() => {
@@ -190,6 +196,7 @@ const allAdditionalInfo = computed(() => {
 })
 
 
+
 const formattedAdditionalInfoString = computed(() => {
   return allAdditionalInfo.value?.map(it => {
     return it.referee + ": " + it.info
@@ -239,7 +246,11 @@ function isTeamAWinner(gr:GameReport) {
 </script>
 
 <template>
-  <div class="flex flex-row justify-center">
+  <div v-if="isLoading" class="flex flex-row justify-center">
+   <i class="pi pi-spin pi-spinner" style="font-size: 4rem"></i>
+       Loading ...
+  </div>
+  <div v-else class="flex flex-row justify-center">
     <div class="flex flex-col content-center justify-center">
       <!-- Header -->
       <div class="bg-white w-full sm:w-[680px]">

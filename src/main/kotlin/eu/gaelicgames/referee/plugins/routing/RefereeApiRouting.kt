@@ -39,15 +39,9 @@ fun Route.refereeApiRouting() {
         val reportId = get.id
         if (reportId >= 0) {
             val report = CacheUtil.getCachedReport(reportId).recoverCatching {
-                val reportDB = lockedTransaction {
-                    TournamentReport.findById(reportId)
-                }
-                if (reportDB != null) {
-                    CompleteReportDEO.fromTournamentReport(reportDB)
-                } else {
-                    throw Exception("Report under given id not found")
-                    //call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Report under given id not found"))
-                }
+
+                CompleteReportDEO.fromTournamentReportId(reportId).getOrThrow()
+
 
             }
             if (report.isSuccess) {
@@ -86,6 +80,7 @@ fun Route.refereeApiRouting() {
                         report.exceptionOrNull()?.message ?: "Unknown error"
                     )
                 )
+                report.exceptionOrNull()?.printStackTrace()
             }
 
         } else {

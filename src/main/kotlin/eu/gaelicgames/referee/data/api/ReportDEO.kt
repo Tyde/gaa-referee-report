@@ -4,27 +4,26 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.count
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.time.LocalDateTime
 import java.util.*
 
 
 fun Transaction.clearCacheForTournamentReport(report: TournamentReport) {
-     runBlocking {
-         val tournamentID = report.tournament.id.value
-         CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
-         CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
-         CacheUtil.deleteCachedReport(report.id.value)
-     }
+    runBlocking {
+        val tournamentID = report.tournament.id.value
+        CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
+        CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
+        CacheUtil.deleteCachedReport(report.id.value)
+    }
 
 
 }
 
 suspend fun CompleteReportDEO.Companion.fromTournamentReport(
     tournamentReport: TournamentReport
-): CompleteReportDEO  {
+): CompleteReportDEO {
     val report = lockedTransaction {
         val report = CompleteReportDEO(
             id = tournamentReport.id.value,
@@ -52,8 +51,47 @@ suspend fun CompleteReportDEO.Companion.fromTournamentReport(
     return report
 }
 
+suspend fun CompleteReportDEO.Companion.fromTournamentReportId(
+    id: Long
+): Result<CompleteReportDEO> {
+    return lockedTransaction {
+        val report = TournamentReports.leftJoin(Tournaments).leftJoin(Users).selectAll().where { TournamentReports.id eq id }.firstOrNull()
+        return@lockedTransaction if(report != null) {
+            val reportID = report[TournamentReports.id].value
+            val tournamentDEO = TournamentDEO.wrapRow(report)
+            val selectedTeams = TournamentReportTeamPreSelections.leftJoin(Teams)
+                .selectAll().where { TournamentReportTeamPreSelections.report eq reportID }
+                .map { TeamDEO.wrapRow(it) }
+
+            val gameReports = GameReports
+                .selectAll().where { GameReports.report eq reportID }
+                .map { CompleteGameReportDEO.wrapRow(it) }
+
+            val pitchReports = Pitches
+                .selectAll().where { Pitches.report eq reportID }
+                .map { PitchDEO.wrapRow(it) }
+            val referee = RefereeDEO.wrapRow(report)
+            Result.success(CompleteReportDEO(
+                id = reportID,
+                tournament = tournamentDEO,
+                code = report[TournamentReports.code].value,
+                additionalInformation = report[TournamentReports.additionalInformation],
+                isSubmitted = report[TournamentReports.isSubmitted],
+                submitDate = report[TournamentReports.submitDate],
+                selectedTeams = selectedTeams,
+                gameReports = gameReports,
+                pitches = pitchReports,
+                referee = referee
+            ))
+        } else {
+            Result.failure(Exception("Report with id $id not found"))
+        }
+    }
+
+}
+
 suspend fun TournamentReportByIdDEO.Companion.fromTournamentReport(tournamentReport: TournamentReport): TournamentReportByIdDEO {
-    return lockedTransaction  {
+    return lockedTransaction {
         TournamentReportByIdDEO(
             tournamentReport.id.value
         )
@@ -63,7 +101,7 @@ suspend fun TournamentReportByIdDEO.Companion.fromTournamentReport(tournamentRep
 suspend fun TournamentReportByIdDEO.submitInDatabase(): Result<TournamentReport> {
     val stdeo = this
 
-    return lockedTransaction  {
+    return lockedTransaction {
         val report = TournamentReport.findById(stdeo.id)
         if (report != null) {
             clearCacheForTournamentReport(report)
@@ -79,7 +117,7 @@ suspend fun TournamentReportByIdDEO.submitInDatabase(): Result<TournamentReport>
 
 suspend fun TournamentReportByIdDEO.createShareLink(): Result<TournamentReportShareLinkDEO> {
     val stdeo = this
-    return lockedTransaction  {
+    return lockedTransaction {
         val report = TournamentReport.findById(stdeo.id)
         if (report != null) {
             var share = TournamentReportShareLink.find { TournamentReportShareLinks.report eq report.id }.firstOrNull()
@@ -103,7 +141,7 @@ suspend fun TournamentReportByIdDEO.createShareLink(): Result<TournamentReportSh
 }
 
 suspend fun UpdateReportAdditionalInformationDEO.Companion.fromTournamentReportReport(report: TournamentReport): UpdateReportAdditionalInformationDEO {
-    return lockedTransaction  {
+    return lockedTransaction {
         UpdateReportAdditionalInformationDEO(
             id = report.id.value,
             additionalInformation = report.additionalInformation
@@ -114,7 +152,7 @@ suspend fun UpdateReportAdditionalInformationDEO.Companion.fromTournamentReportR
 suspend fun UpdateReportAdditionalInformationDEO.updateInDatabase(): Result<TournamentReport> {
     val update = this
     if (update.additionalInformation.isNotBlank()) {
-        return lockedTransaction  {
+        return lockedTransaction {
             val report = TournamentReport.findById(update.id)
             if (report != null) {
                 clearCacheForTournamentReport(report)
@@ -135,7 +173,7 @@ suspend fun UpdateReportAdditionalInformationDEO.updateInDatabase(): Result<Tour
 
 
 suspend fun NewTournamentReportDEO.Companion.fromTournamentReport(input: TournamentReport): NewTournamentReportDEO {
-    return lockedTransaction  {
+    return lockedTransaction {
         NewTournamentReportDEO(
             input.id.value,
             input.tournament.id.value,
@@ -146,7 +184,7 @@ suspend fun NewTournamentReportDEO.Companion.fromTournamentReport(input: Tournam
 }
 
 suspend fun NewTournamentReportDEO.storeInDatabase(user: User): TournamentReport? {
-    return lockedTransaction  {
+    return lockedTransaction {
         val reportTournament = Tournament.findById(tournament)
         val reportGameCode = GameCode.findById(gameCode)
         if (reportTournament != null && reportGameCode != null) {
@@ -174,7 +212,7 @@ suspend fun NewTournamentReportDEO.storeInDatabase(user: User): TournamentReport
 suspend fun NewTournamentReportDEO.updateInDatabase(): Result<TournamentReport> {
     val trUpdate = this
     if (trUpdate.id != null) {
-        return lockedTransaction  {
+        return lockedTransaction {
             val report = TournamentReport.findById(trUpdate.id)
             val tournament = Tournament.findById(trUpdate.tournament)
             val gameCode = GameCode.findById(trUpdate.gameCode)
@@ -242,7 +280,7 @@ suspend fun TournamentReportDEO.createInDatabase(referee: User): TournamentRepor
         val tournament = Tournament.findById(rUpdate.tournament)
         val code = GameCode.findById(rUpdate.code)
         if (tournament != null && code != null) {
-            return lockedTransaction  {
+            return lockedTransaction {
                 TournamentReport.new {
                     this.tournament = tournament
                     this.referee = referee
@@ -267,7 +305,7 @@ suspend fun TournamentReportDEO.createInDatabase(referee: User): TournamentRepor
 suspend fun TournamentReportDEO.updateInDatabase(): TournamentReport? {
     val rUpdate = this
     if (rUpdate.id != null) {
-        return lockedTransaction  {
+        return lockedTransaction {
             val report = TournamentReport.findById(rUpdate.id)
             if (report != null) {
                 clearCacheForTournamentReport(report)
@@ -302,7 +340,7 @@ suspend fun TournamentReportDEO.updateInDatabase(): TournamentReport? {
 
 
 suspend fun CompactTournamentReportDEO.Companion.all(): List<CompactTournamentReportDEO> {
-    return lockedTransaction  {
+    return lockedTransaction {
 
 
         exec(
@@ -349,10 +387,10 @@ suspend fun CompactTournamentReportDEO.Companion.all(): List<CompactTournamentRe
 }
 
 suspend fun CompactTournamentReportDEO.Companion.fromTournamentReport(report: TournamentReport): CompactTournamentReportDEO {
-    return lockedTransaction  {
+    return lockedTransaction {
         val numTeams = TournamentReportTeamPreSelections
-            .slice(TournamentReportTeamPreSelections.id.count())
-            .select { TournamentReportTeamPreSelections.report eq report.id }
+            .select(TournamentReportTeamPreSelections.id.count())
+            .where { TournamentReportTeamPreSelections.report eq report.id }
             .first()[TournamentReportTeamPreSelections.id.count()]
         CompactTournamentReportDEO(
             report.id.value,
@@ -370,13 +408,42 @@ suspend fun CompactTournamentReportDEO.Companion.fromTournamentReport(report: To
 }
 
 
+suspend fun CompactTournamentReportDEO.Companion.wrapRow(
+    row: ResultRow
+): CompactTournamentReportDEO {
+
+    val id = row[TournamentReports.id].value
+    val numTeams = TournamentReportTeamPreSelections
+        .select(TournamentReportTeamPreSelections.id.count())
+        .where { TournamentReportTeamPreSelections.report eq id }
+        .first()[TournamentReportTeamPreSelections.id.count()]
+    val numGameReports = GameReports
+        .select(GameReports.id.count())
+        .where { GameReports.report eq id }
+        .first()[GameReports.id.count()]
+    val user = User.findById(row[TournamentReports.referee].value)
+    return CompactTournamentReportDEO(
+        row[TournamentReports.id].value,
+        row[TournamentReports.tournament].value,
+        row[TournamentReports.code].value,
+        row[TournamentReports.isSubmitted],
+        row[TournamentReports.submitDate],
+        row[TournamentReports.referee].value,
+        user?.firstName + " " + user?.lastName,
+        numGameReports,
+        numTeams,
+        row[TournamentReports.additionalInformation]
+    )
+
+}
+
 /**
  * This function deletes the tournament report from the database
  * it will not check if the user is allowed to delete the report
  */
 suspend fun DeleteTournamentReportDEO.deleteFromDatabase(): Result<Boolean> {
     val id = this.id
-    return lockedTransaction  {
+    return lockedTransaction {
         TournamentReport.findById(id)?.let { it ->
             clearCacheForTournamentReport(it)
             it.deleteComplete()
@@ -387,7 +454,7 @@ suspend fun DeleteTournamentReportDEO.deleteFromDatabase(): Result<Boolean> {
 
 suspend fun DeleteTournamentReportDEO.deleteChecked(user: User): Result<Boolean> {
     val id = this.id
-    val hasRights = lockedTransaction  {
+    val hasRights = lockedTransaction {
         TournamentReport.findById(id)?.let { it ->
             it.referee == user || user.role == UserRole.ADMIN
         } ?: false

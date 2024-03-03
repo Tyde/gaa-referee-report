@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.GGERefereeConfig
 import eu.gaelicgames.referee.util.MailjetClientHandler
 import eu.gaelicgames.referee.util.lockedTransaction
+import org.jetbrains.exposed.sql.ResultRow
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.*
@@ -15,6 +16,14 @@ fun RefereeDEO.Companion.fromReferee(referee: User): RefereeDEO {
         lastName = referee.lastName,
         mail = referee.mail,
     )
+}
+
+fun RefereeDEO.Companion.wrapRow(row: ResultRow): RefereeDEO {
+    val id = row[Users.id].value
+    val firstName = row[Users.firstName]
+    val lastName = row[Users.lastName]
+    val mail = row[Users.mail]
+    return RefereeDEO(id, firstName, lastName, mail)
 }
 suspend fun RefereeWithRoleDEO.updateInDatabase():Result<User> {
     val thisReferee = this

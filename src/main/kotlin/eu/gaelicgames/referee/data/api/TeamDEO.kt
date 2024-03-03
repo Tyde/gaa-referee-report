@@ -1,13 +1,60 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.Teams.leftJoin
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.*
 
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
     return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
+}
+
+fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
+    val isAmalgamation = row[Teams.isAmalgamation]
+    val addedTeams = if(isAmalgamation){
+        Amalgamations.leftJoin(Teams, {addedTeam},{Teams.id}).selectAll().where{ Amalgamations.amalgamation eq row[Teams.id]}.map {
+            TeamDEO.wrapRow(it)
+        }
+
+    } else {
+        listOf()
+    }
+    return TeamDEO(
+        row[Teams.name],
+        row[Teams.id].value,
+        isAmalgamation,
+        addedTeams
+    )
+}
+
+fun TeamDEO.Companion.wrapJoinedRow(row: ResultRow, aliasAddedTeam: Alias<Teams>): TeamDEO {
+    val isAmalgamation = row[Teams.isAmalgamation]
+    val singleAmalgamationTeam =  if(isAmalgamation) {
+        listOf(TeamDEO(
+            row[aliasAddedTeam[Teams.name]],
+            row[aliasAddedTeam[Teams.id]].value,
+            row[aliasAddedTeam[Teams.isAmalgamation]],
+            null
+        ))
+    } else {
+        listOf()
+    }
+    return TeamDEO(
+        row[Teams.name],
+        row[Teams.id].value,
+        isAmalgamation,
+        singleAmalgamationTeam
+    )
+}
+
+fun TeamDEO.Companion.wrapJoinQuery(): Pair<Join,Alias<Teams>> {
+    val addedTeamAlias = Teams.alias("addedTeam")
+    val q = Teams
+        .leftJoin(Amalgamations, { Teams.id }, { Amalgamations.amalgamation })
+        .leftJoin(addedTeamAlias, { Amalgamations.addedTeam }, { addedTeamAlias[Teams.id] })
+    return Pair(q, addedTeamAlias)
 }
 
 suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {

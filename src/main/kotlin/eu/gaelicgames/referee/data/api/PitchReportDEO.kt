@@ -6,6 +6,7 @@ import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Transaction
 
 
@@ -314,6 +315,25 @@ suspend fun PitchDEO.Companion.fromPitch(pitch: Pitch): PitchDEO {
             additionalInformation = pitch.additionalInformation
         )
     }
+}
+
+suspend fun PitchDEO.Companion.wrapRow(row: ResultRow) : PitchDEO {
+    return PitchDEO(
+        id = row[Pitches.id].value,
+        report = row[Pitches.report].value,
+        name = row[Pitches.name],
+        surface = row[Pitches.surface]?.value,
+        length = row[Pitches.length]?.value,
+        width = row[Pitches.width]?.value,
+        smallSquareMarkings = row[Pitches.smallSquareMarkings]?.value,
+        penaltySquareMarkings = row[Pitches.penaltySquareMarkings]?.value,
+        thirteenMeterMarkings = row[Pitches.thirteenMeterMarkings]?.value,
+        twentyMeterMarkings = row[Pitches.twentyMeterMarkings]?.value,
+        longMeterMarkings = row[Pitches.longMeterMarkings]?.value,
+        goalPosts = row[Pitches.goalPosts]?.value,
+        goalDimensions = row[Pitches.goalDimensions]?.value,
+        additionalInformation = row[Pitches.additionalInformation]
+    )
 }
 
 
