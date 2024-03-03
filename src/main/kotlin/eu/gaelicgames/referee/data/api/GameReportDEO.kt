@@ -859,9 +859,23 @@ suspend fun PublicDisciplinaryActionDEO.Companion.fromDisciplinaryAction(discipl
             id = disciplinaryAction.id.value,
             team = disciplinaryAction.team.id.value,
             rule = disciplinaryAction.rule.id.value,
-            game = disciplinaryAction.game.id.value
+            game = disciplinaryAction.game.id.value,
+            redCardIssued = disciplinaryAction.redCardIssued
         )
     }
+}
+
+suspend fun PublicDisciplinaryActionDEO.Companion.wrapRow(row: ResultRow) : PublicDisciplinaryActionDEO? {
+    if(row.getOrNull(DisciplinaryActions.id) == null) {
+        return null
+    }
+    return PublicDisciplinaryActionDEO(
+        id = row[DisciplinaryActions.id].value,
+        team = row[DisciplinaryActions.team].value,
+        rule = row[DisciplinaryActions.rule].value,
+        game = row[DisciplinaryActions.game].value,
+        redCardIssued = row[DisciplinaryActions.redCardIssued]
+    )
 }
 
 suspend fun PublicGameReportDEO.Companion.fromGameReport(gameReport: GameReport): PublicGameReportDEO {
@@ -880,5 +894,7 @@ suspend fun PublicGameReportDEO.Companion.fromGameReport(gameReport: GameReport)
 
     }
 }
+
+
 
 

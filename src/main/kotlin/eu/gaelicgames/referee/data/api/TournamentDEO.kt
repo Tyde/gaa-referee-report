@@ -103,23 +103,26 @@ fun RegionDEO.Companion.fromRegion(input: Region): RegionDEO {
 suspend fun PublicTournamentReportDEO.Companion.fromTournament(input: Tournament): PublicTournamentReportDEO {
     return lockedTransaction {
 
-        val gameReports = TournamentReports.leftJoin(GameReports).select {
-            (TournamentReports.tournament eq input.id) and
-                    (TournamentReports.isSubmitted eq true)
-        }.map {
-            TournamentReport.wrapRow(it)
-            val gameReport = GameReport.wrapRow(it)
-            PublicGameReportDEO.fromGameReport(gameReport)
-        }
 
-        val allTeams = gameReports
-            .flatMap { listOf(it.gameReport.teamA, it.gameReport.teamB) }
-            .distinct()
-            .filterNotNull()
-            .map { TeamDEO.fromTeamId(it) }
-            .filter { it.isSuccess }
-            .map { it.getOrThrow() }
-            .toList()
+
+        val gameReports = GameReports.leftJoin(DisciplinaryActions).leftJoin(TournamentReports).selectAll()
+            .where{
+                (TournamentReports.tournament eq input.id) and
+                        (TournamentReports.isSubmitted eq true)
+            }
+            .map {it ->
+            Pair(it,PublicDisciplinaryActionDEO.wrapRow(it))
+        }.groupBy { it.first[GameReports.id] }
+            .map { (id,list)->
+                PublicGameReportDEO(
+                    gameReport =GameReportDEO.wrapRow(list.first().first),
+                    disciplinaryActions = list.mapNotNull { it.second },
+                    code = list.first().first[TournamentReports.code].value
+                )
+            }
+
+
+        val allTeams = getAllTeamsOfGameReports(gameReports.map { it.gameReport })
 
         val ptr = PublicTournamentReportDEO(
             TournamentDEO.fromTournament(input),
@@ -139,11 +142,11 @@ fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTourna
     return runBlocking {
         CacheUtil.getCachedPublicTournamentReport(id)
             .getOrElse {
-                suspendedTransactionAsync {
+                lockedTransaction {
                     val tournament = Tournament.findById(id)
                         ?: throw IllegalArgumentException("Tournament with id $id does not exist")
                     fromTournament(tournament)
-                }.await()
+                }
             }
 
     }
@@ -153,7 +156,6 @@ fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTourna
 suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tournament): CompleteTournamentReportDEO {
     return lockedTransaction {
 
-        println("Before inner join")
         val gameReports = TournamentReports.innerJoin(GameReports).select {
             (TournamentReports.tournament eq input.id) and
                     (TournamentReports.isSubmitted eq true)
@@ -163,25 +165,7 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
             rep
         }
 
-        val allTeamIds = gameReports
-            .flatMap { listOf(it.gameReport.gameReport.teamA, it.gameReport.gameReport.teamB) }
-            .distinct()
-            .filterNotNull()
-
-        val (join,addedTeamAlias) = TeamDEO.wrapJoinQuery()
-        val allTeams = join.selectAll().where { Teams.id inList allTeamIds }
-            .map {
-                TeamDEO.wrapJoinedRow(it, addedTeamAlias)
-            }.toList().groupBy { it.id }.map {(id,tDEOList) ->
-                val template =tDEOList.first()
-                TeamDEO(
-                    name = template.name,
-                    id= template.id,
-                    isAmalgamation = template.isAmalgamation,
-                    amalgamationTeams = tDEOList.flatMap { it.amalgamationTeams?: listOf() }
-                )
-
-            }
+        val allTeams = getAllTeamsOfGameReports(gameReports.map { it.gameReport.gameReport })
 
 
         /*
@@ -211,6 +195,29 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
         }
         deo
     }
+}
+
+private fun getAllTeamsOfGameReports(gameReports: List<GameReportDEO>): List<TeamDEO> {
+    val allTeamIds = gameReports
+        .flatMap { listOf(it.teamA, it.teamB) }
+        .distinct()
+        .filterNotNull()
+
+    val (join, addedTeamAlias) = TeamDEO.wrapJoinQuery()
+    val allTeams = join.selectAll().where { Teams.id inList allTeamIds }
+        .map {
+            TeamDEO.wrapJoinedRow(it, addedTeamAlias)
+        }.toList().groupBy { it.id }.map { (id, tDEOList) ->
+            val template = tDEOList.first()
+            TeamDEO(
+                name = template.name,
+                id = template.id,
+                isAmalgamation = template.isAmalgamation,
+                amalgamationTeams = tDEOList.flatMap { it.amalgamationTeams ?: listOf() }
+            )
+
+        }
+    return allTeams
 }
 
 

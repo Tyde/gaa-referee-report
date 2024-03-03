@@ -37,6 +37,7 @@ fun Route.publicApiRouting() {
             }
         }.onFailure {
             call.respond(HttpStatusCode.NotFound)
+            it.printStackTrace()
         }
 
     }

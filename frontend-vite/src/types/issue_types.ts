@@ -100,7 +100,7 @@ export function disciplinaryActionIssuesForGameReport(gameReport: GameReport): A
             if (fullName.trim().length == 0) {
                 issues.push(DisciplinaryActionIssue.NoName)
             }
-            if (disciplinaryAction.number === undefined) {
+            if (disciplinaryAction.number === undefined && !disciplinaryAction.forTeamOfficial) {
                 issues.push(DisciplinaryActionIssue.NoNumber)
             }
             if (disciplinaryAction.rule === undefined) {
