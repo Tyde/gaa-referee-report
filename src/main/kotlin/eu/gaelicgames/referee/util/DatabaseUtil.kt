@@ -1,5 +1,7 @@
 package eu.gaelicgames.referee.util
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import eu.gaelicgames.referee.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,6 +19,7 @@ import java.io.InputStreamReader
 val USE_POSTGRES = true
 
 object DatabaseHandler {
+    lateinit var pool: HikariDataSource
     var db: Database? = null
     fun init(testing: Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
         if (testing) {
@@ -38,13 +41,32 @@ object DatabaseHandler {
                     useNestedTransactions = false
                 }
 
+
+                val poolConfig = HikariConfig().apply {
+                    jdbcUrl = "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}"
+                    maximumPoolSize = 6
+                    isReadOnly = false
+                    transactionIsolation = "TRANSACTION_SERIALIZABLE"
+                    driverClassName = "org.postgresql.Driver"
+                    username = GGERefereeConfig.postgresUser
+                    password = GGERefereeConfig.postgresPassword
+                }
+
+
+                pool = HikariDataSource(poolConfig)
+                Database.connect(
+                    datasource = pool,
+                    databaseConfig = config
+                )
+
+                /*
                 Database.connect(
                     "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
                     driver = "org.postgresql.Driver",
                     user = GGERefereeConfig.postgresUser,
                     password = GGERefereeConfig.postgresPassword,
                     databaseConfig = config
-                )
+                )*/
             } else {
                 Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
             }
@@ -347,7 +369,7 @@ object DatabaseHandler {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun <T> lockedTransaction(statement: suspend Transaction.() -> T): T {
-    return newSuspendedTransaction(newFixedThreadPoolContext(4,"Database")) {
+    return newSuspendedTransaction(newFixedThreadPoolContext(4,"Database"),DatabaseHandler.db) {
         statement()
     }
 

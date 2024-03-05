@@ -54,6 +54,7 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-dao", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-java-time", exposed_version)
+    implementation("com.zaxxer:HikariCP:5.1.0")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.30.1")
 

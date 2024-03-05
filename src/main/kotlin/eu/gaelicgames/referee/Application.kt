@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
@@ -85,9 +86,13 @@ fun Application.refereeApplicationModule() {
 
 
 
+
     configureTemplating()
     configureSerialization()
     configureSecurity()
     configureRouting()
-
+    environment.monitor.subscribe(ApplicationStopping) {
+        println("Application stopping...")
+        DatabaseHandler.pool.close()
+    }
 }
