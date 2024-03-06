@@ -10,7 +10,7 @@ import {
 
 export async function validateActivationToken(token: string): Promise<Referee> {
     return makePostRequest("/api/user/validate_activation_token", {token: token})
-        .then(data => parseAndHandleDEO(data, Referee))
+        .then(data => parseAndHandleDEO(data, Referee,true))
 }
 
 export async function activateUser(token: string, password: string) {

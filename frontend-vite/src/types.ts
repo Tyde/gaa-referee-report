@@ -22,7 +22,9 @@ export const ExtraTimeOption = z.object({
 export type ExtraTimeOption = z.infer<typeof ExtraTimeOption>
 
 
-export const ApiErrorOptions = z.enum(["insertionFailed", "notFound"])
+export const ApiErrorOptions = z.enum([
+    "insertionFailed", "notFound", "deleteFailed", "notAuthorized"
+])
 export type ApiErrorOptions = z.infer<typeof ApiErrorOptions>;
 
 export const ApiError = z.object({
@@ -31,7 +33,9 @@ export const ApiError = z.object({
 })
 export type ApiError = z.infer<typeof ApiError>;
 
-
+export function isApiError(obj: any): obj is ApiError {
+    return obj.error !== undefined;
+}
 
 export const DeletionStateEnum = z.enum(["DELETED", "DISABLED", "FAILED"])
 
