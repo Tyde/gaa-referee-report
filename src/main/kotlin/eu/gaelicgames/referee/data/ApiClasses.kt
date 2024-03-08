@@ -1,7 +1,6 @@
 package eu.gaelicgames.referee.data
 
-import eu.gaelicgames.referee.data.GameCodeDEO
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
+import eu.gaelicgames.referee.util.lockedTransaction
 
 
 fun GameCodeDEO(gameCode: GameCode): GameCodeDEO {
@@ -9,10 +8,10 @@ fun GameCodeDEO(gameCode: GameCode): GameCodeDEO {
 }
 
 suspend fun GameCodeDEO.Companion.allGameCodes(): List<GameCodeDEO> {
-    return suspendedTransactionAsync {
+    return lockedTransaction {
                 val gameCodes = GameCode.all().map { GameCodeDEO(it) }
                 gameCodes
-            }.await()
+            }
 
 }
 

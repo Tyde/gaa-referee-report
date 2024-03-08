@@ -17,8 +17,6 @@ import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
 
@@ -90,12 +88,12 @@ fun Route.sites() {
     }
     get<Api.Reports.GetShared> { getShared ->
         val uuid = UUID.fromString(getShared.uuid)
-        val report = suspendedTransactionAsync {
-            val link = TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull()
-            link?.let {
-                CompleteReportDEO.fromTournamentReport(link.report)
+        val report  =  lockedTransaction {
+           TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull()
+               ?.let {
+                CompleteReportDEO.fromTournamentReport(it.report)
             }
-        }.await()
+        }
         if (report != null) {
             call.respond(report)
         } else {

@@ -63,11 +63,8 @@ dependencies {
     implementation("com.natpryce:konfig:1.6.10.0")
 
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
-    implementation("com.h2database:h2:2.1.212")
     implementation("org.postgresql:postgresql:42.7.2")
-    implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9")
 
-    implementation("org.flywaydb:flyway-core:9.1.3")
 
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")

@@ -12,7 +12,6 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import java.time.LocalDateTime
 import java.util.*
 
@@ -90,7 +89,7 @@ class Session(id:EntityID<Long>) : LongEntity(id) {
                 println("Cache miss: ${cachedSession.exceptionOrNull()?.message}")
             }
 
-            return suspendedTransactionAsync {
+            return lockedTransaction {
                 val foundSessions = Session.find { Sessions.uuid eq uuid }
                 if (!foundSessions.empty() &&
                     foundSessions.first().expires > LocalDateTime.now()) {
@@ -103,7 +102,7 @@ class Session(id:EntityID<Long>) : LongEntity(id) {
                 } else {
                     Result.failure(Exception("Session not found"))
                 }
-            }.await()
+            }
         }
     }
     var uuid by Sessions.uuid

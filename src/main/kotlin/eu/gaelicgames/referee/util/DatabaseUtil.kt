@@ -50,6 +50,7 @@ object DatabaseHandler {
                     driverClassName = "org.postgresql.Driver"
                     username = GGERefereeConfig.postgresUser
                     password = GGERefereeConfig.postgresPassword
+                    isAutoCommit = false
                 }
 
 
@@ -101,8 +102,8 @@ object DatabaseHandler {
         TournamentReportShareLinks
     )
 
-    fun createSchema() {
-        transaction {
+    suspend fun createSchema() {
+        lockedTransaction {
             for (table in tables) {
                 SchemaUtils.create(table)
             }
@@ -127,7 +128,7 @@ object DatabaseHandler {
         }
     }
 
-    fun populate_base_data() {
+    suspend fun populate_base_data() {
         populate_name_only_table_from_csv(
             ExtraTimeOptions,
             "extra_time_options.csv",
@@ -183,8 +184,8 @@ object DatabaseHandler {
 
     }
 
-    private fun populate_name_only_table_from_csv(table: LongIdTable, filename: String, nameColumn: Column<String>) {
-        val alreadyPopulated = transaction {
+    private suspend fun populate_name_only_table_from_csv(table: LongIdTable, filename: String, nameColumn: Column<String>) {
+        val alreadyPopulated = lockedTransaction {
             table.selectAll().count() != 0L
         }
         if (!alreadyPopulated) {
@@ -196,7 +197,7 @@ object DatabaseHandler {
                     )
                 )
                 val csvParser = CSVParser(reader, CSVFormat.DEFAULT)
-                transaction {
+                lockedTransaction {
                     for (csvRecord in csvParser) {
                         table.insertAndGetId {
                             it[nameColumn] = csvRecord[0]
@@ -207,12 +208,12 @@ object DatabaseHandler {
         }
     }
 
-    private fun populate_rules() {
-        val alreadyPopulated = transaction {
+    private suspend fun populate_rules() {
+        val alreadyPopulated = lockedTransaction {
             Rules.selectAll().count() != 0L
         }
         if (!alreadyPopulated) {
-            val allGameCodes = transaction { GameCode.all().map { it } }
+            val allGameCodes = lockedTransaction { GameCode.all().map { it } }
             val hurlingCode = allGameCodes.find { it.name == "Hurling" }
             hurlingCode?.let {
                 populate_rules_of_code("hurling.csv", it)
@@ -232,7 +233,7 @@ object DatabaseHandler {
         }
     }
 
-    private fun populate_rules_of_code(filename: String, selcted_code: GameCode) {
+    private suspend fun populate_rules_of_code(filename: String, selcted_code: GameCode) {
         val resource = this.javaClass.classLoader.getResourceAsStream("base_data/rules/$filename")
         resource.use {
             val reader = BufferedReader(
@@ -246,7 +247,7 @@ object DatabaseHandler {
                 .setHeader()
                 .build()
             val csvParser = CSVParser(reader, format)
-            transaction {
+            lockedTransaction {
                 for (csvRecord in csvParser) {
                     Rules.insert {
                         it[code] = selcted_code.id
@@ -369,8 +370,10 @@ object DatabaseHandler {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun <T> lockedTransaction(statement: suspend Transaction.() -> T): T {
-    return newSuspendedTransaction(newFixedThreadPoolContext(4,"Database"),DatabaseHandler.db) {
-        statement()
+    return newSuspendedTransaction(Dispatchers.IO,DatabaseHandler.db) {
+        val t = statement()
+        commit()
+        t
     }
 
 }

@@ -20,22 +20,43 @@ import java.io.File
 
 suspend fun main() = runBlocking<Unit> {
 
-    DatabaseHandler.init()
-    DatabaseHandler.createSchema()
-    lockedTransaction {
-        if (User.all().count() == 0L) {
 
-            if (File("data/data.db").exists()) {
-                DatabaseHandler.migrateSQLiteToPostgres()
+
+
+
+    embeddedServer(
+        Netty,
+        port = 8080,
+        host = "0.0.0.0",
+        //watchPaths = listOf("gaa-referee-report", "classes", "resources"),
+        watchPaths = listOf("gaa-referee-report", "classes", "resources"),
+        module = Application::refereeApplicationModule
+    ).start(wait = true)
+}
+
+fun Application.refereeApplicationModule() {
+    runBlocking {
+        CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)
+    }
+
+    DatabaseHandler.init()
+    runBlocking {
+        DatabaseHandler.createSchema()
+
+        lockedTransaction {
+            if (User.all().count() == 0L) {
+
+                if (File("data/data.db").exists()) {
+                    DatabaseHandler.migrateSQLiteToPostgres()
+                }
             }
         }
-    }
-    DatabaseHandler.populate_base_data()
+        DatabaseHandler.populate_base_data()
 
 
-    lockedTransaction {
-        if (User.all().count() == 0L) {
-            /*
+        lockedTransaction {
+            if (User.all().count() == 0L) {
+                /*
             println("No Admin user registered. Do that now:")
             println("First name:")
             val firstName = readLine()!!
@@ -46,7 +67,8 @@ suspend fun main() = runBlocking<Unit> {
             println("Password:")
             val password = readLine()!!*/
 
-            GGERefereeConfig.createAdminUser()
+                GGERefereeConfig.createAdminUser()
+            }
         }
     }
 
@@ -69,23 +91,6 @@ suspend fun main() = runBlocking<Unit> {
 
 
 
-    embeddedServer(
-        Netty,
-        port = 8080,
-        host = "0.0.0.0",
-        //watchPaths = listOf("gaa-referee-report", "classes", "resources"),
-        watchPaths = listOf("gaa-referee-report", "classes", "resources"),
-        module = Application::refereeApplicationModule
-    ).start(wait = true)
-}
-
-fun Application.refereeApplicationModule() {
-    runBlocking {
-        CacheUtil.init(GGERefereeConfig.redisHost+":"+GGERefereeConfig.redisPort, GGERefereeConfig.redisPassword)
-    }
-
-
-
 
     configureTemplating()
     configureSerialization()
@@ -93,6 +98,5 @@ fun Application.refereeApplicationModule() {
     configureRouting()
     environment.monitor.subscribe(ApplicationStopping) {
         println("Application stopping...")
-        DatabaseHandler.pool.close()
     }
 }

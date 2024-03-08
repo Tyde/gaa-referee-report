@@ -1,6 +1,5 @@
 package eu.gaelicgames.referee.util
 
-import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -21,7 +20,3 @@ fun printStatements() {
     }
 }
 
-fun runMigrations() {
-    val flyway = Flyway.configure().dataSource("jdbc:sqlite:datatest.db","","").load()
-    flyway.migrate()
-}
