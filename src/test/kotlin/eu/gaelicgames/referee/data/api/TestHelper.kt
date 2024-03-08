@@ -3,6 +3,7 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.DatabaseHandler
 import eu.gaelicgames.referee.util.USE_POSTGRES
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
@@ -21,9 +22,11 @@ object TestHelper {
 
 
     fun setupDatabase() {
-        DatabaseHandler.init(testing = true)
-        DatabaseHandler.createSchema()
-        DatabaseHandler.populate_base_data()
+        runBlocking {
+            DatabaseHandler.init(testing = true)
+            DatabaseHandler.createSchema()
+            DatabaseHandler.populate_base_data()
+        }
     }
 
     fun tearDownDatabase() {
