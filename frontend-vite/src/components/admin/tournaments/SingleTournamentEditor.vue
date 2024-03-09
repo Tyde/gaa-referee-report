@@ -1,11 +1,6 @@
 <script setup lang="ts">
 
-import {
-  DatabaseTournament,
-  databaseTournamentToTournamentDAO,
-  RegionDEO,
-  type Tournament
-} from "@/types/tournament_types";
+import {DatabaseTournament, databaseTournamentToTournamentDAO, RegionDEO} from "@/types/tournament_types";
 import {computed, ref} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 import {updateTournamentOnServer} from "@/utils/api/admin_api";

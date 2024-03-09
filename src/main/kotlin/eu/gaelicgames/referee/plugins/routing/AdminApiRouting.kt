@@ -1,6 +1,8 @@
 package eu.gaelicgames.referee.plugins.routing
 
-import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.ApiError
+import eu.gaelicgames.referee.data.ApiErrorOptions
+import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
@@ -11,7 +13,6 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.adminApiRouting() {
 
