@@ -14,6 +14,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
@@ -44,34 +45,26 @@ fun Route.refereeApiRouting() {
 
 
             }
+
             if (report.isSuccess) {
                 val user = call.principal<UserPrincipal>()
                 val report = report.getOrThrow()
-                val role = user?.user?.role
-                if (role == UserRole.ADMIN) {
-                    call.respond(report)
-                } else if (role == UserRole.CCC) {
-                    if (report.isSubmitted) {
-                        call.respond(report)
-                    } else {
-                        call.respond(
-                            ApiError(
-                                ApiErrorOptions.NOT_AUTHORIZED,
-                                "Report can only be accessed by CCC after submission"
-                            )
-                        )
-                    }
+                if(user!= null) {
+                    limitAccess(
+                        user,
+                        report,
+                        isUserAllowedPredicate = {userIt, reportIt -> reportIt.referee.id == userIt.user.id.value},
+                        isCCCAllowedPredicate = {_, reportIt -> reportIt.isSubmitted},
+                        customUserDisallowedMessage = "Report can only be accessed by the referee who created it",
+                        customCCCDisallowedMessage = "Report can only be accessed by CCC after submission"
+                    )
                 } else {
-                    if (report.referee.id == user?.user?.id?.value) {
-                        call.respond(report)
-                    } else {
-                        call.respond(
-                            ApiError(
-                                ApiErrorOptions.NOT_AUTHORIZED,
-                                "Report can only be accessed by the referee who created it"
-                            )
+                    call.respond(
+                        ApiError(
+                            ApiErrorOptions.NOT_FOUND,
+                            "User not logged in"
                         )
-                    }
+                    )
                 }
             } else {
                 call.respond(
@@ -402,3 +395,40 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doU
     }
 }
 
+
+private suspend inline fun <reified T:Any>PipelineContext<Unit, ApplicationCall>.limitAccess(
+    user:UserPrincipal,
+    serializableObject: T,
+    isUserAllowedPredicate: (UserPrincipal, T) -> Boolean,
+    isCCCAllowedPredicate: (UserPrincipal, T) -> Boolean = {_, _ -> false},
+    customUserDisallowedMessage: String = "Data can only be accessed by the referee who created it",
+    customCCCDisallowedMessage: String = "Data can only be accessed by CCC after submission"
+){
+
+    val role = user.user.role
+    if (role == UserRole.ADMIN) {
+        call.respond(serializableObject)
+    } else if (role == UserRole.CCC) {
+        if (isCCCAllowedPredicate(user, serializableObject)) {
+            call.respond(serializableObject)
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.NOT_AUTHORIZED,
+                    customCCCDisallowedMessage
+                )
+            )
+        }
+    } else {
+        if (isUserAllowedPredicate(user, serializableObject)) {
+            call.respond(serializableObject)
+        } else {
+            call.respond(
+                ApiError(
+                    ApiErrorOptions.NOT_AUTHORIZED,
+                    customUserDisallowedMessage
+                )
+            )
+        }
+    }
+}
