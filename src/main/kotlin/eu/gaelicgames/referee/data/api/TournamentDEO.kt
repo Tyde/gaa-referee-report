@@ -256,7 +256,27 @@ suspend fun DeleteCompleteTournamentDEO.delete(): Result<Long> {
     }
 }
 
+suspend fun MergeTournamentDEO.updateInDatabase(): Result<Tournament> {
+    val mergeFromId = this.mergeFromId
+    val mergeToId = this.mergeToId
+    return lockedTransaction {
+        val mergeFrom = Tournament.findById(mergeFromId)
+        val mergeTo = Tournament.findById(mergeToId)
+        if (mergeFrom == null || mergeTo == null) {
+            return@lockedTransaction Result.failure(
+                IllegalArgumentException("Tournament with id $mergeFromId or $mergeToId does not exist")
+            )
+        } else {
+            val mergeFromReports = TournamentReport.find { TournamentReports.tournament eq mergeFrom.id }
+            mergeFromReports.forEach {
+                it.tournament = mergeTo
+            }
+            mergeFrom.delete()
 
+            return@lockedTransaction Result.success(mergeTo)
+        }
+    }
+}
 
 
 

@@ -73,6 +73,10 @@ class Api() {
         @Resource("delete")
         class Delete(val parent: Tournaments)
 
+        @Serializable
+        @Resource("merge")
+        class Merge(val parent: Tournaments)
+
     }
 
     @Serializable

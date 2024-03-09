@@ -6,7 +6,7 @@ import {
   RegionDEO,
   type Tournament
 } from "@/types/tournament_types";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 import {updateTournamentOnServer} from "@/utils/api/admin_api";
 import {DateTime} from "luxon";
@@ -78,6 +78,11 @@ function goToCompleteTournamentReport(id: number) {
 }
 
 const confirm = useConfirm()
+const mergeDialogVisible = ref(false)
+const mergeWithTournament = ref<DatabaseTournament | undefined>(undefined)
+const tournamentsExceptThis = computed(() => {
+  return store.publicStore.tournaments.filter(it => it.id != props.tournament.id)
+})
 function createTournamentButtonModel(tournament: DatabaseTournament) {
   return [
     {
@@ -102,9 +107,22 @@ function createTournamentButtonModel(tournament: DatabaseTournament) {
           reject() {
           },
         })
+      },
+    }, {
+      label: 'Merge Tournament into...',
+      command: () => {
+        mergeDialogVisible.value = true
       }
     }
   ]
+}
+
+function mergeTournaments() {
+  if (mergeWithTournament.value) {
+    console.log("Merging ", props.tournament, " into ", mergeWithTournament.value)
+    store.mergeTournament(props.tournament, mergeWithTournament.value)
+    mergeDialogVisible.value = false
+  }
 }
 </script>
 
@@ -192,6 +210,20 @@ function createTournamentButtonModel(tournament: DatabaseTournament) {
     >
 
     </SplitButton>
+    <Dialog v-model:visible="mergeDialogVisible" header="Merge Tournament" :modal="true" :closable="true">
+      <p>Are you sure you want to merge this tournament with another?</p>
+      <p>The tournament {{props.tournament.name}} will be moved into the selected tournament.</p>
+      <p>Choose the tournament to merge into:</p>
+      <Dropdown
+          v-model="mergeWithTournament"
+          :options="tournamentsExceptThis"
+          :optionLabel="(t:DatabaseTournament) => t.name + ' in ' + t.location + ' on ' + t.date.toISODate()"
+          placeholder="Select a tournament to merge into"
+          filter
+      /><br>
+      <Button label="Merge" class="p-button-success" @click="mergeTournaments"/>
+      <Button label="Cancel" class="p-button-danger" @click="mergeDialogVisible = false"/>
+    </Dialog>
   </div>
 
 </template>

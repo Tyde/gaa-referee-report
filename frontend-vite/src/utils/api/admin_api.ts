@@ -73,3 +73,13 @@ export async function deleteTournamentOnServer(tournament: DatabaseTournament) {
     return makePostRequest("api/tournament/delete", data)
         .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
 }
+
+
+export async function mergeTournamentOnServer(fromTournament: DatabaseTournament, toTournament: DatabaseTournament) {
+    let data = {
+        mergeFromId: fromTournament.id,
+        mergeToId: toTournament.id
+    }
+    return makePostRequest("/api/tournament/merge", data)
+        .then(data => parseAndHandleDEO(data, DatabaseTournament))
+}

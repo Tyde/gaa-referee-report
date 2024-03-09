@@ -269,4 +269,38 @@ class TournamentDEOTest {
         }
     }
 
+    @Test
+    fun mergeTournamentDEO() {
+        runBlocking {
+            val fromTournamentID = generateFakeCompleteTournament()
+            val intoTournamentID = generateFakeCompleteTournament()
+            val fromTournamentGameReportIDs = transaction {
+                TournamentReport.find { TournamentReports.tournament eq fromTournamentID }
+                    .flatMap { it.gameReports }
+                    .map { it.id.value }
+            }
+            val fromTournamentReportsIDs = transaction {
+                TournamentReport.find { TournamentReports.tournament eq fromTournamentID }
+                    .map { it.id.value }
+            }
+            val mergeTournamentDEO = MergeTournamentDEO(fromTournamentID, intoTournamentID)
+            val result = mergeTournamentDEO.updateInDatabase()
+            assert(result.isSuccess)
+            transaction {
+                val fromTournament = Tournament.findById(fromTournamentID)
+                assert(fromTournament == null)
+                val intoTournament = Tournament.findById(intoTournamentID)
+                assert(intoTournament != null)
+                val intoTournamentGameReportIDs = TournamentReport.find { TournamentReports.tournament eq intoTournamentID }
+                    .flatMap { it.gameReports }
+                    .map { it.id.value }
+                assert(intoTournamentGameReportIDs.containsAll(fromTournamentGameReportIDs))
+
+                val intoTournamentReportsIDs = TournamentReport.find { TournamentReports.tournament eq intoTournamentID }
+                    .map { it.id.value }
+                assert(intoTournamentReportsIDs.containsAll(fromTournamentReportsIDs))
+            }
+        }
+    }
+
 }
