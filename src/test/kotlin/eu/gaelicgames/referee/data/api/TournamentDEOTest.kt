@@ -2,6 +2,7 @@ package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
@@ -56,7 +57,7 @@ class TournamentDEOTest {
     @Test
     fun tournamentDEO_store_invalidRegion() {
         runBlocking {
-            val firstInvalid = transaction { Region.all().map { it.id.value }.max().plus(1)?:0}
+            val firstInvalid = transaction { Region.all().map { it.id.value }.max().plus(1) ?: 0 }
             val tournament = NewTournamentDEO(
                 "Test Tournament",
                 "Test Location",
@@ -116,7 +117,7 @@ class TournamentDEOTest {
     fun tournamentDEO_update_invalidRegion() {
         runBlocking {
             val tournament = transaction { Tournament.all().first() }
-            val firstInvalid = transaction { Region.all().map { it.id.value }.max().plus(1)?:0}
+            val firstInvalid = transaction { Region.all().map { it.id.value }.max().plus(1) ?: 0 }
             val newTournament = TournamentDEO(
                 tournament.id.value,
                 "New Name",
@@ -133,7 +134,7 @@ class TournamentDEOTest {
     @Test
     fun tournamentDEO_update_invalidTournament() {
         runBlocking {
-            val firstInvalid = transaction { Tournament.all().map { it.id.value }.max().plus(1)?:0}
+            val firstInvalid = transaction { Tournament.all().map { it.id.value }.max().plus(1) ?: 0 }
             val newTournament = TournamentDEO(
                 firstInvalid,
                 "New Name",
@@ -222,6 +223,48 @@ class TournamentDEOTest {
                     .map { it.gameReports.count() }
                     .sum()
                 assert(completeReportDEO.games.size.toLong() == numGameReports)
+            }
+        }
+    }
+
+    @Test
+    fun compactTournamentReportDEO_all() {
+        runBlocking {
+            val tournamentID = generateFakeCompleteTournament()
+            val compactTournamentReportDEOList = CompactTournamentReportDEO.all()
+            assert(compactTournamentReportDEOList.isNotEmpty())
+            transaction {
+                val numGameReports = GameReports.selectAll().count()
+                val numGameReportsInList = compactTournamentReportDEOList.fold(0L) { acc, compactTournamentReportDEO ->
+                    acc + compactTournamentReportDEO.numGameReports
+                }
+                assert(numGameReportsInList == numGameReports)
+                val tournamentIDs = TournamentReport.all().map { it.tournament.id.value }
+                assert(compactTournamentReportDEOList.map { it.tournament }.containsAll(tournamentIDs))
+                val refereeIDs = TournamentReport.all().map { it.referee.id.value }
+                assert(compactTournamentReportDEOList.map { it.refereeId }.containsAll(refereeIDs))
+                val additionalInformation = TournamentReport.all().map { it.additionalInformation }
+                assert(compactTournamentReportDEOList.map { it.additionalInformation }
+                    .containsAll(additionalInformation))
+            }
+        }
+    }
+
+    @Test
+    fun compactTournamentReportDEO_fromTournamentReport() {
+        runBlocking {
+            val tournamentID = generateFakeCompleteTournament()
+
+            val tournamentReport = transaction {
+                TournamentReport.find { TournamentReports.tournament eq tournamentID }.first()
+            }
+            val compactTournamentReportDEO = CompactTournamentReportDEO.fromTournamentReport(tournamentReport)
+            transaction {
+                assert(compactTournamentReportDEO.tournament == tournamentID)
+                assert(compactTournamentReportDEO.numGameReports == tournamentReport.gameReports.count())
+                assert(compactTournamentReportDEO.numTeams == tournamentReport.selectedTeams.count())
+                assert(compactTournamentReportDEO.refereeId == tournamentReport.referee.id.value)
+                assert(compactTournamentReportDEO.refereeName == tournamentReport.referee.firstName + " " + tournamentReport.referee.lastName)
             }
         }
     }
