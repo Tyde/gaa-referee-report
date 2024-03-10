@@ -39,6 +39,7 @@ import {
 } from "@/types/issue_types";
 import type {Team} from "@/types/team_types";
 import {loadAllTeams} from "@/utils/api/teams_api";
+import {usePublicStore} from "@/utils/public_store";
 
 
 export enum ReportEditStage {
@@ -52,25 +53,19 @@ export const useReportStore = defineStore('report', () => {
     const report = ref<Report>({} as Report)
     report.value.selectedTeams = []
 
+    const publicStore = usePublicStore()
+
     const gameReports = ref<Array<GameReport>>([])
     const pitchReports = ref<Array<Pitch>>([])
 
-    const codes = ref<Array<GameCode>>([])
-    const rules = ref<Array<Rule>>([])
-    const gameTypes = ref<Array<GameType>>([])
-    const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
-    const pitchVariables = ref<PitchVariables | undefined>()
-    const regions = ref<Array<RegionDEO>>([])
-
     const currentErrors = ref<ErrorMessage[]>([])
 
-    const allTeams = ref<Team[]>([])
 
 
     const enabledPitchVariables = computed(() => {
-        if (pitchVariables.value != undefined) {
+        if (publicStore.pitchVariables != undefined) {
             let local = {
-                ... pitchVariables.value,
+                ... publicStore.pitchVariables,
             } as PitchVariables
             local.goalDimensions = local.goalDimensions.filter(it => !it.disabled)
             local.goalPosts = local.goalPosts.filter(it => !it.disabled)
@@ -111,54 +106,9 @@ export const useReportStore = defineStore('report', () => {
         }
     })
 
-    async function loadAuxiliaryInformationFromSerer() {
-        const promiseCodes = getGameCodes()
-            .then(serverCodes => codes.value = serverCodes)
-            .catch(error => currentErrors.value.push(new ErrorMessage(error)))
-
-        const promiseRules = getRules()
-            .then(serverRules => rules.value = serverRules)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promisePitchVariables = getPitchVariables()
-            .then(serverPitchVariables => pitchVariables.value = serverPitchVariables)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promiseGameReport = getGameReportVariables()
-            .then(gameReportVariables => {
-                gameTypes.value = gameReportVariables.gameTypes
-                extraTimeOptions.value = gameReportVariables.extraTimeOptions
-            })
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promiseRegions = loadAllRegions()
-            .then(regionsFromServer => {
-                regions.value = regionsFromServer
-            })
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
-
-        const promiseTeams = loadAllTeamsFromServer()
-
-        return Promise.all([
-            promiseCodes,
-            promiseRules,
-            promisePitchVariables,
-            promiseGameReport,
-            promiseRegions,
-            promiseTeams
-        ])
-    }
-
-    async function loadAllTeamsFromServer() {
-        return loadAllTeams()
-            .then(teams => {
-                allTeams.value = teams
-            })
-            .catch(reason => newError(reason))
-    }
 
     function findSquadsForTeam(team:Team) {
-        return allTeams.value.filter((fiTeam) => {
+        return publicStore.teams.filter((fiTeam) => {
             if (fiTeam.isAmalgamation &&
                 fiTeam.amalgamationTeams &&
                 fiTeam.amalgamationTeams.length==1 &&
@@ -179,21 +129,21 @@ export const useReportStore = defineStore('report', () => {
                     newError(error)
                     return undefined
                 })
-            await loadAuxiliaryInformationFromSerer()
+            await publicStore.loadAuxiliaryInformationFromSerer()
             const reportDEO = await reportDEOPromise
             if (reportDEO) {
-                report.value = completeReportDEOToReport(reportDEO, codes.value)
+                report.value = completeReportDEOToReport(reportDEO, publicStore.codes)
                 gameReports.value = extractGameReportsFromCompleteReportDEO(
                     reportDEO,
                     report.value,
-                    gameTypes.value,
-                    extraTimeOptions.value,
-                    rules.value,
-                    allTeams.value
+                    publicStore.gameTypes,
+                    publicStore.extraTimeOptions,
+                    publicStore.rules,
+                    publicStore.teams
                 )
-                if (pitchVariables.value) {
+                if (publicStore.pitchVariables) {
                     pitchReports.value = reportDEO.pitches?.map(pitch => {
-                        return pitchDEOtoPitch(pitch, report.value, pitchVariables.value!!)
+                        return pitchDEOtoPitch(pitch, report.value, publicStore.pitchVariables!!)
                     }) ?? []
                 }
                 return true
@@ -205,7 +155,7 @@ export const useReportStore = defineStore('report', () => {
     }
 
     function addNewGameType(gameType: GameType) {
-        gameTypes.value.push(gameType)
+        publicStore.gameTypes.push(gameType)
     }
 
     async function deleteGameReport(gameReport: GameReport) {
@@ -454,15 +404,16 @@ export const useReportStore = defineStore('report', () => {
     }
 
     return {
+        publicStore,
         report,
         gameReports,
         pitchReports,
-        codes,
-        rules,
-        gameTypes,
-        extraTimeOptions,
-        pitchVariables,
-        regions,
+        //codes,
+        //rules,
+        //gameTypes,
+        //extraTimeOptions,
+        //pitchVariables,
+        //regions,
         enabledPitchVariables,
         currentErrors,
         selectedGameReportIndex,
@@ -470,10 +421,10 @@ export const useReportStore = defineStore('report', () => {
         selectedGameReportPassesMinimalRequirements,
         selectedPitchReportIndex,
         selectedPitchReport,
-        allTeams,
+        //allTeams,
         findSquadsForTeam,
-        loadAuxiliaryInformationFromSerer,
-        loadAllTeamsFromServer,
+        //loadAuxiliaryInformationFromSerer,
+        //loadAllTeamsFromServer,
         loadReport,
         addNewGameType,
         deleteGameReport,

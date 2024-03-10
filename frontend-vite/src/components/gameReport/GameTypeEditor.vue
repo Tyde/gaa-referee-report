@@ -38,7 +38,7 @@ function storeGameType() {
 }
 
 const proposedExistingAlternatives = computed(() => {
-  return store.gameTypes.filter(
+  return store.publicStore.gameTypes.filter(
       gameType =>
           gameType.name.toLowerCase().includes(newGameType.value.toLowerCase())
   )

@@ -27,7 +27,7 @@ function showGameTypeDialog() {
 
 const sendingCreateRequest = ref(false)
 const gameTypesByName = computed(() => {
-  return store.gameTypes.toSorted((a, b) => a.name > b.name ? 1 : -1)
+  return store.publicStore.gameTypes.toSorted((a, b) => a.name > b.name ? 1 : -1)
 })
 
 const teamAEqualTeamB = computed(() => {
@@ -128,7 +128,7 @@ onMounted(() => {
         <Dropdown
             id="extraTimeSelect"
             v-model="store.selectedGameReport.extraTime"
-            :options="store.extraTimeOptions"
+            :options="store.publicStore.extraTimeOptions"
             option-label="name"
             :placeholder="$t('gameReport.extraTime')"
             :class="{

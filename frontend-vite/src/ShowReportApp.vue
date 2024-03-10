@@ -90,11 +90,9 @@ const promiseList = ref<Promise<any>[]>([])
 onMounted(() => {
   isLoading.value = true
 
-  promiseList.value.push(store.loadAuxiliaryInformationFromSerer().then(() => {
+  promiseList.value.push(store.loadAuxiliaryInformationFromSerer(false).then(() => {
     console.log("Loaded auxiliary information")
   }))
-  promiseList.value.push(store.loadTeams())
-
   let loc = new URL(location.href)
   // If loc contains "share" in path, then we have to load by uuid given
   if(loc.pathname.includes("share")) {

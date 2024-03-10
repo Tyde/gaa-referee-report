@@ -25,11 +25,11 @@ function on_team_selected(team: Team) {
 
 
 onBeforeMount(() => {
-  store.loadAllTeamsFromServer()
+  store.publicStore.loadTeams()
 })
 
 const duplicates = computed(() => {
-  return store.allTeams.filter(team => {
+  return store.publicStore.teams.filter(team => {
     if(team.isAmalgamation && team.amalgamationTeams) {
       if(team.amalgamationTeams.length === selected_teams.value.length) {
 

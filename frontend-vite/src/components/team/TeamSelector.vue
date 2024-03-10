@@ -39,7 +39,7 @@ function onSplitCanceled() {
 }
 
 function onSplitSuccessful(teams: Team[]) {
-  store.loadAllTeamsFromServer()
+  store.publicStore.loadTeams()
   showSelect.value = true
   if(selectedSplitBaseTeam.value) {
     removeTeam(selectedSplitBaseTeam.value)

@@ -27,33 +27,54 @@ export const usePublicStore = defineStore("public",() =>{
 
     const currentErrors = ref<ErrorMessage[]>([])
 
-    async function loadAuxiliaryInformationFromSerer() {
-        const promiseCodes = getGameCodes()
-            .then(serverCodes => codes.value = serverCodes)
-            .catch(error => currentErrors.value.push(new ErrorMessage(error)))
+    async function loadAuxiliaryInformationFromServer(forceReload = true) {
+        const promiseList = []
+        if (forceReload || codes.value.length == 0) {
+            promiseList.push(getGameCodes()
+                .then(serverCodes => codes.value = serverCodes)
+                .catch(error => currentErrors.value.push(new ErrorMessage(error)))
+            )
+        }
 
-        const promiseRules = getRules()
-            .then(serverRules => rules.value = serverRules)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+        if(forceReload || rules.value.length == 0) {
+            promiseList.push(getRules()
+                .then(serverRules => rules.value = serverRules)
+                .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+            )
+        }
 
-        const promisePitchVariables = getPitchVariables()
-            .then(serverPitchVariables => pitchVariables.value = serverPitchVariables)
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+        if(forceReload || pitchVariables.value == undefined) {
+            promiseList.push(getPitchVariables()
+                .then(serverPitchVariables => pitchVariables.value = serverPitchVariables)
+                .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+            )
+        }
 
-        const promiseGameReport = getGameReportVariables()
-            .then(gameReportVariables => {
-                gameTypes.value = gameReportVariables.gameTypes
-                extraTimeOptions.value = gameReportVariables.extraTimeOptions
-            })
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+        if(forceReload || gameTypes.value.length == 0) {
+            promiseList.push(getGameReportVariables()
+                .then(gameReportVariables => {
+                    gameTypes.value = gameReportVariables.gameTypes
+                    extraTimeOptions.value = gameReportVariables.extraTimeOptions
+                })
+                .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+            )
+        }
 
-        const promiseRegions = loadAllRegions()
-            .then(regionsFromServer => {
-                regions.value = regionsFromServer
-            })
-            .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+        if(forceReload || regions.value.length == 0) {
+            promiseList.push(loadAllRegions()
+                .then(regionsFromServer => {
+                    regions.value = regionsFromServer
+                })
+                .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
+            )
+        }
 
-        return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport, promiseRegions])
+
+        if(forceReload || teams.value.length == 0) {
+            promiseList.push(loadTeams())
+        }
+
+        return Promise.all(promiseList)
     }
 
     async function loadTeams() {
@@ -62,6 +83,8 @@ export const usePublicStore = defineStore("public",() =>{
         })
             .catch(e => newError(e))
     }
+
+
 
     async function loadTournaments() {
         return loadAllTournaments()
@@ -127,12 +150,12 @@ export const usePublicStore = defineStore("public",() =>{
         tournaments,
         currentErrors,
         teams,
-        loadAuxiliaryInformationFromSerer,
+        loadAuxiliaryInformationFromSerer: loadAuxiliaryInformationFromServer,
+        loadTeams,
         newError,
         loadTournaments,
         getVariablesByType,
         waitForAllVariablesPresent,
         findCodeById,
-        loadTeams
     }
 });

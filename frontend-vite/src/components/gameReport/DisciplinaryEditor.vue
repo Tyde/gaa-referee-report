@@ -119,7 +119,7 @@ function deleteDAction(dAction: DisciplinaryAction) {
 }
 
 const filteredRules = computed(() => {
-  return store.rules.filter((rule) => {
+  return store.publicStore.rules.filter((rule) => {
     return rule.isDisabled == false && rule.code == store.report.gameCode.id
   })
 })

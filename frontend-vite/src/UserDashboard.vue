@@ -14,7 +14,6 @@ const store = useDashboardStore()
 const publicStore = usePublicStore()
 publicStore.loadAuxiliaryInformationFromSerer()
 publicStore.loadTournaments()
-publicStore.loadTeams()
 
 
 

@@ -35,7 +35,7 @@ const sortedGameReports = computed(() => {
 })
 //const localGameReportSelection = ref<GameReport | undefined>(undefined)
 const filteredRules = computed(() => {
-  return store.rules.filter(rule => rule.code == store.report.gameCode.id)
+  return store.publicStore.rules.filter(rule => rule.code == store.report.gameCode.id)
 })
 function newGameReport() {
 
@@ -67,7 +67,7 @@ function newGameReport() {
     umpirePresentOnTime: true,
     umpireNotes: "",
     startTime: estimatedStartingTime,
-    extraTime: store.extraTimeOptions[0],
+    extraTime: store.publicStore.extraTimeOptions[0],
     generalNotes: "",
   } as GameReport)
   store.selectedGameReportIndex = store.gameReports.length - 1

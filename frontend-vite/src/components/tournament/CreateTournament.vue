@@ -79,7 +79,7 @@ const dateString = computed(() => {
         <Dropdown
             v-model="editedTournament.region"
             id="region"
-            :options="store.regions"
+            :options="store.publicStore.regions"
             option-label="name"
             option-value="id"
             :placeholder="$t('tournament.selectRegion')"

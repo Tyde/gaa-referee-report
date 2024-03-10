@@ -20,6 +20,7 @@ const store = useReportStore()
 
 
 
+
 const allStages = ref([
   ReportEditStage.SelectTournament,
   ReportEditStage.SelectTeams,
@@ -212,7 +213,7 @@ onMounted(() => {
   isLoading.value = true
   let loc = new URL(location.href)
   if (loc.pathname.startsWith("/report/new")) {
-    store.loadAuxiliaryInformationFromSerer()
+    store.publicStore.loadAuxiliaryInformationFromSerer()
         .then(() => isLoading.value = false)
   } else if (loc.pathname.startsWith("/report/edit/")) {
     let id = Number(loc.pathname.split("/")[3])
@@ -297,7 +298,7 @@ function navigate(stage:ReportEditStage) {
 
 
   <PitchReports
-      v-if="current_stage === ReportEditStage.EditPitchReports && store.pitchVariables"
+      v-if="current_stage === ReportEditStage.EditPitchReports && store.publicStore.pitchVariables"
   />
 
   <SubmitReport
@@ -311,7 +312,7 @@ function navigate(stage:ReportEditStage) {
       <div class="flex flex-row justify-center navi">
         <SelectButton
             v-model="store.report.gameCode"
-            :options="store.codes"
+            :options="store.publicStore.codes"
             option-label="name"
             class="m-2 flex flex-row justify-center"
         />
