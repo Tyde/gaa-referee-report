@@ -97,6 +97,8 @@ fun Application.refereeApplicationModule() {
     configureSecurity()
     configureRouting()
     environment.monitor.subscribe(ApplicationStopping) {
+        DatabaseHandler.pool.close()
+
         println("Application stopping...")
     }
 }
