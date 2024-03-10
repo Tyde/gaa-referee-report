@@ -4,23 +4,23 @@ import {computed, onMounted, ref, watch} from "vue";
 import TournamentSelector from "./components/tournament/TournamentSelector.vue";
 import GameReports from "@/components/gameReport/GameReports.vue";
 import PitchReports from "@/components/pitch/PitchReports.vue";
-import {
-  uploadReport
-} from "@/utils/api/report_api";
+import {uploadReport} from "@/utils/api/report_api";
 import SubmitReport from "@/components/SubmitReport.vue";
 import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
-import type {DatabaseTournament} from "@/types/tournament_types";
 import {useI18n} from "vue-i18n";
 import {useConfirm} from "primevue/useconfirm";
 
 const store = useReportStore()
+const i18 = useI18n()
+const confirmDialog = useConfirm()
 
+const {t} = i18
 
-
-
-
-
+const reportStarted = ref(false)
+const isLoading = ref(false)
+const currentStage = ref<ReportEditStage>(ReportEditStage.SelectTournament)
+const baseReportJustUploaded = ref(false)
 const allStages = ref([
   ReportEditStage.SelectTournament,
   ReportEditStage.SelectTeams,
@@ -28,25 +28,20 @@ const allStages = ref([
   ReportEditStage.EditPitchReports,
   ReportEditStage.Submit
 ])
+const dontUpdateHref = ref(false)
 
-const i18 = useI18n()
-const {t} = i18
+
+
 const translateStageToName = ref(new Map<ReportEditStage, string>());
-translateStageToName.value.set(ReportEditStage.SelectTournament, t("sections.selectTournament"))
-translateStageToName.value.set(ReportEditStage.SelectTeams, t("sections.selectTeams"))
-translateStageToName.value.set(ReportEditStage.EditGameReports, t("sections.editGameReports"))
-translateStageToName.value.set(ReportEditStage.EditPitchReports, t("sections.editPitchReports"))
-translateStageToName.value.set(ReportEditStage.Submit, t("sections.submitReport"))
+
 watch(i18.locale, () => {
-  console.log("New locale",i18.locale)
+  console.log("New locale", i18.locale)
   translateStageToName.value.set(ReportEditStage.SelectTournament, t("sections.selectTournament"))
   translateStageToName.value.set(ReportEditStage.SelectTeams, t("sections.selectTeams"))
   translateStageToName.value.set(ReportEditStage.EditGameReports, t("sections.editGameReports"))
   translateStageToName.value.set(ReportEditStage.EditPitchReports, t("sections.editPitchReports"))
   translateStageToName.value.set(ReportEditStage.Submit, t("sections.submitReport"))
-})
-const reportStarted = ref(false)
-
+}, {immediate: true})
 
 
 const calcStageOptions = computed(() => {
@@ -73,21 +68,9 @@ const readyStartReport = computed(() => {
       store.report.tournament &&
       !reportStarted.value
 })
-const isLoading = ref(false)
-const current_stage = ref<ReportEditStage>(ReportEditStage.SelectTournament)
-/*
-const codes = ref<Array<GameCode>>([])
-const rules = ref<Array<Rule>>([])
-const gameTypes = ref<Array<GameType>>([])
-const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
-const currentReport = ref<Report>({} as Report)
-const allGameReports = ref<Array<GameReport>>([])
-const allPitchReports = ref<Array<Pitch>>([])
-const pitchVariables = ref<PitchVariables | undefined>()
-*/
-const baseReportJustUploaded = ref(false)
 
-function submit_teams(teams_added: Array<Team>) {
+
+function submitTeams(teams_added: Array<Team>) {
   store.report.selectedTeams.length = 0;
   store.report.selectedTeams = store.report.selectedTeams.concat(teams_added)
 }
@@ -95,40 +78,32 @@ function submit_teams(teams_added: Array<Team>) {
 
 watch(() => store.report.tournament, () => {
   if (store.report.tournament && !isLoading.value) {
-    current_stage.value = ReportEditStage.SelectTeams
+    currentStage.value = ReportEditStage.SelectTeams
   }
 })
 
-function select_tournament(tournament: DatabaseTournament) {
-  store.report.tournament = tournament
-  current_stage.value = ReportEditStage.SelectTeams
-}
-
-
-async function start_report() {
+async function startReport() {
   isLoading.value = true
-  try {
-    store.report.id = await uploadReport(store.report)
-    reportStarted.value = true
-    baseReportJustUploaded.value = true
-    current_stage.value = ReportEditStage.EditGameReports
-    location.href = "/report/edit/" + store.report.id + "#edit_game_reports"
-  } catch (e) {
-    console.error(e)
-  } finally {
-    isLoading.value = false
-  }
+  uploadReport(store.report)
+      .then((id) => {
+        store.report.id = id
+        reportStarted.value = true
+        baseReportJustUploaded.value = true
+        currentStage.value = ReportEditStage.EditGameReports
+        location.href = "/report/edit/" + store.report.id + "#edit_game_reports"
+      })
+      .catch((e) => {
+        store.newError(e)
+      })
+      .finally(() => {
+        isLoading.value = false
+      })
 }
 
 async function updateReport() {
-  //isLoading.value = true
-  try {
-    await uploadReport(store.report)
-  } catch (e) {
-    console.error(e)
-  } finally {
-    //isLoading.value = false
-  }
+  uploadReport(store.report).catch((e) => {
+    store.newError(e)
+  })
 }
 
 
@@ -136,18 +111,16 @@ async function loadAndHandleReport(id: number) {
   isLoading.value = true
   await store.loadReport(id)
   if (store.currentErrors.length > 0) {
-    //TODO: Show error
   } else {
     reportStarted.value = true
   }
   isLoading.value = false
 }
-const dontUpdateHref = ref(false)
 
-watch(current_stage, (new_stage, old_stage) => {
-  console.log("stage change ",old_stage,new_stage)
-  if (old_stage === ReportEditStage.SelectTeams ||
-      old_stage === ReportEditStage.SelectTournament) {
+
+watch(currentStage, (newStage, oldStage) => {
+  if (oldStage === ReportEditStage.SelectTeams ||
+      oldStage === ReportEditStage.SelectTournament) {
     if (baseReportJustUploaded.value) {
       baseReportJustUploaded.value = false
     } else {
@@ -157,7 +130,7 @@ watch(current_stage, (new_stage, old_stage) => {
     }
   }
   if (!dontUpdateHref.value) {
-    switch (new_stage) {
+    switch (newStage) {
       case ReportEditStage.SelectTournament:
         location.href = "#select_tournament"
         break
@@ -182,29 +155,29 @@ watch(current_stage, (new_stage, old_stage) => {
 })
 
 
-function selectStageByURL(specifier:string) {
+function selectStageByURL(specifier: string) {
   //First remove anything trailing the slash
   specifier = specifier.replace(/\/.*/, "")
-  console.log("Modified specifier",specifier)
+  console.log("Modified specifier", specifier)
   dontUpdateHref.value = true
   switch (specifier) {
     case "select_tournament":
-      current_stage.value = ReportEditStage.SelectTournament
+      currentStage.value = ReportEditStage.SelectTournament
       break
     case "select_teams":
-      current_stage.value = ReportEditStage.SelectTeams
+      currentStage.value = ReportEditStage.SelectTeams
       break
     case "edit_game_reports":
-      current_stage.value = ReportEditStage.EditGameReports
+      currentStage.value = ReportEditStage.EditGameReports
       break
     case "edit_pitch_reports":
-      current_stage.value = ReportEditStage.EditPitchReports
+      currentStage.value = ReportEditStage.EditPitchReports
       break
     case "submit":
-      current_stage.value = ReportEditStage.Submit
+      currentStage.value = ReportEditStage.Submit
       break
     default:
-      current_stage.value = ReportEditStage.SelectTeams
+      currentStage.value = ReportEditStage.SelectTeams
   }
 }
 
@@ -232,8 +205,6 @@ onMounted(() => {
 })
 
 
-const confirmDialog = useConfirm()
-
 function backToDashboard() {
   store.uploadDataToServerBeforeLeaving().then(() => {
     console.log("No issues, leaving")
@@ -241,7 +212,7 @@ function backToDashboard() {
   }).catch((msg) => {
     //alert("Could not save data: " + msg)
     confirmDialog.require({
-      message: t("report.couldNotSaveDataConfirm")+"\n"+msg,
+      message: t("report.couldNotSaveDataConfirm") + "\n" + msg,
       header: t("report.couldNotSaveDataTitle"),
       icon: 'pi pi-exclamation-triangle',
       rejectClass: 'p-button-secondary p-button-outlined',
@@ -256,8 +227,8 @@ function backToDashboard() {
   })
 }
 
-function navigate(stage:ReportEditStage) {
-  current_stage.value = stage
+function navigate(stage: ReportEditStage) {
+  currentStage.value = stage
 }
 
 </script>
@@ -271,40 +242,39 @@ function navigate(stage:ReportEditStage) {
 
   <div class="mx-auto w-full xl:w-[47rem] navigation-bar">
     <SelectButton
-        v-model="current_stage"
+        v-model="currentStage"
         :options="calcStageOptions"
         option-disabled="disabled"
         option-label="name"
         option-value="stage"
-
     />
   </div>
-<transition-group name="p-message" tag="div">
-  <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
-</transition-group>
+  <transition-group name="p-message" tag="div">
+    <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{ msg.message }}</Message>
+  </transition-group>
 
 
   <TournamentSelector
-      v-if="current_stage === ReportEditStage.SelectTournament"
+      v-if="currentStage === ReportEditStage.SelectTournament"
   />
   <TeamSelector
-      v-if="current_stage === ReportEditStage.SelectTeams"
+      v-if="currentStage === ReportEditStage.SelectTeams"
       :already-selected-teams="store.report.selectedTeams"
-      @submit-teams="submit_teams"
+      @submit-teams="submitTeams"
   />
 
   <GameReports
-      v-if="current_stage === ReportEditStage.EditGameReports" />
+      v-if="currentStage === ReportEditStage.EditGameReports"/>
 
 
   <PitchReports
-      v-if="current_stage === ReportEditStage.EditPitchReports && store.publicStore.pitchVariables"
+      v-if="currentStage === ReportEditStage.EditPitchReports && store.publicStore.pitchVariables"
   />
 
   <SubmitReport
-      v-if="current_stage === ReportEditStage.Submit"
+      v-if="currentStage === ReportEditStage.Submit"
       @navigate="navigate"
-      />
+  />
   <template v-if="readyStartReport">
     <div class="mx-auto w-full xl:w-[47rem]">
 
@@ -321,30 +291,30 @@ function navigate(stage:ReportEditStage) {
         <Button
             :disabled="store.report.gameCode === undefined"
             class="p-button-rounded p-button-lg m-2"
-            @click="start_report"
+            @click="startReport"
         >{{ $t("report.start") }}
         </Button>
       </div>
     </div>
   </template>
   <div class="mx-auto mt-10 flex flex-row justify-center">
-  <div v-if="store.report.id && current_stage !== ReportEditStage.Submit">
-    <Button
-        class="p-button-success"
-        @click="() => navigate(ReportEditStage.Submit)">
-      {{ $t("report.submit") }}
-    </Button>
-  </div>
+    <div v-if="store.report.id && currentStage !== ReportEditStage.Submit">
+      <Button
+          class="p-button-success"
+          @click="() => navigate(ReportEditStage.Submit)">
+        {{ $t("report.submit") }}
+      </Button>
+    </div>
   </div>
 
   <div class="mx-auto mt-2 flex flex-row justify-center">
-  <div>
-    <Button
-        class="p-button-outlined p-button-secondary"
-        @click="backToDashboard">
-      {{ $t("navigation.backToDashboard") }}
-    </Button>
-  </div>
+    <div>
+      <Button
+          class="p-button-outlined p-button-secondary"
+          @click="backToDashboard">
+        {{ $t("navigation.backToDashboard") }}
+      </Button>
+    </div>
   </div>
 
 
@@ -354,7 +324,9 @@ function navigate(stage:ReportEditStage) {
       :close-on-escape="false"
       :modal="true"
       content-class="loading-dialog"
-  ><div class="shrink">{{ $t("navigation.loading") }} </div></Dialog>
+  >
+    <div class="shrink">{{ $t("navigation.loading") }}</div>
+  </Dialog>
   <ConfirmDialog></ConfirmDialog>
 </template>
 <style>
@@ -379,19 +351,21 @@ h4 {
 }
 
 
-
 .navigation-bar:deep(.p-button:first-of-type) {
   @apply rounded-none;
   @apply md:rounded-l-lg;
 }
+
 .navigation-bar:deep(.p-button:last-of-type) {
   @apply rounded-none;
   @apply md:rounded-r-lg;
 }
+
 .navigation-bar:deep(.p-button) {
   @apply text-sm;
   @apply md:text-base;
 }
+
 .navigation-bar:deep(.p-selectbutton) {
   @apply flex-row flex justify-center flex-wrap;
 }
