@@ -59,20 +59,30 @@ fun TeamDEO.Companion.wrapJoinQuery(): Pair<Join, Alias<Teams>> {
     return Pair(q, addedTeamAlias)
 }
 
+fun TeamDEO.Companion.mapJoinedResultsToTeamDEO(
+    results: List<ResultRow>,
+    aliasAddedTeam: Alias<Teams>
+): List<TeamDEO> {
+    return results
+        .map {wrapJoinedRow(it, aliasAddedTeam)}
+        .groupBy { it.id }.map { (_, teams) ->
+            val template = teams.first()
+            TeamDEO(
+                name = template.name,
+                id = template.id,
+                isAmalgamation = template.isAmalgamation,
+                amalgamationTeams = teams.flatMap { it.amalgamationTeams ?: listOf() }
+            )
+        }
+
+}
+
 suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
     return CacheUtil.getCachedTeamList()
         .getOrElse {
             lockedTransaction {
-                val dbTeams = Team.all().map {
-                    if (!it.isAmalgamation) {
-                        TeamDEO.fromTeam(it)
-                    } else {
-                        val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
-                            TeamDEO.fromTeam(amlgm.addedTeam)
-                        }
-                        TeamDEO.fromTeam(it, addedTeams)
-                    }
-                }
+                val (query, alias) = wrapJoinQuery()
+                val dbTeams = mapJoinedResultsToTeamDEO(query.selectAll().toList(), alias)
                 CacheUtil.cacheTeamList(dbTeams)
                 dbTeams
             }

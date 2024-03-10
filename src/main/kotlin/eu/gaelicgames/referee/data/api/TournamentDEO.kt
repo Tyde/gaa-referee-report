@@ -100,18 +100,17 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournament(input: Tournament
     return lockedTransaction {
 
 
-
         val gameReports = GameReports.leftJoin(DisciplinaryActions).leftJoin(TournamentReports).selectAll()
-            .where{
+            .where {
                 (TournamentReports.tournament eq input.id) and
                         (TournamentReports.isSubmitted eq true)
             }
-            .map {it ->
-            Pair(it,PublicDisciplinaryActionDEO.wrapRow(it))
-        }.groupBy { it.first[GameReports.id] }
-            .map { (id,list)->
+            .map { it ->
+                Pair(it, PublicDisciplinaryActionDEO.wrapRow(it))
+            }.groupBy { it.first[GameReports.id] }
+            .map { (id, list) ->
                 PublicGameReportDEO(
-                    gameReport =GameReportDEO.wrapRow(list.first().first),
+                    gameReport = GameReportDEO.wrapRow(list.first().first),
                     disciplinaryActions = list.mapNotNull { it.second },
                     code = list.first().first[TournamentReports.code].value
                 )
@@ -200,19 +199,11 @@ private fun getAllTeamsOfGameReports(gameReports: List<GameReportDEO>): List<Tea
         .filterNotNull()
 
     val (join, addedTeamAlias) = TeamDEO.wrapJoinQuery()
-    val allTeams = join.selectAll().where { Teams.id inList allTeamIds }
-        .map {
-            TeamDEO.wrapJoinedRow(it, addedTeamAlias)
-        }.toList().groupBy { it.id }.map { (id, tDEOList) ->
-            val template = tDEOList.first()
-            TeamDEO(
-                name = template.name,
-                id = template.id,
-                isAmalgamation = template.isAmalgamation,
-                amalgamationTeams = tDEOList.flatMap { it.amalgamationTeams ?: listOf() }
-            )
+    val allTeams = TeamDEO.mapJoinedResultsToTeamDEO(
+        join.selectAll().where { Teams.id inList allTeamIds }.toList(),
+        addedTeamAlias
+    )
 
-        }
     return allTeams
 }
 
