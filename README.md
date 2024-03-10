@@ -35,15 +35,25 @@ services:
       REDIS_HOST: "cache"
       REDIS_PORT: "6379"
       REDIS_PASSWORD: "password"
+      POSTGRES_HOST: "db"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DATABASE: "referee"
+      POSTGRES_USER: "referee"
+      POSTGRES_PASSWORD: "password"
   cache:
     image: 'redis/redis-stack-server:latest'
-  backup:
-    image: jareware/docker-volume-backup:2.4.0
+  db:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: "referee"
+      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: 'referee'
     volumes:
-      - database:/backup/database:ro
-      - {insert location here for database backup}:/archive
+      - pgsqldata:/var/lib/postgresql/data
 volumes:
   database:
+  pgsqldata:
+
 ```
 
 ## Sample video
