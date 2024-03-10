@@ -11,6 +11,8 @@ import {getGameReportVariables} from "@/utils/api/game_report_api";
 import {loadAllRegions, loadAllTournaments} from "@/utils/api/tournament_api";
 import {ref} from "vue";
 import {PitchPropertyType} from "@/types/pitch_types";
+import type {Team} from "@/types/team_types";
+import {loadAllTeams} from "@/utils/api/teams_api";
 
 export const usePublicStore = defineStore("public",() =>{
     const codes = ref<Array<GameCode>>([])
@@ -20,6 +22,7 @@ export const usePublicStore = defineStore("public",() =>{
     const pitchVariables = ref<PitchVariables | undefined>()
     const regions = ref<Array<RegionDEO>>([])
     const tournaments = ref<Array<DatabaseTournament>>([])
+    const teams = ref<Array<Team>>([])
 
 
     const currentErrors = ref<ErrorMessage[]>([])
@@ -51,6 +54,13 @@ export const usePublicStore = defineStore("public",() =>{
             .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
 
         return Promise.all([promiseCodes, promiseRules, promisePitchVariables, promiseGameReport, promiseRegions])
+    }
+
+    async function loadTeams() {
+        return loadAllTeams().then(teamsFromServer => {
+            teams.value = teamsFromServer
+        })
+            .catch(e => newError(e))
     }
 
     async function loadTournaments() {
@@ -116,11 +126,13 @@ export const usePublicStore = defineStore("public",() =>{
         regions,
         tournaments,
         currentErrors,
+        teams,
         loadAuxiliaryInformationFromSerer,
         newError,
         loadTournaments,
         getVariablesByType,
         waitForAllVariablesPresent,
-        findCodeById
+        findCodeById,
+        loadTeams
     }
 });

@@ -85,7 +85,8 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
         report,
         store.gameTypes,
         store.extraTimeOptions,
-        store.rules
+        store.rules,
+        store.teams
     )
 
   }).filter(it => it !== undefined) as Array<GameReport>

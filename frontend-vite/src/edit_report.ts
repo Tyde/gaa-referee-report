@@ -59,5 +59,5 @@ app.component('SplitButton',SplitButton)
 app.directive('tooltip', Tooltip)
 app.component('ConfirmDialog', ConfirmDialog)
 app.use(ConfirmationService);
-app.component(VueFeather.name,VueFeather)
+app.component(VueFeather.name!!,VueFeather)
 app.mount('#app')

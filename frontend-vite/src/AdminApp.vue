@@ -6,6 +6,7 @@ import {useRoute, useRouter} from "vue-router";
 const store = useAdminStore();
 store.publicStore.loadAuxiliaryInformationFromSerer()
 store.publicStore.loadTournaments()
+store.publicStore.loadTeams()
 
 const router = useRouter();
 

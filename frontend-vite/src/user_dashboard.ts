@@ -74,7 +74,7 @@ app.component('Divider', Divider)
 app.component('MultiSelect', MultiSelect)
 app.component('Accordion', Accordion)
 app.component('AccordionTab', AccordionTab)
-app.component(VueFeather.name,VueFeather)
+app.component(VueFeather.name!!,VueFeather)
 const pinia = createPinia()
 app.use(pinia)
 

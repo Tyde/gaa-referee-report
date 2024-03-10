@@ -93,5 +93,5 @@ app.component('SplitButton',SplitButton)
 app.component('MultiSelect', MultiSelect)
 app.use(ToastService);
 
-app.component(VueFeather.name,VueFeather)
+app.component(VueFeather.name!!,VueFeather)
 app.mount('#app')

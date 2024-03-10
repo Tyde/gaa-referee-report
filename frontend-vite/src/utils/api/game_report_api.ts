@@ -7,6 +7,7 @@ import type {Report} from "@/types/report_types";
 import type {CompleteGameReportDEO, GameReport, SingleTeamGameReport} from "@/types/game_report_types";
 import {GameReportDEO} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
+import type {Team} from "@/types/team_types";
 
 
 export function gameReportDEOToGameReport(
@@ -14,13 +15,14 @@ export function gameReportDEOToGameReport(
     report: Report,
     gameTypes: Array<GameType>,
     extraTimeOptions: Array<ExtraTimeOption>,
-    rules: Array<Rule>
+    rules: Array<Rule>,
+    allTeams: Array<Team>,
 ): GameReport | undefined {
     const gameReportDEO = cGameReportDEO.gameReport;
     const gameTypeVal = gameTypes.find(gameType => gameType.id === gameReportDEO.gameType);
     const extraTimeVal = extraTimeOptions.find(extraTime => extraTime.id === gameReportDEO.extraTime);
-    const teamAVal = report.selectedTeams.find(team => team.id === gameReportDEO.teamA);
-    const teamBVal = report.selectedTeams.find(team => team.id === gameReportDEO.teamB);
+    const teamAVal = allTeams.find(team => team.id === gameReportDEO.teamA);
+    const teamBVal = allTeams.find(team => team.id === gameReportDEO.teamB);
     if (teamAVal != undefined && teamBVal != undefined) {
         const teamAinjuries = cGameReportDEO.injuries
             ?.filter(injury => injury.team === gameReportDEO.teamA)

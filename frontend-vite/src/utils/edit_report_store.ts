@@ -188,7 +188,8 @@ export const useReportStore = defineStore('report', () => {
                     report.value,
                     gameTypes.value,
                     extraTimeOptions.value,
-                    rules.value
+                    rules.value,
+                    allTeams.value
                 )
                 if (pitchVariables.value) {
                     pitchReports.value = reportDEO.pitches?.map(pitch => {

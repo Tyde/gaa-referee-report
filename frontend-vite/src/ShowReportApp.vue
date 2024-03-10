@@ -16,69 +16,23 @@ import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
 
 import {CompleteReportDEO} from "@/types/complete_report_types";
+import {usePublicStore} from "@/utils/public_store";
 
 const props = defineProps<{
   id?: number
 }>()
 
+const store = usePublicStore()
+
 const isLoading = ref(false)
 const loadingComplete = ref(false)
-const codes = ref<Array<GameCode>>([])
-const rules = ref<Array<Rule>>([])
-const gameTypes = ref<Array<GameType>>([])
-const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
-const pitchVariables = ref<PitchVariables | undefined>()
+
 
 const currentReport = ref<Report>({} as Report)
 const allGameReports = ref<Array<GameReport>>([])
 const allPitchReports = ref<Array<Pitch>>([])
 
-async function get_codes() {
-  let res = await fetch("/api/codes")
-  codes.value = (await res.json()) as Array<GameCode>
 
-}
-
-async function get_rules() {
-  let res = await fetch("/api/rules")
-  rules.value = (await res.json()) as Array<Rule>
-}
-
-async function get_game_report_variables() {
-  let res = await fetch("/api/game_report_variables")
-  let combined = (await res.json())
-  gameTypes.value = combined.gameTypes as Array<GameType>
-  extraTimeOptions.value = combined.extraTimeOptions as Array<ExtraTimeOption>
-}
-
-async function load_pitch_variables() {
-  await getPitchVariables().then(res => {
-    pitchVariables.value = res
-  }, err => {
-    console.error(err)
-  })
-
-}
-
-async function waitForAllVariablesPresent() {
-  const start_time = new Date().getTime()
-  while (true) {
-    if (
-        codes.value.length > 0 &&
-        rules.value.length > 0 &&
-        gameTypes.value.length > 0 &&
-        extraTimeOptions.value.length > 0 &&
-        pitchVariables.value
-    ) {
-      break
-    }
-    if ((new Date()).getTime() > start_time + 3000) {
-      throw new Error("Timeout waiting for variables")
-    }
-    console.log("Waiting for data")
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-}
 
 async function downloadReport(id: number) {
   isLoading.value = true
@@ -111,19 +65,20 @@ async function downloadReportByUUID(uuid: string) {
 }
 
 async function handleDownloadedReport(report: CompleteReportDEO) {
-  await waitForAllVariablesPresent()
-  currentReport.value = completeReportDEOToReport(report, codes.value)
+  await Promise.all(promiseList.value)
+  currentReport.value = completeReportDEOToReport(report, store.codes)
   allGameReports.value = extractGameReportsFromCompleteReportDEO(
       report,
       currentReport.value,
-      gameTypes.value,
-      extraTimeOptions.value,
-      rules.value
+      store.gameTypes,
+      store.extraTimeOptions,
+      store.rules,
+      store.teams
   )
 
 
   let pitches = report.pitches
-  const pV = pitchVariables.value
+  const pV = store.pitchVariables
   if (pitches && pV) {
 
     allPitchReports.value = pitches.map(pitch => {
@@ -131,13 +86,15 @@ async function handleDownloadedReport(report: CompleteReportDEO) {
     }) || []
   }
 }
-
+const promiseList = ref<Promise<any>[]>([])
 onMounted(() => {
   isLoading.value = true
-  get_codes()
-  get_rules()
-  get_game_report_variables()
-  load_pitch_variables()
+
+  promiseList.value.push(store.loadAuxiliaryInformationFromSerer().then(() => {
+    console.log("Loaded auxiliary information")
+  }))
+  promiseList.value.push(store.loadTeams())
+
   let loc = new URL(location.href)
   // If loc contains "share" in path, then we have to load by uuid given
   if(loc.pathname.includes("share")) {
@@ -150,6 +107,7 @@ onMounted(() => {
   if (id) {
     downloadReport(id)
   }
+
 })
 
 /*const html2Pdf = ref(null);

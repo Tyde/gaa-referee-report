@@ -14,6 +14,7 @@ import {
 import type {CompleteGameReportDEO, GameReport} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import {CompleteReportDEO} from "@/types/complete_report_types";
+import type {Team} from "@/types/team_types";
 
 
 export async function getGameCodes(): Promise<Array<GameCode>> {
@@ -54,7 +55,8 @@ export function extractGameReportsFromCompleteReportDEO(
     report:Report,
     gameTypes: Array<GameType>,
     extraTimeOptions: Array<ExtraTimeOption>,
-    rules: Array<Rule>
+    rules: Array<Rule>,
+    allTeams: Array<Team>
 ): Array<GameReport> {
     // @ts-ignore
     return cReport.gameReports.map((gameReportDEO: CompleteGameReportDEO) => {
@@ -63,7 +65,8 @@ export function extractGameReportsFromCompleteReportDEO(
             report,
             gameTypes,
             extraTimeOptions,
-            rules
+            rules,
+            allTeams
         )
     }).filter(gameReport => gameReport != undefined)
 }

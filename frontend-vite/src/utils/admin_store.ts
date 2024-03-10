@@ -114,7 +114,8 @@ export const useAdminStore = defineStore('admin', () => {
             currentReport,
             publicStore.gameTypes,
             publicStore.extraTimeOptions,
-            publicStore.rules
+            publicStore.rules,
+            publicStore.teams
         )
         let allPitchReports = deo.pitches
             ?.map(it => pitchDEOtoPitch(it, currentReport, publicStore.pitchVariables!!)) ?? []
