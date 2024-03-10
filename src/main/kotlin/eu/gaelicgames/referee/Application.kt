@@ -5,25 +5,18 @@ import eu.gaelicgames.referee.plugins.configureRouting
 import eu.gaelicgames.referee.plugins.configureSecurity
 import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
+import eu.gaelicgames.referee.services.CleanExpiredDataService
 import eu.gaelicgames.referee.services.NotifyCCCService
 import eu.gaelicgames.referee.util.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
-suspend fun main() = runBlocking<Unit> {
-
-
-
-
-
+fun main() = runBlocking<Unit> {
     embeddedServer(
         Netty,
         port = 8080,
@@ -87,6 +80,11 @@ fun Application.refereeApplicationModule() {
     launch (Dispatchers.Default) {
         val notifyCCCService = NotifyCCCService(this)
         notifyCCCService.start()
+    }
+
+    launch (Dispatchers.Default) {
+        val cleanExpiredDataService = CleanExpiredDataService(this)
+        cleanExpiredDataService.start()
     }
 
 
