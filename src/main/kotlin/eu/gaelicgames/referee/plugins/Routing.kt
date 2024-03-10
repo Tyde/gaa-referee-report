@@ -35,7 +35,7 @@ fun Application.configureRouting() {
         }
         status(HttpStatusCode.NotFound) { call, status ->
             call.respondText(text = "404: Page Not Found", status = status)
-            println(call.request.uri)
+            println("404: " +call.request.uri)
         }
 
     }
@@ -80,7 +80,7 @@ fun Application.configureRouting() {
         }
 
 
-        authenticate("auth-session") {
+        authenticate("auth-session", "auth-jwt") {
             refereeApiRouting()
         }
 
@@ -152,20 +152,64 @@ fun Application.configureRouting() {
 
 }
 
+fun convertExceptionToApiError(e: Throwable?, predefinedOption:ApiErrorOptions? = null): ApiError {
+    print("Caught error: ")
+    e?.printStackTrace()
 
-suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.receiveAndHandleDEO(onReceived: (T) -> Any) {
+    var option = predefinedOption ?:  if(e is AuthorizationException || e is AuthenticationException) {
+        ApiErrorOptions.NOT_AUTHORIZED
+    } else if(e is NoSuchElementException) {
+        ApiErrorOptions.NOT_FOUND
+    } else if(e is IllegalArgumentException) {
+        ApiErrorOptions.ILLEGAL_ARGUMENT
+    } else {
+        ApiErrorOptions.INSERTION_FAILED
+    }
+    return ApiError(
+        option,
+        e?.message ?: "Unknown Error"
+    )
+}
+suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.receiveAndHandleDEO(
+    respondOnSuccess: Boolean = true,
+    onReceived: (T) -> Any
+) {
     val deo = runCatching { call.receive<T>() }
     if (deo.isSuccess) {
-        call.respond(onReceived(deo.getOrThrow()))
+        val response = runCatching { onReceived(deo.getOrThrow())}
+        if (response.isSuccess) {
+            if (respondOnSuccess) {
+                call.respond(response.getOrThrow())
+            }
+        } else {
+            call.respond(
+                convertExceptionToApiError(response.exceptionOrNull())
+            )
+        }
     } else {
         call.respond(
-            ApiError(
-                ApiErrorOptions.NOT_FOUND,
-                deo.exceptionOrNull()?.message ?: "Could not parse ${T::class.simpleName}"
-            )
+            convertExceptionToApiError(deo.exceptionOrNull(), ApiErrorOptions.ILLEGAL_ARGUMENT)
         )
     }
 }
 
-class AuthenticationException : RuntimeException()
-class AuthorizationException : RuntimeException()
+suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.respondResult(
+    result: Result<T>
+) {
+    if (result.isSuccess) {
+        call.respond(result.getOrThrow())
+    } else {
+        call.respond(
+            convertExceptionToApiError(result.exceptionOrNull())
+        )
+    }
+
+}
+
+class AuthenticationException(message: String) : RuntimeException(message)
+class AuthorizationException(message: String) : RuntimeException(message)
+
+class DatabaseWriteException(message: String) : RuntimeException(message)
+
+class DatabaseDeleteException(message: String) : RuntimeException(message)
+

@@ -1,7 +1,6 @@
 package eu.gaelicgames.referee.data.api
 
 import eu.gaelicgames.referee.data.*
-import eu.gaelicgames.referee.data.Teams.leftJoin
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.runBlocking
@@ -13,8 +12,9 @@ fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = 
 
 fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
     val isAmalgamation = row[Teams.isAmalgamation]
-    val addedTeams = if(isAmalgamation){
-        Amalgamations.leftJoin(Teams, {addedTeam},{Teams.id}).selectAll().where{ Amalgamations.amalgamation eq row[Teams.id]}.map {
+    val addedTeams = if (isAmalgamation) {
+        Amalgamations.leftJoin(Teams, { addedTeam }, { Teams.id }).selectAll()
+            .where { Amalgamations.amalgamation eq row[Teams.id] }.map {
             TeamDEO.wrapRow(it)
         }
 
@@ -31,13 +31,15 @@ fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
 
 fun TeamDEO.Companion.wrapJoinedRow(row: ResultRow, aliasAddedTeam: Alias<Teams>): TeamDEO {
     val isAmalgamation = row[Teams.isAmalgamation]
-    val singleAmalgamationTeam =  if(isAmalgamation) {
-        listOf(TeamDEO(
-            row[aliasAddedTeam[Teams.name]],
-            row[aliasAddedTeam[Teams.id]].value,
-            row[aliasAddedTeam[Teams.isAmalgamation]],
-            null
-        ))
+    val singleAmalgamationTeam = if (isAmalgamation) {
+        listOf(
+            TeamDEO(
+                row[aliasAddedTeam[Teams.name]],
+                row[aliasAddedTeam[Teams.id]].value,
+                row[aliasAddedTeam[Teams.isAmalgamation]],
+                null
+            )
+        )
     } else {
         listOf()
     }
@@ -49,7 +51,7 @@ fun TeamDEO.Companion.wrapJoinedRow(row: ResultRow, aliasAddedTeam: Alias<Teams>
     )
 }
 
-fun TeamDEO.Companion.wrapJoinQuery(): Pair<Join,Alias<Teams>> {
+fun TeamDEO.Companion.wrapJoinQuery(): Pair<Join, Alias<Teams>> {
     val addedTeamAlias = Teams.alias("addedTeam")
     val q = Teams
         .leftJoin(Amalgamations, { Teams.id }, { Amalgamations.amalgamation })
@@ -59,37 +61,38 @@ fun TeamDEO.Companion.wrapJoinQuery(): Pair<Join,Alias<Teams>> {
 
 suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
     return CacheUtil.getCachedTeamList()
-            .getOrElse {
-                 lockedTransaction {
-                    val dbTeams = Team.all().map {
-                        if (!it.isAmalgamation) {
-                            TeamDEO.fromTeam(it)
-                        } else {
-                            val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
-                                TeamDEO.fromTeam(amlgm.addedTeam)
-                            }
-                            TeamDEO.fromTeam(it, addedTeams)
+        .getOrElse {
+            lockedTransaction {
+                val dbTeams = Team.all().map {
+                    if (!it.isAmalgamation) {
+                        TeamDEO.fromTeam(it)
+                    } else {
+                        val addedTeams = Amalgamation.find { Amalgamations.amalgamation eq it.id }.map { amlgm ->
+                            TeamDEO.fromTeam(amlgm.addedTeam)
                         }
+                        TeamDEO.fromTeam(it, addedTeams)
                     }
-                    CacheUtil.cacheTeamList(dbTeams)
-                    dbTeams
                 }
+                CacheUtil.cacheTeamList(dbTeams)
+                dbTeams
             }
+        }
 
 }
 
-suspend fun TeamDEO.Companion.fromTeamId(it:Long):Result<TeamDEO> {
-    return  lockedTransaction {
-        val teamDEO = Team.findById(it)?.let { fromTeam(it)}
+suspend fun TeamDEO.Companion.fromTeamId(it: Long): Result<TeamDEO> {
+    return lockedTransaction {
+        val teamDEO = Team.findById(it)?.let { fromTeam(it) }
         teamDEO?.let { Result.success(it) } ?: Result.failure(Exception("Team not found"))
     }
 }
+
 suspend fun TeamDEO.updateInDatabase(): Result<Team> {
 
     CacheUtil.deleteCachedTeamList()
 
     val thisTeam = this
-    return  lockedTransaction {
+    return lockedTransaction {
         val team = Team.findById(thisTeam.id)
         if (team != null) {
             team.name = thisTeam.name
@@ -124,7 +127,6 @@ suspend fun TeamDEO.updateInDatabase(): Result<Team> {
 }
 
 
-
 suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
     runBlocking {
         CacheUtil.deleteCachedTeamList()
@@ -140,17 +142,19 @@ suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
                         it.addedTeam = team
                     }
 
-                    if (mergeTeam.isAmalgamation){
-                        val teamAmalgamationIds = Amalgamation.find { Amalgamations.amalgamation eq team.id }.map { teamAmalgamation ->
-                            teamAmalgamation.addedTeam.id.value
-                        }
-                        Amalgamation.find { Amalgamations.amalgamation eq mergeTeam.id }.forEach { mergeTeamAmalgamation ->
-                            if (teamAmalgamationIds.contains(mergeTeamAmalgamation.addedTeam.id.value)){
-                                mergeTeamAmalgamation.delete()
-                            } else {
-                                mergeTeamAmalgamation.amalgamation = team
+                    if (mergeTeam.isAmalgamation) {
+                        val teamAmalgamationIds =
+                            Amalgamation.find { Amalgamations.amalgamation eq team.id }.map { teamAmalgamation ->
+                                teamAmalgamation.addedTeam.id.value
                             }
-                        }
+                        Amalgamation.find { Amalgamations.amalgamation eq mergeTeam.id }
+                            .forEach { mergeTeamAmalgamation ->
+                                if (teamAmalgamationIds.contains(mergeTeamAmalgamation.addedTeam.id.value)) {
+                                    mergeTeamAmalgamation.delete()
+                                } else {
+                                    mergeTeamAmalgamation.amalgamation = team
+                                }
+                            }
                     }
 
                     //Update all DisciplinaryActions
@@ -197,6 +201,47 @@ suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
             Result.failure(Exception("Team not found"))
         }
     }
+}
+
+suspend fun NewAmalgamationDEO.createInDatabase(): Result<Team> {
+    val newAmalgamation = this
+    CacheUtil.deleteCachedTeamList()
+    val prechecks = lockedTransaction {
+        //First check if any of the teams is actually an amalgamation
+        for (team in newAmalgamation.teams) {
+            val dbTeam = Team.find { Teams.id eq team.id }.firstOrNull()
+            if (dbTeam == null) {
+                return@lockedTransaction Result.failure(Exception("Team ${team.name} (id=${team.id}) not found"))
+            } else {
+                if (dbTeam.isAmalgamation) {
+                    return@lockedTransaction Result.failure(Exception("Team ${dbTeam.name} is already an amalgamation"))
+                }
+            }
+
+
+        }
+
+        return@lockedTransaction Result.success(Unit)
+    }
+    val newAmalgamationDB = prechecks.map {
+        lockedTransaction {
+
+            val amalgamation_base = Team.new {
+                name = newAmalgamation.name
+                isAmalgamation = true
+            }
+            for (team in newAmalgamation.teams) {
+                Team.find { Teams.id eq team.id }.firstOrNull()?.let {
+                    Amalgamation.new {
+                        amalgamation = amalgamation_base
+                        addedTeam = it
+                    }
+                }
+            }
+            amalgamation_base
+        }
+    }
+    return newAmalgamationDB
 }
 
 

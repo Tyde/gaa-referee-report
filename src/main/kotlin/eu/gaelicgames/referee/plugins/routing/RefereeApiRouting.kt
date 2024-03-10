@@ -2,7 +2,9 @@ package  eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
+import eu.gaelicgames.referee.plugins.AuthorizationException
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
+import eu.gaelicgames.referee.plugins.respondResult
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
@@ -14,9 +16,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
 fun Route.refereeApiRouting() {
@@ -49,14 +49,16 @@ fun Route.refereeApiRouting() {
             if (report.isSuccess) {
                 val user = call.principal<UserPrincipal>()
                 val report = report.getOrThrow()
-                if(user!= null) {
-                    limitAccess(
-                        user,
-                        report,
-                        isUserAllowedPredicate = {userIt, reportIt -> reportIt.referee.id == userIt.user.id.value},
-                        isCCCAllowedPredicate = {_, reportIt -> reportIt.isSubmitted},
-                        customUserDisallowedMessage = "Report can only be accessed by the referee who created it",
-                        customCCCDisallowedMessage = "Report can only be accessed by CCC after submission"
+                if (user != null) {
+                    respondResult(
+                        limitAccess(
+                            user,
+                            report,
+                            isUserAllowedPredicate = { userIt, reportIt -> reportIt.referee.id == userIt.user.id.value },
+                            isCCCAllowedPredicate = { _, reportIt -> reportIt.isSubmitted },
+                            customUserDisallowedMessage = "Report can only be accessed by the referee who created it",
+                            customCCCDisallowedMessage = "Report can only be accessed by CCC after submission",
+                        ) { it }
                     )
                 } else {
                     call.respond(
@@ -106,6 +108,15 @@ fun Route.refereeApiRouting() {
     post<Api.NewTeam> {
         receiveAndHandleDEO<NewTeamDEO> { newTeam ->
             CacheUtil.deleteCachedTeamList()
+            val existingTeamWithSameName = lockedTransaction {
+                Team.find { Teams.name eq newTeam.name }.firstOrNull()
+            }
+            if (existingTeamWithSameName != null) {
+                return@receiveAndHandleDEO ApiError(
+                    ApiErrorOptions.INSERTION_FAILED,
+                    "Team with same name already exists"
+                )
+            }
             val newTeamDB = lockedTransaction {
                 Team.new {
                     name = newTeam.name
@@ -119,23 +130,11 @@ fun Route.refereeApiRouting() {
 
     post<Api.NewAmalgamation> {
         receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
-            CacheUtil.deleteCachedTeamList()
-            val newAmalgamationDB = lockedTransaction {
-                val amalgamation_base = Team.new {
-                    name = newAmalgamation.name
-                    isAmalgamation = true
-                }
-                for (team in newAmalgamation.teams) {
-                    Team.find { Teams.id eq team.id }.firstOrNull()?.let {
-                        Amalgamation.new {
-                            amalgamation = amalgamation_base
-                            addedTeam = it
-                        }
-                    }
-                }
-                amalgamation_base
+            newAmalgamation.createInDatabase().map {
+                TeamDEO.fromTeam(it)
+            }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
-            TeamDEO.fromTeam(newAmalgamationDB)
         }
     }
 
@@ -276,6 +275,8 @@ fun Route.refereeApiRouting() {
 
     post<Api.Pitch.New> {
         handlePitchReportInput(doUpdate = false)
+
+
     }
     post<Api.Pitch.Update> {
         handlePitchReportInput(doUpdate = true)
@@ -342,15 +343,23 @@ fun Route.refereeApiRouting() {
 
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInput(doUpdate: Boolean) {
-    receiveAndHandleDEO<PitchReportDEO> { pitchReportDEO ->
-        val updatedReport = if (doUpdate) {
-            pitchReportDEO.updateInDatabase()
-        } else {
-            pitchReportDEO.createInDatabase()
+
+    receiveAndHandleDEO<PitchReportDEO> { pitchDEO ->
+        val principal = call.principal<UserPrincipal>()!!
+        val out = limitAccess(
+            principal,
+            pitchDEO,
+            isUserAllowedPredicate = { user, pitchReportDEO -> pitchReportDEO.getRefereeId() == user.user.id.value },
+            customUserDisallowedMessage = "Pitch report can can only be edited by the referee who created the report"
+        ) { pitchReportDEO ->
+            val updatedReport = if (doUpdate) {
+                pitchReportDEO.updateInDatabase()
+            } else {
+                pitchReportDEO.createInDatabase()
+            }
+            updatedReport.map { PitchReportDEO.fromPitchReport(it) }.getOrThrow()
         }
-        updatedReport.map { PitchReportDEO.fromPitchReport(it) }.getOrElse {
-            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-        }
+        out.getOrThrow()
     }
 
 }
@@ -358,77 +367,88 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handlePitchReportInpu
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGameReportInput(doUpdate: Boolean) {
     receiveAndHandleDEO<GameReportDEO> { deo ->
-        val updatedReport = if (doUpdate) {
-            deo.updateInDatabase()
-        } else {
-            deo.createInDatabase()
-        }
-        updatedReport.map { GameReportDEO.fromGameReport(it) }.getOrElse {
-            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-        }
+        val principal = call.principal<UserPrincipal>()!!
+        limitAccess(
+            principal,
+            deo,
+            isUserAllowedPredicate = { user, gameReportDEO -> gameReportDEO.getRefereeId() == user.user.id.value },
+            customUserDisallowedMessage = "Game report can can only be edited by the referee who created the report"
+        ) { gameReportDEO ->
+            val updatedReport = if (doUpdate) {
+                gameReportDEO.updateInDatabase()
+            } else {
+                gameReportDEO.createInDatabase()
+            }
+            updatedReport.map { GameReportDEO.fromGameReport(it) }.getOrThrow()
+        }.getOrThrow()
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleDisciplinaryActionInput(doUpdate: Boolean) {
     receiveAndHandleDEO<DisciplinaryActionDEO> { deo ->
-        val updatedReport = if (doUpdate) {
-            deo.updateInDatabase()
-        } else {
-            deo.createInDatabase()
-        }
-        updatedReport.map { DisciplinaryActionDEO.fromDisciplinaryAction(it) }.getOrElse {
-            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-        }
+        val principal = call.principal<UserPrincipal>()!!
+        limitAccess(
+            principal,
+            deo,
+            isUserAllowedPredicate = { user, disciplinaryActionDEO -> disciplinaryActionDEO.getRefereeId() == user.user.id.value },
+            customUserDisallowedMessage = "Disciplinary action can can only be edited by the referee who created the report"
+        ) { disciplinaryActionDEO ->
+
+
+            val updatedReport = if (doUpdate) {
+                deo.updateInDatabase()
+            } else {
+                deo.createInDatabase()
+            }
+            updatedReport.map { DisciplinaryActionDEO.fromDisciplinaryAction(it) }.getOrThrow()
+        }.getOrThrow()
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doUpdate: Boolean) {
     receiveAndHandleDEO<InjuryDEO> { deo ->
-        val updatedReport = if (doUpdate) {
-            deo.updateInDatabase()
-        } else {
-            deo.createInDatabase()
-        }
-        updatedReport.map { InjuryDEO.fromInjury(it) }.getOrElse {
-            ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-        }
+        val principal = call.principal<UserPrincipal>()!!
+        limitAccess(
+            principal,
+            deo,
+            isUserAllowedPredicate = { user, injuryDEO -> injuryDEO.getRefereeId() == user.user.id.value },
+            customUserDisallowedMessage = "Injury can can only be edited by the referee who created the report"
+        ) { injuryDEO ->
+            val updatedReport = if (doUpdate) {
+                deo.updateInDatabase()
+            } else {
+                deo.createInDatabase()
+            }
+            updatedReport.map { InjuryDEO.fromInjury(it) }.getOrThrow()
+        }.getOrThrow()
     }
 }
 
 
-private suspend inline fun <reified T:Any>PipelineContext<Unit, ApplicationCall>.limitAccess(
-    user:UserPrincipal,
+private suspend inline fun <reified T : Any, reified R : Any> limitAccess(
+    user: UserPrincipal,
     serializableObject: T,
     isUserAllowedPredicate: (UserPrincipal, T) -> Boolean,
-    isCCCAllowedPredicate: (UserPrincipal, T) -> Boolean = {_, _ -> false},
+    isCCCAllowedPredicate: (UserPrincipal, T) -> Boolean = { _, _ -> false },
     customUserDisallowedMessage: String = "Data can only be accessed by the referee who created it",
-    customCCCDisallowedMessage: String = "Data can only be accessed by CCC after submission"
-){
+    customCCCDisallowedMessage: String = "Data can only be accessed by CCC after submission",
+    mapIfAllowed: (T) -> R
+): Result<R> {
 
     val role = user.user.role
-    if (role == UserRole.ADMIN) {
-        call.respond(serializableObject)
+    return if (role == UserRole.ADMIN) {
+        Result.success(mapIfAllowed(serializableObject))
     } else if (role == UserRole.CCC) {
         if (isCCCAllowedPredicate(user, serializableObject)) {
-            call.respond(serializableObject)
+            Result.success(mapIfAllowed(serializableObject))
         } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.NOT_AUTHORIZED,
-                    customCCCDisallowedMessage
-                )
-            )
+            Result.failure(AuthorizationException(customCCCDisallowedMessage))
         }
     } else {
         if (isUserAllowedPredicate(user, serializableObject)) {
-            call.respond(serializableObject)
+            Result.success(mapIfAllowed(serializableObject))
         } else {
-            call.respond(
-                ApiError(
-                    ApiErrorOptions.NOT_AUTHORIZED,
-                    customUserDisallowedMessage
-                )
-            )
+            Result.failure(AuthorizationException(customUserDisallowedMessage))
         }
     }
 }

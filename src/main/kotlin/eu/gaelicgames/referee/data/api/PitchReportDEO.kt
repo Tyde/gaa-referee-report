@@ -207,6 +207,13 @@ suspend fun PitchReportDEO.createInDatabase(): Result<Pitch> {
     }
 }
 
+suspend fun PitchReportDEO.getRefereeId(): Long? {
+    val reportId = this.report
+    return lockedTransaction {
+        val report = TournamentReport.findById(reportId)
+        report?.referee?.id?.value
+    }
+}
 
 suspend fun PitchReportDEO.updateInDatabase(): Result<Pitch> {
     val pUpdate = this

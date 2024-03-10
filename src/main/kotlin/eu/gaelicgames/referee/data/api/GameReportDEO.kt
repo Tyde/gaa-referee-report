@@ -39,23 +39,33 @@ suspend fun GameReportDEO.Companion.fromGameReport(report: GameReport): GameRepo
 
 suspend fun GameReportDEO.Companion.wrapRow(row: ResultRow): GameReportDEO {
     return GameReportDEO(
-            row[GameReports.id].value,
-            row[GameReports.report].value,
-            row[GameReports.teamA].value,
-            row[GameReports.teamB].value,
-            row[GameReports.teamAGoals],
-            row[GameReports.teamBGoals],
-            row[GameReports.teamAPoints],
-            row[GameReports.teamBPoints],
-            row[GameReports.startTime],
-            row[GameReports.gameType]?.value,
-            row[GameReports.extraTime]?.value,
-            row[GameReports.umpirePresentOnTime],
-            row[GameReports.umpireNotes],
-            row[GameReports.generalNotes]
-        )
+        row[GameReports.id].value,
+        row[GameReports.report].value,
+        row[GameReports.teamA].value,
+        row[GameReports.teamB].value,
+        row[GameReports.teamAGoals],
+        row[GameReports.teamBGoals],
+        row[GameReports.teamAPoints],
+        row[GameReports.teamBPoints],
+        row[GameReports.startTime],
+        row[GameReports.gameType]?.value,
+        row[GameReports.extraTime]?.value,
+        row[GameReports.umpirePresentOnTime],
+        row[GameReports.umpireNotes],
+        row[GameReports.generalNotes]
+    )
 
 
+}
+
+fun GameReportDEO.getRefereeId(): Long? {
+    return runBlocking {
+        lockedTransaction {
+            this@getRefereeId.report?.let {
+                TournamentReport.findById(it)?.referee?.id?.value
+            }
+        }
+    }
 }
 
 suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
@@ -333,6 +343,20 @@ suspend fun DisciplinaryActionDEO.Companion.wrapRow(row: ResultRow): Disciplinar
 
 }
 
+fun DisciplinaryActionDEO.getRefereeId(): Long? {
+    return runBlocking {
+        lockedTransaction {
+            TournamentReports.leftJoin(GameReports)
+                .selectAll()
+                .where { GameReports.id eq this@getRefereeId.game }
+                .firstOrNull()
+                ?.let {
+                    it[TournamentReports.referee].value
+                }
+        }
+    }
+}
+
 suspend fun DisciplinaryActionDEO.createInDatabase(): Result<DisciplinaryAction> {
     val daUpdate = this
     if (daUpdate.team != null &&
@@ -604,6 +628,19 @@ suspend fun InjuryDEO.Companion.wrapRow(row: ResultRow): InjuryDEO {
 }
 
 
+fun InjuryDEO.getRefereeId(): Long? {
+    return runBlocking {
+        lockedTransaction {
+            TournamentReports.leftJoin(GameReports)
+                .selectAll()
+                .where { GameReports.id eq this@getRefereeId.game }
+                .firstOrNull()
+                ?.let {
+                    it[TournamentReports.referee].value
+                }
+        }
+    }
+}
 suspend fun InjuryDEO.createInDatabase(): Result<Injury> {
     val injuryUpdate = this
     if (injuryUpdate.team != null &&
@@ -865,8 +902,8 @@ suspend fun PublicDisciplinaryActionDEO.Companion.fromDisciplinaryAction(discipl
     }
 }
 
-suspend fun PublicDisciplinaryActionDEO.Companion.wrapRow(row: ResultRow) : PublicDisciplinaryActionDEO? {
-    if(row.getOrNull(DisciplinaryActions.id) == null) {
+suspend fun PublicDisciplinaryActionDEO.Companion.wrapRow(row: ResultRow): PublicDisciplinaryActionDEO? {
+    if (row.getOrNull(DisciplinaryActions.id) == null) {
         return null
     }
     return PublicDisciplinaryActionDEO(

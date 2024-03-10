@@ -46,7 +46,11 @@ fun Route.sites() {
                 }
                 CacheUtil.cacheSession(session)
                 call.sessions.set(UserSession(generatedUUID))
-                call.respondRedirect("/")
+                if(call.parameters.contains("noRedirect")) {
+                    call.respond("Logged in")
+                } else{
+                    call.respondRedirect("/")
+                }
             } else {
                 println("User incorrect. Redirecting to login")
                 call.respondRedirect("/")

@@ -33,6 +33,7 @@ fun Application.configureSecurity() {
                 acceptLeeway(3)
             }
             validate { credential ->
+                println(credential)
                 if (credential.payload.getClaim("username").asString() != "") {
                     JWTPrincipal(credential.payload)
                 } else {
@@ -73,6 +74,7 @@ fun Application.configureSecurity() {
         }
         session<UserSession>("auth-session") {
             validate { session ->
+                println("Validating session")
                 Session.validateSession(session.uuid).map {
                     lockedTransaction { User.findById(it.user.id) }
                         ?.let { UserPrincipal(it) }
