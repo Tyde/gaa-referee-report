@@ -56,6 +56,13 @@ fun Application.configureSecurity() {
                     val foundUser = User.find { Users.mail.lowerCase() eq credentials.name.lowercase() }
                     var loginUser: User? = null
                     for (user in foundUser) {
+                        if (user.password.isEmpty()) {
+                            this@validate.respond(HttpStatusCode.Unauthorized, "" +
+                                    "User has no password set. Please use the activation " +
+                                    "link from your mails. If your activation link has expired, " +
+                                    "please contact the it officer.")
+                            return@lockedTransaction null
+                        }
                         if (BCrypt.verifyer().verify(pw.toCharArray(), user.password).verified) {
                             loginUser = user
                         }
@@ -69,6 +76,7 @@ fun Application.configureSecurity() {
                 }
             }
             challenge {
+
                 call.respondRedirect("/login?invalidCredentials")
             }
         }
