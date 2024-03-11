@@ -49,6 +49,8 @@ object Tournaments : LongIdTable() {
     val location: Column<String> = varchar("location",90)
     val date: Column<LocalDate> = date("date")
     val region = reference("region", Regions).default(EntityID(1, Regions))
+    val isLeague: Column<Boolean> = bool("is_league").default(false)
+    val endDate: Column<LocalDate?> = date("end_date").nullable()
 }
 
 class Tournament(id: EntityID<Long>) : LongEntity(id) {
@@ -57,6 +59,8 @@ class Tournament(id: EntityID<Long>) : LongEntity(id) {
     var location by Tournaments.location
     var date by Tournaments.date
     var region by Region referencedOn  Tournaments.region
+    var isLeague by Tournaments.isLeague
+    var endDate by Tournaments.endDate
 }
 
 object GameCodes : LongIdTable() {

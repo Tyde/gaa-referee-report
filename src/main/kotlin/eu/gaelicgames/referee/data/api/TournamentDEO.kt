@@ -11,7 +11,13 @@ suspend fun TournamentDEO.Companion.fromTournament(input: Tournament): Tournamen
 
     return lockedTransaction {
         TournamentDEO(
-            input.id.value, input.name, input.location, input.date, input.region.id.value
+            input.id.value,
+            input.name,
+            input.location,
+            input.date,
+            input.region.id.value,
+            input.isLeague,
+            input.endDate
         )
     }
 }
@@ -23,7 +29,9 @@ suspend fun TournamentDEO.Companion.wrapRow(row: ResultRow): TournamentDEO {
     val location = row[Tournaments.location]
     val date = row[Tournaments.date]
     val region = row[Tournaments.region].value
-    return TournamentDEO(id, name, location, date, region)
+    val isLeague = row[Tournaments.isLeague]
+    val endDate = row[Tournaments.endDate]
+    return TournamentDEO(id, name, location, date, region, isLeague, endDate)
 
 }
 
@@ -47,6 +55,13 @@ suspend fun TournamentDEO.updateInDatabase(): Result<Tournament> {
                 IllegalArgumentException("Name and location cannot be empty")
             )
         }
+        if (thisDEO.isLeague != null && thisDEO.isLeague) {
+            if (thisDEO.endDate == null) {
+                return@lockedTransaction Result.failure(
+                    IllegalArgumentException("End date cannot be null for a league")
+                )
+            }
+        }
         runBlocking {
             CacheUtil.deleteCachedCompleteTournamentReport(tournament.id.value)
             CacheUtil.deleteCachedPublicTournamentReport(tournament.id.value)
@@ -62,6 +77,8 @@ suspend fun TournamentDEO.updateInDatabase(): Result<Tournament> {
         tournament.location = thisDEO.location
         tournament.date = thisDEO.date
         tournament.region = region
+        tournament.isLeague = thisDEO.isLeague ?: false
+        tournament.endDate = thisDEO.endDate
         return@lockedTransaction Result.success(tournament)
     }
 }
@@ -81,11 +98,20 @@ suspend fun NewTournamentDEO.storeInDatabase(): Result<Tournament> {
                 IllegalArgumentException("Name and location cannot be empty")
             )
         }
+        if (thisDEO.isLeague != null && thisDEO.isLeague) {
+            if (thisDEO.endDate == null) {
+                return@lockedTransaction Result.failure(
+                    IllegalArgumentException("End date cannot be null for a league")
+                )
+            }
+        }
         val tournament = Tournament.new {
             name = thisDEO.name
             location = thisDEO.location
             date = thisDEO.date
             this.region = region
+            isLeague = thisDEO.isLeague ?: false
+            endDate = thisDEO.endDate
         }
         return@lockedTransaction Result.success(tournament)
     }

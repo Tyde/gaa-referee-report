@@ -125,6 +125,9 @@ object DatabaseHandler {
 
             //Migration 4 - Add "redCardIssued" to DisciplinaryActions
             SchemaUtils.createMissingTablesAndColumns(DisciplinaryActions)
+
+            //Migration 5 - Add league field to Tournaments
+            SchemaUtils.createMissingTablesAndColumns(Tournaments)
         }
     }
 
