@@ -45,7 +45,7 @@ fun generateActivationLink(referee: User): String {
     ActivationToken.new {
         this.token = activationUUID
         this.user = referee
-        this.expires = LocalDateTime.now().plusDays(7)
+        this.expires = LocalDateTime.now().plusDays(30)
     }
 
     val activationString = activationUUID.toString()
