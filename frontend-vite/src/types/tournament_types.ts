@@ -7,6 +7,12 @@ export const Tournament = z.object({
     date: z.string()
         .transform((value) => DateTime.fromISO(value)),
     region: z.number(),
+    isLeague: z.boolean().optional(),
+    endDate: z.string().optional()
+        .transform((value) => {
+            if(!value) return null
+            return DateTime.fromISO(value!!)
+        }),
 })
 export type Tournament = z.infer<typeof Tournament>
 export const DatabaseTournament = Tournament.extend({
@@ -21,7 +27,9 @@ export function databaseTournamentToTournamentDAO(tournament: DatabaseTournament
         location: tournament.location,
         date: tournament.date.toISODate(),
         region: tournament.region,
-        id: tournament.id
+        id: tournament.id,
+        isLeague: tournament.isLeague,
+        endDate: tournament.endDate?.toISODate() ?? undefined
     }
 }
 

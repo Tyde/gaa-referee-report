@@ -54,6 +54,16 @@ export const editReportDE = {
         enterName: 'Turniername eingeben',
         enterLocation: 'Turnierort eingeben',
         selectRegion: 'Region auswählen',
+        isLeague: 'Ligarunde (erstreckt sich über mehr als einen Tag)',
+        dateinput: {
+            tournament: 'Turnierdatum',
+            startLeague: 'Startdatum der Runde',
+            endLeague: 'Enddatum der Runde',
+        },
+        error: {
+            noEndDate: 'Wenn das Turnier eine Ligarunde ist, müssen Sie ein Enddatum eingeben',
+            missingFields: 'Bitte fülle alle Felder aus',
+        }
     },
     teamSelect: {
         selectReportTeams: 'Wähle die Vereine aus, die Teil dieses Berichts sein werden',

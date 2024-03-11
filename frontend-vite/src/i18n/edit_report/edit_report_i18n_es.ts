@@ -53,6 +53,16 @@ export const editReportES = {
         enterName: 'Ingresar nombre del torneo',
         enterLocation: 'Ingresar ubicación del torneo',
         selectRegion: 'Seleccionar una región',
+        isLeague: 'Ronda de liga (se extiende por más de un día)',
+        dateinput: {
+            tournament: 'Fecha del torneo',
+            startLeague: 'Fecha de inicio de la ronda',
+            endLeague: 'Fecha de finalización de la ronda',
+        },
+        error: {
+            noEndDate: 'Si el torneo es una ronda de liga, necesitas ingresar una fecha de finalización',
+            missingFields: 'Por favor, completa todos los campos',
+        }
     },
     teamSelect: {
         selectReportTeams: 'Seleccionar los clubes que serán parte de este informe',

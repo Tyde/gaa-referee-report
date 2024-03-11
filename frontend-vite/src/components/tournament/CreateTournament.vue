@@ -5,6 +5,7 @@ import {DateTime} from "luxon";
 import {DatabaseTournament, Tournament} from "@/types/tournament_types";
 import {useReportStore} from "@/utils/edit_report_store";
 import {uploadNewTournament} from "@/utils/api/tournament_api";
+import {useI18n} from "vue-i18n";
 
 const props = defineProps<{
   preselectedDate: Date,
@@ -17,17 +18,22 @@ const emit = defineEmits<{
   (e: 'canceled') :void
 }>()
 const editedTournament = ref<Tournament>({
-  date: DateTime.now(), location: "", name: "", region: 0
+  date: DateTime.now(), location: "", name: "", region: 0, isLeague: false, endDate: null
 })
 const allowChangeDate = ref<Boolean>(false)
 const isLoading = ref<Boolean>(true)
 onMounted(() => {
   editedTournament.value.date = DateTime.fromJSDate( props.preselectedDate)
 })
+const {t} = useI18n()
 
 async function save_tournament() {
   if (editedTournament.value.location && editedTournament.value.name && editedTournament.value.region) {
 
+    if(editedTournament.value.isLeague && !editedTournament.value.endDate) {
+      store.newError(t('tournament.error.noEndDate'))
+      return
+    }
     isLoading.value = true
 
 
@@ -42,7 +48,7 @@ async function save_tournament() {
 
 
   } else {
-    store.newError("Please fill out all fields")
+    store.newError(t('tournament.error.missingFields'))
   }
 }
 
@@ -57,12 +63,29 @@ const dateString = computed(() => {
       {{ $t('tournament.create') }}
     </template>
     <template #content>
-      <template v-if="allowChangeDate">
-        <Calendar id="dateformat"
+      <div class="flex align-items-center">
+        <Checkbox binary v-model="editedTournament.isLeague" id="isLeague" />
+        <label for="isLeague" class="ml-2">{{ $t('tournament.isLeague') }}</label>
+      </div>
+      <div class="flex flex-row" v-if="allowChangeDate || editedTournament.isLeague">
+        <div class="flex flex-col align-center m-2">
+          <label v-if="!editedTournament.isLeague" for="dateformat">{{ $t('tournament.dateinput.tournament') }}</label>
+          <label v-else for="dateformat">{{ $t('tournament.dateinput.startLeague') }}</label>
+
+          <Calendar id="dateformat"
                   :model-value="editedTournament.date.toJSDate()"
                   @update:model-value="(newDate:Date) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
                   dateFormat="yy-mm-dd"/>
-      </template>
+        </div>
+        <div class="flex flex-col align-center m-2">
+          <label for="dateend">{{ $t('tournament.dateinput.endLeague') }}</label>
+          <Calendar id="dateend"
+                  :model-value="editedTournament.endDate?.toJSDate()"
+                  @update:model-value="(newDate:Date) => {editedTournament.endDate = DateTime.fromJSDate(newDate)}"
+                  dateFormat="yy-mm-dd" v-if="editedTournament.isLeague"
+                  />
+        </div>
+      </div>
       <template v-else> <h3>Date: {{ dateString }}</h3>
         <Button class="p-button-secondary" @click="allowChangeDate = true">{{ $t('tournament.changeDate') }}</Button>
       </template>

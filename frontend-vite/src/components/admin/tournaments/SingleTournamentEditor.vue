@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {DatabaseTournament, databaseTournamentToTournamentDAO, RegionDEO} from "@/types/tournament_types";
-import {computed, ref} from "vue";
+import {computed, ref, watch} from "vue";
 import {useAdminStore} from "@/utils/admin_store";
 import {updateTournamentOnServer} from "@/utils/api/admin_api";
 import {DateTime} from "luxon";
@@ -25,11 +25,13 @@ function regionIDToRegion(regionID: number): RegionDEO {
 }
 
 function startEdit() {
-  // Weird hack to deep clone the object
-  editedTournament.value = DatabaseTournament.parse(
-      databaseTournamentToTournamentDAO(props.tournament)
-  )
-  currentlyEditing.value = true
+  if (!currentlyEditing.value) {
+    // Weird hack to deep clone the object
+    editedTournament.value = DatabaseTournament.parse(
+        databaseTournamentToTournamentDAO(props.tournament)
+    )
+    currentlyEditing.value = true
+  }
 }
 
 function save() {
@@ -78,26 +80,27 @@ const mergeWithTournament = ref<DatabaseTournament | undefined>(undefined)
 const tournamentsExceptThis = computed(() => {
   return store.publicStore.tournaments.filter(it => it.id != props.tournament.id)
 })
+
 function createTournamentButtonModel(tournament: DatabaseTournament) {
   return [
     {
       label: 'Delete Tournament',
       command: () => {
-        console.log("to be deleted: ",tournament)
-        confirm.require( {
+        console.log("to be deleted: ", tournament)
+        confirm.require({
           message: 'Are you sure you want to delete the tournament '
-              +tournament.name
-              +' in '
-              +tournament.location
-              +" on "
-              +tournament.date.toISODate()+ "?\n This will delete all reports for that tournament.",
+              + tournament.name
+              + ' in '
+              + tournament.location
+              + " on "
+              + tournament.date.toISODate() + "?\n This will delete all reports for that tournament.",
           header: "Delete tournament?",
           icon: "pi pi-exlamation-triangle",
           rejectClass: 'p-button-secondary p-button-outlined',
           rejectLabel: 'Cancel',
           acceptLabel: 'Save',
           accept() {
-              store.deleteTournament(tournament)
+            store.deleteTournament(tournament)
           },
           reject() {
           },
@@ -111,6 +114,15 @@ function createTournamentButtonModel(tournament: DatabaseTournament) {
     }
   ]
 }
+
+
+watch(() => editedTournament.value?.isLeague, (newVal) => {
+  console.log("triggered watcher")
+  if (newVal && editedTournament.value && !editedTournament.value?.endDate) {
+    editedTournament.value.endDate = editedTournament.value?.date.plus({days: 1})
+    console.log("Setting end date to ", editedTournament.value.endDate)
+  }
+})
 
 function mergeTournaments() {
   if (mergeWithTournament.value) {
@@ -141,52 +153,73 @@ function mergeTournaments() {
       <template v-else-if="editedTournament">
         <div class="tournament-edit-row">
           <div class="grow">
-        <span class="p-float-label">
-            <InputText
-                v-model="editedTournament.name"
-                :inputId="'tournament-name-' + props.tournament.id"
-            />
-          <label :for="'tournament-name-' + props.tournament.id">Name</label>
-        </span>
+            <span class="p-float-label">
+                <InputText
+                    v-model="editedTournament.name"
+                    :inputId="'tournament-name-' + props.tournament.id"
+                />
+              <label :for="'tournament-name-' + props.tournament.id">Name</label>
+            </span>
           </div>
           <div>
-        <span class="p-float-label">
-          <InputText
-              v-model="editedTournament.location"
-              :inputId="'tournament-location-' + props.tournament.id"
-          />
-          <label :for="'tournament-location-' + props.tournament.id">Location</label>
-        </span>
+            <span class="p-float-label">
+              <InputText
+                  v-model="editedTournament.location"
+                  :inputId="'tournament-location-' + props.tournament.id"
+              />
+              <label :for="'tournament-location-' + props.tournament.id">Location</label>
+            </span>
           </div>
         </div>
         <div class="tournament-edit-row">
           <div class="grow">
-        <span class="p-float-label">
-          <Calendar
-              :model-value="editedTournament.date.toJSDate()"
-              @update:model-value="(newDate:Date) => {
-                if(editedTournament)
-                  editedTournament.date = DateTime.fromJSDate(newDate)
-              }"
-              dateFormat="yy-mm-dd"
-              :inputId="'tournament-date-' + props.tournament.id"
-          />
-          <label :for="'tournament-date-' + props.tournament.id">Date</label>
-        </span>
+            <span class="p-float-label">
+              <Calendar
+                  :model-value="editedTournament.date.toJSDate()"
+                  @update:model-value="(newDate:Date) => {
+                    if(editedTournament)
+                      editedTournament.date = DateTime.fromJSDate(newDate)
+                  }"
+                  dateFormat="yy-mm-dd"
+                  :inputId="'tournament-date-' + props.tournament.id"
+              />
+              <label :for="'tournament-date-' + props.tournament.id">Date</label>
+            </span>
           </div>
           <div>
-          <span class="p-float-label">
-          <Dropdown
-              v-model="editedTournament.region"
-              :options="store.publicStore.regions"
-              optionLabel="name"
-              optionValue="id"
-              :inputId="'tournament-region-' + props.tournament.id"
-          />
-          <label :for="'tournament-region-' + props.tournament.id">Region</label>
-          </span>
+            <span class="p-float-label">
+              <Dropdown
+                  v-model="editedTournament.region"
+                  :options="store.publicStore.regions"
+                  optionLabel="name"
+                  optionValue="id"
+                  :inputId="'tournament-region-' + props.tournament.id"
+              />
+              <label :for="'tournament-region-' + props.tournament.id">Region</label>
+            </span>
           </div>
         </div>
+        <div class="tournament-edit-row">
+          <div class="grow flex flex-row content-center">
+            <Checkbox binary v-model="editedTournament.isLeague" :id="'isLeague-'+props.tournament.id"/>
+            <label :for="'isLeague-'+props.tournament.id" class="ml-2">Is League Round</label>
+          </div>
+          <div v-if="editedTournament.isLeague">
+            <span class="p-float-label">
+
+
+              <Calendar
+                  :model-value="editedTournament.endDate?.toJSDate()"
+                  @update:model-value="(newDate:Date) => {
+                      editedTournament!!.endDate = DateTime.fromJSDate(newDate)
+                    }"
+                  dateFormat="yy-mm-dd"
+                  :inputId="'tournament-end-date-' + props.tournament.id"
+              /><label :for="'tournament-end-date-' + props.tournament.id">End date</label>
+            </span>
+          </div>
+        </div>
+
         <div class="tournament-edit-row">
           <div class="grow">
             <Button class="p-button-success" label="Save" @click.stop="save"/>
@@ -207,7 +240,7 @@ function mergeTournaments() {
     </SplitButton>
     <Dialog v-model:visible="mergeDialogVisible" header="Merge Tournament" :modal="true" :closable="true">
       <p>Are you sure you want to merge this tournament with another?</p>
-      <p>The tournament {{props.tournament.name}} will be moved into the selected tournament.</p>
+      <p>The tournament {{ props.tournament.name }} will be moved into the selected tournament.</p>
       <p>Choose the tournament to merge into:</p>
       <Dropdown
           v-model="mergeWithTournament"
@@ -215,7 +248,8 @@ function mergeTournaments() {
           :optionLabel="(t:DatabaseTournament) => t.name + ' in ' + t.location + ' on ' + t.date.toISODate()"
           placeholder="Select a tournament to merge into"
           filter
-      /><br>
+      />
+      <br>
       <Button label="Merge" class="p-button-success" @click="mergeTournaments"/>
       <Button label="Cancel" class="p-button-danger" @click="mergeDialogVisible = false"/>
     </Dialog>

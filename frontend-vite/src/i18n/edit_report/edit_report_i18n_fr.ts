@@ -53,6 +53,16 @@ export const editReportFR = {
         enterName: 'Entrer le nom du tournoi',
         enterLocation: 'Entrer le lieu du tournoi',
         selectRegion: 'Sélectionner une région',
+        isLeague: 'Ronde de ligue (s’étend sur plus d’un jour)',
+        dateinput: {
+            tournament: 'Date du tournoi',
+            startLeague: 'Date de début de la ronde',
+            endLeague: 'Date de fin de la ronde',
+        },
+        error: {
+            noEndDate: 'Si le tournoi est une ronde de ligue, vous devez entrer une date de fin',
+            missingFields: 'Veuillez remplir tous les champs',
+        }
     },
     teamSelect: {
         selectReportTeams: 'Sélectionner les clubs qui feront partie de ce rapport',

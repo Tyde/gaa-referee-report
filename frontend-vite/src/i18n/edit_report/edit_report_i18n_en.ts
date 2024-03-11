@@ -53,6 +53,16 @@ export const editReportEN = {
         enterName: 'Enter tournament name',
         enterLocation: 'Enter tournament location',
         selectRegion: 'Select a region',
+        isLeague: 'League round (spreads over more than one days)',
+        dateinput: {
+            tournament: 'Tournament date',
+            startLeague: 'Start date of round',
+            endLeague: 'End date of round',
+        },
+        error: {
+            noEndDate: 'If the tournament is a league round, you need to enter an end date',
+            missingFields: 'Please fill in all fields',
+        }
     },
     teamSelect: {
         selectReportTeams: 'Select the clubs that will be part of this report',
