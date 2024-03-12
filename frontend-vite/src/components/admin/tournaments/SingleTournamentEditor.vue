@@ -137,7 +137,7 @@ function mergeTournaments() {
   <div class="flex flex-row">
     <div
         class="single-tournament-row grow"
-        :class="{ 'cursor-pointer': !currentlyEditing }"
+        :class="{ 'cursor-pointer': !currentlyEditing , 'league': !currentlyEditing && props.tournament.isLeague }"
         v-on:click="startEdit"
     >
       <template v-if="!currentlyEditing">
@@ -146,7 +146,10 @@ function mergeTournaments() {
           <div>{{ props.tournament.location }}</div>
         </div>
         <div class="flex flex-row">
-          <div class="grow">{{ props.tournament.date.toISODate() }}</div>
+          <div class="grow">{{ props.tournament.date.toISODate() }}<template
+              v-if="props.tournament.isLeague">&nbsp;-&nbsp;{{ props.tournament.endDate?.toISODate() }}
+            </template>
+          </div>
           <div>{{ regionIDToRegion(props.tournament.region).name }}</div>
         </div>
       </template>
@@ -270,6 +273,10 @@ function mergeTournaments() {
 
 .tournament-edit-row {
   @apply flex flex-row m-2 mt-6;
+}
+
+.league {
+  @apply bg-green-200;
 }
 
 </style>
