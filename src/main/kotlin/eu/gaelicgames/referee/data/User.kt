@@ -15,14 +15,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import java.time.LocalDateTime
 import java.util.*
 
-enum class UserRole {
-    ADMIN, //0
-    REFEREE, //1
-    INACTIVE, //2
-    WAITING_FOR_ACTIVATION, //3
-    CCC, //4
-    CCC_WAITING_FOR_ACTIVATION //5
-}
+
 
 object Users : LongIdTable() {
     val firstName = varchar("first_name",60)
