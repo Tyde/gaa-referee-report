@@ -144,7 +144,8 @@ fun Application.configureSecurity() {
                         ?.let {
                             if(it.role == UserRole.CCC ||
                                 it.role == UserRole.REFEREE ||
-                                it.role == UserRole.ADMIN) {
+                                it.role == UserRole.ADMIN ||
+                                it.role == UserRole.REFEREE_AND_CCC) {
                                 UserPrincipal(it)
                             } else {
                                 null

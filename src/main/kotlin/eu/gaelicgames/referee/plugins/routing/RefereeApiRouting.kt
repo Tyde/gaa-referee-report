@@ -449,6 +449,13 @@ private suspend inline fun <reified T : Any, reified R : Any> limitAccess(
         } else {
             Result.failure(AuthorizationException(customCCCDisallowedMessage))
         }
+    } else if (role == UserRole.REFEREE_AND_CCC) {
+        if (isUserAllowedPredicate(user, serializableObject) ||
+            isCCCAllowedPredicate(user, serializableObject)) {
+            Result.success(mapIfAllowed(serializableObject))
+        } else {
+            Result.failure(AuthorizationException(customUserDisallowedMessage))
+        }
     } else {
         if (isUserAllowedPredicate(user, serializableObject)) {
             Result.success(mapIfAllowed(serializableObject))

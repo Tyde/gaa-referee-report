@@ -7,6 +7,7 @@ import {getSessionInfo, updateMeUser} from "@/utils/api/referee_api";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import type {Referee, RefereeWithRoleDEO} from "@/types/referee_types";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
+import { isRef } from "vue";
 
 
 export const useDashboardStore = defineStore('dashboard', () => {
@@ -22,6 +23,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
             return me.value.role == "CCC"
         }
         return undefined
+    })
+
+    const isRefereeAndCCC = computed(() => {
+        if (me.value.role !== undefined) {
+            return me.value.role == "REFEREE_AND_CCC"
+        }
+        return false
     })
 
     const isLoading = ref<boolean>(false)
@@ -91,6 +99,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         isAdmin,
         me,
         isCCC,
+        isRefereeAndCCC,
         //newError,
         fetchMyReports,
         findCodeById,

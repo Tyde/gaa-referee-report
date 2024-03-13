@@ -15,9 +15,9 @@ const users = ref<RefereeWithRoleDEO[]>([]);
 
 const restrictRoles = computed(() => {
   if(props.refereeMode) {
-    return ["REFEREE", "INACTIVE", "ADMIN", "WAITING_FOR_ACTIVATION"]
+    return ["REFEREE", "INACTIVE", "ADMIN", "WAITING_FOR_ACTIVATION", "REFEREE_AND_CCC"]
   } else {
-    return ["CCC","CCC_WAITING_FOR_ACTIVATION"]
+    return ["CCC","CCC_WAITING_FOR_ACTIVATION", "REFEREE_AND_CCC"]
   }
 })
 
@@ -73,6 +73,14 @@ function activateDeactivatedUser(user: RefereeWithRoleDEO) {
 
 function makeAdmin(user: RefereeWithRoleDEO) {
   setRefereeRole(user, RefereeRole.Enum.ADMIN)
+}
+
+function makeRefereeAndCCC(user: RefereeWithRoleDEO) {
+  setRefereeRole(user, RefereeRole.Enum.REFEREE_AND_CCC)
+}
+
+function makeCCC(user: RefereeWithRoleDEO) {
+  setRefereeRole(user, RefereeRole.Enum.CCC)
 }
 
 function resetPassword(user: RefereeWithRoleDEO) {
@@ -134,36 +142,60 @@ function newSuccessMessage(message: string) {
       </Column>
       <Column>
         <template #body="{data}:{data: RefereeWithRoleDEO}">
+          <div v-if="data.role === RefereeRole.Enum.WAITING_FOR_ACTIVATION"> Did not set password yet. </div>
+          <div v-else-if="data.role === RefereeRole.Enum.REFEREE">Referee</div>
+          <div v-else-if="data.role === RefereeRole.Enum.INACTIVE">Inactive</div>
+          <div v-else-if="data.role === RefereeRole.Enum.ADMIN">Admin</div>
+          <div v-else-if="data.role === RefereeRole.Enum.CCC">CCC</div>
+          <div v-else-if="data.role === RefereeRole.Enum.REFEREE_AND_CCC">Referee and CCC</div>
           <Button
               v-if="data.role === RefereeRole.Enum.REFEREE"
               icon="pi pi-user-minus"
               label="Deactivate"
-              class="mr-2 p-button-rounded p-button-danger"
+              class="mr-2 p-button-rounded p-button-danger text-sm"
               @click="() => deactivateUser(data)"></Button>
           <Button
               v-if="data.role === RefereeRole.Enum.INACTIVE"
               icon="pi pi-user-plus"
               label="Activate User"
-              class="mr-2 p-button-rounded p-button-success"
+              class="mr-2 p-button-rounded p-button-success text-sm"
               @click="() => activateDeactivatedUser(data)"></Button>
           <Button
               v-if="data.role === RefereeRole.Enum.REFEREE"
               icon="pi pi-lock-open"
               label="Make Admin"
-              class="mr-2 p-button-rounded p-button-warning"
+              class="mr-2 p-button-rounded p-button-warning text-sm"
               @click="() => makeAdmin(data)"></Button>
+
+          <Button
+              v-if="data.role === RefereeRole.Enum.REFEREE || data.role == RefereeRole.Enum.CCC"
+              icon="pi pi-user-plus"
+              label="Make Both Referee and CCC"
+              class="mr-2 p-button-rounded p-button-help text-sm"
+              @click="() => makeRefereeAndCCC(data)"></Button>
+          <Button
+              v-if="data.role === RefereeRole.Enum.REFEREE_AND_CCC"
+              icon="pi pi-user-minus"
+              label="Make just Referee"
+              class="mr-2 p-button-rounded p-button-help text-sm"
+              @click="() => activateDeactivatedUser(data)"></Button>
+          <Button
+              v-if="data.role === RefereeRole.Enum.REFEREE_AND_CCC"
+              icon="pi pi-user-minus"
+              label="Make just CCC"
+              class="mr-2 p-button-rounded p-button-help text-sm"
+              @click="() => makeCCC(data)"></Button>
           <Button
               v-if="data.role !== RefereeRole.Enum.WAITING_FOR_ACTIVATION"
               label="Reset Password"
-              class="mr-2 p-button-rounded p-button-secondary"
+              class="mr-2 p-button-rounded p-button-secondary text-sm"
               @click="() => resetPassword(data)"></Button>
 
 
-          <span v-if="data.role === RefereeRole.Enum.WAITING_FOR_ACTIVATION"> Did not set password yet. </span>
           <Button
               v-if="data.role == RefereeRole.Enum.WAITING_FOR_ACTIVATION"
               label="Resend Activation Mail"
-              class="mr-2 p-button-rounded p-button-secondary"
+              class="mr-2 p-button-rounded p-button-secondary text-sm"
               @click="() => resetPassword(data)"></Button>
         </template>
       </Column>

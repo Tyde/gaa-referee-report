@@ -22,7 +22,8 @@ export const RefereeRole = z.enum([
     "INACTIVE",
     "WAITING_FOR_ACTIVATION",
     "CCC",
-    "CCC_WAITING_FOR_ACTIVATION"
+    "CCC_WAITING_FOR_ACTIVATION",
+    "REFEREE_AND_CCC"
 ])
 
 
