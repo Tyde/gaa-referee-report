@@ -41,10 +41,11 @@ object DatabaseHandler {
                     useNestedTransactions = false
                 }
 
+                /*
 
                 val poolConfig = HikariConfig().apply {
                     jdbcUrl = "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}"
-                    maximumPoolSize = 6
+                    maximumPoolSize = 2
                     isReadOnly = false
                     transactionIsolation = "TRANSACTION_SERIALIZABLE"
                     driverClassName = "org.postgresql.Driver"
@@ -58,16 +59,16 @@ object DatabaseHandler {
                 Database.connect(
                     datasource = pool,
                     databaseConfig = config
-                )
+                )*/
 
-                /*
+
                 Database.connect(
                     "jdbc:postgresql://${GGERefereeConfig.postgresHost}:${GGERefereeConfig.postgresPort}/${GGERefereeConfig.postgresDatabase}",
                     driver = "org.postgresql.Driver",
                     user = GGERefereeConfig.postgresUser,
                     password = GGERefereeConfig.postgresPassword,
                     databaseConfig = config
-                )*/
+                )
             } else {
                 Database.connect("jdbc:sqlite:data/data.db", "org.sqlite.JDBC")
             }
