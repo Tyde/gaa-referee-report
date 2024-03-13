@@ -1,6 +1,6 @@
 import type {DateTime} from "luxon";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
-import {DatabaseTournament, RegionDEO, Tournament} from "@/types/tournament_types";
+import {DatabaseTournament, RegionDEO, Tournament, tournamentToTournamentDAO} from "@/types/tournament_types";
 import {CompleteTournamentReportDEO, PublicTournamentReportDEO} from "@/types/complete_tournament_types";
 
 
@@ -20,12 +20,7 @@ export async function loadAllTournaments():Promise<Array<DatabaseTournament>> {
 
 export async function uploadNewTournament(tournament:Tournament):Promise<DatabaseTournament> {
     if(tournament.region && tournament.name && tournament.location && tournament.date) {
-        let dataWithCorrectDate = {
-            name:tournament.name,
-            location: tournament.location,
-            date:tournament.date.toISODate(),
-            region:tournament.region
-        }
+        let dataWithCorrectDate = tournamentToTournamentDAO(tournament)
         return makePostRequest("/api/tournament/new", dataWithCorrectDate)
             .then(data => parseAndHandleDEO(data, DatabaseTournament))
 
