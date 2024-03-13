@@ -112,7 +112,9 @@ onMounted(() => {
               class="p-listbox-item"
               @click="select_tournament(tournament)"
           >
-            {{ tournament.name }} - {{ tournament.location }} - {{ tournament.date.toISODate() }}
+            {{ tournament.name }} | {{ tournament.location }} |
+            <template v-if="!tournament.isLeague">{{ tournament.date.toISODate() }}</template>
+            <template v-else>{{ tournament.date.toISODate() }} - {{ tournament.endDate?.toISODate() }} | League</template>
           </li>
           <li
               v-if="date"

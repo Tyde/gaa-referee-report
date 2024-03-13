@@ -23,6 +23,10 @@ const gameReportsByTime = computed(() => {
   return props.allGameReports.toSorted(compareGameReportByStartTime)
 })
 
+const isLeague = computed(() => {
+  return props.currentReport.tournament.isLeague
+})
+
 
 </script>
 
@@ -44,7 +48,8 @@ const gameReportsByTime = computed(() => {
         <div>Code: {{ currentReport.gameCode.name }}</div>
         <h2>Game Reports</h2>
         <div v-for="gr in gameReportsByTime" class="game-report-style">
-          <h3>{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }}</h3>
+          <h3 v-if="!isLeague">{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }}</h3>
+          <h3 v-else>{{ gr.startTime?.toISODate() }} - {{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }}</h3>
           <h3>
             <template v-if="gr.umpirePresentOnTime">Umpires present on time</template>
             <template v-else>Umpires not present on time. Note: {{ gr.umpireNotes }}</template>
