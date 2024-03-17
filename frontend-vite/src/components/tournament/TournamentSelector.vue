@@ -5,6 +5,8 @@ import {loadAllTournaments, loadTournamentsOnDate} from "@/utils/api/tournament_
 import {DateTime} from "luxon";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {DatabaseTournament} from "@/types/tournament_types";
+import { TrophyIcon } from "@heroicons/vue/20/solid";
+import { ListBulletIcon } from "@heroicons/vue/20/solid";
 
 /*
 const emit = defineEmits<{
@@ -109,12 +111,20 @@ onMounted(() => {
               :class="{
                 'selected-tournament': store.report.tournament && tournament.id === store.report.tournament.id
               }"
-              class="p-listbox-item"
+              class="p-listbox-item flex flex-row items-center"
               @click="select_tournament(tournament)"
           >
-            {{ tournament.name }} | {{ tournament.location }} |
-            <template v-if="!tournament.isLeague">{{ tournament.date.toISODate() }}</template>
-            <template v-else>{{ tournament.date.toISODate() }} - {{ tournament.endDate?.toISODate() }} | League</template>
+            <div>
+              <TrophyIcon v-if="!tournament.isLeague" class="h-4 w-4 mr-1 text-gray-500" />
+              <ListBulletIcon v-else class="h-4 w-4 mr-1 text-gray-500" />
+            </div>
+
+            <div>
+              {{ tournament.name }} | {{ tournament.location }} |
+              <template v-if="!tournament.isLeague"> {{ tournament.date.toISODate() }}</template>
+              <template v-else> {{ tournament.date.toISODate() }} - {{ tournament.endDate?.toISODate() }} | League
+              </template>
+            </div>
           </li>
           <li
               v-if="date"
