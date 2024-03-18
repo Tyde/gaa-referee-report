@@ -64,6 +64,13 @@ onMounted(() => {
       .then((tournaments) => {
         completeTournamentList.value = tournaments
         found_tournaments.value = completeTournamentList.value.filter((tournament) => {
+          if(tournament.isLeague && tournament.endDate) {
+            let isInSpan = tournament.date.diffNow().as('days') < 0 &&
+                tournament.endDate.diffNow().as('days') > 0
+            let isJustAfterEnd = tournament.endDate.diffNow().as('days') < 0 &&
+                tournament.endDate.diffNow().as('days') > -14
+            return isInSpan || isJustAfterEnd
+          }
           return Math.abs(tournament.date.diffNow().as('days')) < 14
         })
         showingRecentTournaments.value = true
