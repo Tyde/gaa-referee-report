@@ -55,6 +55,7 @@ export const editReportDE = {
         enterLocation: 'Turnierort eingeben',
         selectRegion: 'Region auswählen',
         isLeague: 'Ligarunde (erstreckt sich über mehr als einen Tag)',
+        leagueInfo: 'Ligarunden sind eine Serie von Spielen, die über mehr als einen Tag gespielt werden. Dies ist oft der Fall bei einer Liga. Hier sammeln wir alle Spiele einer Runde der Liga. Diese Veranstaltungen haben ein Start- und ein Enddatum.',
         dateinput: {
             tournament: 'Turnierdatum',
             startLeague: 'Startdatum der Runde',

@@ -66,6 +66,9 @@ const dateString = computed(() => {
       <div class="flex align-items-center">
         <Checkbox binary v-model="editedTournament.isLeague" id="isLeague" />
         <label for="isLeague" class="ml-2">{{ $t('tournament.isLeague') }}</label>
+        <!-- info icon with tooltip -->
+
+        <i v-tooltip:top="$t('tournament.leagueInfo')" class="pi pi-info-circle ml-2 mt-1"></i>
       </div>
       <div class="flex flex-row" v-if="allowChangeDate || editedTournament.isLeague">
         <div class="flex flex-col align-center m-2">

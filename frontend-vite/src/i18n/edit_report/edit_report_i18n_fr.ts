@@ -54,6 +54,7 @@ export const editReportFR = {
         enterLocation: 'Entrer le lieu du tournoi',
         selectRegion: 'Sélectionner une région',
         isLeague: 'Ronde de ligue (s’étend sur plus d’un jour)',
+        leagueInfo: 'Les rondes de ligue sont une série de jeux qui sont joués sur plus d’un jour. C’est souvent le cas pour une ligue. Ici, nous collectons tous les jeux d’une ronde de la ligue. Ces événements ont une date de début et une date de fin.',
         dateinput: {
             tournament: 'Date du tournoi',
             startLeague: 'Date de début de la ronde',
