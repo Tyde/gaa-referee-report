@@ -8,6 +8,7 @@ import eu.gaelicgames.referee.data.api.getRedCardsIssuedOnThisDay
 import eu.gaelicgames.referee.util.MailjetClientHandler
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.exposed.sql.or
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -23,11 +24,10 @@ class NotifyCCCService(
 
     override suspend fun runCycle() {
         val cards = DisciplinaryActionStringDEO.getRedCardsIssuedOnThisDay()
-        println("Checked cards for today:")
-        cards.forEach { println(it) }
+
         if (cards.isNotEmpty()) {
             lockedTransaction {
-                val cccMembers = User.find { Users.role eq UserRole.CCC }
+                val cccMembers = User.find { Users.role eq UserRole.CCC or (Users.role eq UserRole.REFEREE_AND_CCC) }
 
                 val mails = cccMembers.map {
                     val mail = "${it.firstName} ${it.lastName} <${it.mail}>"
