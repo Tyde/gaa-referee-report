@@ -119,6 +119,7 @@ onMounted(() => {
             id="umpireNotes"
             v-model="store.selectedGameReport.umpireNotes"
             type="text"
+            class="p-1 md:p-2"
             :pt="{input: { class: 'p-1 md:p-2'}}"
         />
 
@@ -139,8 +140,9 @@ onMounted(() => {
 
         </Dropdown>
       </div>
-      <div class="p-2 flex flex-row items-center">
-        <div class="field pr-2"><label for="gameTypeSelect">{{ $t('gameReport.gameType') }}:</label><br>
+      <div class="p-2 flex flex-col">
+        <div><label for="gameTypeSelect">{{ $t('gameReport.gameType') }}:</label></div>
+        <div class="flex flex-row items-start">
           <Dropdown
               id="gameTypeSelect"
               v-model="store.selectedGameReport.gameType"
@@ -150,7 +152,7 @@ onMounted(() => {
               :class="{
                 'to-be-filled':store.selectedGameReport?.gameType===undefined
               }"
-              class="w-60"
+              class="w-60 mr-2"
               :filter="true"
               :filter-fields="['name']"
               :pt="{input: { class: 'p-1 md:p-2'}}"
@@ -159,11 +161,10 @@ onMounted(() => {
 
 
           </Dropdown>
-        </div>
-        <div class="field pr-2 mt-6">
+
           <Button
               @click="showGameTypeDialog"
-              class="p-button-success h-9 md:h-12 p-button-outlined min-w-0 ">
+              class="p-button-success h-9 md:h-[40px] p-button-outlined min-w-0 ">
             <i class="pi pi-plus"></i></Button>
         </div>
       </div>
@@ -171,7 +172,7 @@ onMounted(() => {
       <div class="p-2 md:mt-6">
         <Button
             @click="deleteThisReport(store.selectedGameReport)"
-            class="p-button-danger h-12 p-button-outlined"
+            class="p-button-danger h-[40px] p-button-outlined"
         >{{ $t('gameReport.deleteGameReport') }}</Button>
       </div>
     </div>
