@@ -80,12 +80,12 @@ const dateString = computed(() => {
                   @update:model-value="(newDate:Date) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
                   dateFormat="yy-mm-dd"/>
         </div>
-        <div class="flex flex-col align-center m-2">
+        <div v-if="editedTournament.isLeague" class="flex flex-col align-center m-2">
           <label for="dateend">{{ $t('tournament.dateinput.endLeague') }}</label>
           <Calendar id="dateend"
                   :model-value="editedTournament.endDate?.toJSDate()"
                   @update:model-value="(newDate:Date) => {editedTournament.endDate = DateTime.fromJSDate(newDate)}"
-                  dateFormat="yy-mm-dd" v-if="editedTournament.isLeague"
+                  dateFormat="yy-mm-dd"
                   />
         </div>
       </div>
