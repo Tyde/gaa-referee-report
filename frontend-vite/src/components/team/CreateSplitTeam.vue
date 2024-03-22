@@ -48,6 +48,7 @@ function createSplitTeams() {
   }) ?? []
   let singlePromise =  Promise.all(promises)
   singlePromise.catch((err) => {
+
     store.newError(err)
   }).then((teams) => {
     if(teams) {

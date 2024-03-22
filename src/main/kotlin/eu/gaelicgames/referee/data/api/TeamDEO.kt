@@ -231,6 +231,12 @@ suspend fun NewAmalgamationDEO.createInDatabase(): Result<Team> {
 
         }
 
+        //Then check if the amalgamation name is unique
+        val amalgamation = Team.find { Teams.name eq newAmalgamation.name }.firstOrNull()
+        if (amalgamation != null) {
+            return@lockedTransaction Result.failure(Exception("Amalgamation/Team name ${newAmalgamation.name} already exists"))
+        }
+
         return@lockedTransaction Result.success(Unit)
     }
     val newAmalgamationDB = prechecks.map {
