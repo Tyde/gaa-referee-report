@@ -74,7 +74,8 @@ export const editReportDE = {
             infoSelected: 'Ausgewähltes Basisteam',
             selectNumberOf: 'Wählen Sie die Anzahl der zu erstellenden Teilmannschaft',
             wouldCreateFollowing: 'Diese Aktion würde die folgenden Teilmannschaften erstellen',
-            modifyNames: 'Namen ändern'
+            modifyNames: 'Namen ändern',
+            nameExists: 'Dieser Name existiert bereits',
         }
     },
     gameReport: {

@@ -73,7 +73,8 @@ export const editReportES = {
             infoSelected: 'Equipo base seleccionado',
             selectNumberOf: 'Seleccionar el número de subescuadras a crear',
             wouldCreateFollowing: 'Esta acción crearía las siguientes subescuadras',
-            modifyNames: 'Modificar nombres'
+            modifyNames: 'Modificar nombres',
+            nameExists: 'Este nombre ya existe'
         }
     },
     gameReport: {

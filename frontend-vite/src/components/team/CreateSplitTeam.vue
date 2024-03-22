@@ -21,8 +21,16 @@ const numSplitTeams = ref(2)
 const isLoading = ref(false)
 const modifyNames = ref(false)
 const splitTeamDrafts = ref<{suffix:string, internalId:number}[]>()
+
+const anyTeamNameExists = computed(() => {
+  return splitTeamDrafts.value?.some(it => teamNameAlreadyExists(it.suffix)) ?? false
+})
+function teamNameAlreadyExists(suffix: string) {
+  console.log("Checking for team name: ", props.baseTeam+ " " + suffix)
+  return store.publicStore.teams.filter(it => it.name === props.baseTeam.name+ " " + suffix).length > 0
+}
 watchEffect(() => {
-  if (props.baseTeam) {
+  if (props.baseTeam && !modifyNames.value) {
     splitTeamDrafts.value = []
     for (let i = 0; i < numSplitTeams.value; i++) {
       splitTeamDrafts.value.push(
@@ -32,6 +40,18 @@ watchEffect(() => {
           }
       )
     }
+  } else if (props.baseTeam && modifyNames.value) {
+    for (let i = splitTeamDrafts.value?.length ?? 0; i < numSplitTeams.value; i++) {
+      splitTeamDrafts.value?.push(
+          {
+            suffix: String.fromCharCode(i + 65),
+            internalId: i
+          }
+      )
+    }
+    if(splitTeamDrafts.value?.length??0 > numSplitTeams.value) {
+      splitTeamDrafts.value = splitTeamDrafts.value?.slice(0, numSplitTeams.value)
+    }
   } else {
     return []
   }
@@ -40,25 +60,35 @@ watchEffect(() => {
 
 function createSplitTeams() {
   isLoading.value = true
+
+
   let promises = splitTeamDrafts.value?.map((draft) => {
     return createAmalgamationOnServer(
         props.baseTeam.name + " "+ draft.suffix,
         [props.baseTeam]
-    )
+    ).catch((err) => {
+      store.newError(err)
+    })
   }) ?? []
   let singlePromise =  Promise.all(promises)
   singlePromise.catch((err) => {
-
     store.newError(err)
   }).then((teams) => {
-    if(teams) {
-      emit('on_new_team_split', teams)
+    let allTeamsDefined = teams?.every(it => it !== undefined)
+    if(allTeamsDefined) {
+      let allTeams = teams as Team[]
+      emit('on_new_team_split', allTeams)
     } else {
-      store.newError("Server returned void")
+      store.newError("SAt least one of the teams could not be created.")
     }
   }).finally(() => isLoading.value = false)
 }
 
+function removeDraftAtIndex(index: number) {
+  modifyNames.value = true
+  splitTeamDrafts.value?.splice(index, 1)
+  numSplitTeams.value = splitTeamDrafts.value?.length ?? 0
+}
 
 </script>
 
@@ -87,11 +117,17 @@ function createSplitTeams() {
       <div class="mt-2">
         {{$t('teamSelect.splitTeam.wouldCreateFollowing')}}:
         <ul>
-          <li v-for="draft in splitTeamDrafts" :key="draft.internalId">
+          <li class="m-1 ml-3" v-for="(draft,index) in splitTeamDrafts" :key="draft.internalId">
             <template v-if="!modifyNames">{{baseTeam.name}} {{ draft.suffix }}</template>
             <template v-else>
               {{baseTeam.name}} <InputText v-model="draft.suffix"/>
             </template>
+            <span
+                v-if="teamNameAlreadyExists(draft.suffix)"
+                class="bg-red-600 text-white p-1 ml-2 rounded font-bold hover:cursor-pointer"
+                @click="removeDraftAtIndex(index)"
+            >{{$t('teamSelect.splitTeam.nameExists')}} <i class="fas fa-times"></i>
+            </span>
           </li>
         </ul>
         <Checkbox v-model="modifyNames" input-id="modify_names" :binary="true" />
@@ -104,7 +140,7 @@ function createSplitTeams() {
         <Button
             class="p-button-rounded"
             @click="createSplitTeams"
-            :disabled="baseTeam === undefined"
+            :disabled="baseTeam === undefined || anyTeamNameExists"
         >{{ $t('general.submit') }}</Button>
       </div>
       <div class="m-2">

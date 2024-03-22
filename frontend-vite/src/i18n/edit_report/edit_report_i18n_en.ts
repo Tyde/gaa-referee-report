@@ -73,7 +73,8 @@ export const editReportEN = {
             infoSelected: 'Selected base team',
             selectNumberOf: 'Select the number of sub squads to be created',
             wouldCreateFollowing: 'This action would create the following sub squads',
-            modifyNames: 'Modify names'
+            modifyNames: 'Modify names',
+            nameExists: 'This name already exists',
         }
     },
     gameReport: {
