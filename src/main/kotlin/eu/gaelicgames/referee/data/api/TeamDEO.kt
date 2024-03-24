@@ -224,7 +224,12 @@ suspend fun NewAmalgamationDEO.createInDatabase(): Result<Team> {
                 return@lockedTransaction Result.failure(Exception("Team ${team.name} (id=${team.id}) not found"))
             } else {
                 if (dbTeam.isAmalgamation) {
-                    return@lockedTransaction Result.failure(Exception("Team ${dbTeam.name} is already an amalgamation"))
+                    val subAmalgamatedTeamsCount = Amalgamation.find { Amalgamations.amalgamation eq dbTeam.id }.count()
+                    if (subAmalgamatedTeamsCount > 1) {
+                        // We will allow squads to be amalgamated, but not amalgamations to be amalgamated
+                        return@lockedTransaction Result.failure(Exception("Team ${dbTeam.name} is already an amalgamation"))
+
+                    }
                 }
             }
 
