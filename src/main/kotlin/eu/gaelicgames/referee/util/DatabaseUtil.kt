@@ -86,7 +86,6 @@ object DatabaseHandler {
         GameCodes,
         TournamentReports,
         TournamentReportTeamPreSelections,
-        TournamentTeamPreSelections,
         GameTypes,
         ExtraTimeOptions,
         GameReports,

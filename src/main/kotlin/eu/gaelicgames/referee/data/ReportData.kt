@@ -139,17 +139,6 @@ class TournamentReportTeamPreSelection(id:EntityID<Long>):LongEntity(id) {
     var team by Team referencedOn TournamentReportTeamPreSelections.team
 }
 
-object TournamentTeamPreSelections : LongIdTable() {
-    val team = reference("team", Teams)
-    val tournament = reference("tournament", Tournaments)
-}
-
-class TournamentTeamPreSelection(id:EntityID<Long>):LongEntity(id) {
-    companion object : LongEntityClass<TournamentTeamPreSelection>(TournamentTeamPreSelections)
-    var team by Team referencedOn TournamentTeamPreSelections.team
-    var tournament by Tournament referencedOn TournamentTeamPreSelections.tournament
-}
-
 object GameTypes : LongIdTable() {
     val name = varchar("name",60)
 }
