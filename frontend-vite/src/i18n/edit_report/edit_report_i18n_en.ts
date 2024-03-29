@@ -53,6 +53,17 @@ export const editReportEN = {
         enterName: 'Enter tournament name',
         enterLocation: 'Enter tournament location',
         selectRegion: 'Select a region',
+        isLeague: 'League round (spreads over more than one days)',
+        leagueInfo: 'League rounds are a series of games that are played over more than one day. This is often the case for a league. Here we collect all games of one round of the league. These events have a start and an end date.',
+        dateinput: {
+            tournament: 'Tournament date',
+            startLeague: 'Start date of round',
+            endLeague: 'End date of round',
+        },
+        error: {
+            noEndDate: 'If the tournament is a league round, you need to enter an end date',
+            missingFields: 'Please fill in all fields',
+        }
     },
     teamSelect: {
         selectReportTeams: 'Select the clubs that will be part of this report',

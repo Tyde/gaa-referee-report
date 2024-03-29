@@ -16,6 +16,8 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.time.LocalDate
 
@@ -141,7 +143,10 @@ fun Route.refereeApiRouting() {
     get<Api.Tournaments.FindByDate> { findByDate ->
         val date = LocalDate.parse(findByDate.date)
         val tournaments = newSuspendedTransaction {
-            Tournament.find { Tournaments.date eq date }.map {
+            Tournament.find { Tournaments.date eq date or (
+                    Tournaments.date lessEq date and (Tournaments.endDate greaterEq date)
+                and (Tournaments.isLeague eq true)
+            ) }.map {
                 TournamentDEO.fromTournament(it)
             }
         }

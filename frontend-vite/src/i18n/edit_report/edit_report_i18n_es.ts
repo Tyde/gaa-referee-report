@@ -53,6 +53,17 @@ export const editReportES = {
         enterName: 'Ingresar nombre del torneo',
         enterLocation: 'Ingresar ubicación del torneo',
         selectRegion: 'Seleccionar una región',
+        isLeague: 'Ronda de liga (se extiende por más de un día)',
+        leagueInfo: 'Las rondas de liga son una serie de juegos que se juegan durante más de un día. Esto suele ser el caso de una liga. Aquí recopilamos todos los juegos de una ronda de la liga. Estos eventos tienen una fecha de inicio y una fecha de finalización.',
+        dateinput: {
+            tournament: 'Fecha del torneo',
+            startLeague: 'Fecha de inicio de la ronda',
+            endLeague: 'Fecha de finalización de la ronda',
+        },
+        error: {
+            noEndDate: 'Si el torneo es una ronda de liga, necesitas ingresar una fecha de finalización',
+            missingFields: 'Por favor, completa todos los campos',
+        }
     },
     teamSelect: {
         selectReportTeams: 'Seleccionar los clubes que serán parte de este informe',

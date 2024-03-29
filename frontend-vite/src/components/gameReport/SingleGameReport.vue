@@ -30,6 +30,10 @@ const gameTypesByName = computed(() => {
   return store.publicStore.gameTypes.toSorted((a, b) => a.name > b.name ? 1 : -1)
 })
 
+const isLeagueGame = computed(
+    () => store.report.tournament.isLeague
+)
+
 const teamAEqualTeamB = computed(() => {
   if (store.selectedGameReport && store.selectedGameReport.teamAReport.team) {
     return store.selectedGameReport.teamAReport.team === store.selectedGameReport.teamBReport.team
@@ -88,7 +92,8 @@ onMounted(() => {
             id="timeStartGame"
             :showSeconds="false"
             :showTime="true"
-            :time-only="true"
+            :time-only="!isLeagueGame"
+            date-format="yy-mm-dd"
             :class="{
                 'to-be-filled':store.selectedGameReport.startTime===undefined
             }"

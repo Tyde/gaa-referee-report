@@ -321,7 +321,8 @@ function isTeamAWinner(gr:GameReport) {
             key="gr.report.id"
             :class="gameCodeColor(gr.report.gameCode)"
         >
-          <h3>{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{ gr.report.gameCode.name }}</h3>
+          <h3 v-if="!tournament?.isLeague">{{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }} | {{ gr.report.gameCode.name }}</h3>
+          <h3 v-else>{{ gr.startTime?.toISODate() }} - {{ gr.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE) }} | {{ gr.report.gameCode.name }}</h3>
           <h3>Referee: {{ gr.report.referee.firstName }} {{ gr.report.referee.lastName }}</h3>
           <h3>
             <template v-if="gr.umpirePresentOnTime">Umpires present on time</template>
