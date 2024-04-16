@@ -36,7 +36,9 @@ import Panel from "primevue/panel";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Row from 'primevue/row';
-import BlockUI from "primevue/blockui";                     //optional for row
+import BlockUI from "primevue/blockui";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";                     //optional for row
 
 
 const router = createRouter({
@@ -59,6 +61,9 @@ app.component('Calendar',Calendar)
 app.component('SelectButton',SelectButton)
 app.component('Dropdown',Dropdown)
 app.component('InputNumber',InputNumber)
+app.component('IconField',IconField)
+app.component('InputIcon',InputIcon)
+
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)

@@ -4,6 +4,7 @@ import {deleteDisciplinaryActionOnServer, disciplinaryActionIsBlank,} from "@/ut
 import {useReportStore} from "@/utils/edit_report_store";
 import type {DisciplinaryAction} from "@/types/game_report_types";
 import {useI18n} from "vue-i18n";
+import MobileDropdown from "@/components/util/MobileDropdown.vue";
 
 const store = useReportStore()
 const props = defineProps<{
@@ -165,6 +166,7 @@ onMounted(() => {
               input-class="w-20"
               :placeholder="$t('gameReport.player.number')"
               :disabled="dAction.forTeamOfficial"
+              :input-props="{inputmode: 'numeric'}"
           />
         </div>
         <div class="p-2 flex flex-col">
@@ -177,27 +179,54 @@ onMounted(() => {
           </div>
         </div>
         <!-- Rule: {{dAction.rule?.id}}-->
-        <div class="flex flex-col">
-          <Dropdown
-              v-model="dAction.rule"
+        <div class="w-full md:w-auto">
+
+
+          <div class="hidden md:flex md:flex-col">
+            <Dropdown
+                v-model="dAction.rule"
+                :options="filteredRules"
+                :show-clear="true"
+                class="dropdown-disciplinary m-2"
+                input-class="dropdown-disciplinary"
+                :placeholder="$t('gameReport.rule')"
+                :filter="true"
+                :filter-fields="['description']"
+                :pt="{item: {class: 'whitespace-break-spaces md:whitespace-nowrap'}}"
+            >
+              <template #value="slotProps">
+                <div v-if="slotProps.value" class="p-disciplinary ">
+                  <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
+                  <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
+                  <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
+                  {{ slotProps.value.description.substring(0, 20) }} ...
+                </div>
+                <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
+              </template>
+              <template #option="slotProps">
+
+                <div>
+                  <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
+                  <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
+                  <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
+                  {{ slotProps.option.description }}
+                </div>
+
+              </template>
+            </Dropdown>
+            <div v-if="dAction.rule" class="w-[22rem] p-2">
+              {{ dAction.rule?.description }}
+            </div>
+          </div>
+          <MobileDropdown
               :options="filteredRules"
-              :show-clear="true"
-              class="dropdown-disciplinary m-2"
-              input-class="dropdown-disciplinary"
-              :placeholder="$t('gameReport.rule')"
-              :filter="true"
+              v-model="dAction.rule"
+              optionLabel="description"
+              optionValue="id"
               :filter-fields="['description']"
-              :pt="{item: {class: 'whitespace-break-spaces md:whitespace-nowrap'}}"
+              class="block md:hidden"
+              :placeholder="$t('gameReport.rule')"
           >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="p-disciplinary ">
-                <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
-                <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
-                <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-                {{ slotProps.value.description.substring(0, 20) }} ...
-              </div>
-              <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
-            </template>
             <template #option="slotProps">
 
               <div>
@@ -208,10 +237,8 @@ onMounted(() => {
               </div>
 
             </template>
-          </Dropdown>
-          <div v-if="dAction.rule" class="w-[22rem] p-2">
-            {{ dAction.rule?.description }}
-          </div>
+          </MobileDropdown>
+
         </div>
         <div class="p-2 flex flex-col"
              v-if="dAction.rule?.isCaution || dAction.rule?.isBlack">

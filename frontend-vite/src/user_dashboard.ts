@@ -38,6 +38,8 @@ import Divider from 'primevue/divider';
 import MultiSelect from "primevue/multiselect";
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
 
 
 const router = createRouter({
@@ -53,6 +55,9 @@ app.component('Card',Card)
 app.component('Button',Button)
 app.component('Listbox',Listbox)
 app.component('InputText',InputText)
+app.component('IconField',IconField)
+app.component('InputIcon',InputIcon)
+
 app.component('Password', Password)
 app.component('Calendar',Calendar)
 app.component('SelectButton',SelectButton)

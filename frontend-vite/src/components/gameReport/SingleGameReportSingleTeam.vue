@@ -4,6 +4,7 @@ import {computed, ref} from "vue";
 import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
+import MobileDropdown from "@/components/util/MobileDropdown.vue";
 
 
 const store = useReportStore()
@@ -64,11 +65,20 @@ function stripRuleCardsFromDescription(description?: string) {
         :filter="true"
         :options="store.report.selectedTeams"
         :show-clear="true"
-        class="col-span-4"
+        class="col-span-4 hidden md:flex"
         option-label="name"
         :placeholder="$t('gameReport.selectTeam')"
     >
     </Dropdown>
+    <MobileDropdown
+        :options="store.report.selectedTeams"
+        v-model="currentSingleTeamGameReport.team"
+        class="col-span-4 block md:hidden"
+        option-label="name"
+        :placeholder="$t('gameReport.selectTeam')"
+        :filter-fields="['name']"
+        data-key="id"
+    />
     <template v-if="currentSingleTeamGameReport.team">
       <div class="flex justify-center p-2">
         <div>
