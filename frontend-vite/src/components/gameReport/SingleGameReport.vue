@@ -6,6 +6,7 @@ import {DateTime} from "luxon";
 import GameTypeEditor from "@/components/gameReport/GameTypeEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {GameReport} from "@/types/game_report_types";
+import MobileDropdown from "@/components/util/MobileDropdown.vue";
 
 
 const props = defineProps<{
@@ -157,19 +158,30 @@ onMounted(() => {
               :class="{
                 'to-be-filled':store.selectedGameReport?.gameType===undefined
               }"
-              class="w-60 mr-2"
+              class="w-60 mr-2 hidden md:flex"
               :filter="true"
               :filter-fields="['name']"
-              :pt="{input: { class: 'p-1 md:p-2'}}"
+              :pt="{input: { class: 'p-2'}}"
 
           >
 
 
           </Dropdown>
+          <MobileDropdown
+              id="gameTypeSelectMobile"
+              v-model="store.selectedGameReport.gameType"
+              :options="gameTypesByName"
+              option-label="name"
+              :placeholder="$t('gameReport.gameType')"
+              :class="{
+                'to-be-filled':store.selectedGameReport?.gameType===undefined
+              }"
+              class="flex grow md:hidden"
+              :filter-fields="['name']"/>
 
           <Button
               @click="showGameTypeDialog"
-              class="p-button-success h-9 md:h-[40px] p-button-outlined min-w-0 ">
+              class="p-button-success mt-2 md:mt-0 p-2 h-9 md:h-[40px] p-button-outlined min-w-0 ">
             <i class="pi pi-plus"></i></Button>
         </div>
       </div>

@@ -42,7 +42,9 @@ import Paginator from "primevue/paginator";
 import SplitButton from "primevue/splitbutton";
 import MultiSelect from "primevue/multiselect";
 import {createI18n} from "vue-i18n";
-import {messages} from "@/i18n/edit_report/edit_report_i18n";                     //optional for row
+import {messages} from "@/i18n/edit_report/edit_report_i18n";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";                     //optional for row
 
 
 const router = createRouter({
@@ -70,6 +72,9 @@ app.component('Calendar',Calendar)
 app.component('SelectButton',SelectButton)
 app.component('Dropdown',Dropdown)
 app.component('InputNumber',InputNumber)
+app.component('IconField',IconField)
+app.component('InputIcon',InputIcon)
+
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
 app.component('Toolbar',Toolbar)
