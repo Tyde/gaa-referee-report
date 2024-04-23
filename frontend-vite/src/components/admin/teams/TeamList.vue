@@ -8,6 +8,7 @@ import {FilterMatchMode} from "primevue/api";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types/team_types";
 import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";
+import ConvertTeamToAmalgamtionDialog from "@/components/admin/teams/ConvertTeamToAmalgamtionDialog.vue";
 
 const store = useAdminStore()
 
@@ -55,6 +56,13 @@ const mergeSelectedTeam = ref<Team>();
 function startMergeTeam(team: Team) {
   mergeSelectedTeam.value = team
   mergeTeamDialogVisible.value = true
+}
+
+const convertToAmalgamationDialogVisibale = ref(false);
+const convertToAmalgamationTeam = ref<Team>();
+function startAmalgamationConvert(team: Team) {
+  convertToAmalgamationTeam.value = team
+  convertToAmalgamationDialogVisibale.value = true
 }
 </script>
 
@@ -107,6 +115,7 @@ function startMergeTeam(team: Team) {
               <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
               <div>
                 <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
+                <Button text label="Convert to Squad" @click="() => startAmalgamationConvert(data)"/>
               </div>
             </div>
           </template>
@@ -120,6 +129,12 @@ function startMergeTeam(team: Team) {
         :selected-team="mergeSelectedTeam"
         @teamMerged="teamMerged"
     />
+    <ConvertTeamToAmalgamtionDialog
+        v-if="convertToAmalgamationTeam"
+        v-model:visible="convertToAmalgamationDialogVisibale"
+        :selected-team="convertToAmalgamationTeam"
+        />
+
   </div>
 
 </template>
