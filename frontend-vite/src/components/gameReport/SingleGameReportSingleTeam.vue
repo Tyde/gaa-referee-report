@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
@@ -51,6 +51,10 @@ function stripRuleCardsFromDescription(description?: string) {
   return description?.replace(/(CAUTION:|ORDER OFF:|BLACK CARD:)/gm, '')
 }
 
+onMounted(() => {
+  console.log("Team is:", currentSingleTeamGameReport.value.team)
+})
+
 
 </script>
 
@@ -68,6 +72,7 @@ function stripRuleCardsFromDescription(description?: string) {
         class="col-span-4 hidden md:flex"
         option-label="name"
         :placeholder="$t('gameReport.selectTeam')"
+        data-key="id"
     >
     </Dropdown>
     <MobileDropdown
