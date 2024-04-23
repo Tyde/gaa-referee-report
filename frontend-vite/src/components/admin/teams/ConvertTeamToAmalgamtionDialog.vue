@@ -6,8 +6,9 @@ import {computed, onMounted, ref, watch} from "vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import {editTeamOnServer, mergeTeamsOnServer} from "@/utils/api/teams_api";
 import {useAdminStore} from "@/utils/admin_store";
+import {boolean} from "zod";
 
-const localVisible = defineModel('visible')
+const localVisible = defineModel<boolean>('visible')
 const props = defineProps<{
   selectedTeam: Team,
 }>()
