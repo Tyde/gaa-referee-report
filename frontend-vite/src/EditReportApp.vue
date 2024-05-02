@@ -255,6 +255,7 @@ function navigate(stage: ReportEditStage) {
 
 
   <TournamentSelector
+      v-model="store.report.tournament"
       v-if="currentStage === ReportEditStage.SelectTournament"
   />
   <TeamSelector

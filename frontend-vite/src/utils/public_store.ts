@@ -140,6 +140,10 @@ export const usePublicStore = defineStore("public",() =>{
         }
     }
 
+    function findTeamById(teamID: number):Team | undefined   {
+        return teams.value.find((team) => team.id === teamID)
+    }
+
     return {
         codes,
         rules,
@@ -157,5 +161,6 @@ export const usePublicStore = defineStore("public",() =>{
         getVariablesByType,
         waitForAllVariablesPresent,
         findCodeById,
+        findTeamById,
     }
 });
