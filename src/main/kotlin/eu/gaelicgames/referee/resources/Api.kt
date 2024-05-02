@@ -77,6 +77,26 @@ class Api() {
         @Resource("merge")
         class Merge(val parent: Tournaments)
 
+        @Serializable
+        @Resource("preselected_teams")
+        class PreselectedTeams(val parent: Tournaments) {
+            @Serializable
+            @Resource("get")
+            class Get(val parent: PreselectedTeams)
+
+            @Serializable
+            @Resource("add_teams")
+            class AddTeams(val parent: PreselectedTeams)
+
+            @Serializable
+            @Resource("set_teams")
+            class SetTeams(val parent: PreselectedTeams)
+
+            @Serializable
+            @Resource("remove_teams")
+            class RemoveTeams(val parent: PreselectedTeams)
+        }
+
     }
 
     @Serializable
