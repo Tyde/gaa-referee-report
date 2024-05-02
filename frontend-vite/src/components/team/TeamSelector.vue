@@ -102,6 +102,7 @@ function swapTeam(beforeTeam:Team, afterTeam:Team) {
 watch(() => store.tournamentPreSelectedTeams, (newVal) => {
   if(newVal) {
     teams_added.value = [... new Set([...teams_added.value, ...newVal])]
+    emit('submit-teams',teams_added.value)
   }
 }, {immediate: true})
 
