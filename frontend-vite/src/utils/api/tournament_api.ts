@@ -8,7 +8,6 @@ import {
     tournamentToTournamentDAO
 } from "@/types/tournament_types";
 import {CompleteTournamentReportDEO, PublicTournamentReportDEO} from "@/types/complete_tournament_types";
-import {GameType} from "@/types";
 import type {Team} from "@/types/team_types";
 
 
@@ -66,6 +65,16 @@ export async function loadTournamentPreselectedTeams(id: number):Promise<Tournam
 export async function addTournamentPreselectedTeams(tournament: DatabaseTournament, teams: Team[]):Promise<TournamentTeamPreselectionDEO> {
     return makePostRequest(
         "/api/tournament/preselected_teams/add_teams",
+        {
+            tournamentId: tournament.id,
+            teamIds: teams.map(team => team.id)
+        } as TournamentTeamPreselectionDEO
+    ).then(data => parseAndHandleDEO(data, TournamentTeamPreselectionDEO))
+}
+
+export async function setTournamentPreselectedTeams(tournament: DatabaseTournament, teams: Team[]):Promise<TournamentTeamPreselectionDEO> {
+    return makePostRequest(
+        "/api/tournament/preselected_teams/set_teams",
         {
             tournamentId: tournament.id,
             teamIds: teams.map(team => team.id)

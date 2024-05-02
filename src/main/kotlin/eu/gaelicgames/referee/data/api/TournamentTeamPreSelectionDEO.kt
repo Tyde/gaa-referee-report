@@ -39,7 +39,7 @@ suspend fun TournamentTeamPreselectionDEO.set(deleteMissing: Boolean): Result<To
             val deleteIds = storedIds.filter { it !in updateDEO.teamIds }
             TournamentTeamPreSelections.deleteWhere {
                 TournamentTeamPreSelections.tournament eq tournament.id and
-                        (TournamentTeamPreSelections.id inList deleteIds)
+                        (TournamentTeamPreSelections.team inList deleteIds)
             }
         }
         newIds.forEach { id->

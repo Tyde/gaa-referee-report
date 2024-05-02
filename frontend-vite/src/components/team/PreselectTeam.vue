@@ -1,6 +1,5 @@
 <script setup lang="ts">
 
-import TeamSelector from "@/EditReportApp.vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import {ref, watch} from "vue";
 import type {Team} from "@/types/team_types";
@@ -70,7 +69,7 @@ function submit() {
       <li
           v-for="team in selectedTeams"
           :key="team.id"
-          class="bg-slate-200 rounded-lg p-2 m-2 cursor-pointerx"
+          class="bg-slate-200 rounded-lg p-2 m-2 cursor-pointer"
           @click="teamUnselected(team)"
       >
         {{team.name}}

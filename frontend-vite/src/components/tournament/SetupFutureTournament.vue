@@ -5,7 +5,7 @@ import type {DatabaseTournament} from "@/types/tournament_types";
 import TournamentSelector from "@/components/tournament/TournamentSelector.vue";
 import PreselectTeam from "@/components/team/PreselectTeam.vue";
 import type {Team} from "@/types/team_types";
-import {addTournamentPreselectedTeams} from "@/utils/api/tournament_api";
+import {setTournamentPreselectedTeams} from "@/utils/api/tournament_api";
 import {usePublicStore} from "@/utils/public_store";
 
 const tournament = ref<DatabaseTournament>()
@@ -16,7 +16,7 @@ async function submit(teams: Team[]) {
     return
   }
   isLoading.value = true
-  addTournamentPreselectedTeams(tournament.value, teams)
+  setTournamentPreselectedTeams(tournament.value, teams)
       .then(() => {
         tournament.value = undefined
       })
@@ -38,7 +38,7 @@ async function submit(teams: Team[]) {
     />
     <div v-else>
       <h2>{{tournament.name}} in {{tournament.location}}</h2>
-      <h3>{{tournament.date}}</h3>
+      <h3>{{tournament.date.toISODate()}}</h3>
       <PreselectTeam
           @submit="teams => submit(teams)"
           :tournament="tournament"
@@ -52,6 +52,12 @@ async function submit(teams: Team[]) {
 
 <style scoped>
 h1 {
-  @apply text-xl font-semibold text-center;
+  @apply text-2xl font-semibold text-center mb-2;
+}
+h2 {
+  @apply text-xl font-semibold text-center mb-1;
+}
+h3 {
+  @apply text-lg font-semibold text-center mb-1;
 }
 </style>
