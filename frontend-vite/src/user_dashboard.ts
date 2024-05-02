@@ -40,8 +40,14 @@ import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
+import {createI18n} from "vue-i18n";
+import {messages} from "@/i18n/edit_report/edit_report_i18n";
 
-
+const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages
+})
 const router = createRouter({
     history: createWebHashHistory(),
     routes: routes
@@ -50,6 +56,7 @@ const app = createApp(App);
 app.use(PrimeVue);
 app.use(router)
 app.use(Vue3Mq);
+app.use(i18n)
 app.use(ConfirmationService)
 app.component('Card',Card)
 app.component('Button',Button)

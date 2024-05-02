@@ -1,7 +1,15 @@
 import type {DateTime} from "luxon";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
-import {DatabaseTournament, RegionDEO, Tournament, tournamentToTournamentDAO} from "@/types/tournament_types";
+import {
+    DatabaseTournament,
+    RegionDEO,
+    Tournament,
+    TournamentTeamPreselectionDEO,
+    tournamentToTournamentDAO
+} from "@/types/tournament_types";
 import {CompleteTournamentReportDEO, PublicTournamentReportDEO} from "@/types/complete_tournament_types";
+import {GameType} from "@/types";
+import type {Team} from "@/types/team_types";
 
 
 export async function loadTournamentsOnDate(date:DateTime):Promise<Array<DatabaseTournament>> {
@@ -45,4 +53,22 @@ export async function loadCompleteTournamentReport(id:number):Promise<CompleteTo
     return fetch("/api/tournament/complete_report/"+id)
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, CompleteTournamentReportDEO))
+}
+
+export async function loadTournamentPreselectedTeams(id: number):Promise<TournamentTeamPreselectionDEO> {
+    return makePostRequest(
+        "/api/tournament/preselected_teams/get",
+        {tournamentId: id}
+    ).then(data => parseAndHandleDEO(data, TournamentTeamPreselectionDEO))
+}
+
+
+export async function addTournamentPreselectedTeams(tournament: DatabaseTournament, teams: Team[]):Promise<TournamentTeamPreselectionDEO> {
+    return makePostRequest(
+        "/api/tournament/preselected_teams/add_teams",
+        {
+            tournamentId: tournament.id,
+            teamIds: teams.map(team => team.id)
+        } as TournamentTeamPreselectionDEO
+    ).then(data => parseAndHandleDEO(data, TournamentTeamPreselectionDEO))
 }

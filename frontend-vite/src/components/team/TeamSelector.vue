@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
@@ -98,6 +98,12 @@ function swapTeam(beforeTeam:Team, afterTeam:Team) {
     emit('submit-teams',teams_added.value)
   }
 }
+
+watch(() => store.tournamentPreSelectedTeams, (newVal) => {
+  if(newVal) {
+    teams_added.value = [... new Set([...teams_added.value, ...newVal])]
+  }
+}, {immediate: true})
 
 onMounted(() => {
   teams_added.value.length = 0
