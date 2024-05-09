@@ -136,8 +136,8 @@ async function deleteReport() {
 
 const gameReportsListIndices = computed(() => {
   let indices = []
-  for(let i = 0; i < store.gameReports.length; i++) {
-    indices.push(i)
+  for(let i = 0; i < sortedGameReports.value.length; i++) {
+    indices.push(store.gameReports.indexOf(sortedGameReports.value[i]))
   }
   return indices
 })
