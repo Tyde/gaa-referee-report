@@ -212,10 +212,10 @@ watch(() => store.selectedGameReport, () => {
     </template>
 
       <p>{{ $t('gameReport.deleteConfirmText') }}</p>
-      <span v-if="reportToDelete?.startTime">{{reportToDelete.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
-      <span v-if="reportToDelete?.teamAReport.team">{{reportToDelete.teamAReport.team.name}}</span>
+      <span v-if="reportToDelete?.startTime">{{reportToDelete?.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
+      <span v-if="reportToDelete?.teamAReport.team">{{reportToDelete?.teamAReport.team?.name}}</span>
       <span v-else>...</span>&nbsp;vs.&nbsp;
-      <span v-if="reportToDelete?.teamBReport.team">{{reportToDelete.teamBReport.team.name}}</span>
+      <span v-if="reportToDelete?.teamBReport.team">{{reportToDelete?.teamBReport.team?.name}}</span>
       <span v-else>...</span>
 
     <template #footer>
