@@ -67,6 +67,11 @@ watch(
     }
 )
 
+declare global {
+  interface Window {
+    MSStream: any;
+  }
+}
 const isIOS = computed(() => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream)
 </script>
 
