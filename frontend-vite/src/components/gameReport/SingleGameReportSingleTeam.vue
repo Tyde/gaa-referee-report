@@ -5,6 +5,7 @@ import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import MobileDropdown from "@/components/util/MobileDropdown.vue";
+import GAAScoreInput from "@/components/gameReport/GAAScoreInput.vue";
 
 
 const store = useReportStore()
@@ -85,6 +86,7 @@ onMounted(() => {
         data-key="id"
     />
     <template v-if="currentSingleTeamGameReport.team">
+      <!--
       <div class="flex justify-center p-2">
         <div>
           <label for="goals_team">{{ $t('gameReport.goals') }}</label><br>
@@ -119,6 +121,13 @@ onMounted(() => {
 
           />
         </div>
+      </div>
+      -->
+      <div class="flex justify-center p-2">
+        <GAAScoreInput
+            v-model:goals="currentSingleTeamGameReport.goals"
+            v-model:points="currentSingleTeamGameReport.points"
+            />
       </div>
       <div class="text-xl col-span-2 p-2 flex flex-col justify-center place-content-center">
         <div class="flex-shrink">{{ $t('gameReport.total') }}: {{
