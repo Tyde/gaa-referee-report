@@ -47,3 +47,10 @@ export const RegionDEO = z.object({
 
 export type RegionDEO = z.infer<typeof RegionDEO>
 
+export const TournamentTeamPreselectionDEO = z.object({
+    tournamentId: z.number(),
+    teamIds: z.array(z.number())
+})
+
+export type TournamentTeamPreselectionDEO = z.infer<typeof TournamentTeamPreselectionDEO>
+

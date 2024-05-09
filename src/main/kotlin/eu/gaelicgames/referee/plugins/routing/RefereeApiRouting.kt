@@ -343,6 +343,13 @@ fun Route.refereeApiRouting() {
         }
     }
 
+    post<Api.Tournaments.PreselectedTeams.Get> {
+        receiveAndHandleDEO<GetTournamentTeamPreselectionDEO> { deo ->
+            deo.load().getOrElse {
+                ApiError(ApiErrorOptions.NOT_FOUND, it.message ?: "Could not load preselected teams")
+            }
+        }
+    }
 
 }
 

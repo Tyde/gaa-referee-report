@@ -28,7 +28,7 @@ import type {Report} from "@/types/report_types";
 import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
-import {loadAllRegions} from "@/utils/api/tournament_api";
+import {loadAllRegions, loadTournamentPreselectedTeams} from "@/utils/api/tournament_api";
 import {RegionDEO} from "@/types/tournament_types";
 import {
     disciplinaryActionIssuesForGameReport,
@@ -40,6 +40,8 @@ import {
 import type {Team} from "@/types/team_types";
 import {loadAllTeams} from "@/utils/api/teams_api";
 import {usePublicStore} from "@/utils/public_store";
+import {compileAsync} from "sass";
+import {computedAsync} from "@vueuse/core";
 
 
 export enum ReportEditStage {
@@ -60,6 +62,23 @@ export const useReportStore = defineStore('report', () => {
 
     const currentErrors = ref<ErrorMessage[]>([])
 
+
+    const tournamentPreSelectedTeams = computedAsync(async () => {
+        if (report.value.tournament) {
+            try {
+                const teams =
+                    await loadTournamentPreselectedTeams(report.value.tournament.id)
+                return teams.teamIds.map((teamId) => {
+                    return publicStore.findTeamById(teamId)
+                }).filter((team) : team is Team => !!team) as Team[]
+            } catch (e:any) {
+                newError(e)
+                return [] as Team[]
+            }
+        }
+    },
+        [] as Team[]
+    )
 
 
     const enabledPitchVariables = computed(() => {
@@ -406,6 +425,7 @@ export const useReportStore = defineStore('report', () => {
     return {
         publicStore,
         report,
+        tournamentPreSelectedTeams,
         gameReports,
         pitchReports,
         //codes,

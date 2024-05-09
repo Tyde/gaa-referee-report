@@ -79,6 +79,11 @@ function navigateToHome() {
         <div class="m-2" v-if="store.isAdmin">
           <Button label="Admin" icon="pi pi-cog" class="p-button-info m-2 ml-2" @click="navigateToAdmin"></Button>
         </div>
+        <div class="m-2" v-if="store.isRefereeAndCCC || store.isAdmin || store.isCCC">
+          <Button label="Setup Tournament"
+                  icon="pi pi-cog"
+                  class="p-button-success m-2 ml-2" @click="router.push('/setup-tournament')"></Button>
+        </div>
 
       </div>
         <router-view></router-view>

@@ -8,15 +8,8 @@ import type {DatabaseTournament} from "@/types/tournament_types";
 import { TrophyIcon } from "@heroicons/vue/20/solid";
 import { ListBulletIcon } from "@heroicons/vue/20/solid";
 
-/*
-const emit = defineEmits<{
-  (e: 'update:modelValue', tournament: Tournament): void
-}>()
 
-const props = defineProps<{
-  modelValue?: DatabaseTournament
-}>()
-*/
+const tournamentModel = defineModel<DatabaseTournament>()
 
 
 const store = useReportStore()
@@ -29,10 +22,9 @@ const loading = ref(false)
 
 const completeTournamentList = ref(<DatabaseTournament[]>[])
 const showingRecentTournaments = ref(false)
-
 function select_tournament(tournament: DatabaseTournament) {
   //selected_tournament.value = tournament
-  store.report.tournament = tournament
+  tournamentModel.value = tournament
 }
 
 watch(date, async () => {
@@ -60,6 +52,7 @@ function showNewTournamentDialogWithoutDate() {
 }
 
 onMounted(() => {
+
   loadAllTournaments()
       .then((tournaments) => {
         completeTournamentList.value = tournaments
@@ -80,18 +73,21 @@ onMounted(() => {
       })
 })
 
+
 </script>
 <template>
-  <div class="mx-auto w-full md:w-10/12 xl:w-5/12">
 
+  <div class="mx-auto w-full md:w-10/12 xl:w-5/12">
     <div v-if="!show_create_new_tournament">
+
+
       <h2>
         {{ $t('tournament.select') }}
       </h2>
-      <div v-if="store.report.tournament" class="text-center mb-2">
+      <div v-if="tournamentModel" class="text-center mb-2">
 
-        {{ $t('tournament.selected') }}: {{ store.report.tournament.name }} - {{ store.report.tournament.location }} -
-        {{ store.report.tournament.date.toISODate() }}
+        {{ $t('tournament.selected') }}: {{ tournamentModel.name }} - {{ tournamentModel.location }} -
+        {{ tournamentModel.date.toISODate() }}
       </div>
 
       <div class="flex flex-row justify-center">
@@ -116,7 +112,7 @@ onMounted(() => {
           <li
               v-for="tournament in found_tournaments"
               :class="{
-                'selected-tournament': store.report.tournament && tournament.id === store.report.tournament.id
+                'selected-tournament': tournamentModel && tournament.id === tournamentModel.id
               }"
               class="p-listbox-item flex flex-row items-center"
               @click="select_tournament(tournament)"
@@ -149,7 +145,9 @@ onMounted(() => {
           </li>
         </ul>
       </div>
+
     </div>
+
 
 
     <CreateTournament
@@ -159,6 +157,7 @@ onMounted(() => {
         @canceled="show_create_new_tournament=false"
     />
   </div>
+
 </template>
 
 
