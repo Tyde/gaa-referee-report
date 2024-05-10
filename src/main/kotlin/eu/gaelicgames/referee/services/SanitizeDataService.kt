@@ -1,6 +1,7 @@
 package eu.gaelicgames.referee.services
 
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -136,6 +137,9 @@ class SanitizeDataService(scope: CoroutineScope) : BaseRegularService(scope) {
                         shareLink.delete()
                     }
                     source.delete()
+                    CacheUtil.deleteCachedReport(source.id.value)
+                    CacheUtil.deleteCachedPublicTournamentReport(source.tournament.id.value)
+                    CacheUtil.deleteCachedCompleteTournamentReport(source.tournament.id.value)
 
                 }
             }
