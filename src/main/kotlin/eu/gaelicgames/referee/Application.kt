@@ -7,6 +7,7 @@ import eu.gaelicgames.referee.plugins.configureSerialization
 import eu.gaelicgames.referee.plugins.configureTemplating
 import eu.gaelicgames.referee.services.CleanExpiredDataService
 import eu.gaelicgames.referee.services.NotifyCCCService
+import eu.gaelicgames.referee.services.SanitizeDataService
 import eu.gaelicgames.referee.util.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -85,6 +86,11 @@ fun Application.refereeApplicationModule() {
     launch (Dispatchers.Default) {
         val cleanExpiredDataService = CleanExpiredDataService(this)
         cleanExpiredDataService.start()
+    }
+
+    launch (Dispatchers.Default) {
+        val sanitizeDataService = SanitizeDataService(this)
+        sanitizeDataService.start()
     }
 
 
