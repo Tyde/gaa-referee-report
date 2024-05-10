@@ -1,13 +1,11 @@
 package eu.gaelicgames.referee.services
 
-import eu.gaelicgames.referee.data.TournamentReport
-import eu.gaelicgames.referee.data.TournamentReportTeamPreSelection
-import eu.gaelicgames.referee.data.TournamentReportTeamPreSelections
-import eu.gaelicgames.referee.data.TournamentReports
+import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
@@ -22,11 +20,40 @@ class SanitizeDataService(scope: CoroutineScope) : BaseRegularService(scope) {
         logger.info("Sanitizing data")
         lockedTransaction {
             mergeTournamentReports()
+            //fixDatesOnOneDayTournaments()
         }
     }
 
 
 
+
+    private suspend fun fixDatesOnOneDayTournaments() {
+        logger.info("Fixing dates on one day tournaments")
+        lockedTransaction {
+            GameReports.leftJoin(TournamentReports).leftJoin(Tournaments).selectAll()
+                .where { TournamentReports.isSubmitted eq true and (Tournaments.isLeague eq false) }
+                .groupBy {
+                    it[TournamentReports.tournament].value
+                }.forEach {map ->
+                    map.value.forEach { row ->
+                        val gameReportID = row[GameReports.id].value
+                        val startDate = row[GameReports.startTime]
+                        val tournamentDate = row[Tournaments.date]
+                        if(startDate != null && startDate.toLocalDate() != tournamentDate) {
+                            val newStartDate = startDate.withYear(tournamentDate.year)
+                                .withMonth(tournamentDate.monthValue)
+                                .withDayOfMonth(tournamentDate.dayOfMonth)
+                            logger.info("Fixing date on game report $gameReportID from $startDate to $newStartDate")
+                            GameReports.update({GameReports.id eq gameReportID}) {
+                                it[startTime] = newStartDate
+                            }
+                        }
+
+                    }
+                }
+
+        }
+    }
 
     private suspend fun mergeTournamentReports() {
         logger.info("Looking for tournamentreports to merge")
@@ -103,6 +130,10 @@ class SanitizeDataService(scope: CoroutineScope) : BaseRegularService(scope) {
                             ""
                         }
                         mergeTarget.additionalInformation += optionalLineSeparator + source.additionalInformation
+                    }
+                    val sourceShareLinks = TournamentReportShareLink.find { TournamentReportShareLinks.report eq source.id }
+                    sourceShareLinks.forEach { shareLink ->
+                        shareLink.delete()
                     }
                     source.delete()
 
