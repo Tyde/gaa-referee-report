@@ -140,4 +140,15 @@ class SanitizeDataServiceTest {
             teamIDs
         )
     }
+
+
+
+    @Test
+    fun `test fixDatesOnOneDayTournaments`() {
+        runBlocking {
+            newSuspendedTransaction {
+
+            }
+        }
+    }
 }
