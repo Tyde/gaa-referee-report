@@ -43,7 +43,11 @@ object TestHelper {
         }
 
     }
-    fun setUpReport():TournamentReportData {
+    fun setUpReport(
+        preselectedTournament: Tournament? = null,
+        preselectedUser: User? = null,
+        preselectedTeams: List<Team> = emptyList()
+    ):TournamentReportData {
 
         var tournamentReport: TournamentReport? = null
         var tournamentReportID: Long = 0
@@ -54,13 +58,15 @@ object TestHelper {
             GameType.all().forEach { gameTypeIDs.add(it.id.value) }
             ExtraTimeOption.all().forEach { extraTimeIDs.add(it.id.value) }
             val firstRegion = Region.all().first()
-            val tournament = Tournament.new {
-                name = "Test Tournament"
-                date = LocalDate.now()
-                region = firstRegion
-                location = "Test Location"
-            }
-            val referee = User.new {
+
+            val tournament = preselectedTournament
+                ?: Tournament.new {
+                    name = "Test Tournament"
+                    date = LocalDate.now()
+                    region = firstRegion
+                    location = "Test Location"
+                }
+            val referee = preselectedUser ?: User.new {
                 this.firstName = "Test"
                 this.lastName = "Referee"
                 this.mail = "abc@def.de"
@@ -76,17 +82,26 @@ object TestHelper {
                 isSubmitted = false
             }
             tournamentReportID = tournamentReport!!.id.value
-
-            for (i in 1..5) {
-                val team = Team.new {
-                    name = "Team $i"
-                    isAmalgamation = false
+            if (preselectedTeams.isEmpty()) {
+                for (i in 1..5) {
+                    val team = Team.new {
+                        name = "Team $i"
+                        isAmalgamation = false
+                    }
+                    TournamentReportTeamPreSelection.new {
+                        this.team = team
+                        this.report = tournamentReport!!
+                    }
+                    teamIDs.add(team.id.value)
                 }
-                TournamentReportTeamPreSelection.new {
-                    this.team = team
-                    this.report = tournamentReport!!
+            } else {
+                preselectedTeams.forEach {
+                    TournamentReportTeamPreSelection.new {
+                        this.team = it
+                        this.report = tournamentReport!!
+                    }
+                    teamIDs.add(it.id.value)
                 }
-                teamIDs.add(team.id.value)
             }
 
             return@transaction TournamentReportData(
