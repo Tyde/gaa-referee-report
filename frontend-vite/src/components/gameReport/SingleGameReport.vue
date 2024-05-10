@@ -70,6 +70,25 @@ onBeforeUnmount(() => {
   }
 })
 
+function correctStartTime(value:DateTime) {
+  if (!store.report.tournament.isLeague) {
+    //Calendar has the issue that it may change the date to the actual date if I enter the time by hand
+    //so we reset the date to the tournament date, but keep the time
+    const tournamentDate = store.report.tournament.date
+    if (value) {
+      return DateTime.fromObject({
+        year: tournamentDate.year,
+        month: tournamentDate.month,
+        day: tournamentDate.day,
+        hour: value.hour,
+        minute: value.minute,
+        second: value.second
+      }, {zone: value.zone})
+    }
+  }
+  return value
+}
+
 
 onMounted(() => {
 
@@ -85,9 +104,8 @@ onMounted(() => {
         <Calendar
             :model-value="store.selectedGameReport?.startTime?.toJSDate()"
             @update:model-value="(nD:Date) => {
-              console.log('Updated Start Time', nD)
               if(store.selectedGameReport){
-                store.selectedGameReport.startTime = DateTime.fromJSDate(nD)
+                store.selectedGameReport.startTime = correctStartTime(DateTime.fromJSDate(nD))
               }
             }"
             id="timeStartGame"
