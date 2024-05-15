@@ -26,9 +26,10 @@ object GGERefereeConfig {
     var postgresUser : String
     var postgresPassword : String
 
+    var claudeAccessToken : String
     object mailjet : PropertyGroup() {
-        val publicKey by stringType
-        val secretKey by stringType
+        val public by stringType
+        val secret by stringType
     }
 
     object server : PropertyGroup() {
@@ -36,8 +37,8 @@ object GGERefereeConfig {
     }
 
     object admin : PropertyGroup() {
-        val firstName by stringType
-        val lastName by stringType
+        val first_name by stringType
+        val last_name by stringType
         val mail by stringType
         val password by stringType
     }
@@ -56,17 +57,20 @@ object GGERefereeConfig {
         val password by stringType
     }
 
+    object claude : PropertyGroup() {
+        val accessToken by stringType
+    }
 
     init {
         val config = EnvironmentVariables() overriding
             ConfigurationProperties.fromOptionalFile(File("gge-referee.properties"))
 
-        mailjetPublicKey = config[mailjet.publicKey]
-        mailjetSecretKey = config[mailjet.secretKey]
+        mailjetPublicKey = config[mailjet.public]
+        mailjetSecretKey = config[mailjet.secret]
         serverUrl = config[server.url]
 
-        adminFirstName = config[admin.firstName]
-        adminLastName = config[admin.lastName]
+        adminFirstName = config[Key("admin.first_name", stringType)]
+        adminLastName = config[Key("admin.last_name", stringType)]
         adminMail = config[admin.mail]
         adminPassword = config[admin.password]
 
@@ -79,6 +83,8 @@ object GGERefereeConfig {
         postgresDatabase = config[postgres.database]
         postgresUser = config[postgres.user]
         postgresPassword = config[postgres.password]
+
+        claudeAccessToken = config[claude.accessToken]
 
 
     }
