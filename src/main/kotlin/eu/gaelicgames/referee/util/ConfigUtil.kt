@@ -26,47 +26,59 @@ object GGERefereeConfig {
     var postgresUser : String
     var postgresPassword : String
 
+    object mailjet : PropertyGroup() {
+        val publicKey by stringType
+        val secretKey by stringType
+    }
+
+    object server : PropertyGroup() {
+        val url by stringType
+    }
+
+    object admin : PropertyGroup() {
+        val firstName by stringType
+        val lastName by stringType
+        val mail by stringType
+        val password by stringType
+    }
+
+    object redis : PropertyGroup() {
+        val host by stringType
+        val port by intType
+        val password by stringType
+    }
+
+    object postgres : PropertyGroup() {
+        val host by stringType
+        val port by intType
+        val database by stringType
+        val user by stringType
+        val password by stringType
+    }
+
 
     init {
         val config = EnvironmentVariables() overriding
             ConfigurationProperties.fromOptionalFile(File("gge-referee.properties"))
-        val configMailjetPublicKey = Key("mailjet.public", stringType)
-        val configMailjetSecretKey = Key("mailjet.secret", stringType)
-        val configBaseUrl = Key("server.url", stringType)
 
-        val configAdminFirstName = Key("admin.first_name", stringType)
-        val configAdminLastName = Key("admin.last_name", stringType)
-        val configAdminMail = Key("admin.mail", stringType)
-        val configAdminPassword = Key("admin.password", stringType)
+        mailjetPublicKey = config[mailjet.publicKey]
+        mailjetSecretKey = config[mailjet.secretKey]
+        serverUrl = config[server.url]
 
-        val configRedisHost = Key("redis.host", stringType)
-        val configRedisPort = Key("redis.port", intType)
-        val configRedisPassword = Key("redis.password", stringType)
+        adminFirstName = config[admin.firstName]
+        adminLastName = config[admin.lastName]
+        adminMail = config[admin.mail]
+        adminPassword = config[admin.password]
 
-        val configPostgresHost = Key("postgres.host", stringType)
-        val configPostgresPort = Key("postgres.port", intType)
-        val configPostgresDatabase = Key("postgres.database", stringType)
-        val configPostgresUser = Key("postgres.user", stringType)
-        val configPostgresPassword = Key("postgres.password", stringType)
+        redisHost = config[redis.host]
+        redisPort = config[redis.port]
+        redisPassword = config[redis.password]
 
-        mailjetPublicKey = config[configMailjetPublicKey]
-        mailjetSecretKey = config[configMailjetSecretKey]
-        serverUrl = config[configBaseUrl]
-
-        adminFirstName = config[configAdminFirstName]
-        adminLastName = config[configAdminLastName]
-        adminMail = config[configAdminMail]
-        adminPassword = config[configAdminPassword]
-
-        redisHost = config[configRedisHost]
-        redisPort = config[configRedisPort]
-        redisPassword = config[configRedisPassword]
-
-        postgresHost = config[configPostgresHost]
-        postgresPort = config[configPostgresPort]
-        postgresDatabase = config[configPostgresDatabase]
-        postgresUser = config[configPostgresUser]
-        postgresPassword = config[configPostgresPassword]
+        postgresHost = config[postgres.host]
+        postgresPort = config[postgres.port]
+        postgresDatabase = config[postgres.database]
+        postgresUser = config[postgres.user]
+        postgresPassword = config[postgres.password]
 
 
     }
