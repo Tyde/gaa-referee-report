@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.GameCode
 import eu.gaelicgames.referee.data.Rule
 import eu.gaelicgames.referee.data.Rules
 import eu.gaelicgames.referee.util.CacheUtil
+import eu.gaelicgames.referee.util.RuleTranslationUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.ResultRow
@@ -19,7 +20,10 @@ suspend fun RuleDEO.Companion.fromRule(rule: Rule): RuleDEO {
             rule.isBlack,
             rule.isRed,
             rule.description,
-            rule.isDisabled
+            rule.isDisabled,
+            rule.descriptionFr,
+            rule.descriptionDe,
+            rule.descriptionEs
         )
     }
 }
@@ -32,14 +36,17 @@ suspend fun RuleDEO.Companion.wrapRow(row: ResultRow): RuleDEO {
     val isRed = row[Rules.isRed]
     val description = row[Rules.description]
     val isDisabled = row[Rules.isDisabled]
-    return RuleDEO(id, code, isCaution, isBlack, isRed, description, isDisabled)
+    val descriptionFr = row[Rules.descriptionFr]
+    val descriptionEs = row[Rules.descriptionEs]
+    val descriptionDe = row[Rules.descriptionDe]
+    return RuleDEO(id, code, isCaution, isBlack, isRed, description, isDisabled, descriptionFr, descriptionDe, descriptionEs)
 }
 
 suspend fun RuleDEO.Companion.allRules(): List<RuleDEO> {
     return CacheUtil.getCachedRules()
         .getOrElse {
             lockedTransaction {
-                val rules = Rules.selectAll().map {
+                val rules = Rules.selectAll().orderBy(Rules.id).map {
                     RuleDEO.wrapRow(it)
                 }
                 CacheUtil.cacheRules(rules)
@@ -66,6 +73,10 @@ suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
             rule.isRed = rUpdate.isRed
             rule.description = rUpdate.description
             rule.isDisabled = rUpdate.isDisabled
+
+            rule.descriptionFr = rUpdate.descriptionFr
+            rule.descriptionEs = rUpdate.descriptionEs
+            rule.descriptionDe = rUpdate.descriptionDe
             Result.success(rule)
         } else {
             Result.failure(
@@ -145,10 +156,18 @@ suspend fun NewRuleDEO.createInDatabase(): Result<Rule> {
                 this.isRed = newRule.isRed
                 this.description = newRule.description
                 this.isDisabled = newRule.isDisabled
+                this.descriptionFr = newRule.descriptionFr
+                this.descriptionEs = newRule.descriptionEs
+                this.descriptionDe = newRule.descriptionDe
             })
         } else {
             Result.failure(IllegalArgumentException("Trying to create a rule with invalid code id ${newRule.code}"))
         }
     }
+}
+
+
+suspend fun RuleTranslationRequestDEO.translate(): Result<RuleTranslation> {
+    return RuleTranslationUtil.translateRule(this.description)
 }
 

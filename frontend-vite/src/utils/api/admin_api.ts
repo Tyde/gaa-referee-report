@@ -4,7 +4,7 @@ import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
 import {Referee, RefereeWithRoleDEO, UpdateRefereePasswordResponse} from "@/types/referee_types";
 import type {NewUser} from "@/types/referee_types";
-import {NewRuleDEO, Rule} from "@/types/rules_types";
+import {NewRuleDEO, Rule, RuleTranslation} from "@/types/rules_types";
 import {DatabaseTournament, databaseTournamentToTournamentDAO} from "@/types/tournament_types";
 
 
@@ -82,4 +82,10 @@ export async function mergeTournamentOnServer(fromTournament: DatabaseTournament
     }
     return makePostRequest("/api/tournament/merge", data)
         .then(data => parseAndHandleDEO(data, DatabaseTournament))
+}
+
+
+export async function translateRule(englishDescription: string) {
+    return makePostRequest("/api/rule/translate", {description: englishDescription})
+        .then(data => parseAndHandleDEO(data, RuleTranslation))
 }

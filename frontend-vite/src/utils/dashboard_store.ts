@@ -34,6 +34,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     const isLoading = ref<boolean>(false)
     function newError(message: string) {
+        console.log(message)
         currentErrors.value.push(new ErrorMessage(message))
     }
 

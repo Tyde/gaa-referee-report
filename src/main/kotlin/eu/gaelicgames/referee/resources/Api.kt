@@ -142,6 +142,10 @@ class Api() {
         @Serializable
         @Resource("check_deletable")
         class CheckDeletable(val parent: Rule)
+
+        @Serializable
+        @Resource("translate")
+        class Translate(val parent: Rule)
     }
 
 

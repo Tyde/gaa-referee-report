@@ -91,6 +91,14 @@ fun Route.adminApiRouting() {
         }
     }
 
+    post<Api.Rule.Translate> {
+        receiveAndHandleDEO<RuleTranslationRequestDEO> { translationRequestDEO ->
+            translationRequestDEO.translate().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
     get<Api.User.All> {
         val users = lockedTransaction {
             User.all().map { RefereeWithRoleDEO.fromUser(it) }

@@ -5,7 +5,7 @@ import {computed, ref, watch} from "vue";
 import {
   checkIfRuleDeletable,
   deleteRuleOnServer,
-  toggleRuleStateOnServer,
+  toggleRuleStateOnServer, translateRule,
   updateRuleOnServer
 } from "@/utils/api/admin_api";
 import type {Rule} from "@/types/rules_types";
@@ -138,6 +138,25 @@ watch(shadowCopyRule, () => {
   }
 })
 
+const waitingForTranslation = ref(false)
+async function tryTranslateRule() {
+  if(shadowCopyRule.value) {
+    waitingForTranslation.value = true
+    translateRule(shadowCopyRule.value!!.description)
+        .then((translated) => {
+          shadowCopyRule.value!!.descriptionFr = translated.ruleFr
+          shadowCopyRule.value!!.descriptionEs = translated.ruleEs
+          shadowCopyRule.value!!.descriptionDe = translated.ruleDe
+        })
+        .catch((e) => {
+          store.newError(e)
+        })
+        .finally(() => {
+          waitingForTranslation.value = false
+        })
+  }
+}
+
 </script>
 
 <template>
@@ -146,6 +165,9 @@ watch(shadowCopyRule, () => {
       <div>
         <div class="float-left">
           <h4><span class="disabled-tag" v-if="rule?.isDisabled">Disabled</span>  {{rule?.description }}</h4>
+          <p><b>FR:</b>{{rule?.descriptionFr}}</p>
+          <p><b>ES:</b>{{rule?.descriptionEs}}</p>
+          <p><b>DE:</b>{{rule?.descriptionDe}}</p>
           <p v-if="rule?.isCaution">Caution</p>
           <p v-else-if="rule?.isBlack">Black</p>
           <p v-else-if="rule?.isRed">Red</p>
@@ -183,10 +205,23 @@ watch(shadowCopyRule, () => {
       <template v-if="shadowCopyRule !== undefined">
       <InputText class="m-1 w-[100%]" ref="ruleEditInput"
                  v-model="shadowCopyRule.description"/>
+        <b>FR:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionFr"/>
+        <b>ES:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionEs"/>
+        <b>DE:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionDe"/>
       <div class="float-left">
         <SelectButton v-model="selectedCardInCopy" :options="cards" class="m-1" optionLabel="label"/>
       </div>
       <div class="float-right h-buttons m-1 align-bottom">
+        <Button
+            class="m-2 p-button-info"
+            link
+            :disabled="waitingForTranslation"
+            @click="tryTranslateRule()"
+        ><vue-feather class="mr-2" type="feather" />
+          Translate Rules with AI...</Button>
         <vue-feather class="m-2" type="x" @click="cancelEdit()"/>
         <vue-feather class="m-2" type="check" @click="saveRule()"/>
       </div>
@@ -207,6 +242,7 @@ watch(shadowCopyRule, () => {
 }
 
 .rule-text-card h4 {
+  @apply text-lg;
   @apply font-bold;
 }
 

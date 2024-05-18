@@ -38,7 +38,8 @@ const filteredOptions = computed(() => {
     if (props.filterFields) {
       return props.options.filter((option:any) => {
         for (let field of props.filterFields!!) {
-          let match = ObjectUtils.resolveFieldData(option, field).toLowerCase().includes(searchTerm.value.toLowerCase())
+          let match = ObjectUtils.resolveFieldData(option, field)
+              ?.toLowerCase()?.includes(searchTerm.value.toLowerCase()) ?? false
           if (match) {
             return true
           }

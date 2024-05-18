@@ -87,12 +87,9 @@ onBeforeMount(()=> {
   if(store.gameReports.length==0){
     newGameReport()
   } else {
-    console.log("locaiotn",location.href)
     let queryIdSplit = location.href.split("#")[1]?.split("/")[1]
-    console.log("quid split",queryIdSplit)
     if(queryIdSplit) {
       let queryId = parseInt(queryIdSplit)
-      console.log("QueryID:",queryId)
       store.gameReports.forEach((report, index) => {
         if(report.id == queryId) {
           store.selectedGameReportIndex = index
@@ -212,10 +209,10 @@ watch(() => store.selectedGameReport, () => {
     </template>
 
       <p>{{ $t('gameReport.deleteConfirmText') }}</p>
-      <span v-if="reportToDelete?.startTime">{{reportToDelete.startTime.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
-      <span v-if="reportToDelete?.teamAReport.team">{{reportToDelete.teamAReport.team.name}}</span>
+      <span v-if="reportToDelete?.startTime">{{reportToDelete?.startTime?.toLocaleString(DateTime.TIME_24_SIMPLE)}} -&nbsp;  </span>
+      <span v-if="reportToDelete?.teamAReport.team">{{reportToDelete?.teamAReport.team?.name}}</span>
       <span v-else>...</span>&nbsp;vs.&nbsp;
-      <span v-if="reportToDelete?.teamBReport.team">{{reportToDelete.teamBReport.team.name}}</span>
+      <span v-if="reportToDelete?.teamBReport.team">{{reportToDelete?.teamBReport.team?.name}}</span>
       <span v-else>...</span>
 
     <template #footer>
