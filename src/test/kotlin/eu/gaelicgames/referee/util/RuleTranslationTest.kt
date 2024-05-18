@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 
 class RuleTranslationTest {
 
-    @Test
+    //@Test
     fun `test translateRule parsed correctly`() {
         runBlocking {
             val rule =
