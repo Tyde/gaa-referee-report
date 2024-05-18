@@ -73,7 +73,7 @@ fun Route.sites() {
     } else {
         staticResources(
             "/static",
-            "static"
+            "files_static"
         )
         staticResources(
             "/assets",
