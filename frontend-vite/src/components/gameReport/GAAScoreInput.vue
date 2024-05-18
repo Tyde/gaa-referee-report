@@ -19,7 +19,6 @@ const ignoreNextValueUpdate = ref(false)
 function validateInput(event: Event) {
   const target = event.target as HTMLInputElement
   const lastEntered = target.value
-  console.log('validateInput', lastEntered)
   if (matchPattern.test(lastEntered)) {
     ignoreNextValueUpdate.value = true
     const match = matchPattern.exec(lastEntered)
@@ -28,8 +27,10 @@ function validateInput(event: Event) {
     goals.value = parseInt(match?.[1] || "0")
     points.value = parseInt(match?.[2] || "0")
 
-    console.log('goals', goals.value, 'points', points.value)
     inputValue.value = lastEntered
+  } else {
+    target.value = inputValue.value
+
   }
 
 }
@@ -59,7 +60,6 @@ watch(
         ignoreNextValueUpdate.value = false
         return
       }
-      console.log("non-ignored update")
       formatInput()
       //inputValue.value = `${goals.value} - ${points.value}`
     }, {
