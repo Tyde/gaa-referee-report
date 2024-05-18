@@ -28,14 +28,14 @@ const gradleAssembler = (): Plugin => {
 
         console.log('Build ended in watch mode...');
         const { exec } = require('child_process')
-        exec('./gradlew processResources',{cwd: '../'}, (err, stdout, stderr) => {
+        /*exec('./gradlew processResources',{cwd: '../'}, (err, stdout, stderr) => {
           if (err) {
             console.error(err)
             return
           }
           console.log(stdout)
           console.log("Gradle build complete")
-        })
+        })*/
         // Your logic for handling the end of a build in watch mode
       }
     }

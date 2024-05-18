@@ -17,6 +17,8 @@ import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import io.ktor.util.pipeline.*
+import java.io.File
 import java.time.LocalDateTime
 import java.util.*
 
@@ -57,15 +59,28 @@ fun Route.sites() {
             }
         }
     }
-    static("/static") {
-        staticBasePackage = "files_static"
-        resources(".")
-        //TODO: add .well-known
+
+    val devDirectoryExists = File("./src/main/resources/static").exists()
+    if(devDirectoryExists) {
+        staticFiles(
+            "/static",
+            File("./src/main/resources/files_static")
+        )
+        staticFiles(
+            "/assets",
+            File("./src/main/resources/static/assets")
+        )
+    } else {
+        staticResources(
+            "/static",
+            "static"
+        )
+        staticResources(
+            "/assets",
+            "static/assets"
+        )
     }
-    static("assets") {
-        staticBasePackage = "static/assets"
-        resources(".")
-    }
+
 
     get<Report.Share> { share ->
         val uuid = UUID.fromString(share.uuid)
@@ -110,16 +125,8 @@ fun Route.sites() {
     authenticate("auth-session") {
 
         get("/") {
-            val resource =
-                this.javaClass.classLoader.getResourceAsStream("static/user_dashboard.html")
-            if (resource != null) {
-                call.respondOutputStream(contentType = ContentType.Text.Html) {
-                    resource.copyTo(this)
-                }
-            } else {
-                call.respondText("Resource not found", status = HttpStatusCode.InternalServerError)
 
-            }
+            respondWithStaticFileOnSystem("user_dashboard.html")
         }
 
         get("/logout") {
@@ -129,29 +136,12 @@ fun Route.sites() {
 
 
         get<Report.New> {
-            val resource =
-                this.javaClass.classLoader.getResourceAsStream("static/edit_report.html")
-            if (resource != null) {
-                call.respondOutputStream(contentType = ContentType.Text.Html) {
-                    resource.copyTo(this)
-                }
-            } else {
-                call.respondText("Resource not found", status = HttpStatusCode.InternalServerError)
-
-            }
+            respondWithStaticFileOnSystem("edit_report.html")
 
         }
 
         get<Report.Edit> { edit ->
-            val resource =
-                this.javaClass.classLoader.getResourceAsStream("static/edit_report.html")
-            if (resource != null) {
-                call.respondOutputStream(contentType = ContentType.Text.Html) {
-                    resource.copyTo(this)
-                }
-            } else {
-                call.respond(HttpStatusCode.InternalServerError)
-            }
+            respondWithStaticFileOnSystem("edit_report.html")
 
         }
 
@@ -159,22 +149,13 @@ fun Route.sites() {
             val reportExists = lockedTransaction {
                 TournamentReport.findById(show.id) != null
             }
-            val resource =
-                this.javaClass.classLoader.getResourceAsStream("static/show_report.html")
-            if (resource != null) {
-                if (reportExists) {
-                    call.respondOutputStream(contentType = ContentType.Text.Html) {
-                        resource.copyTo(this)
-                    }
-                } else {
-                    call.respondText(
-                        "Tried to show a report that does not exist",
-                        status = HttpStatusCode.NotFound
-                    )
-                }
-
+            if(reportExists) {
+                respondWithStaticFileOnSystem("show_report.html")
             } else {
-                call.respond(HttpStatusCode.InternalServerError)
+                call.respondText(
+                    "Tried to show a report that does not exist",
+                    status = HttpStatusCode.NotFound
+                )
             }
 
         }
@@ -184,42 +165,36 @@ fun Route.sites() {
     }
     authenticate("admin-session") {
         get("/admin/{...}") {
-            val resource =
-                this.javaClass.classLoader.getResourceAsStream("static/admin.html")
-            if (resource != null) {
-                call.respondOutputStream(contentType = ContentType.Text.Html) {
-                    resource.copyTo(this)
-                }
-            } else {
-                call.respond(HttpStatusCode.InternalServerError)
-                error("Resource not found")
-            }
+            respondWithStaticFileOnSystem("admin.html")
         }
     }
 
     get<UserRes.Activate> {
-        val resource =
-            this.javaClass.classLoader.getResourceAsStream("static/onboarding.html")
-        if (resource != null) {
-            call.respondOutputStream(contentType = ContentType.Text.Html) {
-                resource.copyTo(this)
-            }
-        } else {
-            call.respond(HttpStatusCode.InternalServerError)
-            error("Resource not found")
-        }
+        respondWithStaticFileOnSystem("onboarding.html")
 
     }
 
     get("/public") {
-        val resource =
-            this.javaClass.classLoader.getResourceAsStream("static/public_dashboard.html")
-        if (resource != null) {
-            call.respondOutputStream(contentType = ContentType.Text.Html) {
-                resource.copyTo(this)
-            }
-        } else {
-            call.respond(HttpStatusCode.InternalServerError)
+        respondWithStaticFileOnSystem("public_dashboard.html")
+
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.respondWithStaticFileOnSystem(
+    siteName: String
+) {
+    val file = File("./src/main/resources/static/$siteName")
+    val resource = this.javaClass.classLoader.getResourceAsStream("static/$siteName")
+    if (file.exists()) { //Dev environment
+        val stream = file.inputStream()
+        call.respondOutputStream(contentType = ContentType.Text.Html) {
+            stream.copyTo(this)
         }
+    } else if(resource != null) { //Prod environment
+        call.respondOutputStream(contentType = ContentType.Text.Html) {
+            resource.copyTo(this)
+        }
+    } else {
+        call.respondText("Resource not found", status = HttpStatusCode.InternalServerError)
     }
 }
