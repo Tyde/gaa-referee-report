@@ -76,6 +76,7 @@ jobs:
         REDIS_HOST: "cache"
         REDIS_PORT: "6379"
         REDIS_PASSWORD: ""
+        CLAUDE_ACCESSTOKEN: ""
     - name: Upload test results
       uses: actions/upload-artifact@v2
       if: failure() || always()
