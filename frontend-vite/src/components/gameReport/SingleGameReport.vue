@@ -160,6 +160,7 @@ onMounted(() => {
                 'to-be-filled':store.selectedGameReport?.extraTime===undefined
             }"
             :pt="{input: { class: 'p-1 md:p-2'}}"
+            :reset-filter-on-hide="true"
         >
 
         </Dropdown>
@@ -180,6 +181,7 @@ onMounted(() => {
               :filter="true"
               :filter-fields="['name']"
               :pt="{input: { class: 'p-2'}}"
+              :reset-filter-on-hide="true"
 
           >
 

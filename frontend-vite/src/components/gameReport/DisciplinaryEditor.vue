@@ -95,7 +95,6 @@ function generateEmptydAFields() {
 
 function addEmptyDisciplinaryAction() {
   if (selectedTeam.value) {
-    console.log("adding empty disciplinary action")
     selectedDisciplinaryActions.value.push({
       id: undefined,
       team: selectedTeam.value,
@@ -137,21 +136,22 @@ function localizedDescription(rule: Rule) {
   }
 }
 
-const localizedRuleDescriptionProperty = computed(() => {
+const ruleFilterFields = computed(() => {
+  const fields = ['description'];
   switch (i8n.locale.value) {
-    case "en":
-      return "description"
     case "fr":
-      return "descriptionFr"
+      fields.unshift('descriptionFr');
+      break;
     case "es":
-      return "descriptionEs"
+      fields.unshift('descriptionEs');
+      break;
     case "de":
-      return "descriptionDe"
-    default:
-      console.log("Unknown locale", i8n.locale.value)
-      return "description"
+      fields.unshift('descriptionDe');
+      break;
   }
+  return fields;
 })
+
 
 function stringOrDefault(s: string | undefined, def: string) {
   if (s && s.length > 0) {
@@ -233,7 +233,7 @@ onMounted(() => {
                 input-class="dropdown-disciplinary"
                 :placeholder="$t('gameReport.rule')"
                 :filter="true"
-                :filter-fields="['description']"
+                :filter-fields="ruleFilterFields"
                 :pt="{item: {class: 'whitespace-break-spaces md:whitespace-nowrap'}}"
             >
               <template #value="slotProps">
@@ -241,7 +241,7 @@ onMounted(() => {
                   <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
                   <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
                   <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.value.description.substring(0, 20)) }} ...
+                  {{ localizedDescription(slotProps.value).substring(0, 20) }} ...
                 </div>
                 <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
               </template>
@@ -251,13 +251,13 @@ onMounted(() => {
                   <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
                   <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
                   <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.option.description) }}
+                  {{ localizedDescription(slotProps.option) }}
                 </div>
 
               </template>
             </Dropdown>
             <div v-if="dAction.rule" class="w-[22rem] p-2">
-              {{ dAction.rule?.description }}
+              {{ localizedDescription(dAction.rule) }}
             </div>
           </div>
           <MobileDropdown
@@ -265,17 +265,17 @@ onMounted(() => {
               v-model="dAction.rule"
               optionLabel="description"
               optionValue="id"
-              :filter-fields="['description']"
+              :filter-fields="ruleFilterFields"
               class="block md:hidden"
               :placeholder="$t('gameReport.rule')"
           >
-            <template #option="slotProps">
+            <template #option="slotProps:{option:Rule}">
 
               <div>
                 <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
                 <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
                 <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                {{ slotProps.option.description }}
+                {{ localizedDescription(slotProps.option) }}
               </div>
 
             </template>
