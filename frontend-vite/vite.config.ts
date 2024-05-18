@@ -41,30 +41,33 @@ const gradleAssembler = (): Plugin => {
     }
   };
 };
-export default defineConfig({
-  plugins: [
+export default defineConfig(({ mode }) => {
+  return {
+    plugins: [
       vue(),
       vueJsx(),
       gradleAssembler()
-  ],
-  resolve: {
+    ],
+        resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  build: {
-    sourcemap: true,
-    outDir: '../src/main/resources/static',
-    rollupOptions: {
-      input: {
-        editReport: resolve(__dirname, 'edit_report.html'),
-        admin: resolve(__dirname, 'admin.html'),
-        showReport: resolve(__dirname, 'show_report.html'),
-        onboarding: resolve(__dirname, 'onboarding.html'),
-        userDashboard: resolve(__dirname, 'user_dashboard.html'),
-        publicDashboard: resolve(__dirname, 'public_dashboard.html'),
+    build: {
+      sourcemap: true,
+          outDir: '../src/main/resources/static',
+          rollupOptions: {
+        input: {
+          editReport: resolve(__dirname, 'edit_report.html'),
+              admin: resolve(__dirname, 'admin.html'),
+              showReport: resolve(__dirname, 'show_report.html'),
+              onboarding: resolve(__dirname, 'onboarding.html'),
+              userDashboard: resolve(__dirname, 'user_dashboard.html'),
+              publicDashboard: resolve(__dirname, 'public_dashboard.html'),
+        },
       },
+      emptyOutDir: true,
+      minify: mode === "development" ? false : 'esbuild',
     },
-    emptyOutDir: true,
-  },
+  }
 })
