@@ -52,9 +52,6 @@ function stripRuleCardsFromDescription(description?: string) {
   return description?.replace(/(CAUTION:|ORDER OFF:|BLACK CARD:)/gm, '')
 }
 
-onMounted(() => {
-  console.log("Team is:", currentSingleTeamGameReport.value.team)
-})
 
 
 </script>
@@ -74,6 +71,7 @@ onMounted(() => {
         option-label="name"
         :placeholder="$t('gameReport.selectTeam')"
         data-key="id"
+        :reset-filter-on-hide="true"
     >
     </Dropdown>
     <MobileDropdown

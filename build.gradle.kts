@@ -42,10 +42,14 @@ dependencies {
     implementation("io.ktor:ktor-server-freemarker-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-resources:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-
     implementation("io.ktor:ktor-server-websockets:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
+
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
 
@@ -64,7 +68,6 @@ dependencies {
 
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
     implementation("org.postgresql:postgresql:42.7.2")
-
 
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")

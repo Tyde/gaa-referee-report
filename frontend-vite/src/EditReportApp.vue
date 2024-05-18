@@ -10,6 +10,7 @@ import {ReportEditStage, useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 import {useI18n} from "vue-i18n";
 import {useConfirm} from "primevue/useconfirm";
+import {useLocalStorage} from "@vueuse/core";
 
 const store = useReportStore()
 const i18 = useI18n()
@@ -33,15 +34,18 @@ const dontUpdateHref = ref(false)
 
 
 const translateStageToName = ref(new Map<ReportEditStage, string>());
-
+const storedLocale = useLocalStorage("locale", i18.locale.value)
 watch(i18.locale, () => {
-  console.log("New locale", i18.locale)
   translateStageToName.value.set(ReportEditStage.SelectTournament, t("sections.selectTournament"))
   translateStageToName.value.set(ReportEditStage.SelectTeams, t("sections.selectTeams"))
   translateStageToName.value.set(ReportEditStage.EditGameReports, t("sections.editGameReports"))
   translateStageToName.value.set(ReportEditStage.EditPitchReports, t("sections.editPitchReports"))
   translateStageToName.value.set(ReportEditStage.Submit, t("sections.submitReport"))
 }, {immediate: true})
+
+watch(i18.locale, () => {
+  storedLocale.value = i18.locale.value
+})
 
 
 const calcStageOptions = computed(() => {
@@ -148,7 +152,6 @@ watch(currentStage, (newStage, oldStage) => {
         break
     }
   } else {
-    console.log("Not updating href as it is loaded on begin")
     dontUpdateHref.value = false
   }
 
@@ -158,7 +161,6 @@ watch(currentStage, (newStage, oldStage) => {
 function selectStageByURL(specifier: string) {
   //First remove anything trailing the slash
   specifier = specifier.replace(/\/.*/, "")
-  console.log("Modified specifier", specifier)
   dontUpdateHref.value = true
   switch (specifier) {
     case "select_tournament":
@@ -184,6 +186,7 @@ function selectStageByURL(specifier: string) {
 
 onMounted(() => {
   isLoading.value = true
+  i18.locale.value = storedLocale.value
   let loc = new URL(location.href)
   if (loc.pathname.startsWith("/report/new")) {
     store.publicStore.loadAuxiliaryInformationFromSerer()

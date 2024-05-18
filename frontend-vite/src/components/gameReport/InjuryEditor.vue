@@ -78,7 +78,7 @@ function generateEmptyInjury() {
 
 function addEmptyInjury() {
   if(selectedTeam.value) {
-    console.log("Adding empty injury with team id " + selectedTeam.value.id)
+    //console.log("Adding empty injury with team id " + selectedTeam.value.id)
     selectedInjuryArray.value.push({
       firstName: "",
       lastName: "",

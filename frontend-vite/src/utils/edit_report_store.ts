@@ -101,7 +101,6 @@ export const useReportStore = defineStore('report', () => {
 
     const selectedGameReportIndex = ref<number>(-1)
     const selectedGameReport = computed(() => {
-        console.log("Recalc selected game report as sgri is " + selectedGameReportIndex)
         if (selectedGameReportIndex.value >= 0) {
             return gameReports.value[selectedGameReportIndex.value]
         } else {

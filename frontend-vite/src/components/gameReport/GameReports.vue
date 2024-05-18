@@ -87,12 +87,9 @@ onBeforeMount(()=> {
   if(store.gameReports.length==0){
     newGameReport()
   } else {
-    console.log("locaiotn",location.href)
     let queryIdSplit = location.href.split("#")[1]?.split("/")[1]
-    console.log("quid split",queryIdSplit)
     if(queryIdSplit) {
       let queryId = parseInt(queryIdSplit)
-      console.log("QueryID:",queryId)
       store.gameReports.forEach((report, index) => {
         if(report.id == queryId) {
           store.selectedGameReportIndex = index

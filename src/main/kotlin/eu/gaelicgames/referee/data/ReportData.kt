@@ -262,6 +262,9 @@ object Rules : LongIdTable() {
     val isRed = bool("is_red")
     val description = text("description")
     val isDisabled = bool("is_disabled").default(false)
+    val descriptionFr = text("description_fr").nullable()
+    val descriptionDe = text("description_de").nullable()
+    val descriptionEs = text("description_es").nullable()
 }
 
 class Rule(id:EntityID<Long>):LongEntity(id) {
@@ -272,6 +275,9 @@ class Rule(id:EntityID<Long>):LongEntity(id) {
     var isRed by Rules.isRed
     var description by Rules.description
     var isDisabled by Rules.isDisabled
+    var descriptionFr by Rules.descriptionFr
+    var descriptionDe by Rules.descriptionDe
+    var descriptionEs by Rules.descriptionEs
 
     suspend fun isDeletable(): Boolean {
         return lockedTransaction {

@@ -130,6 +130,9 @@ object DatabaseHandler {
 
             //Migration 5 - Add league field to Tournaments
             SchemaUtils.createMissingTablesAndColumns(Tournaments)
+
+            //Migration 6 - Add Multilanguage Support for Rules
+            SchemaUtils.createMissingTablesAndColumns(Rules)
         }
     }
 
