@@ -44,6 +44,10 @@ const props = defineProps<{
    * Allow the option to split a team that is selected
    */
   show_hide_squad_box?: Boolean
+  /**
+   * Teams that are not shown in the list, even if the unselect option is enabled
+   */
+  forcefully_hidden_teams?: Team[]
 }>()
 
 
@@ -132,6 +136,11 @@ const filtered_list = computed(() => {
         return false
       }
       return true
+    })
+  }
+  if (props.forcefully_hidden_teams) {
+    preparedlist = preparedlist.filter(value => {
+      return !props.forcefully_hidden_teams?.find(t => t.id === value.id)
     })
   }
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {

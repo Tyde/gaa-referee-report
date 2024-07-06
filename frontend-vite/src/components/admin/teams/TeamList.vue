@@ -9,6 +9,7 @@ import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types/team_types";
 import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";
 import ConvertTeamToAmalgamtionDialog from "@/components/admin/teams/ConvertTeamToAmalgamtionDialog.vue";
+import EditAmalgamationDialog from "@/components/admin/teams/EditAmalgamationDialog.vue";
 
 const store = useAdminStore()
 
@@ -64,6 +65,20 @@ function startAmalgamationConvert(team: Team) {
   convertToAmalgamationTeam.value = team
   convertToAmalgamationDialogVisibale.value = true
 }
+
+
+const editAmalgamationDialogVisible = ref(false)
+const editAmalgamation = ref<Team>()
+function startEditAmalgamation(team: Team) {
+  editAmalgamation.value = team
+  editAmalgamationDialogVisible.value = true
+}
+
+function onAmalgamationEdited(team: Team) {
+  emit('teamUpdated', team)
+  editAmalgamationDialogVisible.value = false
+  editAmalgamation.value = undefined
+}
 </script>
 
 <template>
@@ -78,18 +93,7 @@ function startAmalgamationConvert(team: Team) {
     >
       <Column field="name" header="Name" sortable>
         <template #editor="slotProps">
-          <InputText v-model="slotProps.data[slotProps.field]"/>
-          <template v-if="slotProps.data.isAmalgamation">
-            <TeamSelectField
-                :exclude_team_list="slotProps.data.amalgamationTeams"
-                :force_hide_exclude_team_list="false"
-                :show_add_new_team="false"
-                :show_new_amalgamate="false"
-                :allow_unselect="true"
-                @team_selected="(team) => slotProps.data.amalgamationTeams.push(team)"
-                @team_unselected="(team) => slotProps.data.amalgamationTeams = slotProps.data.amalgamationTeams.filter((it:Team) => it.id !== team.id)"
-            />
-          </template>
+          <InputText v-model="slotProps.data.name"/>
 
         </template>
         <template #filter="{filterModel,filterCallback}">
@@ -100,6 +104,7 @@ function startAmalgamationConvert(team: Team) {
             <div class="grid grid-cols-2 gap-2 items-center">
               <div>{{ data.name }}</div>
               <div class="flex justify-end">
+                <Button text label="Edit teams" @click="() => startEditAmalgamation(data)"/>
                 <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
               </div>
               <div class="col-span-2 flex flex-row">
@@ -133,6 +138,12 @@ function startAmalgamationConvert(team: Team) {
         v-if="convertToAmalgamationTeam"
         v-model:visible="convertToAmalgamationDialogVisibale"
         :selected-team="convertToAmalgamationTeam"
+        />
+    <EditAmalgamationDialog
+        v-if="editAmalgamation"
+        v-model:visible="editAmalgamationDialogVisible"
+        :selected-team="editAmalgamation"
+        @team-updated="onAmalgamationEdited"
         />
 
   </div>
