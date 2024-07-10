@@ -50,6 +50,16 @@ async function convertTeam() {
   }
 }
 
+watch(localVisible, (newValue) => {
+  console.log('visible changed', newValue)
+  if (newValue) {
+    baseTeamForNewSquad.value = undefined
+    conversionTarget.value = undefined
+    tabActiveIndex.value = 0
+    convertToAmalgamationTeamList.value = []
+  }
+})
+
 async function mergeIntoSquad() {
   if (conversionTarget.value) {
     mergeTeamsOnServer(
@@ -85,6 +95,22 @@ function switchModeAsSquadAlreadyExists(chosenSquad: Team) {
 onMounted(() => {
   tabActiveIndex.value = 0
 })
+
+const convertToAmalgamationTeamList = ref<Team[]>([])
+
+function convertToAmalgamation() {
+  if (convertToAmalgamationTeamList.value.length > 0) {
+    const teamCopy = JSON.parse(JSON.stringify(props.selectedTeam))
+    teamCopy.isAmalgamation = true
+    teamCopy.amalgamationTeams = convertToAmalgamationTeamList.value
+    editTeamOnServer(teamCopy)
+        .then((resTeam) => {
+          onConversionDone(resTeam)
+        })
+        .catch(reason => store.newError(reason))
+  }
+
+}
 </script>
 
 <template>
@@ -93,7 +119,7 @@ onMounted(() => {
       :closable="true"
       :close-on-escape="true"
 
-      :pt="{ root: { class: 'merge-diag'}}"
+      :pt="{ root: { class: 'convert-diag'}}"
       :modal="true"
   >
     <TabView v-model:active-index="tabActiveIndex">
@@ -110,11 +136,11 @@ onMounted(() => {
                 :exclude_team_list="excludeTeamList"
                 :force_hide_exclude_team_list="true"
                 :allow_unselect="false"
-                :hide_amalgamations="true"
                 @team_selected="team => baseTeamForNewSquad = team"
                 @team_unselected="team => baseTeamForNewSquad = undefined"
-                :only_amalgamations="false"
                 :show_hide_squad_box="false"
+                :show_amalgamations="false"
+                :show_squads="false"
             />
           </div>
           <template v-else>
@@ -154,11 +180,12 @@ onMounted(() => {
                 :exclude_team_list="noSquadAmalgamationExcludes"
                 :force_hide_exclude_team_list="true"
                 :allow_unselect="false"
-                :hide_amalgamations="false"
                 @team_selected="team => conversionTarget = team"
                 @team_unselected="team => conversionTarget = undefined"
-                :only_amalgamations="true"
                 :show_hide_squad_box="false"
+                :show_teams="false"
+                :show_squads="true"
+                :show_amalgamations="false"
             />
           </div>
           <div
@@ -173,13 +200,47 @@ onMounted(() => {
           </div>
         </div>
       </TabPanel>
+      <TabPanel header="Convert to new Amalgamation">
+          <div class="flex flex-col">
+            <div>Create Amalgamation with Name <span class="font-bold" v-if="selectedTeam">{{ selectedTeam.name }}</span></div>
+            <div>
+              <ul class="flex flex-row content-center flex-wrap">
+                <li
+                    v-for="team in convertToAmalgamationTeamList"
+                    :key="team.id"
+                    @click="convertToAmalgamationTeamList = convertToAmalgamationTeamList.filter((it:Team) => it.id !== team.id)"
+                    class="bg-gray-300 rounded-xl m-1 p-2 text-sm hover:cursor-pointer flex flex-row items-center"
+                >
+                  <vue-feather type="x" class="mr-2 w-4"/>
+                  {{team.name}}
+                </li>
+              </ul>
+            </div>
+            <div class="align-middle" v-if="!conversionTarget">
+              <TeamSelectField
+                  :show_new_amalgamate="false"
+                  :show_add_new_team="false"
+                  :exclude_team_list="convertToAmalgamationTeamList"
+                  :force_hide_exclude_team_list="false"
+                  :allow_unselect="true"
+                  @team_selected="team => convertToAmalgamationTeamList.push(team)"
+                  @team_unselected="team => convertToAmalgamationTeamList = convertToAmalgamationTeamList.filter(it => it.id !== team.id)"
+                  :show_hide_squad_box="true"
+                  :show_amalgamations="false"
+              />
+            </div>
+            <div class="flex flex-row justify-end m-2">
+              <Button label="Convert" @click="convertToAmalgamation"/>
+            </div>
+          </div>
+      </TabPanel>
     </TabView>
 
   </Dialog>
 </template>
 
-<style scoped>
-.merge-diag {
-  @apply w-1/3;
+<style>
+.convert-diag {
+  @apply w-1/2;
 }
 </style>

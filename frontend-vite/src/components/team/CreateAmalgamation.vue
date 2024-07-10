@@ -108,6 +108,7 @@ function unselectTeam(team: Team) {
           :show_new_amalgamate="false"
           @team_selected="on_team_selected"
           :show_hide_squad_box="true"
+          :show_amalgamations="false"
       />
       <div v-if="duplicates.length > 0" class="text-lg font-bold p-2 m-2 bg-red-400 rounded-lg">
         {{ $t('teamSelect.warningAlreadyExistingAmalgamation') }}:

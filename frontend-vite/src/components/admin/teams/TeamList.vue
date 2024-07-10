@@ -2,7 +2,7 @@
 
 import {useAdminStore} from "@/utils/admin_store";
 import {editTeamOnServer} from "@/utils/api/teams_api";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
 import {FilterMatchMode} from "primevue/api";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
@@ -79,12 +79,16 @@ function onAmalgamationEdited(team: Team) {
   editAmalgamationDialogVisible.value = false
   editAmalgamation.value = undefined
 }
+
+const orderedTeamsList = computed(() => {
+  return props.teams.sort((a, b) => a.name > b.name ? 1 : -1)
+})
 </script>
 
 <template>
   <div>
     <DataTable
-        :value="props.teams"
+        :value="orderedTeamsList"
         edit-mode="row"
         v-model:editing-rows="editingTeams"
         @row-edit-save="editTeam"
@@ -120,7 +124,7 @@ function onAmalgamationEdited(team: Team) {
               <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
               <div>
                 <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
-                <Button text label="Convert to Squad" @click="() => startAmalgamationConvert(data)"/>
+                <Button text label="Convert" @click="() => startAmalgamationConvert(data)"/>
               </div>
             </div>
           </template>

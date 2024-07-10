@@ -81,6 +81,7 @@ function saveEdit() {
             :force_hide_exclude_team_list="true"
             @team_selected="(team) => teamEditCopy.amalgamationTeams?.push(team)"
             @team_unselected="(team) => teamEditCopy.amalgamationTeams = teamEditCopy.amalgamationTeams?.filter((it:Team) => it.id !== team.id)"
+            :show_amalgamations="false"
         />
 
       </div>
