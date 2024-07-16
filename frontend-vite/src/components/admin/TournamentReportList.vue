@@ -138,7 +138,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
       <div class="flex flex-row">
         <div class="grow">
           <h3 v-if="tournament.isLeague === false">{{ tournament.date.toISODate() }} - {{ tournament.name }}</h3>
-          <h3 v-else>{{ tournament.date.toISODate() }} to {{ tournament.endDate.toISODate() }} - {{ tournament.name }}</h3>
+          <h3 v-else>{{ tournament.date.toISODate() }} to {{ tournament.endDate?.toISODate() }} - {{ tournament.name }}</h3>
           <h4>{{ tournament.location }}</h4>
         </div>
         <div>
