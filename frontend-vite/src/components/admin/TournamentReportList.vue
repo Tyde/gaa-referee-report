@@ -24,7 +24,9 @@ const rows = ref(10)
 const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
   return tournaments.value.toSorted((a, b) => {
-    return a.date.diff(b.date).milliseconds < 0 ? 1 : -1
+    let relevantADate = (a.isLeague ? a.endDate : a.date) ?? DateTime.now()
+    let relevantBDate = (b.isLeague ? b.endDate : b.date) ?? DateTime.now()
+    return relevantADate.diff(relevantBDate).milliseconds < 0 ? 1 : -1
   })
 })
 
@@ -135,7 +137,8 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
     >
       <div class="flex flex-row">
         <div class="grow">
-          <h3>{{ tournament.date.toISODate() }} - {{ tournament.name }}</h3>
+          <h3 v-if="tournament.isLeague === false">{{ tournament.date.toISODate() }} - {{ tournament.name }}</h3>
+          <h3 v-else>{{ tournament.date.toISODate() }} to {{ tournament.endDate.toISODate() }} - {{ tournament.name }}</h3>
           <h4>{{ tournament.location }}</h4>
         </div>
         <div>
@@ -152,6 +155,11 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
           filterDisplay="menu"
           v-model:filters="filters"
       >
+        <Column v-if="tournament.isLeague" header="Last Game on">
+          <template #body="{data}:{data:CompactTournamentReportDEO}">
+            {{data.lastGameDate?.toISODate()}}
+          </template>
+        </Column>
         <Column field="refereeName" header="Referee" :sortable="true">
           <template #filter="{filterModel,filterCallback}">
             <InputText type="text" v-model="filterModel.value" @keydown.enter="filterCallback()" class="p-column-filter"
