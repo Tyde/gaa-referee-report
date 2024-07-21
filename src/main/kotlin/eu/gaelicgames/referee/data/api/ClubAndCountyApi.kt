@@ -92,10 +92,14 @@ suspend fun ClubAndCountyApi.Companion.get():ClubAndCountyApi {
                 )
                 resultList.add(Pair(timestamp.toLocalDateTime().toLocalDate(),deo))
             }
-            val results = resultList.groupBy { it.first }.map {
-                val valueOnly =it.value.map { it -> it.second }
-                DateTimeFormatter.ISO_DATE.format(it.key) to valueOnly
-             }.toMap()
+            val results = resultList
+                .sortedByDescending { it.first }
+                .groupBy { it.first }
+                .map {
+                    val valueOnly =it.value.map { it -> it.second }
+                    DateTimeFormatter.ISO_DATE.format(it.key) to valueOnly
+                 }.
+                toMap()
             ClubAndCountyApi(results, listOf())
 
         }?: ClubAndCountyApi(mapOf(), listOf())
