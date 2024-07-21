@@ -58,7 +58,7 @@ suspend fun ClubAndCountyApi.Companion.get():ClubAndCountyApi {
                     date = timestamp.toLocalDateTime().toLocalDate(),
                     date_range = "",
                     time = timestamp.toLocalDateTime().toLocalTime(),
-                    timestamp = timestamp.time,
+                    timestamp = timestamp.time/1000,
                     competitionName = it.getString("tournament_name"),
                     competitionShortName = "",
                     competitionId = it.getLong("tournament_id").toString(),
