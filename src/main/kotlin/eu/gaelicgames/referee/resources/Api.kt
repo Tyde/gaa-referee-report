@@ -349,4 +349,8 @@ class Api() {
 
     }
 
+    @Serializable
+    @Resource("website_feed")
+    class WebsiteFeed(val parent: Api)
+
 }
