@@ -2,6 +2,8 @@ package eu.gaelicgames.referee.data
 
 import eu.gaelicgames.referee.data.api.PitchPropertyDEO
 import eu.gaelicgames.referee.util.lockedTransaction
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -10,6 +12,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.sql.json.json
 import java.time.LocalDate
 
 
@@ -484,3 +487,40 @@ class Pitch(id:EntityID<Long>):LongEntity(id) {
     var goalDimensions by PitchGoalDimensionOption optionalReferencedOn Pitches.goalDimensions
     var additionalInformation by Pitches.additionalInformation
 }
+
+
+@Serializable
+data class RegisteredPlayer(
+    val name: String,
+    val jerseyNumber: Int? = null,
+    val foireannNumber: Long?
+)
+
+val format = Json { prettyPrint = true }
+object TeamsheetRegistrations : LongIdTable() {
+    val team = reference("team", Teams)
+    val tournament = reference("tournament", Tournaments)
+    val code = reference("code", GameCodes)
+    val players = json<List<RegisteredPlayer>>("players",format)
+    val uploadedAt = datetime("uploaded_at")
+    val fileKey = varchar("file_key", 100)
+    val registrarMail = varchar("registrar_mail", 100)
+    val registrarName = varchar("registrar_name", 100)
+    val verifyUUID = uuid("verify_uuid").nullable()
+    val verified = bool("verified").default(false)
+}
+class TeamsheetRegistration(id:EntityID<Long>):LongEntity(id) {
+    companion object : LongEntityClass<TeamsheetRegistration>(TeamsheetRegistrations)
+    var team by Team referencedOn TeamsheetRegistrations.team
+    var tournament by Tournament referencedOn TeamsheetRegistrations.tournament
+    var code by GameCode referencedOn TeamsheetRegistrations.code
+    var players by TeamsheetRegistrations.players
+    var uploadedAt by TeamsheetRegistrations.uploadedAt
+    var fileKey by TeamsheetRegistrations.fileKey
+    var registrarMail by TeamsheetRegistrations.registrarMail
+    var registrarName by TeamsheetRegistrations.registrarName
+    var verifyUUID by TeamsheetRegistrations.verifyUUID
+    var verified by TeamsheetRegistrations.verified
+}
+
+

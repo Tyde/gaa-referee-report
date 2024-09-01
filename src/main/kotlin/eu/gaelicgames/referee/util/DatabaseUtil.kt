@@ -101,7 +101,8 @@ object DatabaseHandler {
         PitchGoalDimensionOptions,
         Pitches,
         ActivationTokens,
-        TournamentReportShareLinks
+        TournamentReportShareLinks,
+        TeamsheetRegistrations
     )
 
     suspend fun createSchema() {
@@ -133,6 +134,9 @@ object DatabaseHandler {
 
             //Migration 6 - Add Multilanguage Support for Rules
             SchemaUtils.createMissingTablesAndColumns(Rules)
+
+            //Migration 7 - Add TeamsheetRegistrations
+            SchemaUtils.createMissingTablesAndColumns(TeamsheetRegistrations)
         }
     }
 

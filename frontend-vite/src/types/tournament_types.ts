@@ -20,6 +20,11 @@ export const DatabaseTournament = Tournament.extend({
 })
 export type DatabaseTournament = z.infer<typeof DatabaseTournament>
 
+export function tournamentByDateSortComparator(t1: Tournament | DatabaseTournament, t2: Tournament | DatabaseTournament) {
+    const t1Date = (t1.isLeague === true && t1.endDate) ? t1.endDate : t1.date
+    const t2Date = (t2.isLeague === true && t2.endDate) ? t2.endDate : t2.date
+    return t1Date.toMillis() - t2Date.toMillis()
+}
 
 export function databaseTournamentToTournamentDAO(tournament: DatabaseTournament) {
     return {

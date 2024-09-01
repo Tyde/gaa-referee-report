@@ -9,7 +9,7 @@ val exposed_version: String by project
 plugins {
     application
     kotlin("jvm") version "1.9.22"
-    kotlin("plugin.serialization") version "1.7.10"
+    kotlin("plugin.serialization") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
@@ -22,16 +22,25 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+
 repositories {
     mavenCentral()
+    maven { url = uri("https://www.jitpack.io") }
+
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
+
+
+
 
 java.sourceSets["main"].java {
     srcDir("gaa-referee-report-common/src/main/kotlin")
 }
 
 dependencies {
+
+    implementation("com.github.Tyde:gaa-teamsheet-pdf-parser:0.3")
+
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
@@ -58,6 +67,7 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-dao", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposed_version)
     implementation("org.jetbrains.exposed", "exposed-java-time", exposed_version)
+    implementation("org.jetbrains.exposed", "exposed-json", exposed_version)
     implementation("com.zaxxer:HikariCP:5.1.0")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.30.1")
@@ -72,8 +82,13 @@ dependencies {
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")
 
+    implementation("aws.sdk.kotlin:s3:1.+")
+
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
+
+    implementation("io.arrow-kt:arrow-core:1.2.4")
+    implementation("io.arrow-kt:arrow-fx-coroutines:1.2.4")
 }
 tasks.test {
     useJUnitPlatform()

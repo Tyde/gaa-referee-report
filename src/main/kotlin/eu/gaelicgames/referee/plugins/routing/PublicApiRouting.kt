@@ -1,15 +1,21 @@
 package eu.gaelicgames.referee.plugins.routing
 
+import arrow.core.getOrElse
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.data.api.*
+import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.resources.post
 import org.jetbrains.exposed.sql.selectAll
+import java.io.ByteArrayOutputStream
 
 fun Route.publicApiRouting() {
     get<Api.Rules> {
@@ -64,5 +70,68 @@ fun Route.publicApiRouting() {
     get<Api.WebsiteFeed> {
         val response = ClubAndCountyApi.get()
         call.respond(response)
+    }
+
+    post<Api.Teamsheet.Upload> {
+        val multipartData = call.receiveMultipart()
+        val stream = ByteArrayOutputStream()
+        var fileName = ""
+        var fileDescription = ""
+        multipartData.forEachPart { part ->
+            when (part) {
+                is PartData.FormItem -> {
+                    fileDescription = part.value
+                }
+
+                is PartData.FileItem -> {
+                    fileName = part.originalFileName as String
+                    val fileBytes = part.streamProvider().readBytes()
+                    stream.write(fileBytes)
+                }
+
+                else -> {
+
+                }
+            }
+            part.dispose()
+        }
+        val byteArray = stream.toByteArray()
+        val sizeInMb = byteArray.size / 1024.0 / 1024.0
+        if (sizeInMb > 5) {
+            call.respond(ApiError(ApiErrorOptions.ILLEGAL_ARGUMENT, "File too large"))
+            return@post
+        }
+
+        call.respond(TeamsheetUploadSuccessDEO.fromBytes(byteArray).getOrElse {
+           it.toApiResponse()
+        })
+    }
+
+    post<Api.Teamsheet.SetMetadata> {
+        receiveAndHandleDEO<TeamsheetWithClubAndTournamentDataDEO> { deo ->
+            deo.storeInDatabase().map { deo }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Teamsheet.GetPlayers> {
+        receiveAndHandleDEO<TeamsheetFileKeyDEO> {
+            it.getPlayers().getOrElse { fail ->
+                fail.toApiResponse()
+            }
+        }
+    }
+
+    post<Api.Teamsheet.GetMetadata> {
+        receiveAndHandleDEO<TeamsheetFileKeyDEO> {
+            it.getMetadata().getOrElse {
+                ApiError(ApiErrorOptions.ILLEGAL_ARGUMENT, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    get<Api.Teamsheet.GetPlayers> {
+        call.respond("This endpoint only accepts POST requests")
     }
 }

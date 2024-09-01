@@ -1,5 +1,8 @@
 package eu.gaelicgames.referee.util
 
+import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
+import aws.smithy.kotlin.runtime.auth.awscredentials.CredentialsProvider
+import aws.smithy.kotlin.runtime.collections.Attributes
 import com.natpryce.konfig.*
 import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.UserRole
@@ -27,6 +30,13 @@ object GGERefereeConfig {
     var postgresPassword : String
 
     var claudeAccessToken : String
+
+    var objectStorageEndpoint : String
+
+    var objectStorageBucket : String
+
+    var objectStorageCredentialProvider: CredentialsProvider
+
     object mailjet : PropertyGroup() {
         val public by stringType
         val secret by stringType
@@ -61,6 +71,13 @@ object GGERefereeConfig {
         val accessToken by stringType
     }
 
+    object objectStorage : PropertyGroup() {
+        val endpoint by stringType
+        val accessKey by stringType
+        val secretKey by stringType
+        val bucket by stringType
+    }
+
     init {
         val config = EnvironmentVariables() overriding
             ConfigurationProperties.fromOptionalFile(File("gge-referee.properties"))
@@ -85,6 +102,19 @@ object GGERefereeConfig {
         postgresPassword = config[postgres.password]
 
         claudeAccessToken = config[claude.accessToken]
+
+        objectStorageEndpoint = config[objectStorage.endpoint]
+        objectStorageBucket = config[objectStorage.bucket]
+
+        objectStorageCredentialProvider = object : CredentialsProvider {
+            override suspend fun resolve(attributes: Attributes): Credentials {
+                return Credentials.invoke(
+                    accessKeyId = config[objectStorage.accessKey],
+                    secretAccessKey = config[objectStorage.secretKey]
+                )
+            }
+
+        }
 
 
     }
