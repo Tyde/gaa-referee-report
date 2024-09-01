@@ -7,7 +7,6 @@ import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.right
-import aws.smithy.kotlin.runtime.content.toByteArray
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.ObjectStorage
 import eu.gaelicgames.referee.util.lockedTransaction
@@ -20,12 +19,13 @@ fun ExtractedPlayer.toPlayerDEO(): PlayerDEO {
 }
 
 fun PlayerDEO.toRegisteredPlayer(): RegisteredPlayer {
-    return RegisteredPlayer(this.name,this.jerseyNumber, this.playerNumber)
+    return RegisteredPlayer(this.name, this.jerseyNumber, this.playerNumber)
 }
 
 fun PlayerDEO.Companion.fromRegisteredPlayer(player: RegisteredPlayer): PlayerDEO {
     return PlayerDEO(player.name, player.jerseyNumber, player.foireannNumber)
 }
+
 suspend fun TeamsheetUploadSuccessDEO.Companion.fromBytes(
     data: ByteArray
 ): Either<TeamsheetFailure, TeamsheetUploadSuccessDEO> = either {
@@ -39,7 +39,6 @@ suspend fun TeamsheetUploadSuccessDEO.Companion.fromBytes(
     ensure(playerExtractionResult.isSuccess) { TeamsheetFailure.ExtractionFailedButUploadedDEO(fileUUID.toString()) }
     TeamsheetUploadSuccessDEO(playerExtractionResult.getOrThrow().map { it.toPlayerDEO() }, fileUUID.toString())
 }
-
 
 
 suspend fun TeamsheetWithClubAndTournamentDataDEO.storeInDatabase(): Result<TeamsheetRegistration> {
@@ -69,7 +68,7 @@ suspend fun TeamsheetWithClubAndTournamentDataDEO.storeInDatabase(): Result<Team
 }
 
 
-fun TeamsheetFailure.toApiResponse() : Any {
+fun TeamsheetFailure.toApiResponse(): Any {
     return when (this) {
         is TeamsheetFailure.ExtractionFailedButUploadedDEO -> {
             this
@@ -84,10 +83,15 @@ fun TeamsheetFailure.toApiResponse() : Any {
 suspend fun TeamsheetFileKeyDEO.getPlayers(): Either<TeamsheetFailure, TeamsheetUploadSuccessDEO> {
     val file = ObjectStorage.getObject(this.fileKey)
     return file.fold(
-        onSuccess = {data ->
+        onSuccess = { data ->
             val playerExtractionResult = TeamsheetReader.readFromBytes(data)
-            if(!playerExtractionResult.isSuccess) { TeamsheetFailure.ExtractionFailedButUploadedDEO(this.fileKey).left() }
-            TeamsheetUploadSuccessDEO(playerExtractionResult.getOrThrow().map { it.toPlayerDEO() }, this.fileKey).right()
+            if (!playerExtractionResult.isSuccess) {
+                TeamsheetFailure.ExtractionFailedButUploadedDEO(this.fileKey).left()
+            }
+            TeamsheetUploadSuccessDEO(
+                playerExtractionResult.getOrThrow().map { it.toPlayerDEO() },
+                this.fileKey
+            ).right()
         },
         onFailure = { TeamsheetFailure.TeamsheetStorageFailedDEO().left() }
     )
@@ -98,14 +102,16 @@ suspend fun TeamsheetFileKeyDEO.getMetadata(): Result<TeamsheetWithClubAndTourna
     return lockedTransaction {
         val registration = TeamsheetRegistration.find { TeamsheetRegistrations.fileKey eq deo.fileKey }.firstOrNull()
             ?: return@lockedTransaction Result.failure(NoSuchElementException("No teamsheet with file key ${deo.fileKey} found"))
-        Result.success(TeamsheetWithClubAndTournamentDataDEO(
-            players = registration.players.map { PlayerDEO.fromRegisteredPlayer(it) },
-            clubId = registration.team.id.value,
-            tournamentId = registration.tournament.id.value,
-            fileKey = registration.fileKey,
-            registrarMail = registration.registrarMail,
-            registrarName = registration.registrarName,
-            codeId = registration.code.id.value
-        ))
+        Result.success(
+            TeamsheetWithClubAndTournamentDataDEO(
+                players = registration.players.map { PlayerDEO.fromRegisteredPlayer(it) },
+                clubId = registration.team.id.value,
+                tournamentId = registration.tournament.id.value,
+                fileKey = registration.fileKey,
+                registrarMail = registration.registrarMail,
+                registrarName = registration.registrarName,
+                codeId = registration.code.id.value
+            )
+        )
     }
 }
