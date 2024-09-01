@@ -103,7 +103,8 @@ object DatabaseHandler {
         PitchGoalDimensionOptions,
         Pitches,
         ActivationTokens,
-        TournamentReportShareLinks
+        TournamentReportShareLinks,
+        TeamsheetRegistrations
     )
 
     suspend fun createSchema() {
@@ -142,6 +143,10 @@ object DatabaseHandler {
 
             //Migration 8 - Add Substitutions table
             SchemaUtils.createMissingTablesAndColumns(Substitutions)
+
+			//Migration 9 - Add TeamsheetRegistrations
+            SchemaUtils.createMissingTablesAndColumns(TeamsheetRegistrations)
+
         }
     }
 
