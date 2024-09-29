@@ -122,7 +122,7 @@ fun translateCodeToCompetitionStyle(codeName: String):String {
         "Hurling" -> return "hurling"
         "Camogie" -> return "camogie"
         "Mens Football" -> return "football"
-        "Ladies Football" -> return "football"
+        "Ladies Football" -> return "ladies_football"
         else -> return ""
     }
 }
