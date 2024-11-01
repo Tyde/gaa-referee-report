@@ -3,18 +3,23 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val exposed_version: String by project
-
+val coroutines_version = "1.9.0" // Added explicit coroutines version
 
 
 plugins {
     application
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.0.0"
     kotlin("plugin.serialization") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "eu.gaelicgames"
 version = "1.0-ALPHA"
+
+kotlin {
+    jvmToolchain(17)
+}
+
 application {
     mainClass.set("eu.gaelicgames.referee.ApplicationKt")
 
@@ -38,6 +43,8 @@ java.sourceSets["main"].java {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+
 
     implementation("com.github.Tyde:gaa-teamsheet-pdf-parser:0.3")
 
