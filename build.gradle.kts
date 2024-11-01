@@ -77,7 +77,7 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-json", exposed_version)
     implementation("com.zaxxer:HikariCP:5.1.0")
 
-    implementation("com.nimbusds:nimbus-jose-jwt:9.30.1")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
 
     implementation("com.mailjet", "mailjet-client", "5.2.1")
 
