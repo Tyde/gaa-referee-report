@@ -67,6 +67,35 @@ suspend fun TeamsheetWithClubAndTournamentDataDEO.storeInDatabase(): Result<Team
     }
 }
 
+suspend fun TeamsheetWithClubAndTournamentDataDEO.updateInDatabase() : Result<TeamsheetRegistration> {
+    val deo = this
+    return lockedTransaction {
+        val registration = TeamsheetRegistrations.findByFileKey(deo.fileKey)
+            ?: return@lockedTransaction Result.failure(NoSuchElementException("No teamsheet with file key ${deo.fileKey} found"))
+
+        val club = Team.findById(deo.clubId)
+            ?: return@lockedTransaction Result.failure(IllegalArgumentException("Club with id ${deo.clubId} not found"))
+        val tournament = Tournament.findById(deo.tournamentId) ?: return@lockedTransaction Result.failure(
+            IllegalArgumentException("Tournament with id ${deo.tournamentId} not found")
+        )
+        val code = GameCode.findById(deo.codeId)
+            ?: return@lockedTransaction Result.failure(IllegalArgumentException("Game code with id ${deo.codeId} not found"))
+
+        registration.team = club
+        registration.tournament = tournament
+        registration.fileKey = deo.fileKey
+
+        registration.registrarMail = deo.registrarMail
+        registration.registrarName = deo.registrarName
+
+        registration.code = code
+        registration.players = deo.players.map { it.toRegisteredPlayer() }
+        registration.uploadedAt = LocalDateTime.now()
+
+        Result.success(registration)
+    }
+}
+
 
 fun TeamsheetFailure.toApiResponse(): Any {
     return when (this) {
@@ -113,5 +142,37 @@ suspend fun TeamsheetFileKeyDEO.getMetadata(): Result<TeamsheetWithClubAndTourna
                 codeId = registration.code.id.value
             )
         )
+    }
+}
+
+suspend fun ReplaceTeamsheetFileDEO.storeInDatabase(): Result<TeamsheetRegistration> {
+    val deo = this@storeInDatabase
+    return lockedTransaction {
+        val registration = TeamsheetRegistrations.findByFileKey(deo.oldfileKey)
+            ?: return@lockedTransaction Result.failure(NoSuchElementException("No teamsheet with file key ${deo.oldfileKey} found"))
+
+        val previousFileKeyUploadedAt = registration.uploadedAt
+        val club = Team.findById(deo.newTeamsheetData.clubId)
+            ?: return@lockedTransaction Result.failure(IllegalArgumentException("Club with id ${deo.newTeamsheetData.clubId} not found"))
+        val tournament = Tournament.findById(deo.newTeamsheetData.tournamentId) ?: return@lockedTransaction Result.failure(
+            IllegalArgumentException("Tournament with id ${deo.newTeamsheetData.tournamentId} not found")
+        )
+        val code = GameCode.findById(deo.newTeamsheetData.codeId)
+            ?: return@lockedTransaction Result.failure(IllegalArgumentException("Game code with id ${deo.newTeamsheetData.codeId} not found"))
+
+        registration.team = club
+        registration.tournament = tournament
+        registration.fileKey = deo.newTeamsheetData.fileKey
+
+        registration.registrarMail = deo.newTeamsheetData.registrarMail
+        registration.registrarName = deo.newTeamsheetData.registrarName
+
+        registration.code = code
+        registration.players = deo.newTeamsheetData.players.map { it.toRegisteredPlayer() }
+        registration.uploadedAt = LocalDateTime.now()
+        val previousFileKey = PreviousFileKey(deo.oldfileKey, previousFileKeyUploadedAt)
+        registration.previousFileKeys = registration.previousFileKeys + previousFileKey
+
+        Result.success(registration)
     }
 }
