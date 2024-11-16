@@ -23,3 +23,15 @@ export async function setTeamsheetMetaData(data: TeamsheetWithClubAndTournamentD
     return makePostRequest("/api/teamsheet/set_metadata", data)
         .then(data => parseAndHandleDEO(data, TeamsheetWithClubAndTournamentDataDEO))
 }
+
+export async function getTeamsheetMetaData(fileKey: string):Promise<TeamsheetWithClubAndTournamentDataDEO> {
+    const data = {fileKey: fileKey}
+    return makePostRequest("/api/teamsheet/get_metadata", data)
+        .then(data => parseAndHandleDEO(data, TeamsheetWithClubAndTournamentDataDEO))
+}
+
+
+export async function editTeamsheetMetaData(data: TeamsheetWithClubAndTournamentDataDEO):Promise<TeamsheetWithClubAndTournamentDataDEO> {
+    return makePostRequest("/api/teamsheet/edit_metadata", data)
+        .then(data => parseAndHandleDEO(data, TeamsheetWithClubAndTournamentDataDEO))
+}

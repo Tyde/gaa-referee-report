@@ -134,4 +134,20 @@ fun Route.publicApiRouting() {
     get<Api.Teamsheet.GetPlayers> {
         call.respond("This endpoint only accepts POST requests")
     }
+
+    post<Api.Teamsheet.Edit> {
+        receiveAndHandleDEO<TeamsheetWithClubAndTournamentDataDEO> {
+            it.updateInDatabase().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Teamsheet.ReplaceTeamsheetFile> {
+        receiveAndHandleDEO<ReplaceTeamsheetFileDEO> {
+            it.storeInDatabase().getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
 }

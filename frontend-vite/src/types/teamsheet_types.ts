@@ -30,3 +30,9 @@ export type TeamsheetWithClubAndTournamentDataDEO = z.infer<typeof TeamsheetWith
 
 
 
+export const ReplaceTeamsheetFileDEO = z.object({
+    oldfileKey: z.string(),
+    newTeamsheetData: TeamsheetWithClubAndTournamentDataDEO
+})
+
+export type ReplaceTeamsheetFileDEO = z.infer<typeof ReplaceTeamsheetFileDEO>

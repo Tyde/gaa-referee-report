@@ -12,8 +12,10 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.sql.json.contains
 import org.jetbrains.exposed.sql.json.json
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 object Teams : LongIdTable() {
@@ -496,6 +498,12 @@ data class RegisteredPlayer(
     val foireannNumber: Long?
 )
 
+@Serializable
+data class PreviousFileKey(
+    val key:String,
+    @Serializable(with = LocalDateTimeCacheSerializer::class) val uploadedAt: LocalDateTime
+)
+
 val format = Json { prettyPrint = true }
 object TeamsheetRegistrations : LongIdTable() {
     val team = reference("team", Teams)
@@ -508,6 +516,18 @@ object TeamsheetRegistrations : LongIdTable() {
     val registrarName = varchar("registrar_name", 100)
     val verifyUUID = uuid("verify_uuid").nullable()
     val verified = bool("verified").default(false)
+    val previousFileKeys = json<List<PreviousFileKey>>("previous_file_keys", format).default(emptyList())
+
+
+    /**
+     * Returns the found TeamsheetRegistration that has the given fileKey, or has a previousFileKey with the given fileKey
+     */
+    suspend fun findByFileKey(fileKey:String):TeamsheetRegistration? {
+        return lockedTransaction {
+            TeamsheetRegistration.find { TeamsheetRegistrations.fileKey eq fileKey }.firstOrNull() ?:
+            TeamsheetRegistration.find { TeamsheetRegistrations.previousFileKeys.contains("{\"key\":\"$fileKey\"}") }.firstOrNull()
+        }
+    }
 }
 class TeamsheetRegistration(id:EntityID<Long>):LongEntity(id) {
     companion object : LongEntityClass<TeamsheetRegistration>(TeamsheetRegistrations)
@@ -521,6 +541,7 @@ class TeamsheetRegistration(id:EntityID<Long>):LongEntity(id) {
     var registrarName by TeamsheetRegistrations.registrarName
     var verifyUUID by TeamsheetRegistrations.verifyUUID
     var verified by TeamsheetRegistrations.verified
+    var previousFileKeys by TeamsheetRegistrations.previousFileKeys
 }
 
 
