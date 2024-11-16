@@ -80,6 +80,9 @@ export const editReportDE = {
         newSquadsButton: 'Teilmannschaften erstellen',
         useSquadPrefix: 'Verwende',
         removeFromList: 'Von der Liste entfernen',
+        errorNameTooShort: 'Name ist zu kurz',
+        errorNameIndicatesAmalgamation: 'Es scheint, als würden Sie versuchen, eine Spielgemeinschaft zu erstellen. Bitte verwenden Sie stattdessen die Option "Neue Spielgemeinschaft hinzufügen".',
+        errorNameIndicatesSquad: 'Es scheint, als würden Sie versuchen, eine Teilmannschaft zu erstellen. Bitte verwenden Sie stattdessen die Option "Teilmannschaften erstellen".',
         splitTeam: {
             title: 'Neue Teilmannschaft',
             infoSelected: 'Ausgewähltes Basisteam',

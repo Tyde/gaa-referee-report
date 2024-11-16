@@ -11,41 +11,66 @@ interface SearchResultTeam {
 }
 
 const store = useReportStore()
-const props = defineProps<{
+
+
+import type { PropType } from 'vue';
+
+const props = defineProps({
   /**
    * Show the option to create a new amalgamation
    */
-  show_new_amalgamate: Boolean
+  show_new_amalgamate: Boolean,
   /**
    * Show the option to create a new team
    */
-  show_add_new_team: Boolean
+  show_add_new_team: Boolean,
   /**
    * Teams included in this list will not appear in the select list
    */
-  exclude_team_list?: Team[]
+  exclude_team_list: Array as PropType<Team[] | undefined>,
   /**
    * The exclude team list will only be excluded when this is set to true
    */
-  force_hide_exclude_team_list: Boolean
+  force_hide_exclude_team_list: Boolean,
   /**
    * Allows the option to deselect selected teams
    */
-  allow_unselect?: Boolean
-  /**
-   * Hides all amalgamations
-   */
-  hide_amalgamations?: Boolean
-  /**
-   * Only shows amalgamations
-   */
-  only_amalgamations?: Boolean
+  allow_unselect: Boolean as PropType<boolean | undefined>,
   /**
    * Allow the option to split a team that is selected
    */
-  show_hide_squad_box?: Boolean
-}>()
+  show_hide_squad_box: Boolean as PropType<boolean | undefined>,
 
+  /**
+   * Teams that are not shown in the list, even if the unselect option is enabled
+   */
+  forcefully_hidden_teams: Array as PropType<Team[] | undefined>,
+  /**
+   * Show teams that are not amalgamations
+   */
+  show_teams: {
+    type: Boolean,
+    default: true,
+    required: false
+  },
+  /**
+   * Show amalgamations (this does not include squads)
+   */
+  show_amalgamations: {
+    type: Boolean,
+    default: true,
+    required: false
+  },
+  /**
+   * Show squads (this does not include amalgamations).
+   * Will be overriden by the hide_squad_checkbox" value, if it is shown
+   */
+  show_squads: {
+    type: Boolean,
+    default: true,
+    required: false
+  }
+});
 
 const emit = defineEmits<{
   (e: 'team_selected', team: Team): void
@@ -58,12 +83,13 @@ const showNewTeam = ref(false)
 const showNewAmalgamation = ref(false)
 //const teamsAvailable = ref(<Team[]>[])
 const isLoading = ref(false)
-const hide_squads = ref(props.show_hide_squad_box)
+const hide_squads = ref<Boolean | undefined>(false)
 
+/*
 watch(() => props.show_hide_squad_box, (value, oldValue, onCleanup) => {
   console.log("Changed props value from ",oldValue," to ",value)
   hide_squads.value = value
-}, {immediate: true})
+}, {immediate: true})*/
 
 function on_team_click(team: Team) {
   if (!thisTeamInExludedList(team)) {
@@ -116,22 +142,28 @@ const filtered_list = computed(() => {
   let preparedlist = store.publicStore.teams.toSorted((a, b) => {
     return a.name.localeCompare(b.name)
   })
-  if (props.only_amalgamations) {
-    preparedlist = preparedlist.filter(value => {
-      return value.isAmalgamation
-    })
-  }
-  if (props.hide_amalgamations) {
-    preparedlist = preparedlist.filter(value => {
-      return !value.isAmalgamation
-    })
-  }
-  if (hide_squads.value) {
+  if ((props.show_hide_squad_box && hide_squads.value) || (!props.show_hide_squad_box && !props.show_squads)) {
     preparedlist = preparedlist.filter(value => {
       if (value.isAmalgamation && value.amalgamationTeams && value.amalgamationTeams.length == 1) {
         return false
       }
       return true
+    })
+  }
+  if(!props.show_teams) {
+    preparedlist = preparedlist.filter(value => {
+      return value.isAmalgamation
+    })
+  }
+  if(!props.show_amalgamations) {
+    preparedlist = preparedlist.filter(value => {
+      return !(value.isAmalgamation && value.amalgamationTeams && value.amalgamationTeams.length > 1)
+    })
+  }
+
+  if (props.forcefully_hidden_teams) {
+    preparedlist = preparedlist.filter(value => {
+      return !props.forcefully_hidden_teams?.find(t => t.id === value.id)
     })
   }
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {

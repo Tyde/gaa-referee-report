@@ -1,5 +1,6 @@
 package eu.gaelicgames.referee.data.api
 
+import org.slf4j.LoggerFactory
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.CacheUtil.deleteCache
@@ -14,6 +15,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+val logger = LoggerFactory.getLogger(GameReportDEO::class.java)
 
 suspend fun GameReportDEO.Companion.fromGameReport(report: GameReport): GameReportDEO {
     return lockedTransaction {
@@ -284,22 +286,25 @@ suspend fun DeleteGameReportDEO.deleteFromDatabase(): Result<Boolean> {
 }
 
 
-fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
-    return runBlocking {
-        GameReportClassesDEO.getCache().getOrElse {
-            lockedTransaction {
-                val etos = ExtraTimeOption.all().map {
-                    ExtraTimeOptionDEO.fromExtraTimeOption(it)
-                }
-                val gts = GameType.all().map {
-                    GameTypeDEO.fromGameType(it)
-                }
-                val dbgrc = GameReportClassesDEO(etos, gts)
-                runBlocking { dbgrc.setCache() }
-                dbgrc
+suspend fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
+
+    logger.debug("Loading GameReportClassesDEO from cache")
+    val cachedData = GameReportClassesDEO.getCache()
+    logger.debug("Cache hit success: ${cachedData.isSuccess}")
+    return cachedData.getOrElse {
+        lockedTransaction {
+            val etos = ExtraTimeOption.all().map {
+                ExtraTimeOptionDEO.fromExtraTimeOption(it)
             }
+            val gts = GameType.all().map {
+                GameTypeDEO.fromGameType(it)
+            }
+            val dbgrc = GameReportClassesDEO(etos, gts)
+            runBlocking { dbgrc.setCache() }
+            dbgrc
         }
     }
+
 }
 
 fun ExtraTimeOptionDEO.Companion.fromExtraTimeOption(extraTimeOption: ExtraTimeOption): ExtraTimeOptionDEO {
@@ -641,6 +646,7 @@ fun InjuryDEO.getRefereeId(): Long? {
         }
     }
 }
+
 suspend fun InjuryDEO.createInDatabase(): Result<Injury> {
     val injuryUpdate = this
     if (injuryUpdate.team != null &&

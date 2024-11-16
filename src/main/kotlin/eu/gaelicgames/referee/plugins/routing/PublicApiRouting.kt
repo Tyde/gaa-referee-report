@@ -60,4 +60,9 @@ fun Route.publicApiRouting() {
         val teams = TeamDEO.allTeamList()
         call.respond(teams)
     }
+
+    get<Api.WebsiteFeed> {
+        val response = ClubAndCountyApi.get()
+        call.respond(response)
+    }
 }

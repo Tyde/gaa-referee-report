@@ -49,6 +49,7 @@ export const CompactTournamentReportDEO = z.object({
     numGameReports: z.number(),
     numTeams: z.number(),
     additionalInformation: z.string(),
+    lastGameDate: z.string().transform((value) => DateTime.fromISO(value)).optional().nullable(),
 })
 export type CompactTournamentReportDEO = z.infer<typeof CompactTournamentReportDEO>;
 export const NewReportDEO = z.object({

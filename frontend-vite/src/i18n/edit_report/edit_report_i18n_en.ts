@@ -79,6 +79,9 @@ export const editReportEN = {
         newSquadsButton: 'Introduce squads',
         useSquadPrefix: 'Use',
         removeFromList: 'Remove from list',
+        errorNameTooShort: 'Name is too short',
+        errorNameIndicatesAmalgamation: 'It seems like you are trying to create an amalgamation. Please use the "Add new amalgamation" option instead.',
+        errorNameIndicatesSquad: 'It seems like you are trying to create a squad. Please use the "Introduce squads" option instead.',
         splitTeam: {
             title: 'New sub squad',
             infoSelected: 'Selected base team',

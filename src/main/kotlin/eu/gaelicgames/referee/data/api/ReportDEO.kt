@@ -355,7 +355,8 @@ suspend fun CompactTournamentReportDEO.Companion.all(): List<CompactTournamentRe
                     "    (array_agg(U.first_name))[1] as \"first_name\",\n" +
                     "    (array_agg(U.last_name))[1] as \"last_name\",\n" +
                     "    (SELECT COUNT(*) FROM GameReports GR WHERE TournamentReports.id = GR.report_id) as \"num_game_reports\",\n" +
-                    "    (SELECT COUNT(*) FROM TournamentReportTeamPreSelections TRTPS WHERE TournamentReports.id = TRTPS.report) as \"num_teams\"\n" +
+                    "    (SELECT COUNT(*) FROM TournamentReportTeamPreSelections TRTPS WHERE TournamentReports.id = TRTPS.report) as \"num_teams\",\n" +
+                    "    (SELECT start_time FROM GameReports GR WHERE GR.report_id = TournamentReports.id ORDER BY GR.start_time DESC LIMIT 1) as \"last_game_start\"\n" +
                     "FROM TournamentReports\n" +
                     "         LEFT JOIN Users U on TournamentReports.referee = U.id\n" +
                     "\n" +
@@ -373,7 +374,8 @@ suspend fun CompactTournamentReportDEO.Companion.all(): List<CompactTournamentRe
                         it.getLong("referee"),
                         it.getString("first_name") + " " + it.getString("last_name"),
                         it.getLong("num_game_reports"),
-                        it.getLong("num_teams"), it.getString("additional_information")
+                        it.getLong("num_teams"), it.getString("additional_information"),
+                        it.getTimestamp("last_game_start")?.toLocalDateTime()
                     )
                 )
             }

@@ -79,6 +79,9 @@ export const editReportFR = {
         newSquadsButton: 'Créer des sous-équipes',
         useSquadPrefix: 'Utilise',
         removeFromList: 'Retirer de la liste',
+        errorNameTooShort: 'Le nom est trop court',
+        errorNameIndicatesAmalgamation: 'Il semble que vous essayez de créer une fusion. Veuillez utiliser l’option "Ajouter une nouvelle fusion" à la place.',
+        errorNameIndicatesSquad: 'Il semble que vous essayez de créer une sous-équipe. Veuillez utiliser l’option "Créer des sous-équipes" à la place.',
         splitTeam: {
             title: 'Nouvelle sous-équipe',
             infoSelected: 'Équipe de base sélectionnée',

@@ -79,6 +79,9 @@ export const editReportES = {
         newSquadsButton: 'Crear subescuadra',
         useSquadPrefix: 'Usar',
         removeFromList: 'Eliminar de la lista',
+        errorNameTooShort: 'El nombre es demasiado corto',
+        errorNameIndicatesAmalgamation: 'Parece que estás intentando crear una fusión. Por favor, usa la opción "Agregar nueva fusión" en su lugar.',
+        errorNameIndicatesSquad: 'Parece que estás intentando crear una subescuadra. Por favor, usa la opción "Crear subescuadra" en su lugar.',
         splitTeam: {
             title: 'Nueva subescuadra',
             infoSelected: 'Equipo base seleccionado',

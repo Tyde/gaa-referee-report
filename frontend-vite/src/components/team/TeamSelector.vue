@@ -128,7 +128,6 @@ onMounted(() => {
           :force_hide_exclude_team_list="false"
           :allow_unselect="false"
           :show_hide_squad_box="true"
-
       />
       <template v-if="selectedSplitBaseTeam != undefined">
         <CreateSplitTeam

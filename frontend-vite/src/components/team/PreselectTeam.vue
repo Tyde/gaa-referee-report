@@ -57,8 +57,6 @@ function submit() {
       :exclude_team_list="selectedTeams"
       :force_hide_exclude_team_list="true"
       :allow_unselect="true"
-      :hide_amalgamations="false"
-      :only_amalgamations="false"
       :show_hide_squad_box="true"
       @team_unselected="team => teamUnselected(team)"
       @team_selected="team => teamSelected(team)"
