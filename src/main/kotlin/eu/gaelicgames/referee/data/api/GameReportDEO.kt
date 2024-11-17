@@ -1,6 +1,5 @@
 package eu.gaelicgames.referee.data.api
 
-import org.slf4j.LoggerFactory
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.CacheUtil.deleteCache
@@ -12,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.between
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -60,14 +60,13 @@ suspend fun GameReportDEO.Companion.wrapRow(row: ResultRow): GameReportDEO {
 
 }
 
-fun GameReportDEO.getRefereeId(): Long? {
-    return runBlocking {
-        lockedTransaction {
-            this@getRefereeId.report?.let {
-                TournamentReport.findById(it)?.referee?.id?.value
-            }
+suspend fun GameReportDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        this@getRefereeId.report?.let {
+            TournamentReport.findById(it)?.referee?.id?.value
         }
     }
+
 }
 
 suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
@@ -82,9 +81,9 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
         grUpdate.teamAPoints != null &&
         grUpdate.teamBPoints != null
     ) {
-        runBlocking {
-            CacheUtil.deleteCachedReport(grUpdate.report)
-        }
+
+        CacheUtil.deleteCachedReport(grUpdate.report)
+
         return lockedTransaction {
             val report = TournamentReport.findById(grUpdate.report)
             val teamA = Team.findById(grUpdate.teamA)
@@ -152,7 +151,7 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
             val grUpdate = this@updateInDatabase
             val originalGameReport = GameReport.findById(this@updateInDatabase.id)
             if (originalGameReport != null) {
-                runBlocking { clearCacheForGameReport(originalGameReport) }
+                clearCacheForGameReport(originalGameReport)
 
                 /*
                 if (grUpdate.report != null) {
@@ -243,7 +242,7 @@ suspend fun DeleteGameReportDEO.deleteChecked(user: User): Result<Boolean> {
         GameReport.findById(deleteId)?.let {
 
             if (it.report.referee.id == user.id) {
-                runBlocking { deleteFromDatabase() }
+                deleteFromDatabase()
             } else {
                 Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
             }
@@ -258,7 +257,7 @@ suspend fun DeleteGameReportDEO.deleteFromDatabase(): Result<Boolean> {
             val originalGameReport = GameReport.findById(deleteId)
 
             if (originalGameReport != null) {
-                runBlocking { clearCacheForGameReport(originalGameReport) }
+                clearCacheForGameReport(originalGameReport)
 
                 DisciplinaryAction.find { DisciplinaryActions.game eq originalGameReport.id }.forEach {
                     it.delete()
@@ -348,18 +347,17 @@ suspend fun DisciplinaryActionDEO.Companion.wrapRow(row: ResultRow): Disciplinar
 
 }
 
-fun DisciplinaryActionDEO.getRefereeId(): Long? {
-    return runBlocking {
-        lockedTransaction {
-            TournamentReports.leftJoin(GameReports)
-                .selectAll()
-                .where { GameReports.id eq this@getRefereeId.game }
-                .firstOrNull()
-                ?.let {
-                    it[TournamentReports.referee].value
-                }
-        }
+suspend fun DisciplinaryActionDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        TournamentReports.leftJoin(GameReports)
+            .selectAll()
+            .where { GameReports.id eq this@getRefereeId.game }
+            .firstOrNull()
+            ?.let {
+                it[TournamentReports.referee].value
+            }
     }
+
 }
 
 suspend fun DisciplinaryActionDEO.createInDatabase(): Result<DisciplinaryAction> {
@@ -380,7 +378,7 @@ suspend fun DisciplinaryActionDEO.createInDatabase(): Result<DisciplinaryAction>
             val game = GameReport.findById(daUpdate.game)
 
             if (rule != null && team != null && game != null) {
-                runBlocking { clearCacheForGameReport(game) }
+                clearCacheForGameReport(game)
 
                 Result.success(DisciplinaryAction.new {
                     this.team = team
@@ -420,7 +418,7 @@ suspend fun DisciplinaryActionDEO.updateInDatabase(): Result<DisciplinaryAction>
             if (action != null) {
                 val game = action.game
 
-                runBlocking { clearCacheForGameReport(game) }
+                clearCacheForGameReport(game)
                 daUpdate.firstName?.let { firstName ->
                     if (firstName.isNotBlank()) {
                         action.firstName = firstName
@@ -577,7 +575,7 @@ suspend fun DeleteDisciplinaryActionDEO.deleteChecked(user: User): Result<Boolea
     return lockedTransaction {
         DisciplinaryAction.findById(deleteId)?.let {
             if (it.game.report.referee.id == user.id) {
-                runBlocking { deleteFromDatabase() }
+                deleteFromDatabase()
             } else {
                 Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
             }
@@ -592,7 +590,7 @@ suspend fun DeleteDisciplinaryActionDEO.deleteFromDatabase(): Result<Boolean> {
 
         if (action != null) {
             val game = action.game
-            runBlocking { clearCacheForGameReport(game) }
+            clearCacheForGameReport(game)
 
             action.delete()
             Result.success(true)
@@ -633,18 +631,17 @@ suspend fun InjuryDEO.Companion.wrapRow(row: ResultRow): InjuryDEO {
 }
 
 
-fun InjuryDEO.getRefereeId(): Long? {
-    return runBlocking {
-        lockedTransaction {
-            TournamentReports.leftJoin(GameReports)
-                .selectAll()
-                .where { GameReports.id eq this@getRefereeId.game }
-                .firstOrNull()
-                ?.let {
-                    it[TournamentReports.referee].value
-                }
-        }
+suspend fun InjuryDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        TournamentReports.leftJoin(GameReports)
+            .selectAll()
+            .where { GameReports.id eq this@getRefereeId.game }
+            .firstOrNull()
+            ?.let {
+                it[TournamentReports.referee].value
+            }
     }
+
 }
 
 suspend fun InjuryDEO.createInDatabase(): Result<Injury> {
@@ -660,7 +657,7 @@ suspend fun InjuryDEO.createInDatabase(): Result<Injury> {
             val team = Team.findById(injuryUpdate.team)
             val game = GameReport.findById(injuryUpdate.game)
             if (team != null && game != null) {
-                runBlocking { clearCacheForGameReport(game) }
+                clearCacheForGameReport(game)
 
                 Result.success(Injury.new {
                     this.team = team
@@ -694,7 +691,7 @@ suspend fun InjuryDEO.updateInDatabase(): Result<Injury> {
             val injury = Injury.findById(injuryUpdate.id)
             if (injury != null) {
                 val game = injury.game
-                runBlocking { clearCacheForGameReport(game) }
+                clearCacheForGameReport(game)
 
                 injuryUpdate.firstName?.let { firstName ->
                     injury.firstName = firstName
@@ -758,7 +755,7 @@ suspend fun DeleteInjuryDEO.deleteFromDatabase(): Result<Boolean> {
         val injury = Injury.findById(deleteId)
         if (injury != null) {
             val game = injury.game
-            runBlocking { clearCacheForGameReport(game) }
+            clearCacheForGameReport(game)
 
             injury.delete()
             Result.success(true)
@@ -782,10 +779,9 @@ suspend fun GameTypeDEO.Companion.fromGameType(gameType: GameType): GameTypeDEO 
     }
 }
 
-fun GameTypeDEO.createInDatabase(): Result<GameType> {
-    runBlocking {
-        GameReportClassesDEO.deleteCache()
-    }
+suspend fun GameTypeDEO.createInDatabase(): Result<GameType> {
+    GameReportClassesDEO.deleteCache()
+
     val gUpdate = this
     if (gUpdate.id == null && gUpdate.name.isNotBlank()) {
         return Result.success(transaction {
@@ -800,9 +796,8 @@ fun GameTypeDEO.createInDatabase(): Result<GameType> {
 }
 
 suspend fun GameTypeDEO.updateInDatabase(): Result<GameType> {
-    runBlocking {
-        GameReportClassesDEO.deleteCache()
-    }
+    GameReportClassesDEO.deleteCache()
+
     val gUpdate = this
     if (gUpdate.id != null) {
         return lockedTransaction {

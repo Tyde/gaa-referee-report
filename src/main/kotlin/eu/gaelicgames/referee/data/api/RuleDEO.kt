@@ -6,7 +6,6 @@ import eu.gaelicgames.referee.data.Rules
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.RuleTranslationUtil
 import eu.gaelicgames.referee.util.lockedTransaction
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
 
@@ -59,9 +58,7 @@ suspend fun RuleDEO.Companion.allRules(): List<RuleDEO> {
 
 suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
     val rUpdate = this
-    runBlocking {
-        CacheUtil.deleteCachedRules()
-    }
+    CacheUtil.deleteCachedRules()
     return lockedTransaction {
         val rule = Rule.findById(rUpdate.id)
         if (rule != null) {
@@ -88,9 +85,9 @@ suspend fun RuleDEO.updateInDatabase(): Result<Rule> {
 
 
 suspend fun ModifyRulesDEOState.delete(): Result<Boolean> {
-    runBlocking {
-        CacheUtil.deleteCachedRules()
-    }
+
+    CacheUtil.deleteCachedRules()
+
     return lockedTransaction {
         val rule = Rule.findById(this@delete.id)
         if (rule != null) {
@@ -111,9 +108,8 @@ suspend fun ModifyRulesDEOState.delete(): Result<Boolean> {
 }
 
 suspend fun ModifyRulesDEOState.toggleDisabledState(): Result<Rule> {
-    runBlocking {
-        CacheUtil.deleteCachedRules()
-    }
+    CacheUtil.deleteCachedRules()
+
     return lockedTransaction {
         val rule = Rule.findById(this@toggleDisabledState.id)
         if (rule != null) {

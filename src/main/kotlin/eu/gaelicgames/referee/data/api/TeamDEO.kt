@@ -3,7 +3,6 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
@@ -138,9 +137,9 @@ suspend fun TeamDEO.updateInDatabase(): Result<Team> {
 
 
 suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
-    runBlocking {
-        CacheUtil.deleteCachedTeamList()
-    }
+
+    CacheUtil.deleteCachedTeamList()
+
     return lockedTransaction {
         val team = Team.findById(baseTeam)
         if (team != null) {
