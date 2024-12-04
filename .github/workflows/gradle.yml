@@ -77,6 +77,10 @@ jobs:
         REDIS_PORT: "6379"
         REDIS_PASSWORD: ""
         CLAUDE_ACCESSTOKEN: ""
+        OBJECTSTORAGE_ENDPOINT: ""
+        OBJECTSTORAGE_BUCKET: ""
+        OBJECTSTORAGE_ACCESSKEY: ""
+        OBJECTSTORAGE_SECRETKEY: ""
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: failure() || always()
