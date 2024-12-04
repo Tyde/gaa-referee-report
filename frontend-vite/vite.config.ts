@@ -67,6 +67,7 @@ export default defineConfig(({mode}) => {
                     onboarding: resolve(__dirname, 'onboarding.html'),
                     userDashboard: resolve(__dirname, 'user_dashboard.html'),
                     publicDashboard: resolve(__dirname, 'public_dashboard.html'),
+                    teamsheets: resolve(__dirname, 'teamsheets.html'),
                 },
                 output: {
                     manualChunks(id) {

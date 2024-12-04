@@ -353,4 +353,33 @@ class Api() {
     @Resource("website_feed")
     class WebsiteFeed(val parent: Api)
 
+
+    @Serializable
+    @Resource("teamsheet")
+    class Teamsheet(val parent: Api) {
+        @Serializable
+        @Resource("upload")
+        class Upload(val parent: Teamsheet)
+
+        @Serializable
+        @Resource("get_players")
+        class GetPlayers(val parent: Teamsheet)
+
+        @Serializable
+        @Resource("set_metadata")
+        class SetMetadata(val parent: Teamsheet)
+
+        @Serializable
+        @Resource("get_metadata")
+        class GetMetadata(val parent: Teamsheet)
+
+        @Serializable
+        @Resource("edit")
+        class Edit(val parent: Teamsheet)
+
+        @Serializable
+        @Resource("replace_teamsheet_file")
+        class ReplaceTeamsheetFile(val parent: Teamsheet)
+    }
+
 }

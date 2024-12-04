@@ -5,6 +5,7 @@ import eu.gaelicgames.referee.data.api.CompleteReportDEO
 import eu.gaelicgames.referee.data.api.fromTournamentReport
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.resources.Report
+import eu.gaelicgames.referee.resources.TeamsheetRes
 import eu.gaelicgames.referee.resources.UserRes
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
@@ -177,6 +178,10 @@ fun Route.sites() {
     get("/public") {
         respondWithStaticFileOnSystem("public_dashboard.html")
 
+    }
+
+    get<TeamsheetRes> {
+        respondWithStaticFileOnSystem("teamsheets.html")
     }
 }
 

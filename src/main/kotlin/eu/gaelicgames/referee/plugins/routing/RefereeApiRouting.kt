@@ -42,10 +42,8 @@ fun Route.refereeApiRouting() {
         val reportId = get.id
         if (reportId >= 0) {
             val report = CacheUtil.getCachedReport(reportId).recoverCatching {
-
+                println("Report $reportId not found in cache, loading from db")
                 CompleteReportDEO.fromTournamentReportId(reportId).getOrThrow()
-
-
             }
 
             if (report.isSuccess) {
