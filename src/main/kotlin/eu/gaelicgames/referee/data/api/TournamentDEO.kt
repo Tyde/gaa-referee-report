@@ -4,7 +4,6 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 
 suspend fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
@@ -62,15 +61,12 @@ suspend fun TournamentDEO.updateInDatabase(): Result<Tournament> {
                 )
             }
         }
-        runBlocking {
-            CacheUtil.deleteCachedCompleteTournamentReport(tournament.id.value)
-            CacheUtil.deleteCachedPublicTournamentReport(tournament.id.value)
-        }
+        CacheUtil.deleteCachedCompleteTournamentReport(tournament.id.value)
+        CacheUtil.deleteCachedPublicTournamentReport(tournament.id.value)
+
 
         TournamentReport.find { TournamentReports.tournament eq tournament.id }.forEach {
-            runBlocking {
-                CacheUtil.deleteCachedReport(it.id.value)
-            }
+            CacheUtil.deleteCachedReport(it.id.value)
         }
 
         tournament.name = thisDEO.name
@@ -150,27 +146,25 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournament(input: Tournament
             gameReports,
             allTeams
         )
-        runBlocking {
-            CacheUtil.cachePublicTournamentReport(ptr)
-        }
+        CacheUtil.cachePublicTournamentReport(ptr)
+
         ptr
     }
 
 }
 
 
-fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTournamentReportDEO {
-    return runBlocking {
-        CacheUtil.getCachedPublicTournamentReport(id)
-            .getOrElse {
-                lockedTransaction {
-                    val tournament = Tournament.findById(id)
-                        ?: throw IllegalArgumentException("Tournament with id $id does not exist")
-                    fromTournament(tournament)
-                }
+suspend fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): PublicTournamentReportDEO {
+    return CacheUtil.getCachedPublicTournamentReport(id)
+        .getOrElse {
+            lockedTransaction {
+                val tournament = Tournament.findById(id)
+                    ?: throw IllegalArgumentException("Tournament with id $id does not exist")
+                fromTournament(tournament)
             }
+        }
 
-    }
+
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -211,9 +205,8 @@ suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tourname
             allTeams,
             allPitchReports
         )
-        runBlocking {
-            CacheUtil.cacheCompleteTournamentReport(deo)
-        }
+        CacheUtil.cacheCompleteTournamentReport(deo)
+
         deo
     }
 }
@@ -234,28 +227,28 @@ private fun getAllTeamsOfGameReports(gameReports: List<GameReportDEO>): List<Tea
 }
 
 
-fun CompleteTournamentReportDEO.Companion.fromTournamentId(id: Long): CompleteTournamentReportDEO {
-    return runBlocking {
-        CacheUtil.getCachedCompleteTournamentReport(id).onSuccess {
-            return@runBlocking it
-        }
-        return@runBlocking lockedTransaction {
-            val tournament = Tournament.findById(id)
-            if (tournament == null) {
-                throw IllegalArgumentException("Tournament with id $id does not exist")
-            }
-            fromTournament(tournament)
-        }
+suspend fun CompleteTournamentReportDEO.Companion.fromTournamentId(id: Long): CompleteTournamentReportDEO {
+
+    CacheUtil.getCachedCompleteTournamentReport(id).onSuccess {
+        return it
     }
+    return lockedTransaction {
+        val tournament = Tournament.findById(id)
+        if (tournament == null) {
+            throw IllegalArgumentException("Tournament with id $id does not exist")
+        }
+        fromTournament(tournament)
+    }
+
 }
 
 
 suspend fun DeleteCompleteTournamentDEO.delete(): Result<Long> {
     val tournamentID = this.id
-    runBlocking {
-        CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
-        CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
-    }
+
+    CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
+    CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
+
     return lockedTransaction {
         addLogger(StdOutSqlLogger)
         val tournament = Tournament.findById(tournamentID)
