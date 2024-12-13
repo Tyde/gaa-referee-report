@@ -6,7 +6,7 @@ import {useRouter} from "vue-router";
 const store = useTeamsheetStore()
 const router = useRouter()
 
-const targetUrl = "/teamsheet/edit/" + store.uploadSuccessDEO?.fileKey
+const targetUrl = "/edit/" + store.uploadSuccessDEO?.fileKey
 
 </script>
 

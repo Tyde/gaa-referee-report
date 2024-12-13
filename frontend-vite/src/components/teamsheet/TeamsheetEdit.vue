@@ -3,7 +3,9 @@ import {useTeamsheetStore} from "@/utils/teamsheet_store";
 import {onBeforeMount, ref} from "vue";
 import {getTeamsheetMetaData} from "@/utils/api/teamsheet_api";
 import {useRouter} from "vue-router";
-import {TeamsheetWithClubAndTournamentDataDEO} from "@/types/teamsheet_types";
+import {newTeamsheetWithClubAndTournamentDataDEO, TeamsheetWithClubAndTournamentDataDEO} from "@/types/teamsheet_types";
+import AugmentTeamsheetData from "@/components/teamsheet/AugmentTeamsheetData.vue";
+import CommonEditTeamsheetData from "@/components/teamsheet/CommonEditTeamsheetData.vue";
 
 const store = useTeamsheetStore();
 const router = useRouter()
@@ -11,7 +13,7 @@ const props = defineProps<{
   fileKey: string
 }>()
 
-const metaData = ref<TeamsheetWithClubAndTournamentDataDEO>()
+const metaData = ref<TeamsheetWithClubAndTournamentDataDEO>(newTeamsheetWithClubAndTournamentDataDEO())
 onBeforeMount(() => {
   getTeamsheetMetaData(props.fileKey)
       .then((response) => {
@@ -19,19 +21,21 @@ onBeforeMount(() => {
       })
       .catch((e) => {
         store.newError(e)
-        router.push("/")
+        //router.push("/")
       })
 });
+
+function onFileKeyChanged(newFileKey: string) {
+
+}
+
+function submitEdit() {
+
+}
 </script>
 
 <template>
-<div>
-  Editing teamsheet
-  {{props.fileKey}}
-
-  sender:
-  {{metaData?.players}}
-</div>
+<CommonEditTeamsheetData :model-value="metaData" @submitData="submitEdit" @onFileKeyChanged="onFileKeyChanged"/>
 </template>
 
 <style scoped>

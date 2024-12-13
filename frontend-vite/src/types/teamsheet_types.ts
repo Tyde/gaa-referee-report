@@ -28,6 +28,18 @@ export const TeamsheetWithClubAndTournamentDataDEO = z.object({
 
 export type TeamsheetWithClubAndTournamentDataDEO = z.infer<typeof TeamsheetWithClubAndTournamentDataDEO>
 
+export function newTeamsheetWithClubAndTournamentDataDEO(): TeamsheetWithClubAndTournamentDataDEO {
+    return {
+        players: [],
+        clubId: -1,
+        tournamentId: -1,
+        fileKey: "",
+        registrarMail: "",
+        registrarName: "",
+        codeId: -1
+    }
+}
+
 
 
 export const ReplaceTeamsheetFileDEO = z.object({
