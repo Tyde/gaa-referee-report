@@ -25,13 +25,19 @@ export async function setTeamsheetMetaData(data: TeamsheetWithClubAndTournamentD
 }
 
 export async function getTeamsheetMetaData(fileKey: string):Promise<TeamsheetWithClubAndTournamentDataDEO> {
-    const data = {fileKey: fileKey}
-    return makePostRequest("/api/teamsheet/get_metadata", data)
+    const payload = {fileKey: fileKey}
+    return makePostRequest("/api/teamsheet/get_metadata", payload)
         .then(data => parseAndHandleDEO(data, TeamsheetWithClubAndTournamentDataDEO))
 }
 
 
 export async function editTeamsheetMetaData(data: TeamsheetWithClubAndTournamentDataDEO):Promise<TeamsheetWithClubAndTournamentDataDEO> {
     return makePostRequest("/api/teamsheet/edit_metadata", data)
+        .then(data => parseAndHandleDEO(data, TeamsheetWithClubAndTournamentDataDEO))
+}
+
+export async function replaceTeamsheetFileKey(oldfileKey: string, newTeamsheetData: TeamsheetWithClubAndTournamentDataDEO):Promise<TeamsheetWithClubAndTournamentDataDEO> {
+    const payload = {oldfileKey: oldfileKey, newTeamsheetData: newTeamsheetData}
+    return makePostRequest("/api/teamsheet/replace_file", payload)
         .then(data => parseAndHandleDEO(data, TeamsheetWithClubAndTournamentDataDEO))
 }

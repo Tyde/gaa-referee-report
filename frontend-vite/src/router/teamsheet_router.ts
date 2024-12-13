@@ -22,6 +22,7 @@ export const routes = [
     {
         name: "teamsheet-edit",
         path: "/edit/:fileKey",
-        component: TeamsheetEdit
+        component: TeamsheetEdit,
+        props: true
     }
 ]
