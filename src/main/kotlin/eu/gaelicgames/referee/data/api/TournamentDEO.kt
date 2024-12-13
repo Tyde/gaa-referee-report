@@ -208,7 +208,7 @@ suspend fun PublicTournamentListDEO.Companion.all(): PublicTournamentListDEO? {
             LEFT JOIN gamereports gr ON gr.report_id = tr.id
             LEFT JOIN teams team_a ON gr.team_a = team_a.id
         WHERE 
-            team_a.id IS NOT NULL
+            team_a.id IS NOT NULL AND tr.is_submitted = true
     
         UNION
     
@@ -230,7 +230,7 @@ suspend fun PublicTournamentListDEO.Companion.all(): PublicTournamentListDEO? {
             LEFT JOIN gamereports gr ON gr.report_id = tr.id
             LEFT JOIN teams team_b ON gr.team_b = team_b.id
         WHERE 
-            team_b.id IS NOT NULL
+            team_b.id IS NOT NULL AND tr.is_submitted = true
     )
     SELECT 
         tt.tournament_id,
