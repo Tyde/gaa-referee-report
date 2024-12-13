@@ -29,7 +29,10 @@ const tournamentsSortedByDate = computed(() => {
 
 const teamFilterPredicate = (tournament: DatabaseTournament) => {
   if (selectedTeam.value) {
-    const teamsInTournament = tournamentsWithTeams.value.filter(it => it.tournament.id == tournament.id)[0].teams
+    const teamsInTournament = tournamentsWithTeams.value.find(it => it.tournament.id == tournament.id)?.teams
+    if (!teamsInTournament) {
+      return false
+    }
     return teamsInTournament.filter(it => {
       if (it.isAmalgamation) {
         return (it.amalgamationTeams
