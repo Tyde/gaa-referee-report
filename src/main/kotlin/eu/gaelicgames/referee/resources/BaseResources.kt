@@ -12,3 +12,9 @@ class UserRes() {
     class Activate(val parent: UserRes, val uuid: String)
 
 }
+
+
+@Serializable
+@Resource("/teamsheet")
+class TeamsheetRes() {
+}
