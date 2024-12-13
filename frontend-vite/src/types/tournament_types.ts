@@ -1,5 +1,6 @@
 import {z} from "zod";
 import {DateTime} from "luxon";
+import {Team} from "@/types/team_types";
 
 export const Tournament = z.object({
     name: z.string().min(1),
@@ -54,3 +55,16 @@ export const TournamentTeamPreselectionDEO = z.object({
 
 export type TournamentTeamPreselectionDEO = z.infer<typeof TournamentTeamPreselectionDEO>
 
+
+export const PublicTournamentWithTeamsDEO = z.object({
+    tournament: DatabaseTournament,
+    teams: z.array(Team)
+})
+
+export type PublicTournamentWithTeamsDEO = z.infer<typeof PublicTournamentWithTeamsDEO>
+
+export const PublicTournamentListDEO = z.object({
+    tournaments: z.array(PublicTournamentWithTeamsDEO)
+})
+
+export type PublicTournamentListDEO = z.infer<typeof PublicTournamentListDEO>
