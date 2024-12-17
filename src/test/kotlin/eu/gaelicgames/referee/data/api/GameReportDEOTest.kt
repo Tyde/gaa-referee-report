@@ -291,9 +291,11 @@ internal class GameReportDEOTest {
 
     @Test
     fun gameReportClassesDEO_get() {
-        val deo = GameReportClassesDEO.load()
-        assert(deo.extraTimeOptions.isNotEmpty())
-        assert(deo.gameTypes.isNotEmpty())
+        runBlocking {
+            val deo = GameReportClassesDEO.load()
+            assert(deo.extraTimeOptions.isNotEmpty())
+            assert(deo.gameTypes.isNotEmpty())
+        }
     }
 
     @Test

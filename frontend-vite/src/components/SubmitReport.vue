@@ -75,16 +75,16 @@ async function uploadAllData() {
   let updateDiAndInjuries = store.gameReports.map((gameReport) => {
     if (gameReport.id) {
       let tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
-        store.sendDisciplinaryAction(da, gameReport,true)
+        return store.sendDisciplinaryAction(da, gameReport,true)
       })
       let tBdiP = gameReport.teamBReport.disciplinaryActions.map((da) => {
-        store.sendDisciplinaryAction(da, gameReport,true)
+        return store.sendDisciplinaryAction(da, gameReport,true)
       })
       let tAinP = gameReport.teamAReport.injuries.map((injury) => {
-        store.sendInjury(injury, gameReport, true)
+        return store.sendInjury(injury, gameReport, true)
       })
       let tBinP = gameReport.teamBReport.injuries.map((injury) => {
-        store.sendInjury(injury, gameReport, true)
+        return store.sendInjury(injury, gameReport, true)
       })
       //concat all four arrays
       let allPromises = tAdiP.concat(tBdiP).concat(tAinP).concat(tBinP)

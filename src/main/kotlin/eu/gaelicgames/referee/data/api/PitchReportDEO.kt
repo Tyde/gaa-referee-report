@@ -3,7 +3,6 @@ package eu.gaelicgames.referee.data.api
 import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.sql.ResultRow
@@ -11,9 +10,8 @@ import org.jetbrains.exposed.sql.Transaction
 
 
 suspend fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
-    val cachedVars = runBlocking {
-        CacheUtil.getCachedPitchVariables()
-    }
+    val cachedVars = CacheUtil.getCachedPitchVariables()
+
     if (cachedVars.isSuccess) {
         return cachedVars.getOrThrow()
     }
@@ -27,9 +25,9 @@ suspend fun PitchVariablesDEO.Companion.load(): PitchVariablesDEO {
             goalPosts = PitchGoalpostsOption.all().map { it.toPitchPropertyDEO() },
             goalDimensions = PitchGoalDimensionOption.all().map { it.toPitchPropertyDEO() },
         )
-        runBlocking {
-            CacheUtil.cachePitchVariables(variables)
-        }
+
+        CacheUtil.cachePitchVariables(variables)
+
         variables
     }
 }
@@ -49,9 +47,9 @@ fun PitchPropertyType.toDBClass(): LongEntityClass<LongEntity> {
 
 suspend fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
-    runBlocking {
-        CacheUtil.deleteCachedPitchVariables()
-    }
+
+    CacheUtil.deleteCachedPitchVariables()
+
     return lockedTransaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
@@ -66,9 +64,9 @@ suspend fun PitchVariableUpdateDEO.updateInDatabase(): Result<PitchVariableUpdat
 
 suspend fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO> {
     val pvUpdate = this
-    runBlocking {
-        CacheUtil.deleteCachedPitchVariables()
-    }
+
+    CacheUtil.deleteCachedPitchVariables()
+
     return lockedTransaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
@@ -88,9 +86,9 @@ suspend fun PitchVariableUpdateDEO.delete(): Result<DeletePitchVariableResultDEO
 
 suspend fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
-    runBlocking {
-        CacheUtil.deleteCachedPitchVariables()
-    }
+
+    CacheUtil.deleteCachedPitchVariables()
+
     return lockedTransaction {
         val obj = pvUpdate.type.toDBClass()
             .findById(pvUpdate.id)
@@ -106,9 +104,9 @@ suspend fun PitchVariableUpdateDEO.enable(): Result<PitchVariableUpdateDEO> {
 
 suspend fun NewPitchVariableDEO.createInDatabase(): Result<PitchVariableUpdateDEO> {
     val pvUpdate = this
-    runBlocking {
-        CacheUtil.deleteCachedPitchVariables()
-    }
+
+    CacheUtil.deleteCachedPitchVariables()
+
     return lockedTransaction {
         val obj = when (pvUpdate.type) {
             PitchPropertyType.SURFACE -> PitchSurfaceOption.new { name = pvUpdate.name }
@@ -144,12 +142,12 @@ suspend fun PitchReportDEO.Companion.fromPitchReport(pitchReport: Pitch): PitchR
     }
 }
 
-fun Transaction.clearCacheForPitchReport(pitch: Pitch) {
+suspend fun Transaction.clearCacheForPitchReport(pitch: Pitch) {
 
     val report = pitch.report
-    runBlocking {
-        clearCacheForTournamentReport(report)
-    }
+
+    clearCacheForTournamentReport(report)
+
 
 }
 
@@ -292,9 +290,8 @@ suspend fun DeletePitchReportDEO.deleteFromDatabase(): Result<Boolean> {
     return lockedTransaction {
         val pitch = Pitch.findById(deleteId)
         if (pitch != null) {
-            runBlocking {
-                clearCacheForPitchReport(pitch)
-            }
+            clearCacheForPitchReport(pitch)
+
             pitch.delete()
             Result.success(true)
         } else {

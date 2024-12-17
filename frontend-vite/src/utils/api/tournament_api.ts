@@ -1,7 +1,7 @@
 import type {DateTime} from "luxon";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {
-    DatabaseTournament,
+    DatabaseTournament, PublicTournamentListDEO,
     RegionDEO,
     Tournament,
     TournamentTeamPreselectionDEO,
@@ -80,4 +80,11 @@ export async function setTournamentPreselectedTeams(tournament: DatabaseTourname
             teamIds: teams.map(team => team.id)
         } as TournamentTeamPreselectionDEO
     ).then(data => parseAndHandleDEO(data, TournamentTeamPreselectionDEO))
+}
+
+
+export async function loadAllTournamentsWithTeams():Promise<PublicTournamentListDEO> {
+    return fetch("/api/tournament/all_with_teams")
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, PublicTournamentListDEO))
 }

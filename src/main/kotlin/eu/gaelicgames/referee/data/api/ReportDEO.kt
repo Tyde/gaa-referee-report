@@ -10,13 +10,13 @@ import java.time.LocalDateTime
 import java.util.*
 
 
-fun Transaction.clearCacheForTournamentReport(report: TournamentReport) {
-    runBlocking {
-        val tournamentID = report.tournament.id.value
-        CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
-        CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
-        CacheUtil.deleteCachedReport(report.id.value)
-    }
+suspend fun Transaction.clearCacheForTournamentReport(report: TournamentReport) {
+
+    val tournamentID = report.tournament.id.value
+    CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
+    CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
+    CacheUtil.deleteCachedReport(report.id.value)
+
 
 
 }
@@ -46,7 +46,7 @@ suspend fun CompleteReportDEO.Companion.fromTournamentReport(
         report
     }
     if (tournamentReport.isSubmitted) {
-        runBlocking { CacheUtil.cacheReport(report) }
+        CacheUtil.cacheReport(report)
     }
     return report
 }
