@@ -16,8 +16,7 @@ suspend fun Transaction.clearCacheForTournamentReport(report: TournamentReport) 
     CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
     CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
     CacheUtil.deleteCachedReport(report.id.value)
-
-
+    CacheUtil.deleteCachedClubAndCountyApi()
 
 }
 

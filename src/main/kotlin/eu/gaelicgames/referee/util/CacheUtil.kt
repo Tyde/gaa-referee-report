@@ -56,6 +56,8 @@ object CacheUtil {
 
     private const val KEY_GAME_REPORT_CLASSES = "gameReportClasses"
 
+    private const val KEY_CLUB_AND_COUNTY_API = "clubAndCountyApi"
+
 
     suspend fun <R> runClient(block: suspend KredsClient.() -> Result<R>):Result<R> {
         if(client != null) {
@@ -328,8 +330,35 @@ object CacheUtil {
         }
     }
 
+    suspend fun cacheClubAndCountyApi(api: ClubAndCountyApi): Result<Unit> {
+        return runClient {
+            kotlin.runCatching {
+                set(KEY_CLUB_AND_COUNTY_API, Json.encodeToString(api))
+                expire(KEY_CLUB_AND_COUNTY_API, (60*60*24).toULong()) // 1 day cache
+                Unit
+            }
+        }
+    }
 
+    suspend fun getCachedClubAndCountyApi(): Result<ClubAndCountyApi> {
+        return runClient {
+            val apiString = get(KEY_CLUB_AND_COUNTY_API)
+            if(apiString != null) {
+                return@runClient kotlin.runCatching {
+                    Json.decodeFromString<ClubAndCountyApi>(apiString)
+                }
+            }
+            return@runClient Result.failure(Exception("ClubAndCountyApi not found in cache"))
+        }
+    }
 
-
+    suspend fun deleteCachedClubAndCountyApi(): Result<Unit> {
+        return runClient {
+            kotlin.runCatching {
+                del(KEY_CLUB_AND_COUNTY_API)
+                Unit
+            }
+        }
+    }
 
 }
