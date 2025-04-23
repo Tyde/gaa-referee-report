@@ -60,7 +60,7 @@ class SanitizeDataService(scope: CoroutineScope) : BaseRegularService(scope) {
         logger.info("Looking for tournamentreports to merge")
         lockedTransaction {
             TournamentReports.selectAll()
-                .where { TournamentReports.isSubmitted eq true }
+                .where { TournamentReports.isSubmitted eq true and (Tournaments.isLeague eq false) }
                 .groupBy {
                     Triple(
                         it[TournamentReports.tournament].value,
