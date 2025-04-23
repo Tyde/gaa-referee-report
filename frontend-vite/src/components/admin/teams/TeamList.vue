@@ -4,7 +4,7 @@ import {useAdminStore} from "@/utils/admin_store";
 import {editTeamOnServer} from "@/utils/api/teams_api";
 import {computed, ref} from "vue";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
-import {FilterMatchMode} from "primevue/api";
+import { FilterMatchMode } from '@primevue/core/api';
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types/team_types";
 import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";

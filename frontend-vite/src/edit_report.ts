@@ -9,8 +9,6 @@ import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -30,6 +28,7 @@ import ConfirmDialog from "primevue/confirmdialog";
 import SplitButton from "primevue/splitbutton";
 import IconField from "primevue/iconfield";
 import InputIcon from 'primevue/inputicon';
+import Lara from "@primeuix/themes/lara";
 
 
 const i18n = createI18n({
@@ -40,7 +39,11 @@ const i18n = createI18n({
 const pinia = createPinia()
 const app = createApp(App);
 app.use(pinia)
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    theme: {
+        preset: Lara
+    }
+});
 app.use(Vue3Mq);
 app.use(i18n)
 app.component('Card',Card)

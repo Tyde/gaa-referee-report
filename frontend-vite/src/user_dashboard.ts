@@ -1,6 +1,7 @@
 import {createApp} from 'vue'
 import App from './UserDashboard.vue'
 import PrimeVue from 'primevue/config';
+import Lara from '@primeuix/themes/lara';
 import Card from "primevue/card";
 import Button from "primevue/button";
 import Listbox from "primevue/listbox";
@@ -9,8 +10,6 @@ import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -42,6 +41,57 @@ import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import {createI18n} from "vue-i18n";
 import {messages} from "@/i18n/edit_report/edit_report_i18n";
+import {definePreset} from "@primeuix/themes";
+
+const RefReportColorPreset = definePreset(Lara, {
+    semantic: {
+
+        colorScheme: {
+            dark: {
+
+                highlight: {
+                    background: '#061724',
+                    focusBackground: '{zinc.700}',
+                },
+
+                primary: {
+                    color: '#0D3134',
+                    contrastColor: '#E1E4DB',
+                    hoverColor: '#1D5747',
+                    activeColor: '#1D5747',
+                    /*
+                    contrastColor: string;
+                    hoverColor: string;
+                    activeColor: string;*/
+                },
+
+                surface: {
+                    50: '#effafc',
+                    100: '#d7f1f6',
+                    200: '#b4e3ed',
+                    300: '#81cedf',
+                    400: '#46b0ca',
+                    500: '#2b94af',
+                    600: '#267894',
+                    700: '#256279',
+                    800: '#265164',
+                    900: '#244555',
+                    950: '#0e212b',
+                },
+                success: {
+                    500: '#22c55e',
+                },
+                danger: {
+                    500: '#ef4444',
+                },
+                neutral: {
+                    500: '#94a3b8', // Used for borders and secondary text
+                }
+            }
+        }
+    }
+});
+
 
 const i18n = createI18n({
     legacy: false,
@@ -53,7 +103,11 @@ const router = createRouter({
     routes: routes
 })
 const app = createApp(App);
-app.use(PrimeVue);
+app.use(PrimeVue, {
+    theme: {
+        preset: RefReportColorPreset
+    }
+});
 app.use(router)
 app.use(Vue3Mq);
 app.use(i18n)

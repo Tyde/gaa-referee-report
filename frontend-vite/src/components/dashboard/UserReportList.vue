@@ -2,7 +2,7 @@
 
 import {useDashboardStore} from "@/utils/dashboard_store";
 import {computed, ref} from "vue";
-import {FilterMatchMode, FilterOperator} from "primevue/api";
+import { FilterMatchMode,FilterOperator } from '@primevue/core/api';
 import {useConfirm} from "primevue/useconfirm";
 import {useRouter} from "vue-router";
 import type {CompactTournamentReportDEO} from "@/types/report_types";

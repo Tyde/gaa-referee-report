@@ -9,8 +9,6 @@ import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -24,11 +22,16 @@ import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
 import Message from "primevue/message";
 import Password from "primevue/password";
+import Lara from "@primeuix/themes/lara";
 
 const pinia = createPinia()
 const app = createApp(App);
 app.use(pinia)
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    theme: {
+        preset: Lara
+    }
+});
 app.use(Vue3Mq);
 app.component('Card',Card)
 app.component('Button',Button)

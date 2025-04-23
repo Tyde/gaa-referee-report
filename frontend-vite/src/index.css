@@ -1,3 +1,4 @@
+
 @layer tailwind-base, primevue, tailwind-utilities;
 
 @layer tailwind-base {
@@ -9,10 +10,12 @@
     @tailwind utilities;
 }
 
-
-
 html {
     font-size: 15px;
+}
+
+body {
+    @apply bg-surface-950;
 }
 
 .hurling-game {

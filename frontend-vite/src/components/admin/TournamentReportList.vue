@@ -3,7 +3,7 @@
 import {computed, onMounted, ref} from "vue";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
 import {loadAllReports} from "@/utils/api/report_api";
-import {FilterMatchMode, FilterOperator} from "primevue/api";
+import { FilterMatchMode,FilterOperator } from '@primevue/core/api';
 import {useRouter} from "vue-router";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import {RegionDEO} from "@/types/tournament_types";

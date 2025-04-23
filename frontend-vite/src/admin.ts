@@ -9,8 +9,6 @@ import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -28,8 +26,11 @@ import MegaMenu from "primevue/megamenu";
 import Menubar from "primevue/menubar";
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
-import TabView from "primevue/tabview";
-import TabPanel from "primevue/tabpanel";
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
 import Message from "primevue/message";
 import Panel from "primevue/panel";
 import Toast from "primevue/toast";
@@ -44,7 +45,8 @@ import MultiSelect from "primevue/multiselect";
 import {createI18n} from "vue-i18n";
 import {messages} from "@/i18n/edit_report/edit_report_i18n";
 import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";                     //optional for row
+import InputIcon from "primevue/inputicon";
+import Lara from "@primeuix/themes/lara";                     //optional for row
 
 
 const router = createRouter({
@@ -59,7 +61,11 @@ const i18n = createI18n({
 })
 const pinia = createPinia()
 const app = createApp(App);
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    theme: {
+        preset: Lara
+    }
+});
 app.use(pinia)
 app.use(router)
 app.use(i18n)
@@ -74,7 +80,10 @@ app.component('Dropdown',Dropdown)
 app.component('InputNumber',InputNumber)
 app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
-app.component('TabView', TabView)
+app.component('TabView', Tabs)
+app.component('TabList', TabList)
+app.component('Tab', Tab)
+app.component('TabPanels', TabPanels)
 app.component('TabPanel', TabPanel)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
@@ -85,8 +94,6 @@ app.component('Menubar', Menubar)
 app.component('ConfirmDialog', ConfirmDialog)
 app.component('Accordion', Accordion)
 app.component('AccordionTab', AccordionTab)
-app.component('TabView',TabView)
-app.component('TabPanel',TabPanel)
 app.component('Message',Message)
 app.component('Panel',Panel)
 app.component('DataTable',DataTable)

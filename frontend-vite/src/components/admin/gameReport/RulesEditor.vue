@@ -30,16 +30,23 @@ function addRule() {
 <template>
 <div class="flex flex-row justify-center">
   <div class="container">
-    <TabView v-model:active-index="activeCodeIndex">
-      <TabPanel v-for="code in store.publicStore.codes" key="id" :header="code.name">
-        <div class="flex flex-col">
-          <div class="flex flex-row justify-center">
-            <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>
+    <Tabs :value="activeCodeIndex">
+      <TabList>
+        <Tab v-for="(code, index) in store.publicStore.codes" :key="code.id" :value="code.id">
+          {{ code.name }}
+        </Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel v-for="code in store.publicStore.codes" key="id" :value="code.id">
+          <div class="flex flex-col">
+            <div class="flex flex-row justify-center">
+              <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>
+            </div>
+            <SingleRuleEditor v-for="rule in rulesByCode(code)" :rule-id="rule.id" :key="rule.id"/>
           </div>
-          <SingleRuleEditor v-for="rule in rulesByCode(code)" :rule-id="rule.id" :key="rule.id"/>
-        </div>
-      </TabPanel>
-    </TabView>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
     <NewRuleEditor :code="currentCode" v-model:visible="newRuleVisible"/>
 
   </div>

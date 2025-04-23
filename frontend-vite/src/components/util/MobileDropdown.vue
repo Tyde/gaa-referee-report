@@ -1,8 +1,7 @@
 <script setup lang="ts">
 
 import {computed, ref} from "vue";
-import {ObjectUtils} from "primevue/utils";
-
+import {resolveFieldData} from "@primeuix/utils/object"
 const props = defineProps({
   options: {
     type: Array<any>,
@@ -38,7 +37,7 @@ const filteredOptions = computed(() => {
     if (props.filterFields) {
       return props.options.filter((option:any) => {
         for (let field of props.filterFields!!) {
-          let match = ObjectUtils.resolveFieldData(option, field)
+          let match = resolveFieldData(option, field)
               ?.toLowerCase()?.includes(searchTerm.value.toLowerCase()) ?? false
           if (match) {
             return true
@@ -56,10 +55,10 @@ const filteredOptions = computed(() => {
 })
 
 function getOptionLabel(option:any) {
-  return props.optionLabel ? ObjectUtils.resolveFieldData(option, props.optionLabel) : option;
+  return props.optionLabel ? resolveFieldData(option, props.optionLabel) : option;
 }
 function getOptionRenderKey(option:any, index:number) {
-  return (props.dataKey ? ObjectUtils.resolveFieldData(option, props.dataKey) : getOptionLabel(option)) + '_' + index;
+  return (props.dataKey ? resolveFieldData(option, props.dataKey) : getOptionLabel(option)) + '_' + index;
 }
 function selectOption(option:any) {
   model.value = option;

@@ -9,8 +9,6 @@ import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -38,7 +36,8 @@ import Column from 'primevue/column';
 import Row from 'primevue/row';
 import BlockUI from "primevue/blockui";
 import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";                     //optional for row
+import InputIcon from "primevue/inputicon";
+import Lara from "@primeuix/themes/lara";                     //optional for row
 
 
 const router = createRouter({
@@ -49,7 +48,11 @@ const router = createRouter({
 
 const pinia = createPinia()
 const app = createApp(App);
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    theme: {
+        preset: Lara
+    }
+});
 app.use(pinia)
 app.use(router)
 app.use(ConfirmationService)
