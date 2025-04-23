@@ -55,8 +55,8 @@ const RefReportColorPreset = definePreset(Lara, {
                 },
 
                 primary: {
-                    color: '#0D3134',
-                    contrastColor: '#E1E4DB',
+                    color: '#92ced4',
+                    contrastColor: '#0D3134',
                     hoverColor: '#1D5747',
                     activeColor: '#1D5747',
                     /*

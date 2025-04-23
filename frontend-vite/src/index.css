@@ -18,6 +18,14 @@ body {
     @apply bg-surface-950;
 }
 
+h1 {
+    @apply text-primary;
+    @apply text-2xl;
+    @apply font-bold;
+    @apply text-center;
+    @apply m-2;
+}
+
 .hurling-game {
     background-color: #c7522a;
     @apply text-white;

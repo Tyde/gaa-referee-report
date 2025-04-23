@@ -94,12 +94,7 @@ function navigateToHome() {
 
 
 <style scoped>
-h1 {
-  @apply text-2xl;
-  @apply font-bold;
-  @apply text-gray-900;
-  @apply text-center;
-}
+
 </style>
 
 <style>

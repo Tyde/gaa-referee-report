@@ -40,7 +40,6 @@ import {
 import type {Team} from "@/types/team_types";
 import {loadAllTeams} from "@/utils/api/teams_api";
 import {usePublicStore} from "@/utils/public_store";
-import {compileAsync} from "sass";
 import {computedAsync} from "@vueuse/core";
 
 
