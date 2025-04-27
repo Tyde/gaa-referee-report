@@ -225,7 +225,7 @@ onMounted(() => {
 
 
           <div class="hidden md:flex md:flex-col">
-            <Dropdown
+            <Select
                 v-model="dAction.rule"
                 :options="filteredRules"
                 :show-clear="true"
@@ -255,7 +255,7 @@ onMounted(() => {
                 </div>
 
               </template>
-            </Dropdown>
+            </Select>
             <div v-if="dAction.rule" class="w-[22rem] p-2">
               {{ localizedDescription(dAction.rule) }}
             </div>

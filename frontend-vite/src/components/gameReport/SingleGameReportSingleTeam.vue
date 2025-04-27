@@ -61,7 +61,7 @@ function stripRuleCardsFromDescription(description?: string) {
 
 
     <div class="md:block hidden col-span-4">
-    <Dropdown
+    <Select
         v-model="currentSingleTeamGameReport.team"
         :class="{
                 'to-be-filled':currentSingleTeamGameReport.team===undefined
@@ -75,7 +75,7 @@ function stripRuleCardsFromDescription(description?: string) {
         data-key="id"
         :reset-filter-on-hide="true"
     >
-    </Dropdown>
+    </Select>
     </div>
 
     <MobileDropdown

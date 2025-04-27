@@ -93,7 +93,7 @@ onMounted(() => {
       <div class="flex flex-row justify-center">
         <div class="pr-3 flex items-center"><label for="dateformat">{{ $t('tournament.date') }}: </label></div>
         <div>
-          <Calendar id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
+          <DatePicker id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
         </div>
       </div>
       <div class="m-2 tournament-list">

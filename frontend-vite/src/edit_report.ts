@@ -5,7 +5,6 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import Listbox from "primevue/listbox";
 import InputText from "primevue/inputtext";
-import Calendar from "primevue/calendar";
 import {DatePicker} from "primevue";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
@@ -30,6 +29,7 @@ import SplitButton from "primevue/splitbutton";
 import IconField from "primevue/iconfield";
 import InputIcon from 'primevue/inputicon';
 import {RefReportColorPreset} from "@/utils/colors";
+import Select from "primevue/select";
 
 
 const i18n = createI18n({
@@ -53,10 +53,9 @@ app.component('Listbox',Listbox)
 app.component('InputText',InputText)
 app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
-app.component('Calendar',Calendar)
 app.component('DatePicker', DatePicker)
 app.component('SelectButton',SelectButton)
-app.component('Dropdown',Dropdown)
+app.component('Select',Select)
 app.component('InputNumber',InputNumber)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)

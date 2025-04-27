@@ -86,14 +86,14 @@ const dateString = computed(() => {
       <label v-if="!editedTournament.isLeague" for="dateformat">{{ $t('tournament.dateinput.tournament') }}</label>
       <label v-else for="dateformat">{{ $t('tournament.dateinput.startLeague') }}</label>
 
-      <Calendar id="dateformat"
+      <DatePicker id="dateformat"
                 :model-value="editedTournament.date.toJSDate()"
                 @update:model-value="(newDate:Date) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
                 dateFormat="yy-mm-dd"/>
     </div>
     <div v-if="editedTournament.isLeague" class="flex flex-col align-center m-2">
       <label for="dateend">{{ $t('tournament.dateinput.endLeague') }}</label>
-      <Calendar id="dateend"
+      <DatePicker id="dateend"
                 :model-value="editedTournament.endDate?.toJSDate()"
                 @update:model-value="(newDate:Date) => {editedTournament.endDate = DateTime.fromJSDate(newDate)}"
                 dateFormat="yy-mm-dd"
@@ -105,7 +105,7 @@ const dateString = computed(() => {
   </div>
 
 
-  <Dropdown
+  <Select
       v-model="editedTournament.region"
       id="region"
       :options="store.publicStore.regions"

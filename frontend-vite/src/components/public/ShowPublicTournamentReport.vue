@@ -115,7 +115,7 @@ const selectedTeam = ref<Team>()
       </div>
     </div>
     <div class="flex flex-row justify-center content-center m-2">
-      <Dropdown
+      <Select
           v-model="selectedTeam"
           :options="allTeams"
           optionLabel="name"

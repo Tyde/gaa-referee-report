@@ -177,7 +177,7 @@ function mergeTournaments() {
         <div class="tournament-edit-row">
           <div class="grow">
             <FloatLabel>
-              <Calendar
+              <DatePicker
                   :model-value="editedTournament.date.toJSDate()"
                   @update:model-value="(newDate:Date) => {
                     if(editedTournament)
@@ -191,7 +191,7 @@ function mergeTournaments() {
           </div>
           <div>
             <FloatLabel>
-              <Dropdown
+              <Select
                   v-model="editedTournament.region"
                   :options="store.publicStore.regions"
                   optionLabel="name"
@@ -211,7 +211,7 @@ function mergeTournaments() {
             <FloatLabel>
 
 
-              <Calendar
+              <DatePicker
                   :model-value="editedTournament.endDate?.toJSDate()"
                   @update:model-value="(newDate:Date) => {
                       editedTournament!!.endDate = DateTime.fromJSDate(newDate)
@@ -245,7 +245,7 @@ function mergeTournaments() {
       <p>Are you sure you want to merge this tournament with another?</p>
       <p>The tournament {{ props.tournament.name }} will be moved into the selected tournament.</p>
       <p>Choose the tournament to merge into:</p>
-      <Dropdown
+      <Select
           v-model="mergeWithTournament"
           :options="tournamentsExceptThis"
           :optionLabel="(t:DatabaseTournament) => t.name + ' in ' + t.location + ' on ' + t.date.toISODate()"

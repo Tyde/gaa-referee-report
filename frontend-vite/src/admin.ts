@@ -5,9 +5,8 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import Listbox from "primevue/listbox";
 import InputText from "primevue/inputtext";
-import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
-import Dropdown from "primevue/dropdown";
+import Select from "primevue/select";
 import './index.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
@@ -24,8 +23,10 @@ import {createPinia} from "pinia";
 import {routes} from "@/router/admin_router";
 import MegaMenu from "primevue/megamenu";
 import Menubar from "primevue/menubar";
-import Accordion from "primevue/accordion";
-import AccordionTab from "primevue/accordiontab";
+import Accordion from 'primevue/accordion';
+import AccordionPanel from 'primevue/accordionpanel';
+import AccordionHeader from 'primevue/accordionheader';
+import AccordionContent from 'primevue/accordioncontent';
 import FloatLabel from 'primevue/floatlabel';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
@@ -47,7 +48,8 @@ import {createI18n} from "vue-i18n";
 import {messages} from "@/i18n/edit_report/edit_report_i18n";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
-import {RefReportColorPreset} from "@/utils/colors"; //optional for row
+import {RefReportColorPreset} from "@/utils/colors";
+import {DatePicker} from "primevue"; //optional for row
 
 
 const router = createRouter({
@@ -75,9 +77,9 @@ app.component('Card',Card)
 app.component('Button',Button)
 app.component('Listbox',Listbox)
 app.component('InputText',InputText)
-app.component('Calendar',Calendar)
+app.component('DatePicker',DatePicker)
 app.component('SelectButton',SelectButton)
-app.component('Dropdown',Dropdown)
+app.component('Select',Select)
 app.component('InputNumber',InputNumber)
 app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
@@ -94,7 +96,9 @@ app.component('MegaMenu', MegaMenu)
 app.component('Menubar', Menubar)
 app.component('ConfirmDialog', ConfirmDialog)
 app.component('Accordion', Accordion)
-app.component('AccordionTab', AccordionTab)
+app.component('AccordionPanel', AccordionPanel)
+app.component('AccordionHeader', AccordionHeader)
+app.component('AccordionContent', AccordionContent)
 app.component('Message',Message)
 app.component('Panel',Panel)
 app.component('DataTable',DataTable)

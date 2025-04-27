@@ -175,7 +175,7 @@ onMounted(() => {
       </div>
       <div class="field p-2">
         <label for="extraTimeSelect">{{ $t('gameReport.extraTime') }}:</label><br>
-        <Dropdown
+        <Select
             id="extraTimeSelect"
             v-model="store.selectedGameReport.extraTime"
             :options="store.publicStore.extraTimeOptions"
@@ -188,12 +188,12 @@ onMounted(() => {
             :reset-filter-on-hide="true"
         >
 
-        </Dropdown>
+        </Select>
       </div>
       <div class="p-2 flex flex-col">
         <div><label for="gameTypeSelect">{{ $t('gameReport.gameType') }}:</label></div>
         <div class="flex flex-row items-start">
-          <Dropdown
+          <Select
               id="gameTypeSelect"
               v-model="store.selectedGameReport.gameType"
               :options="gameTypesByName"
@@ -211,7 +211,7 @@ onMounted(() => {
           >
 
 
-          </Dropdown>
+          </Select>
           <MobileDropdown
               id="gameTypeSelectMobile"
               v-model="store.selectedGameReport.gameType"
