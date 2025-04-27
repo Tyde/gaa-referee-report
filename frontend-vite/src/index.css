@@ -15,7 +15,7 @@ html {
 }
 
 body {
-    @apply bg-surface-950;
+    @apply bg-surface-800;
 }
 
 h1 {
@@ -24,6 +24,27 @@ h1 {
     @apply font-bold;
     @apply text-center;
     @apply m-2;
+}
+
+h2 {
+    @apply text-xl font-bold text-primary text-center mt-2 mb-2;
+}
+
+h3 {
+    @apply text-lg font-bold text-primary-100 text-center mt-2 mb-2;
+}
+.referee-container {
+    @apply w-full;
+    @apply xl:w-[1000px];
+    @apply bg-surface-900;
+    @apply mt-2;
+    @apply rounded-t-xl;
+    @apply pb-4;
+    @apply shadow-xl;
+}
+
+.referee-container > .header {
+    @apply flex flex-row justify-center flex-wrap md:flex-nowrap  bg-surface-950 rounded-t-xl;
 }
 
 .hurling-game {

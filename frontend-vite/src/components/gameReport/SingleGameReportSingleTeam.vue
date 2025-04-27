@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {computed, onMounted, ref} from "vue";
+import {computed, ref} from "vue";
 import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
@@ -59,6 +59,8 @@ function stripRuleCardsFromDescription(description?: string) {
 <template>
   <div class="grid grid-cols-4">
 
+
+    <div class="md:block hidden col-span-4">
     <Dropdown
         v-model="currentSingleTeamGameReport.team"
         :class="{
@@ -67,13 +69,15 @@ function stripRuleCardsFromDescription(description?: string) {
         :filter="true"
         :options="store.report.selectedTeams"
         :show-clear="true"
-        class="col-span-4 hidden md:flex"
+        class="w-full"
         option-label="name"
         :placeholder="$t('gameReport.selectTeam')"
         data-key="id"
         :reset-filter-on-hide="true"
     >
     </Dropdown>
+    </div>
+
     <MobileDropdown
         :options="store.report.selectedTeams"
         v-model="currentSingleTeamGameReport.team"
@@ -84,43 +88,7 @@ function stripRuleCardsFromDescription(description?: string) {
         data-key="id"
     />
     <template v-if="currentSingleTeamGameReport.team">
-      <!--
-      <div class="flex justify-center p-2">
-        <div>
-          <label for="goals_team">{{ $t('gameReport.goals') }}</label><br>
-          <InputNumber
-              id="goals_team"
-              v-model="currentSingleTeamGameReport.goals"
-              :step="1"
-              buttonLayout="vertical" class="w-16 text-sm"
-              decrement-button-class="score-button-base"
-              increment-button-class="score-button-base"
-              input-class="text-sm"
-              showButtons
-              type="text"
-              :min="0"
-          />
-        </div>
-      </div>
-      <div class="flex justify-center p-2">
-        <div>
-          <label for="points_team">{{ $t('gameReport.points') }}</label><br>
-          <InputNumber
-              id="points_team"
-              v-model="currentSingleTeamGameReport.points"
-              :step="1"
-              buttonLayout="vertical" class="w-16 text-sm"
-              decrement-button-class="score-button-base"
-              increment-button-class="score-button-base"
-              input-class="text-sm"
-              showButtons
-              type="text"
-              :min="0"
 
-          />
-        </div>
-      </div>
-      -->
       <div class="flex justify-center p-2">
         <GAAScoreInput
             v-model:goals="currentSingleTeamGameReport.goals"

@@ -113,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto m-2 w-full md:w-10/12 xl:w-5/12">
+  <div class="mx-auto m-2 w-full md:w-10/12 2xl:w-5/12">
     <h2>{{ $t('teamSelect.selectReportTeams') }}</h2>
     <div>
 
@@ -161,9 +161,7 @@ onMounted(() => {
 
 
 <style scoped>
-  h2 {
-    @apply text-2xl font-bold text-gray-700 text-center mt-2 mb-2;
-  }
+
 .selected-teams-list {
   @apply w-full;
   list-style: none;

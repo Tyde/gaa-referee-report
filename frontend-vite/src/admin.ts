@@ -18,7 +18,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
-import {createRouter,createWebHashHistory} from "vue-router";
+import {createRouter, createWebHashHistory} from "vue-router";
 
 import {createPinia} from "pinia";
 import {routes} from "@/router/admin_router";
@@ -46,7 +46,7 @@ import {createI18n} from "vue-i18n";
 import {messages} from "@/i18n/edit_report/edit_report_i18n";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
-import Lara from "@primeuix/themes/lara";                     //optional for row
+import {RefReportColorPreset} from "@/utils/colors"; //optional for row
 
 
 const router = createRouter({
@@ -63,7 +63,7 @@ const pinia = createPinia()
 const app = createApp(App);
 app.use(PrimeVue, {
     theme: {
-        preset: Lara
+        preset: RefReportColorPreset
     }
 });
 app.use(pinia)

@@ -7,6 +7,7 @@ import GameTypeEditor from "@/components/gameReport/GameTypeEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {GameReport} from "@/types/game_report_types";
 import MobileDropdown from "@/components/util/MobileDropdown.vue";
+import DateTimePicker from "@/components/util/DateTimePicker.vue";
 
 
 const props = defineProps<{
@@ -90,8 +91,41 @@ function correctStartTime(value:DateTime) {
 }
 
 
-onMounted(() => {
 
+
+const nativePickerUsed = ref(false)
+
+
+function detectTouchscreen() {
+  var result = false;
+  if (window.PointerEvent && ('maxTouchPoints' in navigator)) {
+    console.log("Pointer Events supported")
+    // if Pointer Events are supported, just check maxTouchPoints
+    if (navigator.maxTouchPoints > 0) {
+      console.log("Pointer Events with maxTouchPoints")
+      result = true;
+    }
+  } else {
+    // no Pointer Events...
+    if (window.matchMedia && window.matchMedia("(any-pointer:coarse)").matches) {
+      console.log("Media query for any-pointer:coarse")
+      // check for any-pointer:coarse which mostly means touchscreen
+      result = true;
+    } else if (window.TouchEvent || ('ontouchstart' in window)) {
+      console.log("TouchEvent or ontouchstart in window")
+      // last resort - check for exposed touch events API / event handler
+      result = true;
+    }
+  }
+  console.log("Touchscreen detected: ", result)
+  return result;
+}
+
+onMounted(() => {
+  const nativePickerAvailable = 'showPicker' in HTMLInputElement.prototype
+  const isTouch = detectTouchscreen()
+  console.log("Native picker available: ", nativePickerAvailable, "Is touch: ", isTouch)
+  nativePickerUsed.value = nativePickerAvailable && isTouch
   //updateInternalDateStart()
 })
 </script>
@@ -101,25 +135,16 @@ onMounted(() => {
     <div class="col-span-2 flex flex-wrap flex-col md:flex-row justify-center content-center">
       <div class="field p-2">
         <label for="timeStartGame">{{ $t('gameReport.throwInTime') }}:</label><br>
-        <Calendar
-            :model-value="store.selectedGameReport?.startTime?.toJSDate()"
-            @update:model-value="(nD:Date) => {
-              if(store.selectedGameReport){
-                store.selectedGameReport.startTime = correctStartTime(DateTime.fromJSDate(nD))
-              }
-            }"
-            id="timeStartGame"
-            :showSeconds="false"
-            :showTime="true"
+        <DateTimePicker
+            v-model="store.selectedGameReport.startTime"
+            :correct-start-date="store.report.tournament.isLeague ? undefined : store.report.tournament.date"
             :time-only="!isLeagueGame"
-            date-format="yy-mm-dd"
             :class="{
                 'to-be-filled':store.selectedGameReport.startTime===undefined
             }"
-            :pt="{
-                input: { class: 'p-1 md:p-2'}
-            }"
-        />
+          />
+
+
 
       </div>
       <div class="field p-2 object-center">
@@ -248,7 +273,7 @@ onMounted(() => {
 <style>
 .single-team-report {
   @apply p-4 col-span-2 lg:col-span-1 flex;
-  @apply flex-col border-2 border-gray-800 m-2 bg-gray-200;
+  @apply flex-col border border-surface-500 m-2 bg-surface-600;
   @apply rounded-lg md:border-0;
 
 }

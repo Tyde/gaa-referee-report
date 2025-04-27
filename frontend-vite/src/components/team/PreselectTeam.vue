@@ -49,8 +49,7 @@ function submit() {
 
 <template>
 <div class="flex flex-col items-center">
-  <h1>Preselect Team</h1>
-  <p>Choose a team to preselect</p>
+  <h3>Preselect Teams</h3>
   <TeamSelectField
       :show_new_amalgamate="true"
       :show_add_new_team="true"
@@ -67,7 +66,7 @@ function submit() {
       <li
           v-for="team in selectedTeams"
           :key="team.id"
-          class="bg-slate-200 rounded-lg p-2 m-2 cursor-pointer"
+          class="bg-surface-600 rounded-lg p-2 m-2 cursor-pointer"
           @click="teamUnselected(team)"
       >
         {{team.name}}

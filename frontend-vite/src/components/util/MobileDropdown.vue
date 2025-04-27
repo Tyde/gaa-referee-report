@@ -70,14 +70,14 @@ function selectOption(option:any) {
 <div class="w-full">
   <button
       @click="isOpen = !isOpen"
-      class="border rounded border-gray-400 bg-white p-2 m-2 w-full"
+      class="border rounded border-surface-500 bg-surface-600 p-2 m-2 w-full"
   >
     <span v-if="model">
       <slot name="option" :option="model" :index="-1">
             {{getOptionLabel(model)}}
           </slot>
     </span>
-    <span v-else class="text-gray-700">
+    <span v-else class="">
       {{placeholder || 'Select'}}
     </span>
   </button>
@@ -128,13 +128,13 @@ function selectOption(option:any) {
   right: 0;
   bottom: 0;
   z-index: 1000;
-  @apply rounded-lg border border-gray-300 bg-white;
+  @apply rounded-lg border border-surface-500 bg-surface-600;
   @apply p-4 flex flex-col;
 }
 
 .mobile-dropdown-option {
   @apply p-2;
-  @apply border-b border-gray-300;
-  @apply hover:bg-gray-100;
+  @apply border-b border-surface-500;
+  @apply hover:bg-surface-700;
 }
 </style>

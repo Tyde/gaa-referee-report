@@ -10,5 +10,17 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [PrimeUI],
+  variants: {
+    extend: {
+      display: ['touch'],  // we want to control `display` on touch devices
+      opacity: ['touch'],  // or any other utility you like
+    }
+  },
+  plugins: [
+      PrimeUI,
+      function({ addVariant }) {
+        // media query for "coarse" pointers (i.e. touchscreens)
+        addVariant('touch', '@media (pointer: coarse)');
+      }
+  ],
 }

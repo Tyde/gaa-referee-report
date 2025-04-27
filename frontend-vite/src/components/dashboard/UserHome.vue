@@ -37,5 +37,7 @@ const submittedReports = computed(() => {
 
 
 <style scoped>
-
+h1 {
+  @apply text-left;
+}
 </style>

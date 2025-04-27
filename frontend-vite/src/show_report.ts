@@ -4,13 +4,13 @@ import PrimeVue from 'primevue/config';
 import './index.css';
 import Button from "primevue/button";
 import {createPinia} from "pinia";
-import Lara from "@primeuix/themes/lara";
+import {RefReportColorPreset} from "@/utils/colors";
 
 const pinia = createPinia()
 const app = createApp(App);
 app.use(PrimeVue, {
     theme: {
-        preset: Lara
+        preset: RefReportColorPreset
     }
 });
 app.use(pinia)

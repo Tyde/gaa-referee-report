@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch} from "vue";
+import {onMounted, ref} from "vue";
 import {createTeam} from "@/utils/api/teams_api";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
@@ -94,7 +94,7 @@ watchDebounced(new_team_name,() => {
 </script>
 
 <template>
-  <div class="w-fill shadow-xl p-2 bg-gray-100 border-gray-500 rounded-xl flex-col text-center mb-4">
+  <div class="w-fill shadow-xl p-2 bg-surface-700 border-surface-500 rounded-xl flex-col text-center mb-4">
     <label for="new_team_name">{{ $t('teamSelect.newTeamName') }}</label><br>
     <InputText id="new_team_name" :disabled="is_loading" v-model="new_team_name"/>
     <br>

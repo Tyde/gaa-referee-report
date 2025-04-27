@@ -6,6 +6,7 @@ import Button from "primevue/button";
 import Listbox from "primevue/listbox";
 import InputText from "primevue/inputtext";
 import Calendar from "primevue/calendar";
+import {DatePicker} from "primevue";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
@@ -18,7 +19,7 @@ import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
 import {messages} from "./i18n/edit_report/edit_report_i18n";
 // @ts-ignore
-import { Vue3Mq } from "vue3-mq";
+import {Vue3Mq} from "vue3-mq";
 import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
 import Message from "primevue/message";
@@ -28,7 +29,7 @@ import ConfirmDialog from "primevue/confirmdialog";
 import SplitButton from "primevue/splitbutton";
 import IconField from "primevue/iconfield";
 import InputIcon from 'primevue/inputicon';
-import Lara from "@primeuix/themes/lara";
+import {RefReportColorPreset} from "@/utils/colors";
 
 
 const i18n = createI18n({
@@ -41,7 +42,7 @@ const app = createApp(App);
 app.use(pinia)
 app.use(PrimeVue, {
     theme: {
-        preset: Lara
+        preset: RefReportColorPreset
     }
 });
 app.use(Vue3Mq);
@@ -53,6 +54,7 @@ app.component('InputText',InputText)
 app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
 app.component('Calendar',Calendar)
+app.component('DatePicker', DatePicker)
 app.component('SelectButton',SelectButton)
 app.component('Dropdown',Dropdown)
 app.component('InputNumber',InputNumber)

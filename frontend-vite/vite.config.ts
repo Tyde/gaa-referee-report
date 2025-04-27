@@ -48,11 +48,11 @@ export default defineConfig(({mode}) => {
             vue(),
             vueJsx(),
             gradleAssembler(),
-
+            /*
             visualizer({
                 filename: 'bundle-visualizer.html', // The output file
                 open: true, // Automatically open the visualizer file
-            })
+            })*/
         ],
         resolve: {
             alias: {

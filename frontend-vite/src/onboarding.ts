@@ -17,19 +17,19 @@ import Toolbar from "primevue/toolbar";
 import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
 // @ts-ignore
-import { Vue3Mq } from "vue3-mq";
+import {Vue3Mq} from "vue3-mq";
 import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
 import Message from "primevue/message";
 import Password from "primevue/password";
-import Lara from "@primeuix/themes/lara";
+import {RefReportColorPreset} from "@/utils/colors";
 
 const pinia = createPinia()
 const app = createApp(App);
 app.use(pinia)
 app.use(PrimeVue, {
     theme: {
-        preset: Lara
+        preset: RefReportColorPreset
     }
 });
 app.use(Vue3Mq);
