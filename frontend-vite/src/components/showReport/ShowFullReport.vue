@@ -33,7 +33,7 @@ const isLeague = computed(() => {
 <template>
   <div class="flex flex-row justify-center">
     <div class="flex flex-col">
-      <div class="bg-white w-full sm:w-[680px]">
+      <div class="print:bg-white bg-surface-600 w-full sm:w-[680px]">
         <h1>Tournament Report</h1>
         <h2>Tournament: {{ tournamentDate }} - {{ currentReport.tournament.name }} in
           {{ currentReport.tournament.location }}</h2>
@@ -104,20 +104,13 @@ const isLeague = computed(() => {
 
 
 <style scoped>
-h1 {
-  @apply text-xl font-bold text-center;
-}
 
-h2 {
-  @apply text-lg font-bold text-center;
-}
-
-h3 {
-  @apply text-center;
-}
 
 .game-report-style {
-  @apply pt-6 p-4 border-t-2 border-t-gray-600 odd:bg-white even:bg-gray-200 break-inside-avoid;
+  @apply pt-6 p-4 border-t-2;
+  @apply border-t-surface-600 odd:bg-surface-500 even:bg-surface-700;
+  @apply print:border-t-gray-600 print:odd:bg-white print:even:bg-gray-200;
+  @apply break-inside-avoid;
 }
 
 </style>

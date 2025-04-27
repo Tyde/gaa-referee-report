@@ -4,7 +4,7 @@ import {useAdminStore} from "@/utils/admin_store";
 import type {GameCode} from "@/types";
 import SingleRuleEditor from "@/components/admin/gameReport/SingleRuleEditor.vue";
 import NewRuleEditor from "@/components/admin/gameReport/NewRuleEditor.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 
 const store = useAdminStore()
 
@@ -25,6 +25,12 @@ const newRuleVisible = ref(false)
 function addRule() {
   newRuleVisible.value = true
 }
+
+onMounted(() => {
+store.publicStore.waitForAllVariablesPresent().then(() => {
+    activeCodeIndex.value = store.publicStore.codes[0].id
+  })
+})
 </script>
 
 <template>
@@ -37,7 +43,7 @@ function addRule() {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel v-for="code in store.publicStore.codes" key="id" :value="code.id">
+        <TabPanel v-for="code in store.publicStore.codes" key="id" :value="code.id" class="bg-surface-700">
           <div class="flex flex-col">
             <div class="flex flex-row justify-center">
               <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>
@@ -55,16 +61,5 @@ function addRule() {
 </template>
 
 <style scoped>
-.rule-card {
-  @apply p-2 m-1;
-  @apply bg-gray-100;
-  @apply rounded;
-}
-.rule-card h4 {
-  @apply font-bold;
-}
-.h-buttons i {
-  @apply p-1;
-  @apply hover:cursor-pointer;
-}
+
 </style>

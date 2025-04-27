@@ -134,6 +134,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
     <div
         v-for="tournament in tournamentsPaginated"
         :key="tournament.id"
+        class="mb-8 bg-surface-700 rounded-lg p-4"
     >
       <div class="flex flex-row">
         <div class="grow">
@@ -154,6 +155,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
           :value="reportsByTournament(tournament)"
           filterDisplay="menu"
           v-model:filters="filters"
+          class="report-list-table"
       >
         <Column v-if="tournament.isLeague" header="Last Game on">
           <template #body="{data}:{data:CompactTournamentReportDEO}">
@@ -228,17 +230,16 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
 
 
 <style scoped>
-h3 {
-  @apply text-2xl;
-  @apply font-bold;
-  @apply mt-2;
-  @apply text-center;
+.report-list-table {
+  --p-datatable-header-cell-background: var(--p-surface-700);
+  --p-datatable-row-background: var(--p-surface-600);
 }
 
-h4 {
-  @apply text-xl;
-  @apply font-bold;
-  @apply mb-2;
-  @apply text-center;
-}
+
+
+</style>
+
+
+<style>
+
 </style>

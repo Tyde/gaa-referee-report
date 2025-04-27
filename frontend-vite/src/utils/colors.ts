@@ -5,6 +5,42 @@ export const RefReportColorPreset = definePreset(Lara, {
     semantic: {
 
         colorScheme: {
+            light: {
+                highlight: {
+                    background: '#f0f9ff',
+                    focusBackground: '{zinc.100}',
+                },
+
+                primary: {
+                    color: '#0D3134',
+                    contrastColor: '#92ced4',
+                    hoverColor: '#1D5747',
+                    activeColor: '#1D5747',
+                },
+
+                surface: {
+                    50: '#03151E',
+                    100: '#041723',
+                    200: '#061A24',
+                    300: '#0E2129',
+                    400: '#143731',
+                    500: '#D8B08C',
+                    600: '#e3ba9b',
+                    700: '#FFCB9A',
+                    800: '#D2E8E3',
+                    900: '#dcece8',
+                    950: '#e6efed',
+                },
+                success: {
+                    500: '#22c55e',
+                },
+                danger: {
+                    500: '#ef4444',
+                },
+                neutral: {
+                    500: '#94a3b8', // Used for borders and secondary text
+                }
+            },
             dark: {
 
                 highlight: {
@@ -44,8 +80,29 @@ export const RefReportColorPreset = definePreset(Lara, {
                 },
                 neutral: {
                     500: '#94a3b8', // Used for borders and secondary text
+                },
+            }
+        }
+
+    },
+    components: {
+        togglebutton: {
+            colorScheme: {
+                light: {
+                    root: {
+                        checkedBackground: '{button.primary.background}',
+                        checkedColor: ' {button.primary.color}'
+                    }
+                },
+                dark: {
+                    root: {
+                        checkedBackground: '{button.primary.background}',
+                        checkedColor: ' {button.primary.color}'
+
+                    }
                 }
             }
         }
     }
+
 });

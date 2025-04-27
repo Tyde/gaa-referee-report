@@ -16,22 +16,39 @@ html {
 
 body {
     @apply bg-surface-800;
+    @apply print:bg-white;
 }
 
 h1 {
-    @apply text-primary;
-    @apply text-2xl;
-    @apply font-bold;
-    @apply text-center;
-    @apply m-2;
+    @apply
+        text-primary
+        text-2xl
+        font-bold
+        text-center
+        m-2
+        print:text-black
+    ;
 }
 
 h2 {
-    @apply text-xl font-bold text-primary text-center mt-2 mb-2;
+    @apply
+        text-xl
+        font-bold
+        text-primary
+        text-center
+        mt-2
+        mb-2
+        print:text-black
+    ;
 }
 
 h3 {
-    @apply text-lg font-bold text-primary-100 text-center mt-2 mb-2;
+    @apply text-lg font-bold text-primary-100 text-center mt-2 mb-2 print:text-black;
+}
+
+h4 {
+    @apply text-center text-lg text-primary;
+    @apply mb-2;
 }
 .referee-container {
     @apply w-full;
@@ -41,6 +58,7 @@ h3 {
     @apply rounded-t-xl;
     @apply pb-4;
     @apply shadow-xl;
+    @apply print:bg-white print:shadow-none;
 }
 
 .referee-container > .header {
@@ -53,15 +71,24 @@ h3 {
 }
 .camogie-game {
     background-color: #e5c185;
+    @apply text-black;
 }
 .mens-football-game {
     background-color: #74a892;
-
+    @apply text-black
 }
 .ladies-football-game {
     background-color: #008585;
     @apply text-white;
 
+}
+
+:is(.camogie-game, .mens-football-game) :is(h1, h2, h3) {
+    @apply text-black;
+}
+
+:is(.hurling-game, .ladies-football-game) :is(h1, h2, h3) {
+    @apply text-white;
 }
 
 .rule-card {

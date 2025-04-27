@@ -26,6 +26,7 @@ import MegaMenu from "primevue/megamenu";
 import Menubar from "primevue/menubar";
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
+import FloatLabel from 'primevue/floatlabel';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -80,7 +81,7 @@ app.component('Dropdown',Dropdown)
 app.component('InputNumber',InputNumber)
 app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
-app.component('TabView', Tabs)
+app.component('Tabs', Tabs)
 app.component('TabList', TabList)
 app.component('Tab', Tab)
 app.component('TabPanels', TabPanels)
@@ -104,6 +105,7 @@ app.component('Paginator', Paginator)
 app.component('Toast', Toast)
 app.component('SplitButton',SplitButton)
 app.component('MultiSelect', MultiSelect)
+app.component('FloatLabel', FloatLabel)
 app.use(ToastService);
 
 app.component(VueFeather.name!!,VueFeather)

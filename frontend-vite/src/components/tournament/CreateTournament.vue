@@ -62,7 +62,7 @@ const dateString = computed(() => {
     {{ $t('tournament.create') }}
   </h2>
   <div class="flex flex-col align-items-center">
-    <div class="flex flex-row justify-between">
+    <div class="flex flex-col md:flex-row justify-between">
       <div class="m-2 grow">
         <label for="name">{{ $t('tournament.enterName') }}</label><br>
         <InputText v-model="editedTournament.name" id="name" pt:root="w-96"/>

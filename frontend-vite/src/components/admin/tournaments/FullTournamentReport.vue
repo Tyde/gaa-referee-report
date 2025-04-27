@@ -254,7 +254,7 @@ function isTeamAWinner(gr:GameReport) {
   <div v-else class="flex flex-row justify-center">
     <div class="flex flex-col content-center justify-center">
       <!-- Header -->
-      <div class="bg-white w-full sm:w-[680px]">
+      <div class="print:bg-white bg-surface-600 w-full sm:w-[680px]">
         <h1>Tournament Report</h1>
         <h2>Tournament: {{ tournamentDate }} - {{ tournament?.name ?? "" }} in
           {{ tournament?.location ?? "" }}</h2>
@@ -371,20 +371,12 @@ function isTeamAWinner(gr:GameReport) {
 </template>
 
 <style scoped>
-h1 {
-  @apply text-xl font-bold text-center;
-}
-
-h2 {
-  @apply text-lg font-bold text-center;
-}
-
-h3 {
-  @apply text-center;
-}
 
 .game-report-style {
-  @apply pt-6 p-4 border-t-2 border-t-gray-600 break-inside-avoid;
+  @apply pt-6 p-4 border-t-2;
+  @apply border-t-surface-600;
+  @apply print:border-t-gray-600;
+  @apply break-inside-avoid;
 }
 
 .filter-row {

@@ -93,7 +93,7 @@ function switchModeAsSquadAlreadyExists(chosenSquad: Team) {
 
 
 onMounted(() => {
-  tabActiveIndex.value = 0
+  tabActiveIndex.value = 1
 })
 
 const convertToAmalgamationTeamList = ref<Team[]>([])
