@@ -10,26 +10,31 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class SanitizeDataServiceTest {
     companion object {
         private lateinit var tournamentReportData: TestHelper.TournamentReportData
 
-        @JvmStatic
-        @BeforeAll
-        fun setUp(): Unit {
-            TestHelper.setupDatabase()
-            Companion.tournamentReportData = TestHelper.setUpReport()
-        }
 
-        @JvmStatic
-        @AfterAll
-        fun tearDownAll() {
-            TestHelper.tearDownDatabase()
-        }
 
+
+
+    }
+
+    @BeforeEach
+    fun setUp(): Unit {
+        TestHelper.setupDatabase()
+        tournamentReportData = TestHelper.setUpReport()
+    }
+
+    @AfterEach
+    fun tearDownEach() {
+        println("Run after Each")
+        TestHelper.tearDownDatabase()
     }
 
     @Test
