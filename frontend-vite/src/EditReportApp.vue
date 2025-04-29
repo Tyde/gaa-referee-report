@@ -234,6 +234,9 @@ function navigate(stage: ReportEditStage) {
   currentStage.value = stage
 }
 
+const selectedTeams = computed(() => {
+  return store.report.selectedTeams
+})
 </script>
 
 <template>
@@ -263,7 +266,7 @@ function navigate(stage: ReportEditStage) {
   />
   <TeamSelector
       v-if="currentStage === ReportEditStage.SelectTeams"
-      :already-selected-teams="store.report.selectedTeams"
+      :already-selected-teams="selectedTeams"
       @submit-teams="submitTeams"
   />
 

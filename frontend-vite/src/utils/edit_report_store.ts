@@ -150,6 +150,7 @@ export const useReportStore = defineStore('report', () => {
             const reportDEO = await reportDEOPromise
             if (reportDEO) {
                 report.value = completeReportDEOToReport(reportDEO, publicStore.codes)
+                console.log("Report loaded", report.value)
                 gameReports.value = extractGameReportsFromCompleteReportDEO(
                     reportDEO,
                     report.value,
@@ -158,10 +159,12 @@ export const useReportStore = defineStore('report', () => {
                     publicStore.rules,
                     publicStore.teams
                 )
+                console.log("Game reports loaded", gameReports.value)
                 if (publicStore.pitchVariables) {
                     pitchReports.value = reportDEO.pitches?.map(pitch => {
                         return pitchDEOtoPitch(pitch, report.value, publicStore.pitchVariables!!)
                     }) ?? []
+                    console.log("Pitch reports loaded", pitchReports.value)
                 }
                 return true
             }

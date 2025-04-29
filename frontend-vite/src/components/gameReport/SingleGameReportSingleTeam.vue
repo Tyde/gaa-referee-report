@@ -6,6 +6,7 @@ import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import MobileDropdown from "@/components/util/MobileDropdown.vue";
 import GAAScoreInput from "@/components/gameReport/GAAScoreInput.vue";
+import TableDisciplinaryEditor from "@/components/gameReport/TableDisciplinaryEditor.vue";
 
 
 const store = useReportStore()
@@ -15,6 +16,7 @@ const props = defineProps<{
 
 
 const displayDisciplinary = ref(false)
+const displayDisciplinaryTable = ref(false)
 const displayInjuries = ref(false)
 
 
@@ -148,6 +150,8 @@ function stripRuleCardsFromDescription(description?: string) {
           </div>
         </div>
       </div>
+      <Button
+        @click="displayDisciplinaryTable = true">Open Table Dis</Button>
 
 
     </template>
@@ -156,6 +160,11 @@ function stripRuleCardsFromDescription(description?: string) {
         :is-team-a="props.isTeamA"
         v-model:visible="displayDisciplinary"
         v-if="currentSingleTeamGameReport.team"
+    />
+
+    <TableDisciplinaryEditor :is-team-a="props.isTeamA"
+                             v-model:visible="displayDisciplinaryTable"
+                             v-if="currentSingleTeamGameReport.team"
     />
 
     <InjuryEditor

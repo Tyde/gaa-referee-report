@@ -99,16 +99,40 @@ function swapTeam(beforeTeam:Team, afterTeam:Team) {
   }
 }
 
-watch(() => store.tournamentPreSelectedTeams, (newVal) => {
-  if(newVal) {
-    teams_added.value = [... new Set([...teams_added.value, ...newVal])]
-    emit('submit-teams',teams_added.value)
-  }
-}, {immediate: true})
+
+/**
+ *
+ * Bug here is:sometimes the store.report.selectedTeams comes first and sometimes the preselected teams comes first
+ *
+ * Depending on what is first, the submit-teams might be submitted without the correct dataset
+ *
+ * I tried adding this to onMounted but that lead to teams being duplicated once, which seems to be a "race-condition" where
+ * in the end both emits and sets are called
+ */
+const isInitialized = ref(false)
 
 onMounted(() => {
-  teams_added.value.length = 0
-  teams_added.value = teams_added.value.concat(store.report.selectedTeams)
+  // First, set from report.selectedTeams
+  teams_added.value = [...store.report.selectedTeams]
+
+  // Then, combine with any pre-selected teams
+  if (store.tournamentPreSelectedTeams) {
+    teams_added.value = [...new Set([...teams_added.value, ...store.tournamentPreSelectedTeams])]
+  }
+
+  // Only emit after we have the complete list
+  emit('submit-teams', teams_added.value)
+
+  // Mark as initialized
+  isInitialized.value = true
+})
+
+// This watch will run after initialization is complete
+watch(() => store.tournamentPreSelectedTeams, (newVal) => {
+  if (newVal && isInitialized.value) {
+    teams_added.value = [...new Set([...teams_added.value, ...newVal])]
+    emit('submit-teams', teams_added.value)
+  }
 })
 </script>
 
