@@ -46,7 +46,8 @@ object TestHelper {
     fun setUpReport(
         preselectedTournament: Tournament? = null,
         preselectedUser: User? = null,
-        preselectedTeams: List<Team> = emptyList()
+        preselectedTeams: List<Team> = emptyList(),
+        makeLeagueRound: Boolean = false
     ):TournamentReportData {
 
         var tournamentReport: TournamentReport? = null
@@ -65,6 +66,10 @@ object TestHelper {
                     date = LocalDate.now()
                     region = firstRegion
                     location = "Test Location"
+                    isLeague = makeLeagueRound
+                    if (makeLeagueRound) {
+                        endDate = LocalDate.now().plusDays(10)
+                    }
                 }
             val referee = preselectedUser ?: User.new {
                 this.firstName = "Test"
