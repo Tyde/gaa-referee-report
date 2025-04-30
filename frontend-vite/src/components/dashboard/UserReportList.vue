@@ -2,7 +2,7 @@
 
 import {useDashboardStore} from "@/utils/dashboard_store";
 import {computed, ref} from "vue";
-import {FilterMatchMode, FilterOperator} from "primevue/api";
+import { FilterMatchMode,FilterOperator } from '@primevue/core/api';
 import {useConfirm} from "primevue/useconfirm";
 import {useRouter} from "vue-router";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
@@ -100,84 +100,59 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
 </script>
 <template>
 
-
-  <DataTable
-      :value="transformedReports"
-      filterDisplay="menu"
-      v-model:filters="filters"
-      class="hidden md:block"
-  >
-    <Column field="tournamentName" header="Tournament" :sortable="true">
-      <template #filter="{filterModel,filterCallback}">
-        <InputText type="text" v-model="filterModel.value" @keydown.enter="filterCallback()" class="p-column-filter"
-                   :placeholder="`Search by name - ${filterModel.matchMode}`"/>
-      </template>
-    </Column>
-    <Column field="tournamentLocation" header="Location" :sortable="true">
-      <template #filter="{filterModel,filterCallback}">
-        <InputText type="text" v-model="filterModel.value" @keydown.enter="filterCallback()" class="p-column-filter"
-                   :placeholder="`Search by name - ${filterModel.matchMode}`"/>
-      </template>
-    </Column>
-    <Column field="tournamentDate" header="Date" :sortable="true">
-      <template #body="{data} : {data:TransformedTournamentReport}">
-        {{ data.tournamentDate.toISODate() }}
-      </template>
-      <template #filter="{filterModel,filterCallback}">
-        <InputText type="text" v-model="filterModel.value" @keydown.enter="filterCallback()" class="p-column-filter"
-                   :placeholder="`Search by name - ${filterModel.matchMode}`"/>
-      </template>
-    </Column>
-    <Column field="codeName" header="Code" :sortable="true"
-            :filterMatchModeOptions="[{label: 'is', value:FilterMatchMode.EQUALS}]">
-      <template #filter="{filterModel,filterCallback}">
-        <!--<InputText type="text" v-model="filterModel.value" @keydown.enter="filterCallback()" class="p-column-filter" :placeholder="`Search by name - ${filterModel.matchMode}`"/>-->
-        <SelectButton
-            v-model="filterModel.value"
-            :options="store.codes"
-            optionLabel="name"
-            optionValue="name"
-            @change="filterCallback()"/>
-      </template>
-    </Column>
-    <Column field="numGameReports" header="# Games" :sortable="true"/>
-    <Column field="numTeams" header="# Teams" :sortable="true"/>
-    <Column field="isSubmitted"
-            header="Submitted"
-    >
-    </Column>
-    <Column>
-      <template #body="{data}">
-        <Button
-            label="Edit"
-            icon="pi pi-pencil"
-            class="p-button-raised p-button-text"
-            @click="() => editReport(data)"></Button>
-        <Button
-            :label="data.isSubmitted ? 'View' : 'Preview'"
-            icon="pi pi-folder-open"
-            class="p-button-raised p-button-text"
-            @click="() => showReport(data)"
-        />
-        <!-- delete button: -->
-        <Button
-            v-if="!data.isSubmitted"
-            label="Delete"
-            icon="pi pi-trash"
-            class="p-button-raised p-button-text"
-            @click="askDeleteReport(data)"
-        />
-        <!-- share button: -->
-        <Button
-            label="Share"
-            icon="pi pi-share-alt"
-            class="p-button-raised p-button-text"
-            @click="() => reportToShare = data"
-        />
-      </template>
-
-    </Column>
-  </DataTable>
+  <div class="flex-col justify-start hidden md:flex">
+    <div v-for="report in transformedReports" key="report.id">
+      <div class="bg-surface-700 rounded-lg p-4 m-2">
+        <div class="flex flex-row justify-between">
+          <div class="flex flex-col grow">
+            <div class="flex flex-row justify-between mb-2">
+              <div class="text-xl font-bold">{{report.tournamentName}} - {{report.codeName}}</div>
+              <div class="text-xl mr-2">
+                <template v-if="report.isSubmitted">Submitted</template>
+                <template v-else>Not submitted</template>
+              </div>
+            </div>
+            <div class="grow"></div>
+            <div class="flex flex-row">
+              <div class="mr-4"><vue-feather type="map-pin" class="h-3"></vue-feather> {{report.tournamentLocation}}</div>
+              <div class="mr-4"><vue-feather type="calendar" class="h-3"></vue-feather> {{report.tournamentDate.toISODate()}}</div>
+              <div class="mr-4"><vue-feather type="bar-chart-2" class="h-3"></vue-feather> {{report.numTeams}} Teams</div>
+              <div class="mr-4"><vue-feather type="triangle" class="h-3"></vue-feather> {{report.numGameReports}}
+                <template v-if="report.numGameReports==1">Game</template>
+                <template v-else>Games</template>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col ml-4">
+            <Button label="Edit"
+                    unstyled
+                    pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                    pt:label="text-primary"
+                    @click="() => editReport(report)"></Button>
+            <Button
+                :label="report.isSubmitted ? 'View' : 'Preview'"
+                unstyled
+                pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                pt:label="text-primary"
+                @click="() => showReport(report)" />
+            <Button
+                v-if="!report.isSubmitted"
+                label="Delete"
+                unstyled
+                pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                pt:label="text-primary"
+                @click="askDeleteReport(report)" />
+            <Button
+                label="Share"
+                unstyled
+                pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                pt:label="text-primary"
+                @click="() => reportToShare = report" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div
       class="block m-2 md:hidden"

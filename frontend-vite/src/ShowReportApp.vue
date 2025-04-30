@@ -7,13 +7,11 @@ import {
   loadReportDEO,
   loadReportDEOByUUID
 } from "@/utils/api/report_api";
-import type {ExtraTimeOption, GameCode, GameType} from "@/types";
-import {getPitchVariables, pitchDEOtoPitch} from "@/utils/api/pitch_api";
+import {pitchDEOtoPitch} from "@/utils/api/pitch_api";
 import ShowFullReport from "@/components/showReport/ShowFullReport.vue";
 import type {Report} from "@/types/report_types";
 import type {GameReport} from "@/types/game_report_types";
-import type {Rule} from "@/types/rules_types";
-import type {Pitch, PitchVariables} from "@/types/pitch_types";
+import type {Pitch} from "@/types/pitch_types";
 
 import {CompleteReportDEO} from "@/types/complete_report_types";
 import {usePublicStore} from "@/utils/public_store";
@@ -31,7 +29,6 @@ const loadingComplete = ref(false)
 const currentReport = ref<Report>({} as Report)
 const allGameReports = ref<Array<GameReport>>([])
 const allPitchReports = ref<Array<Pitch>>([])
-
 
 
 async function downloadReport(id: number) {
@@ -52,7 +49,7 @@ async function downloadReport(id: number) {
 async function downloadReportByUUID(uuid: string) {
   isLoading.value = true
   try {
-    const report: CompleteReportDEO = await loadReportDEOByUUID( uuid)
+    const report: CompleteReportDEO = await loadReportDEOByUUID(uuid)
     await handleDownloadedReport(report)
 
   } catch (e) {
@@ -86,6 +83,7 @@ async function handleDownloadedReport(report: CompleteReportDEO) {
     }) || []
   }
 }
+
 const promiseList = ref<Promise<any>[]>([])
 onMounted(() => {
   isLoading.value = true
@@ -95,7 +93,7 @@ onMounted(() => {
   }))
   let loc = new URL(location.href)
   // If loc contains "share" in path, then we have to load by uuid given
-  if(loc.pathname.includes("share")) {
+  if (loc.pathname.includes("share")) {
     let uuid = loc.pathname.split("/")[3]
     if (uuid) {
       downloadReportByUUID(uuid)
@@ -120,20 +118,29 @@ function backToDashboard() {
 </script>
 
 <template>
-  <div class="z-[10000] flex relative">
-    <span v-if="isLoading">Loading</span>
-  </div>
-  <template v-if="loadingComplete">
+  <div class="flex flex-row justify-center">
+    <div class="referee-container">
+      <div class="header no-print items-center">
 
-    <div v-if="!props.id" class="fixed top-4 right-4 no-print">
-      <Button @click="backToDashboard">Back to Dashboard</Button>
-    </div>
-    <ShowFullReport
-        :current-report="currentReport"
-        :all-game-reports="allGameReports"
-        :all-pitch-reports="allPitchReports"
+        <img src="./assets/logo.png" alt="Logo" class="w-12 h-12 m-2">
+        <div class="grow font-bold text-xl">GGE Referee Report System</div>
+      </div>
+      <div class="z-[10000] flex relative">
+        <span v-if="isLoading">Loading</span>
+      </div>
+      <template v-if="loadingComplete">
+
+        <div v-if="!props.id" class="fixed top-4 right-4 no-print">
+          <Button @click="backToDashboard">Back to Dashboard</Button>
+        </div>
+        <ShowFullReport
+            :current-report="currentReport"
+            :all-game-reports="allGameReports"
+            :all-pitch-reports="allPitchReports"
         />
-  </template>
+      </template>
+    </div>
+  </div>
 
 
 </template>

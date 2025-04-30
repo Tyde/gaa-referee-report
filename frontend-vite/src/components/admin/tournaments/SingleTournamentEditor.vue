@@ -156,28 +156,28 @@ function mergeTournaments() {
       <template v-else-if="editedTournament">
         <div class="tournament-edit-row">
           <div class="grow">
-            <span class="p-float-label">
+            <FloatLabel>
                 <InputText
                     v-model="editedTournament.name"
                     :inputId="'tournament-name-' + props.tournament.id"
                 />
               <label :for="'tournament-name-' + props.tournament.id">Name</label>
-            </span>
+            </FloatLabel>
           </div>
           <div>
-            <span class="p-float-label">
+            <FloatLabel>
               <InputText
                   v-model="editedTournament.location"
                   :inputId="'tournament-location-' + props.tournament.id"
               />
               <label :for="'tournament-location-' + props.tournament.id">Location</label>
-            </span>
+            </FloatLabel>
           </div>
         </div>
         <div class="tournament-edit-row">
           <div class="grow">
-            <span class="p-float-label">
-              <Calendar
+            <FloatLabel>
+              <DatePicker
                   :model-value="editedTournament.date.toJSDate()"
                   @update:model-value="(newDate:Date) => {
                     if(editedTournament)
@@ -187,11 +187,11 @@ function mergeTournaments() {
                   :inputId="'tournament-date-' + props.tournament.id"
               />
               <label :for="'tournament-date-' + props.tournament.id">Date</label>
-            </span>
+            </FloatLabel>
           </div>
           <div>
-            <span class="p-float-label">
-              <Dropdown
+            <FloatLabel>
+              <Select
                   v-model="editedTournament.region"
                   :options="store.publicStore.regions"
                   optionLabel="name"
@@ -199,7 +199,7 @@ function mergeTournaments() {
                   :inputId="'tournament-region-' + props.tournament.id"
               />
               <label :for="'tournament-region-' + props.tournament.id">Region</label>
-            </span>
+            </FloatLabel>
           </div>
         </div>
         <div class="tournament-edit-row">
@@ -208,10 +208,10 @@ function mergeTournaments() {
             <label :for="'isLeague-'+props.tournament.id" class="ml-2">Is League Round</label>
           </div>
           <div v-if="editedTournament.isLeague">
-            <span class="p-float-label">
+            <FloatLabel>
 
 
-              <Calendar
+              <DatePicker
                   :model-value="editedTournament.endDate?.toJSDate()"
                   @update:model-value="(newDate:Date) => {
                       editedTournament!!.endDate = DateTime.fromJSDate(newDate)
@@ -219,7 +219,7 @@ function mergeTournaments() {
                   dateFormat="yy-mm-dd"
                   :inputId="'tournament-end-date-' + props.tournament.id"
               /><label :for="'tournament-end-date-' + props.tournament.id">End date</label>
-            </span>
+            </FloatLabel>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ function mergeTournaments() {
       <p>Are you sure you want to merge this tournament with another?</p>
       <p>The tournament {{ props.tournament.name }} will be moved into the selected tournament.</p>
       <p>Choose the tournament to merge into:</p>
-      <Dropdown
+      <Select
           v-model="mergeWithTournament"
           :options="tournamentsExceptThis"
           :optionLabel="(t:DatabaseTournament) => t.name + ' in ' + t.location + ' on ' + t.date.toISODate()"
@@ -263,7 +263,7 @@ function mergeTournaments() {
 <style scoped>
 .single-tournament-row {
   @apply rounded-lg;
-  @apply bg-gray-200;
+  @apply bg-surface-600;
   @apply p-2;
   @apply m-2;
   @apply flex;
@@ -276,7 +276,7 @@ function mergeTournaments() {
 }
 
 .league {
-  @apply bg-green-200;
+  @apply bg-primary-950;
 }
 
 </style>

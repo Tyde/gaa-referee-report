@@ -184,132 +184,35 @@ onMounted(() => {
       :header="disciplinaryDialogTitle"
       :modal="true"
   >
-    <div v-for="dAction in selectedDisciplinaryActions">
-      <div class="flex flex-row flex-wrap">
-        <div class="p-2 w-1/2 md:w-auto">
-          <InputText
-              v-model="dAction.firstName"
-              class="w-full md:w-52"
-              :placeholder="$t('gameReport.player.firstName')"
+
+    <table class="disciplinary-action-table">
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Number</th>
+          <th><span v-tooltip.bottom="'Team Official'">T.O</span></th>
+          <th>Rule</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tr
+          v-for="dAction in selectedDisciplinaryActions"
+          :key="dAction.id"
+      >
+        <td>{{dAction.firstName}}</td>
+        <td>{{dAction.lastName}}</td>
+        <td>{{dAction.number}}</td>
+        <td>
+          <Checkbox
+              v-model="dAction.forTeamOfficial"
+              class="checkbox-rule-card"
           />
-        </div>
-        <div class="p-2 w-1/2 md:w-auto">
-          <InputText
-              v-model="dAction.lastName"
-              class="w-full md:w-52"
-              :placeholder="$t('gameReport.player.lastName')"
-          />
-        </div>
-
-        <div class="p-2">
-          <InputNumber
-              v-model="dAction.number"
-              class="w-20"
-              input-class="w-20"
-              :placeholder="$t('gameReport.player.number')"
-              :disabled="dAction.forTeamOfficial"
-              :input-props="{inputmode: 'numeric'}"
-          />
-        </div>
-        <div class="p-2 flex flex-col">
-          <div class="flex flex-row items-center h-12">
-            <div class="mr-2">T.O.?</div>
-            <Checkbox
-                v-model="dAction.forTeamOfficial"
-                :binary="true"
-            />
-          </div>
-        </div>
-        <!-- Rule: {{dAction.rule?.id}}-->
-        <div class="w-full md:w-auto">
-
-
-          <div class="hidden md:flex md:flex-col">
-            <Select
-                v-model="dAction.rule"
-                :options="filteredRules"
-                :show-clear="true"
-                class="dropdown-disciplinary m-2"
-                input-class="dropdown-disciplinary"
-                :placeholder="$t('gameReport.rule')"
-                :filter="true"
-                :filter-fields="ruleFilterFields"
-                :pt="{item: {class: 'whitespace-break-spaces md:whitespace-nowrap'}}"
-            >
-              <template #value="slotProps">
-                <div v-if="slotProps.value" class="p-disciplinary ">
-                  <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
-                  <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
-                  <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.value).substring(0, 20) }} ...
-                </div>
-                <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
-              </template>
-              <template #option="slotProps">
-
-                <div>
-                  <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
-                  <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
-                  <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.option) }}
-                </div>
-
-              </template>
-            </Select>
-            <div v-if="dAction.rule" class="w-[22rem] p-2">
-              {{ localizedDescription(dAction.rule) }}
-            </div>
-          </div>
-          <MobileDropdown
-              :options="filteredRules"
-              v-model="dAction.rule"
-              optionLabel="description"
-              optionValue="id"
-              :filter-fields="ruleFilterFields"
-              class="block md:hidden"
-              :placeholder="$t('gameReport.rule')"
-          >
-            <template #option="slotProps:{option:Rule}">
-
-              <div>
-                <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
-                <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
-                <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                {{ localizedDescription(slotProps.option) }}
-              </div>
-
-            </template>
-          </MobileDropdown>
-
-        </div>
-        <div class="p-2 flex flex-col"
-             v-if="dAction.rule?.isCaution || dAction.rule?.isBlack">
-          <div class="flex flex-row items-center h-12">
-            <div class="checkbox-rule-card card-red"></div>
-            <Checkbox
-                v-model="dAction.redCardIssued"
-                :binary="true"
-            />
-          </div>
-        </div>
-        <div class="p-2">
-          <InputText
-              v-model="dAction.details"
-              :placeholder="$t('gameReport.description')"
-          />
-        </div>
-        <div v-if="!disciplinaryActionIsBlank(dAction)">
-          <Button class="p-button-danger p-button-text"
-                  @click="deleteDAction(dAction)">
-            <vue-feather
-                class="p-1"
-                type="x"
-            />
-          </Button>
-        </div>
-      </div>
-      <div class="flex-grow h-px bg-gray-300 m-4"></div>
-    </div>
+        </td>
+        <td>{{dAction.rule?.description}}</td>
+        <td>{{dAction.details}}</td>
+      </tr>
+    </table>
     <template #footer>
 
       <Button autofocus icon="pi pi-check" label="Ok" @click="closeDialog"/>
@@ -325,5 +228,25 @@ onMounted(() => {
   height: 1.5rem;
   width: 0.75rem;
   clear: both;
+}
+
+.disciplinary-action-table {
+  @apply table-auto border-collapse;
+
+}
+.disciplinary-action-table thead {
+  @apply bg-surface-600;
+}
+.disciplinary-action-table th {
+  @apply text-left;
+  @apply p-2;
+  @apply font-bold;
+  @apply border-surface-400 border;
+
+}
+.disciplinary-action-table td {
+  @apply p-2;
+  @apply border-surface-400 border;
+
 }
 </style>

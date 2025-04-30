@@ -88,11 +88,11 @@ async function storeOption(option:PitchProperty) {
 <template>
   <div>
 
-      <div class="flex flex-col m-2 shadow-xl bg-gray-100">
+      <div class="flex flex-col m-2 shadow-xl bg-surface-900">
         <div v-for="option in options" class="group option-label">
           <template v-if="option === editingOption">
 
-            <div class="flex flex-row">
+            <div class="flex flex-row items-center">
               <div class="p-1 flex-grow">
                 <InputText class="m-1" ref="optionEditInput" v-model="option.name"/>
               </div>
@@ -107,14 +107,14 @@ async function storeOption(option:PitchProperty) {
           </template>
           <template v-else>
             <span v-if="option.disabled" class="tag-disabled">Disabled</span>{{ option.name }}
-            <div class="group-hover:visible invisible float-right">
-              <vue-feather v-if="!option.disabled" type="trash" @click="deleteOption(option)"/>
-              <vue-feather v-else type="check" @click="enableOption(option)"/>
-              <vue-feather type="edit" @click="showInputFor(option)"/>
+            <div class="group-hover:visible invisible flex flex-row justify-end items-center">
+              <vue-feather v-if="!option.disabled" type="trash" @click="deleteOption(option)" class="h-6 mr-2"/>
+              <vue-feather v-else type="check" @click="enableOption(option)" class="h-6 mr-2"/>
+              <vue-feather type="edit" @click="showInputFor(option)" class="h-6"/>
             </div>
           </template>
         </div>
-        <div class="flex flex-row justify-center m-2 rounded w-96 bg-gray-300">
+        <div class="flex flex-row justify-center m-2 rounded w-96 bg-surface-500">
           <Button @click="newOption" class="p-button-sm p-button-primary m-1">Add new</Button>
         </div>
       </div>
@@ -129,8 +129,9 @@ async function storeOption(option:PitchProperty) {
   @apply m-2;
   @apply w-96;
   @apply rounded;
-  @apply bg-gray-200;
-  @apply hover:bg-gray-300;
+  @apply bg-surface-700;
+  @apply hover:bg-surface-600;
+  @apply flex flex-row justify-between items-center;
 }
 
 .tag-disabled {

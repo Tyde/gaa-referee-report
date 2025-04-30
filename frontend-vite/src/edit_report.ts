@@ -5,12 +5,10 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import Listbox from "primevue/listbox";
 import InputText from "primevue/inputtext";
-import Calendar from "primevue/calendar";
+import {DatePicker} from "primevue";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -20,7 +18,7 @@ import VueFeather from 'vue-feather';
 import Textarea from "primevue/textarea";
 import {messages} from "./i18n/edit_report/edit_report_i18n";
 // @ts-ignore
-import { Vue3Mq } from "vue3-mq";
+import {Vue3Mq} from "vue3-mq";
 import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
 import Message from "primevue/message";
@@ -30,6 +28,8 @@ import ConfirmDialog from "primevue/confirmdialog";
 import SplitButton from "primevue/splitbutton";
 import IconField from "primevue/iconfield";
 import InputIcon from 'primevue/inputicon';
+import {RefReportColorPreset} from "@/utils/colors";
+import Select from "primevue/select";
 
 
 const i18n = createI18n({
@@ -40,7 +40,11 @@ const i18n = createI18n({
 const pinia = createPinia()
 const app = createApp(App);
 app.use(pinia)
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    theme: {
+        preset: RefReportColorPreset
+    }
+});
 app.use(Vue3Mq);
 app.use(i18n)
 app.component('Card',Card)
@@ -49,9 +53,9 @@ app.component('Listbox',Listbox)
 app.component('InputText',InputText)
 app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
-app.component('Calendar',Calendar)
+app.component('DatePicker', DatePicker)
 app.component('SelectButton',SelectButton)
-app.component('Dropdown',Dropdown)
+app.component('Select',Select)
 app.component('InputNumber',InputNumber)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
