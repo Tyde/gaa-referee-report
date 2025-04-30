@@ -2,7 +2,6 @@
 
 import {useDashboardStore} from "@/utils/dashboard_store";
 import {computed, ref} from "vue";
-import { FilterMatchMode,FilterOperator } from '@primevue/core/api';
 import {useConfirm} from "primevue/useconfirm";
 import {useRouter} from "vue-router";
 import type {CompactTournamentReportDEO} from "@/types/report_types";
@@ -16,18 +15,29 @@ const store = useDashboardStore()
 const props = defineProps<{
   reports: Array<CompactTournamentReportDEO>
 }>()
-const filters = ref({
-  global: {value: null, matchMode: FilterMatchMode.CONTAINS},
-  refereeName: {
-    operator: FilterOperator.AND,
-    constraints: [{value: null, matchMode: FilterMatchMode.CONTAINS}]
-  },
-  codeName: {
-    operator: FilterOperator.OR,
-    constraints: [{value: null, matchMode: FilterMatchMode.EQUALS}]
-  },
+// Function to create sorting comparators
+const createSortFunction = (property: keyof TransformedTournamentReport) =>
+  (a: TransformedTournamentReport, b: TransformedTournamentReport) => {
+    // Handle null/undefined values safely
+    const valueA = a[property] ?? '';
+    const valueB = b[property] ?? '';
+    return valueA < valueB ? 1 : -1;
+  }
 
-})
+// Sort options with property to sort by
+const sortByOptions = [
+  { label: 'Date', sortingFunction: createSortFunction('tournamentDate') },
+  { label: 'Name', sortingFunction: createSortFunction('tournamentName') },
+  { label: 'Location', sortingFunction: createSortFunction('tournamentLocation') },
+  { label: 'Code', sortingFunction: createSortFunction('codeName') },
+  { label: 'Teams', sortingFunction: createSortFunction('numTeams') },
+  { label: 'Game Reports', sortingFunction: createSortFunction('numGameReports') }
+]
+
+const selectedSortBy = ref(sortByOptions[0])
+
+const search = ref('')
+
 
 type TransformedTournamentReport = CompactTournamentReportDEO & {
   codeName: string,
@@ -46,7 +56,18 @@ const transformedReports = computed(() => {
       tournamentDate: (tournament?.date ?? DateTime.now()),
       tournamentLocation: tournament?.location ?? '',
     } as TransformedTournamentReport
+  }).sort((a, b) => {
+    if (selectedSortBy.value.sortingFunction) {
+      return selectedSortBy.value.sortingFunction(a, b)
+    } else {
+      return a.tournamentDate < b.tournamentDate ? 1 : -1
+    }
   })
+    .filter(report => {
+      return report.tournamentName.toLowerCase().includes(search.value.toLowerCase()) ||
+        report.tournamentLocation.toLowerCase().includes(search.value.toLowerCase()) ||
+        report.codeName.toLowerCase().includes(search.value.toLowerCase())
+    })
 })
 
 function editReport(report: CompactTournamentReportDEO) {
@@ -71,6 +92,7 @@ function confirmEditReport(report: CompactTournamentReportDEO) {
 }
 
 const router = useRouter()
+
 function showReport(report: CompactTournamentReportDEO) {
   router.push("/report/" + report.id)
 }
@@ -96,17 +118,34 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
 }
 
 
-
 </script>
 <template>
 
   <div class="flex-col justify-start hidden md:flex">
+    <div class="flex flex-row mt-4">
+      <FloatLabel>
+        <Select input-id="sortby-user-report-list"
+                :options = "sortByOptions"
+                v-model="selectedSortBy"
+                optionLabel="label"
+        />
+        <label for="sortby-user-report-list">Sort by</label>
+      </FloatLabel>
+      <FloatLabel>
+        <InputText
+            v-model="search"
+            input-id="search-user-report-list"
+            class="ml-2"
+        />
+        <label for="search-user-report-list">Search</label>
+      </FloatLabel>
+    </div>
     <div v-for="report in transformedReports" key="report.id">
       <div class="bg-surface-700 rounded-lg p-4 m-2">
         <div class="flex flex-row justify-between">
           <div class="flex flex-col grow">
             <div class="flex flex-row justify-between mb-2">
-              <div class="text-xl font-bold">{{report.tournamentName}} - {{report.codeName}}</div>
+              <div class="text-xl font-bold">{{ report.tournamentName }} - {{ report.codeName }}</div>
               <div class="text-xl mr-2">
                 <template v-if="report.isSubmitted">Submitted</template>
                 <template v-else>Not submitted</template>
@@ -114,10 +153,21 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
             </div>
             <div class="grow"></div>
             <div class="flex flex-row">
-              <div class="mr-4"><vue-feather type="map-pin" class="h-3"></vue-feather> {{report.tournamentLocation}}</div>
-              <div class="mr-4"><vue-feather type="calendar" class="h-3"></vue-feather> {{report.tournamentDate.toISODate()}}</div>
-              <div class="mr-4"><vue-feather type="bar-chart-2" class="h-3"></vue-feather> {{report.numTeams}} Teams</div>
-              <div class="mr-4"><vue-feather type="triangle" class="h-3"></vue-feather> {{report.numGameReports}}
+              <div class="mr-4">
+                <vue-feather type="map-pin" class="h-3"></vue-feather>
+                {{ report.tournamentLocation }}
+              </div>
+              <div class="mr-4">
+                <vue-feather type="calendar" class="h-3"></vue-feather>
+                {{ report.tournamentDate.toISODate() }}
+              </div>
+              <div class="mr-4">
+                <vue-feather type="bar-chart-2" class="h-3"></vue-feather>
+                {{ report.numTeams }} Teams
+              </div>
+              <div class="mr-4">
+                <vue-feather type="triangle" class="h-3"></vue-feather>
+                {{ report.numGameReports }}
                 <template v-if="report.numGameReports==1">Game</template>
                 <template v-else>Games</template>
               </div>
@@ -134,20 +184,20 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
                 unstyled
                 pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
                 pt:label="text-primary"
-                @click="() => showReport(report)" />
+                @click="() => showReport(report)"/>
             <Button
                 v-if="!report.isSubmitted"
                 label="Delete"
                 unstyled
                 pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
                 pt:label="text-primary"
-                @click="askDeleteReport(report)" />
+                @click="askDeleteReport(report)"/>
             <Button
                 label="Share"
                 unstyled
                 pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
                 pt:label="text-primary"
-                @click="() => reportToShare = report" />
+                @click="() => reportToShare = report"/>
           </div>
         </div>
       </div>
@@ -159,50 +209,50 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
   >
     <div v-for="report in transformedReports">
 
-          <div>
-            <span class="text-lg font-bold">{{report.tournamentName}} </span><br>
-            {{report.tournamentLocation}} - {{report.tournamentDate.toISODate()}}  <br>
-            {{report.codeName}} <br>
-            {{report.numTeams}} teams, {{report.numGameReports}} game reports
-          </div>
-          <div class="text-lg">{{report.isSubmitted ? 'Submitted' : 'Not submitted'}}</div>
-          <div class="flex flex-row justify-end">
-            <Button
-                label="Edit"
-                icon="pi pi-pencil"
-                class="p-button-raised p-button-text"
-                @click="() => editReport(report)"></Button>
-            <Button
-                :label="report.isSubmitted ? 'View' : 'Preview'"
-                icon="pi pi-folder-open"
-                class="p-button-raised p-button-text"
-                @click="() => showReport(report)"
-            />
-            <!-- delete button: -->
-            <Button
-                v-if="!report.isSubmitted"
-                label="Delete"
-                icon="pi pi-trash"
-                class="p-button-raised p-button-text"
-                @click="askDeleteReport(report)"
-            />
-            <!-- share button: -->
-            <Button
-                label="Share"
-                icon="pi pi-share-alt"
-                class="p-button-raised p-button-text"
-                @click="() => reportToShare = report"
-            />
-          </div>
+      <div>
+        <span class="text-lg font-bold">{{ report.tournamentName }} </span><br>
+        {{ report.tournamentLocation }} - {{ report.tournamentDate.toISODate() }} <br>
+        {{ report.codeName }} <br>
+        {{ report.numTeams }} teams, {{ report.numGameReports }} game reports
+      </div>
+      <div class="text-lg">{{ report.isSubmitted ? 'Submitted' : 'Not submitted' }}</div>
+      <div class="flex flex-row justify-end">
+        <Button
+            label="Edit"
+            icon="pi pi-pencil"
+            class="p-button-raised p-button-text"
+            @click="() => editReport(report)"></Button>
+        <Button
+            :label="report.isSubmitted ? 'View' : 'Preview'"
+            icon="pi pi-folder-open"
+            class="p-button-raised p-button-text"
+            @click="() => showReport(report)"
+        />
+        <!-- delete button: -->
+        <Button
+            v-if="!report.isSubmitted"
+            label="Delete"
+            icon="pi pi-trash"
+            class="p-button-raised p-button-text"
+            @click="askDeleteReport(report)"
+        />
+        <!-- share button: -->
+        <Button
+            label="Share"
+            icon="pi pi-share-alt"
+            class="p-button-raised p-button-text"
+            @click="() => reportToShare = report"
+        />
+      </div>
 
-      <Divider />
+      <Divider/>
     </div>
   </div>
   <ShareReport
-    :report="reportToShare"
-    @on-error="(err) => publicStore.newError(err)"
-    @on-success="() => reportToShare = undefined"
-    ></ShareReport>
+      :report="reportToShare"
+      @on-error="(err) => publicStore.newError(err)"
+      @on-success="() => reportToShare = undefined"
+  ></ShareReport>
 
 
 </template>

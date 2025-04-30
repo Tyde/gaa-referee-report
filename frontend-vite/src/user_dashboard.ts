@@ -45,6 +45,7 @@ import AccordionPanel from "primevue/accordionpanel";
 import AccordionHeader from "primevue/accordionheader";
 import AccordionContent from "primevue/accordioncontent";
 import Select from "primevue/select";
+import FloatLabel from "primevue/floatlabel";
 
 
 const i18n = createI18n({
@@ -77,7 +78,7 @@ app.component('Password', Password)
 app.component('SelectButton',SelectButton)
 app.component('Select',Select)
 app.component('DatePicker',DatePicker)
-
+app.component('FloatLabel',FloatLabel)
 app.component('InputNumber',InputNumber)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
