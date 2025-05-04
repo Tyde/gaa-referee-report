@@ -150,7 +150,7 @@ function stripRuleCardsFromDescription(description?: string) {
           </div>
         </div>
       </div>
-      <Button
+      <Button v-if="false"
         @click="displayDisciplinaryTable = true">Open Table Dis</Button>
 
 
