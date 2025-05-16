@@ -62,7 +62,7 @@ const isLeague = computed(() => {
               <div class="flex flex-col flex-grow">
                 <div class="flex flex-row">
                   <div class="flex-1">{{ gr.teamAReport.team?.name }}</div>
-                  <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }}</div>
+                  <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }} ({{(gr.teamAReport.goals ?? 0) * 3 + (gr.teamAReport.points ?? 0)}})</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamAReport"/>
               </div>
@@ -70,7 +70,7 @@ const isLeague = computed(() => {
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
                 <div class="flex flex-row">
-                  <div class="flex-1 text-right">{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }}</div>
+                  <div class="flex-1 text-right">{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }} ({{(gr.teamBReport.goals ?? 0) * 3 + (gr.teamBReport.points ?? 0)}})</div>
                   <div class="flex-1 text-right">{{ gr.teamBReport.team?.name }}</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamBReport"/>
