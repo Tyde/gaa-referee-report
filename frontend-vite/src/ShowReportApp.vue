@@ -69,6 +69,7 @@ async function handleDownloadedReport(report: CompleteReportDEO) {
       currentReport.value,
       store.gameTypes,
       store.extraTimeOptions,
+      store.gameLengthOptions,
       store.rules,
       store.teams
   )
@@ -152,5 +153,4 @@ function backToDashboard() {
   }
 }
 </style>
-
 

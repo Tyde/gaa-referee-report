@@ -85,6 +85,7 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
         report,
         store.gameTypes,
         store.extraTimeOptions,
+        store.gameLengthOptions,
         store.rules,
         store.teams
     )
@@ -336,6 +337,7 @@ function isTeamAWinner(gr:GameReport) {
           <h3>
             {{ gr.gameType?.name }}
           </h3>
+          <h3 v-if="gr.gameLength">{{ gr.gameLength.name }} </h3>
           <div class="flex flex-row">
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">

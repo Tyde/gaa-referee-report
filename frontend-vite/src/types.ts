@@ -21,6 +21,13 @@ export const ExtraTimeOption = z.object({
 })
 export type ExtraTimeOption = z.infer<typeof ExtraTimeOption>
 
+export const GameLengthOption = z.object({
+    id: z.number(),
+    name: z.string().min(1),
+    minutes: z.number(),
+})
+export type GameLengthOption = z.infer<typeof GameLengthOption>
+
 
 export const ApiErrorOptions = z.enum([
     "insertionFailed", "notFound", "deleteFailed", "notAuthorized"
@@ -55,4 +62,3 @@ export class ErrorMessage {
         this.timestamp = Date.now();
     }
 }
-

@@ -4,7 +4,7 @@ import {CompactTournamentReportDEO} from "@/types/report_types";
 import {DateTime} from "luxon";
 import {z} from "zod";
 import type {Team} from "@/types/team_types";
-import type {ExtraTimeOption, GameType} from "@/types";
+import type {ExtraTimeOption, GameLengthOption, GameType} from "@/types";
 import type {Rule} from "@/types/rules_types";
 
 export interface GameReport {
@@ -15,6 +15,7 @@ export interface GameReport {
     teamAReport: SingleTeamGameReport,
     teamBReport: SingleTeamGameReport,
     extraTime?: ExtraTimeOption,
+    gameLength?: GameLengthOption,
     umpirePresentOnTime: boolean,
     umpireNotes: string
     generalNotes: string
@@ -81,6 +82,7 @@ export const GameReportDEO = z.object({
     startTime: z.string().transform((value) => DateTime.fromISO(value)),
     extraTime: z.number().optional().nullable(),
     gameType: z.number().optional().nullable(),
+    gameLength: z.number().optional().nullable(),
     umpirePresentOnTime: z.boolean(),
     umpireNotes: z.string(),
     generalNotes: z.string().optional().nullable(),

@@ -19,6 +19,7 @@ export enum GameReportIssue {
     NoGameType,
     NoStartingTime,
     NoExtraTimeOption,
+    NoGameLengthOption,
     NoTeamA,
     NoTeamB,
     NoScores,
@@ -113,4 +114,3 @@ export function disciplinaryActionIssuesForGameReport(gameReport: GameReport): A
     }).filter((dai) => (dai?.issues.length || 0) > 0)
         .filter((dai): dai is DisciplinaryActionIssues => !!dai)
 }
-

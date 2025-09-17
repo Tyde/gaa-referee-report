@@ -7,7 +7,7 @@ import {
     pitchDEOtoPitch,
     updatePitchPropertyOnServer
 } from "@/utils/api/pitch_api";
-import {ErrorMessage, GameType} from "@/types";
+import {ErrorMessage, GameLengthOption, GameType} from "@/types";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
@@ -15,6 +15,7 @@ import {
 } from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {uploadNewGameType} from "@/utils/api/game_report_api";
+import {createGameLengthOnServer, updateGameLengthOnServer} from "@/utils/api/admin_api";
 import {
     addRuleOnServer,
     deleteTournamentOnServer,
@@ -114,6 +115,7 @@ export const useAdminStore = defineStore('admin', () => {
             currentReport,
             publicStore.gameTypes,
             publicStore.extraTimeOptions,
+            publicStore.gameLengthOptions,
             publicStore.rules,
             publicStore.teams
         )
@@ -172,6 +174,27 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    async function updateGameLength(option: GameLengthOption) {
+        try {
+            let result = await updateGameLengthOnServer(option)
+            let index = publicStore.gameLengthOptions.findIndex(it => it.id === result.id)
+            if (index >= 0) {
+                publicStore.gameLengthOptions[index] = result
+            }
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
+    async function createGameLength(option: GameLengthOption) {
+        try {
+            let result = await createGameLengthOnServer(option)
+            publicStore.gameLengthOptions.push(result)
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
     async function deleteTournament(tournament: DatabaseTournament) {
         deleteTournamentOnServer(tournament)
             .catch(e=>newError(e))
@@ -203,8 +226,10 @@ export const useAdminStore = defineStore('admin', () => {
         updateRuleInStore,
         deleteRuleInStore,
         updateGameType,
+        updateGameLength,
         addRule,
         createGameType,
+        createGameLength,
         deleteTournament,
         mergeTournament
     }

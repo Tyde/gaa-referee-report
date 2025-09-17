@@ -190,6 +190,21 @@ onMounted(() => {
 
         </Select>
       </div>
+      <div class="field p-2">
+        <label for="gameLengthSelect">{{ $t('gameReport.gameLength') }}:</label><br>
+        <Select
+            id="gameLengthSelect"
+            v-model="store.selectedGameReport.gameLength"
+            :options="store.publicStore.gameLengthOptions"
+            option-label="name"
+            :placeholder="$t('gameReport.gameLength')"
+            :class="{
+                'to-be-filled':store.selectedGameReport?.gameLength===undefined
+            }"
+            :pt="{input: { class: 'p-1 md:p-2'}}"
+            :reset-filter-on-hide="true"
+        />
+      </div>
       <div class="p-2 flex flex-col">
         <div><label for="gameTypeSelect">{{ $t('gameReport.gameType') }}:</label></div>
         <div class="flex flex-row items-start">
@@ -279,8 +294,9 @@ onMounted(() => {
 }
 
 .to-be-filled {
-  @apply ring-2;
-  @apply ring-red-400;
-  @apply ring-offset-1;
+  @apply !ring-2;
+  @apply !ring-red-400;
+  @apply !ring-offset-1;
+  @apply border-red-600;
 }
 </style>

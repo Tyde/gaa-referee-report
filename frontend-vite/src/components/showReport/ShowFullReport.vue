@@ -56,6 +56,7 @@ const isLeague = computed(() => {
           </h3>
           <h3>
             {{ gr.gameType?.name }}
+            <template v-if="gr.gameLength"> · {{ gr.gameLength.name }} </template>
           </h3>
           <div class="flex flex-row">
             <div class="flex-1 flex">
