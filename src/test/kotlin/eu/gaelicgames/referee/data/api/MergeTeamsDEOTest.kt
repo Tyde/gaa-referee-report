@@ -97,7 +97,8 @@ class MergeTeamsDEOTest {
                             tournamentReportData.teamIDs[0],
                         ),
                         tournamentReportData.gameTypeIDs,
-                        tournamentReportData.extraTimeIDs
+                        tournamentReportData.extraTimeIDs,
+                        tournamentReportData.gameLengthIDs
                     )
                 )
                 TestHelper.initializeInjury(gameReportWithInjury)
@@ -112,7 +113,8 @@ class MergeTeamsDEOTest {
                             tournamentReportData.teamIDs[0],
                         ),
                         tournamentReportData.gameTypeIDs,
-                        tournamentReportData.extraTimeIDs
+                        tournamentReportData.extraTimeIDs,
+                        tournamentReportData.gameLengthIDs
                     )
                 )
                 gameReportBaseTeamId = gameReportBaseTeam.id.value
@@ -126,7 +128,8 @@ class MergeTeamsDEOTest {
                             tournamentReportData.teamIDs[0],
                         ),
                         tournamentReportData.gameTypeIDs,
-                        tournamentReportData.extraTimeIDs
+                        tournamentReportData.extraTimeIDs,
+                        tournamentReportData.gameLengthIDs
                     )
                 )
                 gameReportAmalgamationId = gameReportAmalgamation.id.value
