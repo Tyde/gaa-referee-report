@@ -7,6 +7,7 @@ import {updateTournamentOnServer} from "@/utils/api/admin_api";
 import {DateTime} from "luxon";
 import {useRouter} from "vue-router";
 import {useConfirm} from "primevue/useconfirm";
+import {firstDateFromCalendarValue, type CalendarModelValue} from "@/utils/calendar";
 
 let props = defineProps<{
   tournament: DatabaseTournament
@@ -19,6 +20,28 @@ let emit = defineEmits<{
 }>()
 
 let store = useAdminStore()
+
+function onTournamentDateChange(value: CalendarModelValue) {
+  if (!editedTournament.value) {
+    return
+  }
+
+  const date = firstDateFromCalendarValue(value)
+  if (!date) {
+    return
+  }
+
+  editedTournament.value.date = DateTime.fromJSDate(date)
+}
+
+function onTournamentEndDateChange(value: CalendarModelValue) {
+  if (!editedTournament.value) {
+    return
+  }
+
+  const date = firstDateFromCalendarValue(value)
+  editedTournament.value.endDate = date ? DateTime.fromJSDate(date) : null
+}
 
 function regionIDToRegion(regionID: number): RegionDEO {
   return store.publicStore.regions.filter(it => it.id == regionID)[0]
@@ -179,10 +202,7 @@ function mergeTournaments() {
             <FloatLabel>
               <DatePicker
                   :model-value="editedTournament.date.toJSDate()"
-                  @update:model-value="(newDate:Date) => {
-                    if(editedTournament)
-                      editedTournament.date = DateTime.fromJSDate(newDate)
-                  }"
+                  @update:model-value="onTournamentDateChange"
                   dateFormat="yy-mm-dd"
                   :inputId="'tournament-date-' + props.tournament.id"
               />
@@ -213,9 +233,7 @@ function mergeTournaments() {
 
               <DatePicker
                   :model-value="editedTournament.endDate?.toJSDate()"
-                  @update:model-value="(newDate:Date) => {
-                      editedTournament!!.endDate = DateTime.fromJSDate(newDate)
-                    }"
+                  @update:model-value="onTournamentEndDateChange"
                   dateFormat="yy-mm-dd"
                   :inputId="'tournament-end-date-' + props.tournament.id"
               /><label :for="'tournament-end-date-' + props.tournament.id">End date</label>

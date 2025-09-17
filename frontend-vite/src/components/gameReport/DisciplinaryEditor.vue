@@ -269,7 +269,7 @@ onMounted(() => {
               class="block md:hidden"
               :placeholder="$t('gameReport.rule')"
           >
-            <template #option="slotProps:{option:Rule}">
+            <template #option="slotProps">
 
               <div>
                 <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>

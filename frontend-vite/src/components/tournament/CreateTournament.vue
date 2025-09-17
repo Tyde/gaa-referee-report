@@ -6,12 +6,27 @@ import {DatabaseTournament, Tournament} from "@/types/tournament_types";
 import {useReportStore} from "@/utils/edit_report_store";
 import {uploadNewTournament} from "@/utils/api/tournament_api";
 import {useI18n} from "vue-i18n";
+import {firstDateFromCalendarValue, type CalendarModelValue} from "@/utils/calendar";
 
 const props = defineProps<{
   preselectedDate: Date,
 }>()
 
 const store = useReportStore()
+
+function onTournamentDateChange(value: CalendarModelValue) {
+  const date = firstDateFromCalendarValue(value)
+  if (!date) {
+    return
+  }
+
+  editedTournament.value.date = DateTime.fromJSDate(date)
+}
+
+function onTournamentEndDateChange(value: CalendarModelValue) {
+  const date = firstDateFromCalendarValue(value)
+  editedTournament.value.endDate = date ? DateTime.fromJSDate(date) : null
+}
 
 const emit = defineEmits<{
   (e: 'tournament_created', tournament: DatabaseTournament): void,
@@ -88,14 +103,14 @@ const dateString = computed(() => {
 
       <DatePicker id="dateformat"
                 :model-value="editedTournament.date.toJSDate()"
-                @update:model-value="(newDate:Date) => {editedTournament.date = DateTime.fromJSDate(newDate)}"
+                @update:model-value="onTournamentDateChange"
                 dateFormat="yy-mm-dd"/>
     </div>
     <div v-if="editedTournament.isLeague" class="flex flex-col align-center m-2">
       <label for="dateend">{{ $t('tournament.dateinput.endLeague') }}</label>
       <DatePicker id="dateend"
                 :model-value="editedTournament.endDate?.toJSDate()"
-                @update:model-value="(newDate:Date) => {editedTournament.endDate = DateTime.fromJSDate(newDate)}"
+                @update:model-value="onTournamentEndDateChange"
                 dateFormat="yy-mm-dd"
       />
     </div>

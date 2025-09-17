@@ -3,11 +3,9 @@
 import  {DateTime} from "luxon";
 import {computed, onMounted, type PropType, ref} from "vue";
 import {templateRef} from "@vueuse/core";
+import {firstDateFromCalendarValue, type CalendarModelValue} from "@/utils/calendar";
 
 
-// Define the expected type clearly (optional but good practice)
-// Use DateTime | undefined if the model can be undefined when not required
-// Use DateTime | null if null is used for the empty state
 type ModelValueType = DateTime | undefined;
 
 const model = defineModel<ModelValueType>({
@@ -31,7 +29,12 @@ const props = defineProps({
 
 })
 
-function onCalendarChange(date: Date) {
+function onCalendarChange(value: CalendarModelValue) {
+  const date = firstDateFromCalendarValue(value)
+  if (!date) {
+    return
+  }
+
   model.value = correctStartTime(DateTime.fromJSDate(date))
 }
 
