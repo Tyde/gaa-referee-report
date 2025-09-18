@@ -18,7 +18,8 @@ export function checkGameReportMinimal(gameReport:GameReport): boolean {
 export function checkGameReportNecessary(gameReport:GameReport): boolean {
     return checkGameReportMinimal(gameReport) &&
         gameReport.gameType != undefined &&
-        gameReport.extraTime != undefined
+        gameReport.extraTime != undefined &&
+        gameReport.gameLength != undefined
 }
 export function checkGameReportSuggestion(gameReport:GameReport): boolean {
     let sumGoals = (gameReport.teamBReport.goals ?? 0) + (gameReport.teamAReport.goals ?? 0)
@@ -26,4 +27,3 @@ export function checkGameReportSuggestion(gameReport:GameReport): boolean {
     return checkGameReportMinimal(gameReport) &&
         sumGoals + sumPoints > 0
 }
-

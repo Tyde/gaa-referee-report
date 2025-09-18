@@ -1,5 +1,5 @@
 import {z} from "zod";
-import type {ExtraTimeOption} from "@/types";
+import type {ExtraTimeOption, GameLengthOption} from "@/types";
 import {GameCode, GameType} from "@/types";
 import {gameReportDEOToGameReport} from "@/utils/api/game_report_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
@@ -55,6 +55,7 @@ export function extractGameReportsFromCompleteReportDEO(
     report:Report,
     gameTypes: Array<GameType>,
     extraTimeOptions: Array<ExtraTimeOption>,
+    gameLengthOptions: Array<GameLengthOption>,
     rules: Array<Rule>,
     allTeams: Array<Team>
 ): Array<GameReport> {
@@ -65,6 +66,7 @@ export function extractGameReportsFromCompleteReportDEO(
             report,
             gameTypes,
             extraTimeOptions,
+            gameLengthOptions,
             rules,
             allTeams
         )
@@ -181,5 +183,3 @@ export async function shareReportOnServer(reportId:number):Promise<TournamentRep
     return makePostRequest("/api/report/share",{id: reportId})
         .then(data => parseAndHandleDEO(data, TournamentReportShareLinkDEO))
 }
-
-

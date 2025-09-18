@@ -236,7 +236,7 @@ async function tryTranslateRule() {
 <style scoped>
 .rule-text-card {
   @apply p-2 m-1;
-  @apply bg-gray-100;
+  @apply bg-surface-600;
   @apply rounded;
   @apply w-full;
 }
@@ -251,10 +251,10 @@ async function tryTranslateRule() {
   @apply hover:cursor-pointer;
 }
 .loading {
-  @apply bg-gray-800;
+  @apply bg-surface-500;
 }
 .disabled-tag {
-  @apply bg-red-400;
+  @apply bg-red-800;
   @apply text-white;
   @apply rounded;
   @apply p-1;

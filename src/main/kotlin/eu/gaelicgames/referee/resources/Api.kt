@@ -272,6 +272,18 @@ class Api() {
         @Resource("update")
         class Update(val parent: GameType)
     }
+
+    @Serializable
+    @Resource("gamelength")
+    class GameLength(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: GameLength)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: GameLength)
+    }
     @Serializable
     @Resource("pitch")
     class Pitch(val parent: Api) {

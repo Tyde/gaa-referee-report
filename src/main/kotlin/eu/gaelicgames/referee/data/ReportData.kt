@@ -168,6 +168,17 @@ class ExtraTimeOption(id:EntityID<Long>):LongEntity(id) {
     var name by ExtraTimeOptions.name
 }
 
+object GameLengthOptions : LongIdTable() {
+    val name = varchar("name", 80)
+    val minutes = integer("minutes")
+}
+
+class GameLengthOption(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<GameLengthOption>(GameLengthOptions)
+    var name by GameLengthOptions.name
+    var minutes by GameLengthOptions.minutes
+}
+
 
 
 object GameReports : LongIdTable() {
@@ -181,6 +192,7 @@ object GameReports : LongIdTable() {
     val teamBGoals = integer("team_b_goals")
     val teamBPoints = integer("team_b_points")
     val extraTime = reference("extra_time",ExtraTimeOptions).nullable()
+    val gameLength = optReference("game_length", GameLengthOptions)
     val umpirePresentOnTime = bool("umpire_present_on_time").default(true)
     val umpireNotes = text("umpire_notes").nullable()
     val generalNotes = text("general_notes").nullable().default("")
@@ -198,6 +210,7 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var teamBGoals by GameReports.teamBGoals
     var teamBPoints by GameReports.teamBPoints
     var extraTime by ExtraTimeOption optionalReferencedOn GameReports.extraTime
+    var gameLength by GameLengthOption optionalReferencedOn GameReports.gameLength
     var umpirePresentOnTime by GameReports.umpirePresentOnTime
     var umpireNotes by GameReports.umpireNotes
     val injuries by Injury referrersOn Injuries.game

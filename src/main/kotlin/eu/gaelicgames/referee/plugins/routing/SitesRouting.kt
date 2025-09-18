@@ -88,6 +88,8 @@ fun Route.sites() {
             TournamentReportShareLink.find { TournamentReportShareLinks.uuid eq uuid }.firstOrNull()
         }
         if (report != null) {
+            respondWithStaticFileOnSystem("show_report.html")
+            /*
             val resource =
                 this.javaClass.classLoader.getResourceAsStream("static/show_report.html")
             if (resource != null) {
@@ -96,7 +98,7 @@ fun Route.sites() {
                 }
             } else {
                 call.respond(HttpStatusCode.InternalServerError)
-            }
+            }*/
         } else {
             call.respondText(
                 "This share link does not exist or is expired",

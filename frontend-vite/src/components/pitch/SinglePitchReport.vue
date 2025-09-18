@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
 
           <label for="surfaceSelect">{{ $t('pitchReport.surface') }}:</label><br>
 
-          <Dropdown
+          <Select
               id="surfaceSelect"
               v-model="pitch.surface"
               :class="{
@@ -82,14 +82,14 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.surface')"
           >
-          </Dropdown>
+          </Select>
         </div>
       </div>
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
           <label for="lengthSelect">{{ $t('pitchReport.length') }}:</label><br>
-          <Dropdown
+          <Select
               id="lengthSelect"
               v-model="pitch.length"
               :class="{
@@ -99,12 +99,12 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.length')"
           >
-          </Dropdown>
+          </Select>
         </div>
         <div class="field p-2">
 
           <label for="widthSelect">{{ $t('pitchReport.width') }}:</label><br>
-          <Dropdown
+          <Select
               id="widthSelect"
               v-model="pitch.width"
               :class="{
@@ -114,14 +114,14 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.width')"
           >
-          </Dropdown>
+          </Select>
         </div>
       </div>
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
           <label for="smallSquareSelect">{{ $t('pitchReport.smallSquareMarkings') }}:</label><br>
-          <Dropdown
+          <Select
               id="smallSquareSelect"
               v-model="pitch.smallSquareMarkings"
               :class="{
@@ -132,12 +132,12 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.smallSquareMarkings')"
           >
-          </Dropdown>
+          </Select>
         </div>
         <div class="field p-2">
 
           <label for="penaltySquareSelect">{{ $t('pitchReport.penaltySquareMarkings') }}:</label><br>
-          <Dropdown
+          <Select
               id="penaltySquareSelect"
               v-model="pitch.penaltySquareMarkings"
               :class="{
@@ -148,12 +148,12 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.penaltySquareMarkings')"
           >
-          </Dropdown>
+          </Select>
         </div>
         <div class="field p-2">
 
           <label for="thirteenMarkignsSelect">{{ $t('pitchReport.thirteenMeterMarkings') }}:</label><br>
-          <Dropdown
+          <Select
               id="thirteenMarkignsSelect"
               v-model="pitch.thirteenMeterMarkings"
               :class="{
@@ -164,12 +164,12 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.thirteenMeterMarkings')"
           >
-          </Dropdown>
+          </Select>
         </div>
         <div class="field p-2">
 
           <label for="twentyMarkignsSelect">{{ $t('pitchReport.twentyMeterMarkings') }}:</label><br>
-          <Dropdown
+          <Select
               id="twentyMarkignsSelect"
               v-model="pitch.twentyMeterMarkings"
               :class="{
@@ -180,12 +180,12 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.twentyMeterMarkings')"
           >
-          </Dropdown>
+          </Select>
         </div>
         <div class="field p-2">
 
           <label for="longMarkingsSelect">{{ $t('pitchReport.longMarkings') }}:</label><br>
-          <Dropdown
+          <Select
               id="longMarkingsSelect"
               v-model="pitch.longMeterMarkings"
               :class="{
@@ -196,14 +196,14 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.longMarkings')"
           >
-          </Dropdown>
+          </Select>
         </div>
       </div>
       <div class="flex-row flex-wrap flex justify-center">
         <div class="field p-2">
 
           <label for="goalpostsSelect">{{ $t('pitchReport.goalPosts') }}:</label><br>
-          <Dropdown
+          <Select
               id="goalpostsSelect"
               v-model="pitch.goalPosts"
               :class="{
@@ -213,12 +213,12 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.goalPosts')"
           >
-          </Dropdown>
+          </Select>
         </div>
         <div class="field p-2">
 
           <label for="goalDimsSelect">{{ $t('pitchReport.goalDimensions') }}:</label><br>
-          <Dropdown
+          <Select
               id="goalDimsSelect"
               v-model="pitch.goalDimensions"
               :class="{
@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
               option-label="name"
               :placeholder="$t('pitchReport.goalDimensions')"
           >
-          </Dropdown>
+          </Select>
         </div>
       </div>
       <div class="flex-row flex-wrap flex justify-center">

@@ -5,12 +5,9 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import Listbox from "primevue/listbox";
 import InputText from "primevue/inputtext";
-import Calendar from "primevue/calendar";
 import SelectButton from "primevue/selectbutton";
 import Dropdown from "primevue/dropdown";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import InputNumber from "primevue/inputnumber";
 import Checkbox from "primevue/checkbox";
@@ -21,7 +18,7 @@ import Textarea from "primevue/textarea";
 import SplitButton from 'primevue/splitbutton';
 
 // @ts-ignore
-import { Vue3Mq } from "vue3-mq";
+import {Vue3Mq} from "vue3-mq";
 import Tooltip from "primevue/tooltip";
 import {createPinia} from "pinia";
 import Message from "primevue/message";
@@ -42,6 +39,14 @@ import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import {createI18n} from "vue-i18n";
 import {messages} from "@/i18n/edit_report/edit_report_i18n";
+import {RefReportColorPreset} from "@/utils/colors";
+import {DatePicker} from "primevue";
+import AccordionPanel from "primevue/accordionpanel";
+import AccordionHeader from "primevue/accordionheader";
+import AccordionContent from "primevue/accordioncontent";
+import Select from "primevue/select";
+import FloatLabel from "primevue/floatlabel";
+
 
 const i18n = createI18n({
     legacy: false,
@@ -53,7 +58,11 @@ const router = createRouter({
     routes: routes
 })
 const app = createApp(App);
-app.use(PrimeVue);
+app.use(PrimeVue, {
+    theme: {
+        preset: RefReportColorPreset
+    }
+});
 app.use(router)
 app.use(Vue3Mq);
 app.use(i18n)
@@ -66,9 +75,10 @@ app.component('IconField',IconField)
 app.component('InputIcon',InputIcon)
 
 app.component('Password', Password)
-app.component('Calendar',Calendar)
 app.component('SelectButton',SelectButton)
-app.component('Dropdown',Dropdown)
+app.component('Select',Select)
+app.component('DatePicker',DatePicker)
+app.component('FloatLabel',FloatLabel)
 app.component('InputNumber',InputNumber)
 app.component('Checkbox',Checkbox)
 app.component('Dialog',Dialog)
@@ -85,7 +95,10 @@ app.component('Paginator', Paginator)
 app.component('Divider', Divider)
 app.component('MultiSelect', MultiSelect)
 app.component('Accordion', Accordion)
-app.component('AccordionTab', AccordionTab)
+app.component('Accordion', Accordion)
+app.component('AccordionPanel', AccordionPanel)
+app.component('AccordionHeader', AccordionHeader)
+app.component('AccordionContent', AccordionContent)
 app.component(VueFeather.name!!,VueFeather)
 const pinia = createPinia()
 app.use(pinia)

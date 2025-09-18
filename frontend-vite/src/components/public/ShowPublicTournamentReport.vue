@@ -53,6 +53,11 @@ function translateGameTypeIdToGameType(gameTypeID: number) {
   return store.gameTypes.filter(it => it.id == gameTypeID)[0]
 }
 
+function translateGameLengthIdToGameLength(gameLengthID?: number) {
+  if (gameLengthID === undefined || gameLengthID === null) return undefined
+  return store.gameLengthOptions.find(it => it.id === gameLengthID)
+}
+
 function translateCodeIdToGameCode(codeID: number) {
   return store.codes.filter(it => it.id == codeID)[0]
 }
@@ -115,7 +120,7 @@ const selectedTeam = ref<Team>()
       </div>
     </div>
     <div class="flex flex-row justify-center content-center m-2">
-      <Dropdown
+      <Select
           v-model="selectedTeam"
           :options="allTeams"
           optionLabel="name"
@@ -133,7 +138,12 @@ const selectedTeam = ref<Team>()
         :class="gameCodeColor(translateCodeIdToGameCode(game.code))"
     >
       <h3>{{ game.gameReport.startTime.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{ translateCodeIdToGameCode(game.code)?.name}}</h3>
-      <span v-if="game.gameReport.gameType" class="italic">{{ translateGameTypeIdToGameType(game.gameReport.gameType)?.name }}</span>
+      <span v-if="game.gameReport.gameType" class="italic">
+        {{ translateGameTypeIdToGameType(game.gameReport.gameType)?.name }}
+        <template v-if="game.gameReport.gameLength">
+          · {{ translateGameLengthIdToGameLength(game.gameReport.gameLength)?.name }}
+        </template>
+      </span>
 
       <div class="flex flex-row">
         <div class="flex-1 flex">

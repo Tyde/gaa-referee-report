@@ -5,6 +5,8 @@ import {computed, onBeforeMount, ref} from "vue";
 import {useRouter} from "vue-router";
 import {loadAllTournamentsWithTeams} from "@/utils/api/tournament_api";
 import type {Team} from "@/types/team_types";
+import RangedDateTimePicker from "@/components/util/RangedDateTimePicker.vue";
+import {DateTime} from "luxon";
 
 const store = usePublicStore();
 
@@ -25,6 +27,12 @@ const tournamentsSortedByDate = computed(() => {
       return true
     }
   }).filter(teamFilterPredicate)
+      .filter(tournament => {
+        let tDate = tournament.date
+        let isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
+        let isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
+        return isLaterThanStart && isEarlierThanEnd
+      })
 })
 
 const teamFilterPredicate = (tournament: DatabaseTournament) => {
@@ -74,12 +82,19 @@ const allTeams = computed(() => {
 })
 
 const selectedRegion = ref<RegionDEO | undefined>(undefined)
+const dateRange = ref<Date[]>([DateTime.now().minus({days: 180}).toJSDate(), new Date()])
+const dateTimeRange = computed(() => {
+  return dateRange.value.map(it => DateTime.fromJSDate(it))
+})
 </script>
 
 <template>
   <div class="flex-col w-full flex items-center">
-    <div class="flex flex-col w-full lg:w-7/12">
+    <div class="flex flex-col w-full">
+      <RangedDateTimePicker v-model:date-range="dateRange" class="m-2"/>
       <div class="flex flex-row justify-center content-center">
+
+
         <div>
           <SelectButton
               v-model="selectedRegion"
@@ -92,7 +107,7 @@ const selectedRegion = ref<RegionDEO | undefined>(undefined)
         </div>
       </div>
       <div class="flex flex-row justify-center content-center m-2">
-        <Dropdown
+        <Select
             v-model="selectedTeam"
             :options="allTeams"
             optionLabel="name"
@@ -110,11 +125,11 @@ const selectedRegion = ref<RegionDEO | undefined>(undefined)
           @click="navigateToReport(tournament.id)"
       >
         <div class="flex flex-row">
-          <div class="grow">{{ tournament.name }}</div>
-          <div>{{ tournament.location }}</div>
+          <div class="grow font-bold text-xl mb-4">{{ tournament.name }}</div>
+          <div><vue-feather type="map-pin" class="h-3"></vue-feather> {{ tournament.location }}</div>
         </div>
         <div class="flex flex-row">
-          <div class="grow">{{ tournament.date.toISODate() }}</div>
+          <div class="grow"><vue-feather type="calendar" class="h-3"></vue-feather> {{ tournament.date.toISODate() }}</div>
           <div>{{ regionIDToRegion(tournament.region).name }}</div>
         </div>
       </div>
@@ -126,9 +141,9 @@ const selectedRegion = ref<RegionDEO | undefined>(undefined)
 <style scoped>
 .single-tournament-row {
   @apply flex flex-col;
-  @apply p-2 m-2;
-  @apply rounded-lg bg-gray-100;
-  @apply hover:bg-gray-200;
+  @apply p-4 m-2;
+  @apply rounded-lg bg-surface-700 border border-surface-600;
+  @apply hover:bg-surface-600;
   @apply cursor-pointer;
 }
 

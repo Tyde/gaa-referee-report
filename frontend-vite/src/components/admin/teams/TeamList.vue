@@ -4,7 +4,7 @@ import {useAdminStore} from "@/utils/admin_store";
 import {editTeamOnServer} from "@/utils/api/teams_api";
 import {computed, ref} from "vue";
 import type {DataTableRowEditSaveEvent} from "primevue/datatable";
-import {FilterMatchMode} from "primevue/api";
+import { FilterMatchMode } from '@primevue/core/api';
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import type {Team} from "@/types/team_types";
 import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";
@@ -112,7 +112,7 @@ const orderedTeamsList = computed(() => {
                 <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
               </div>
               <div class="col-span-2 flex flex-row">
-                <div class="bg-gray-300 rounded-xl m-1 p-2 text-sm" v-for="(team, index) in data.amalgamationTeams" :key="team.id">
+                <div class="bg-surface-500 rounded-xl m-1 p-2 text-sm" v-for="(team, index) in data.amalgamationTeams" :key="team.id">
                   <span>{{ team.name }}</span>
                 </div>
               </div>
