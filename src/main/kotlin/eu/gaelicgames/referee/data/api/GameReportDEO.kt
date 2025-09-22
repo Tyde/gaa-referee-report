@@ -314,8 +314,9 @@ suspend fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
             val gts = GameType.all().map {
                 GameTypeDEO.fromGameType(it)
             }
-            val gls = GameLengthOption.all().map {
-                GameLengthOptionDEO.fromGameLengthOption(it)
+            val gls = GameLengthOptions.selectAll().orderBy(GameLengthOptions.minutes to SortOrder.ASC)
+                .map {
+                GameLengthOptionDEO.fromGameLengthOption(GameLengthOption.wrapRow(it))
             }
             val dbgrc = GameReportClassesDEO(etos, gts, gls)
             runBlocking { dbgrc.setCache() }
@@ -344,8 +345,8 @@ fun GameLengthOptionDEO.Companion.fromGameLengthOption(option: GameLengthOption)
 suspend fun GameLengthOptionDEO.createInDatabase(): Result<GameLengthOption> {
     GameReportClassesDEO.deleteCache()
 
-    if (this.id == null && this.name.isNotBlank()) {
-        return Result.success(transaction {
+    if (this.id == -1L && this.name.isNotBlank()) {
+        return Result.success(lockedTransaction {
             GameLengthOption.new {
                 this.name = this@createInDatabase.name
                 this.minutes = this@createInDatabase.minutes

@@ -12,7 +12,6 @@
 - Database is handled with the Kotlin Expose library and is found in the ReportData.kt file.
 
 ## Build, Test, and Development Commands
-- Java runtime: set `JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home` before running Gradle commands
 - Backend build + tests: `./gradlew build`
 - Run backend locally: `./gradlew run` (starts Ktor on `:8080`)
 - Unit tests only: `./gradlew test`
