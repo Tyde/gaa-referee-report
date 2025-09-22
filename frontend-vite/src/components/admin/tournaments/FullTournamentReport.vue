@@ -85,6 +85,7 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
         report,
         store.gameTypes,
         store.extraTimeOptions,
+        store.gameLengthOptions,
         store.rules,
         store.teams
     )
@@ -254,7 +255,7 @@ function isTeamAWinner(gr:GameReport) {
   <div v-else class="flex flex-row justify-center">
     <div class="flex flex-col content-center justify-center">
       <!-- Header -->
-      <div class="bg-white w-full sm:w-[680px]">
+      <div class="print:bg-white bg-surface-600 w-full sm:w-[680px]">
         <h1>Tournament Report</h1>
         <h2>Tournament: {{ tournamentDate }} - {{ tournament?.name ?? "" }} in
           {{ tournament?.location ?? "" }}</h2>
@@ -263,54 +264,59 @@ function isTeamAWinner(gr:GameReport) {
           <span v-html="formattedAdditionalInfoString"></span>
         </div>
         <Accordion :active-index="null" >
-          <AccordionTab header="Filter">
-          <div class="filter-row">
-            <label for="filter">Filter by Referee</label>
-            <div>
-              <Button v-if="selectedReferees.length > 0" link @click="selectedReferees = []">Clear</Button>
-              <MultiSelect
-                  :options="referees"
-                  v-model="selectedReferees"
-                  option-label="fullName"
-                  placeholder="Select Referee"
-              >
-              </MultiSelect>
-            </div>
+          <AccordionPanel value="0">
+            <AccordionHeader>Filter</AccordionHeader>
+            <AccordionContent>
 
-          </div>
-          <div class="filter-row">
-            <label for="filter">Only show Reports with red card:</label>
-            <Checkbox
-                v-model="onlyShowRedCardReports"
-                binary
-            />
+              <div class="filter-row">
+                <label for="filter">Filter by Referee</label>
+                <div>
+                  <Button v-if="selectedReferees.length > 0" link @click="selectedReferees = []">Clear</Button>
+                  <MultiSelect
+                      :options="referees"
+                      v-model="selectedReferees"
+                      option-label="fullName"
+                      placeholder="Select Referee"
+                  >
+                  </MultiSelect>
+                </div>
 
-          </div>
-          <div class="filter-row">
-            <label for="filter">Filter by code:</label>
-            <div>
-              <Button v-if="selectedCodes.length > 0" link @click="selectedCodes = []">Clear</Button>
-              <MultiSelect
-                  :options="gameCodes"
-                  v-model="selectedCodes"
-                  option-label="name"
-                  placeholder="Select Game Code"/>
-            </div>
+              </div>
+              <div class="filter-row">
+                <label for="filter">Only show Reports with red card:</label>
+                <Checkbox
+                    v-model="onlyShowRedCardReports"
+                    binary
+                />
 
-          </div>
-          <div class="filter-row">
-            <label for="filter">Filter by game type:</label>
-            <div>
-              <Button v-if="selectedGameTypes.length > 0" link @click="selectedGameTypes = []">Clear</Button>
-              <MultiSelect
-                  :options="gameTypes"
-                  v-model="selectedGameTypes"
-                  option-label="name"
-                  placeholder="Select Game Type"/>
-            </div>
+              </div>
+              <div class="filter-row">
+                <label for="filter">Filter by code:</label>
+                <div>
+                  <Button v-if="selectedCodes.length > 0" link @click="selectedCodes = []">Clear</Button>
+                  <MultiSelect
+                      :options="gameCodes"
+                      v-model="selectedCodes"
+                      option-label="name"
+                      placeholder="Select Game Code"/>
+                </div>
 
-          </div>
-          </AccordionTab>
+              </div>
+              <div class="filter-row">
+                <label for="filter">Filter by game type:</label>
+                <div>
+                  <Button v-if="selectedGameTypes.length > 0" link @click="selectedGameTypes = []">Clear</Button>
+                  <MultiSelect
+                      :options="gameTypes"
+                      v-model="selectedGameTypes"
+                      option-label="name"
+                      placeholder="Select Game Type"/>
+                </div>
+
+              </div>
+
+            </AccordionContent>
+          </AccordionPanel>
         </Accordion>
         <div class="flex flex-row justify-center">
           <Button  link @click="scrollToPitchReports">Scroll to Pitch Reports</Button>
@@ -331,6 +337,7 @@ function isTeamAWinner(gr:GameReport) {
           <h3>
             {{ gr.gameType?.name }}
           </h3>
+          <h3 v-if="gr.gameLength">{{ gr.gameLength.name }} </h3>
           <div class="flex flex-row">
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
@@ -371,20 +378,12 @@ function isTeamAWinner(gr:GameReport) {
 </template>
 
 <style scoped>
-h1 {
-  @apply text-xl font-bold text-center;
-}
-
-h2 {
-  @apply text-lg font-bold text-center;
-}
-
-h3 {
-  @apply text-center;
-}
 
 .game-report-style {
-  @apply pt-6 p-4 border-t-2 border-t-gray-600 break-inside-avoid;
+  @apply pt-6 p-4 border-t-2;
+  @apply border-t-surface-600;
+  @apply print:border-t-gray-600;
+  @apply break-inside-avoid;
 }
 
 .filter-row {

@@ -197,6 +197,9 @@ function goToGameReport(id:number | undefined) {
             <template v-else-if="issue===GameReportIssue.NoExtraTimeOption">
               {{ $t('report.issues.noExtraTimeOptionSelected') }}:
             </template>
+            <template v-else-if="issue===GameReportIssue.NoGameLengthOption">
+              {{ $t('report.issues.noGameLengthSelected') }}:
+            </template>
             <template v-else-if="issue===GameReportIssue.NoTeamA">
               {{ $t('report.issues.noTeamASelected') }}:
             </template>

@@ -40,13 +40,16 @@ const gradleAssembler = (): Plugin => {
         }
     };
 };
+
+
 export default defineConfig(({mode}) => {
     return {
         plugins: [
             vue(),
             vueJsx(),
             gradleAssembler(),
-            /*visualizer({
+            /*
+            visualizer({
                 filename: 'bundle-visualizer.html', // The output file
                 open: true, // Automatically open the visualizer file
             })*/
@@ -68,13 +71,14 @@ export default defineConfig(({mode}) => {
                     userDashboard: resolve(__dirname, 'user_dashboard.html'),
                     publicDashboard: resolve(__dirname, 'public_dashboard.html'),
                 },
+                /*
                 output: {
                     manualChunks(id) {
                         if (id.includes('sass')) {
                             return 'sass';
                         }
                     }
-                }
+                }*/
             },
             emptyOutDir: true,
             minify: mode === "development" ? false : 'esbuild',

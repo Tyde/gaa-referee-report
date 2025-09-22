@@ -1,4 +1,4 @@
-import {ExtraTimeOption, GameType} from "@/types";
+import {ExtraTimeOption, GameLengthOption, GameType} from "@/types";
 import {z} from "zod"
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
 import {fromDisciplinaryActionDEOToDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
@@ -15,12 +15,14 @@ export function gameReportDEOToGameReport(
     report: Report,
     gameTypes: Array<GameType>,
     extraTimeOptions: Array<ExtraTimeOption>,
+    gameLengthOptions: Array<GameLengthOption>,
     rules: Array<Rule>,
     allTeams: Array<Team>,
 ): GameReport | undefined {
     const gameReportDEO = cGameReportDEO.gameReport;
     const gameTypeVal = gameTypes.find(gameType => gameType.id === gameReportDEO.gameType);
     const extraTimeVal = extraTimeOptions.find(extraTime => extraTime.id === gameReportDEO.extraTime);
+    const gameLengthVal = gameLengthOptions.find(gl => gl.id === gameReportDEO.gameLength);
     const teamAVal = allTeams.find(team => team.id === gameReportDEO.teamA);
     const teamBVal = allTeams.find(team => team.id === gameReportDEO.teamB);
     if (teamAVal != undefined && teamBVal != undefined) {
@@ -58,6 +60,7 @@ export function gameReportDEOToGameReport(
             teamAReport: teamAReport,
             teamBReport: teamBReport,
             extraTime: extraTimeVal,
+            gameLength: gameLengthVal,
             umpirePresentOnTime: gameReportDEO.umpirePresentOnTime,
             umpireNotes: gameReportDEO.umpireNotes,
             generalNotes: gameReportDEO.generalNotes??"",
@@ -81,6 +84,7 @@ function gameReportToGameReportDEO(gameReport: GameReport) {
         "startTime": gameReport.startTime?.toISO(),
         "extraTime": gameReport.extraTime?.id,
         "gameType": gameReport.gameType?.id,
+        "gameLength": gameReport.gameLength?.id,
         "umpirePresentOnTime": gameReport.umpirePresentOnTime,
         "umpireNotes": gameReport.umpireNotes,
         "generalNotes": gameReport.generalNotes,
@@ -135,5 +139,6 @@ export async function getGameReportVariables() {
         .then(data => parseAndHandleDEO(data, z.object({
             gameTypes: z.array(GameType),
             extraTimeOptions: z.array(ExtraTimeOption),
+            gameLengthOptions: z.array(GameLengthOption),
         })))
 }

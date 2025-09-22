@@ -61,3 +61,4 @@ data/data.db
 data/data.db.BAK
 data/*
 *.db
+/.gradle-home/*

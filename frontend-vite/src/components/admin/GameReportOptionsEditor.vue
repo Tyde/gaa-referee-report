@@ -4,6 +4,7 @@ import {useAdminStore} from "@/utils/admin_store";
 import GameTypeEditor from "@/components/admin/gameReport/GameTypeEditor.vue";
 import RulesEditor from "@/components/admin/gameReport/RulesEditor.vue";
 import ExtraTimeOptionEditor from "@/components/admin/gameReport/ExtraTimeOptionEditor.vue";
+import GameLengthOptionEditor from "@/components/admin/gameReport/GameLengthOptionEditor.vue";
 
 const store = useAdminStore()
 
@@ -19,6 +20,10 @@ const store = useAdminStore()
     <div class="sbs-container">
       <h2>Extra Time options</h2>
       <ExtraTimeOptionEditor />
+    </div>
+    <div class="sbs-container">
+      <h2>Game Length options</h2>
+      <GameLengthOptionEditor />
     </div>
   </div>
 

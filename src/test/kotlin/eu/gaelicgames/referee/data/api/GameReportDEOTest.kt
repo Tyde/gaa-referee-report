@@ -48,6 +48,7 @@ internal class GameReportDEOTest {
                 startTime = LocalDateTime.now(),
                 gameType = tournamentReportData.gameTypeIDs[0],
                 extraTime = tournamentReportData.extraTimeIDs[0],
+                gameLength = tournamentReportData.gameLengthIDs[0],
                 umpirePresentOnTime = true,
                 umpireNotes = "abv",
                 generalNotes = "def"
@@ -70,6 +71,7 @@ internal class GameReportDEOTest {
                 assert(testVal.startTime != null)
                 assert(testVal.gameType?.id?.value == tournamentReportData.gameTypeIDs[0])
                 assert(testVal.extraTime?.id?.value == tournamentReportData.extraTimeIDs[0])
+                assert(testVal.gameLength?.id?.value == tournamentReportData.gameLengthIDs[0])
                 assert(testVal.umpirePresentOnTime)
                 assert(testVal.umpireNotes == "abv")
                 assert(testVal.generalNotes == "def")
@@ -92,6 +94,7 @@ internal class GameReportDEOTest {
                 startTime = LocalDateTime.now(),
                 gameType = tournamentReportData.gameTypeIDs[0],
                 extraTime = tournamentReportData.extraTimeIDs[0],
+                gameLength = tournamentReportData.gameLengthIDs[0],
                 umpirePresentOnTime = true,
                 umpireNotes = "abv",
                 generalNotes = "def"
@@ -119,6 +122,7 @@ internal class GameReportDEOTest {
                 startTime = LocalDateTime.now(),
                 gameType = tournamentReportData.gameTypeIDs[0],
                 extraTime = tournamentReportData.extraTimeIDs[0],
+                gameLength = tournamentReportData.gameLengthIDs[0],
                 umpirePresentOnTime = true,
                 umpireNotes = "abv",
                 generalNotes = "def"
@@ -144,6 +148,7 @@ internal class GameReportDEOTest {
                 startTime = LocalDateTime.now(),
                 gameType = tournamentReportData.gameTypeIDs[0],
                 extraTime = tournamentReportData.extraTimeIDs[0],
+                gameLength = tournamentReportData.gameLengthIDs[0],
                 umpirePresentOnTime = true,
                 umpireNotes = "abv",
                 generalNotes = "def"
@@ -624,6 +629,7 @@ internal class GameReportDEOTest {
                 assert(deo.gameReport.startTime == gameReport.startTime)
                 assert(deo.gameReport.gameType == gameReport.gameType?.id?.value)
                 assert(deo.gameReport.extraTime == gameReport.extraTime?.id?.value)
+                assert(deo.gameReport.gameLength == gameReport.gameLength?.id?.value)
                 assert(deo.gameReport.umpirePresentOnTime == gameReport.umpirePresentOnTime)
                 assert(deo.gameReport.umpireNotes == gameReport.umpireNotes)
                 assert(deo.gameReport.generalNotes == gameReport.generalNotes)

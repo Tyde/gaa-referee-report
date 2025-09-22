@@ -33,7 +33,7 @@ const isLeague = computed(() => {
 <template>
   <div class="flex flex-row justify-center">
     <div class="flex flex-col">
-      <div class="bg-white w-full sm:w-[680px]">
+      <div class="print:bg-white bg-surface-600 w-full sm:w-[680px]">
         <h1>Tournament Report</h1>
         <h2>Tournament: {{ tournamentDate }} - {{ currentReport.tournament.name }} in
           {{ currentReport.tournament.location }}</h2>
@@ -56,13 +56,14 @@ const isLeague = computed(() => {
           </h3>
           <h3>
             {{ gr.gameType?.name }}
+            <template v-if="gr.gameLength"> · {{ gr.gameLength.name }} </template>
           </h3>
           <div class="flex flex-row">
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
                 <div class="flex flex-row">
                   <div class="flex-1">{{ gr.teamAReport.team?.name }}</div>
-                  <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }}</div>
+                  <div class="flex-1">{{ gr.teamAReport.goals }} - {{ gr.teamAReport.points }} ({{(gr.teamAReport.goals ?? 0) * 3 + (gr.teamAReport.points ?? 0)}})</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamAReport"/>
               </div>
@@ -70,7 +71,7 @@ const isLeague = computed(() => {
             <div class="flex-1 flex">
               <div class="flex flex-col flex-grow">
                 <div class="flex flex-row">
-                  <div class="flex-1 text-right">{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }}</div>
+                  <div class="flex-1 text-right">{{ gr.teamBReport.goals }} - {{ gr.teamBReport.points }} ({{(gr.teamBReport.goals ?? 0) * 3 + (gr.teamBReport.points ?? 0)}})</div>
                   <div class="flex-1 text-right">{{ gr.teamBReport.team?.name }}</div>
                 </div>
                 <ShowDisciplinaryActionsAndInjuries :team-report="gr.teamBReport"/>
@@ -104,20 +105,13 @@ const isLeague = computed(() => {
 
 
 <style scoped>
-h1 {
-  @apply text-xl font-bold text-center;
-}
 
-h2 {
-  @apply text-lg font-bold text-center;
-}
-
-h3 {
-  @apply text-center;
-}
 
 .game-report-style {
-  @apply pt-6 p-4 border-t-2 border-t-gray-600 odd:bg-white even:bg-gray-200 break-inside-avoid;
+  @apply pt-6 p-4 border-t-2;
+  @apply border-t-surface-600 odd:bg-surface-500 even:bg-surface-700;
+  @apply print:border-t-gray-600 print:odd:bg-white print:even:bg-gray-200;
+  @apply break-inside-avoid;
 }
 
 </style>

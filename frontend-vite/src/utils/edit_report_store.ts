@@ -22,7 +22,7 @@ import {
     getGameReportVariables,
     updateGameReport
 } from "@/utils/api/game_report_api";
-import {checkGameReportMinimal} from "@/utils/gobal_functions";
+import {checkGameReportMinimal, checkGameReportNecessary} from "@/utils/gobal_functions";
 import {uploadInjury} from "@/utils/api/injuries_api";
 import type {Report} from "@/types/report_types";
 import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
@@ -40,7 +40,6 @@ import {
 import type {Team} from "@/types/team_types";
 import {loadAllTeams} from "@/utils/api/teams_api";
 import {usePublicStore} from "@/utils/public_store";
-import {compileAsync} from "sass";
 import {computedAsync} from "@vueuse/core";
 
 
@@ -151,18 +150,22 @@ export const useReportStore = defineStore('report', () => {
             const reportDEO = await reportDEOPromise
             if (reportDEO) {
                 report.value = completeReportDEOToReport(reportDEO, publicStore.codes)
+                console.log("Report loaded", report.value)
                 gameReports.value = extractGameReportsFromCompleteReportDEO(
                     reportDEO,
                     report.value,
                     publicStore.gameTypes,
                     publicStore.extraTimeOptions,
+                    publicStore.gameLengthOptions,
                     publicStore.rules,
                     publicStore.teams
                 )
+                console.log("Game reports loaded", gameReports.value)
                 if (publicStore.pitchVariables) {
                     pitchReports.value = reportDEO.pitches?.map(pitch => {
                         return pitchDEOtoPitch(pitch, report.value, publicStore.pitchVariables!!)
                     }) ?? []
+                    console.log("Pitch reports loaded", pitchReports.value)
                 }
                 return true
             }
@@ -204,19 +207,20 @@ export const useReportStore = defineStore('report', () => {
     async function sendGameReport(gameReport: GameReport, allowAsync: boolean = false, throwIfNotReady: boolean = false) {
 
         if(!allowAsync) await waitForAllTransfersDone()
-        if (checkGameReportMinimal(gameReport)) {
-            if (gameReport.id) {
-
+        if (gameReport.id) {
+            if (checkGameReportMinimal(gameReport)) {
                 await trackTransfer(updateGameReport(gameReport))
                     .catch((error) => {
                         newError(error)
                     })
-            } else {
-                gameReport.id = await trackTransfer(createGameReport(gameReport))
+            } else if (throwIfNotReady) {
+                throw new Error(`Game report "id: ${gameReport.id}" not ready for upload`)
             }
         } else {
-            if(throwIfNotReady) {
-                throw new Error(`Game report "id: ${gameReport.id}" not ready for upload`)
+            if (checkGameReportNecessary(gameReport)) {
+                gameReport.id = await trackTransfer(createGameReport(gameReport))
+            } else if (throwIfNotReady) {
+                throw new Error(`Game report "id: ${gameReport.id}" not ready for creation (missing required fields) `)
             }
         }
     }
@@ -383,6 +387,9 @@ export const useReportStore = defineStore('report', () => {
             }
             if (gameReport.extraTime == undefined) {
                 issues.push(GameReportIssue.NoExtraTimeOption)
+            }
+            if (gameReport.gameLength == undefined) {
+                issues.push(GameReportIssue.NoGameLengthOption)
             }
             if (gameReport.teamAReport.team == undefined) {
                 issues.push(GameReportIssue.NoTeamA)

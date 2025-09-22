@@ -1,9 +1,9 @@
 FROM gradle:7-jdk11 AS build
 
 RUN apt-get install -y curl \
-  && curl -sL https://deb.nodesource.com/setup_18.x | bash - \
+  && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
   && apt-get install -y nodejs \
-  && curl -L https://www.npmjs.com/install.sh | sh
+  && npm install -g npm@latest
 
 COPY --chown=gradle:gradle [ "build.gradle.kts", "settings.gradle.kts" ,"gradle.properties" , "/home/gradle/src/"]
 COPY --chown=gradle:gradle [ "src/" , "/home/gradle/src/src/"]
@@ -27,22 +27,22 @@ VOLUME /app/data
 
 ENV SERVER_URL=""
 ENV MAILJET_PUBLIC=""
-ENV MAILJET_SECRET=""
+#ENV MAILJET_SECRET=""
 
 ENV ADMIN_FIRST_NAME=""
 ENV ADMIN_LAST_NAME=""
 ENV ADMIN_EMAIL=""
-ENV ADMIN_PASSWORD=""
+#ENV ADMIN_PASSWORD=""
 
 ENV REDIS_HOST="cache"
 ENV REDIS_PORT="6379"
-ENV REDIS_PASSWORD=""
+#ENV REDIS_PASSWORD=""
 
 ENV POSTGRES_HOST="db"
 ENV POSTGRES_PORT="5432"
 ENV POSTGRES_DB="referee"
 ENV POSTGRES_USER="referee"
-ENV POSTGRES_PASSWORD=""
+#ENV POSTGRES_PASSWORD=""
 
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","report-system.jar"]

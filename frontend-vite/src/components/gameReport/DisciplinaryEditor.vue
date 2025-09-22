@@ -225,7 +225,7 @@ onMounted(() => {
 
 
           <div class="hidden md:flex md:flex-col">
-            <Dropdown
+            <Select
                 v-model="dAction.rule"
                 :options="filteredRules"
                 :show-clear="true"
@@ -255,7 +255,7 @@ onMounted(() => {
                 </div>
 
               </template>
-            </Dropdown>
+            </Select>
             <div v-if="dAction.rule" class="w-[22rem] p-2">
               {{ localizedDescription(dAction.rule) }}
             </div>
@@ -269,7 +269,7 @@ onMounted(() => {
               class="block md:hidden"
               :placeholder="$t('gameReport.rule')"
           >
-            <template #option="slotProps:{option:Rule}">
+            <template #option="slotProps">
 
               <div>
                 <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>

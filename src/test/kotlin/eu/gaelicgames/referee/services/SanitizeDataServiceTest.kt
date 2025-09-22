@@ -10,26 +10,31 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class SanitizeDataServiceTest {
     companion object {
         private lateinit var tournamentReportData: TestHelper.TournamentReportData
 
-        @JvmStatic
-        @BeforeAll
-        fun setUp(): Unit {
-            TestHelper.setupDatabase()
-            Companion.tournamentReportData = TestHelper.setUpReport()
-        }
 
-        @JvmStatic
-        @AfterAll
-        fun tearDownAll() {
-            TestHelper.tearDownDatabase()
-        }
 
+
+
+    }
+
+    @BeforeEach
+    fun setUp(): Unit {
+        TestHelper.setupDatabase()
+        tournamentReportData = TestHelper.setUpReport()
+    }
+
+    @AfterEach
+    fun tearDownEach() {
+        println("Run after Each")
+        TestHelper.tearDownDatabase()
     }
 
     @Test
@@ -59,9 +64,47 @@ class SanitizeDataServiceTest {
         }
     }
 
-    private suspend fun initializeData() = newSuspendedTransaction {
-        val firstReport = tournamentReportData
+    @Test
+    fun `test mergeTournamentReports skip league rounds`() {
+        runBlocking{
+
+            val creationData = initializeData(leagueRound = true)
+
+            val sanitizeDataService = SanitizeDataService(this)
+            transaction{
+                //All reports should still exist and should not be merged
+                TournamentReport.all().map {
+                    "TournamentReport: ${it.id.value} ${it.tournament.name} (${it.tournament.id}, league: ${it.tournament.isLeague}) Refereee: ${it.referee.id.value} Teams: ${it.selectedTeams.map { it.id.value }} Game Reports: ${it.gameReports.map { it.id.value }}"
+                }.forEach { println(it) }
+
+
+            }
+            println("Run cycle")
+            sanitizeDataService.runCycle()
+
+            transaction{
+                //All reports should still exist and should not be merged
+                TournamentReport.all().map {
+                    "TournamentReport: ${it.id.value} ${it.tournament.name} (${it.tournament.id}, league: ${it.tournament.isLeague}) Refereee: ${it.referee.id.value} Teams: ${it.selectedTeams.map { it.id.value }} Game Reports: ${it.gameReports.map { it.id.value }}"
+                }.forEach { println(it) }
+                println(TournamentReports.selectAll().count())
+                assert(TournamentReports.selectAll().count() == 8L)
+
+            }
+
+        }
+
+    }
+
+    private suspend fun initializeData(leagueRound: Boolean = false) = newSuspendedTransaction {
+
+        val firstReport = if(leagueRound) {
+            TestHelper.setUpReport(makeLeagueRound = true)
+        } else {
+            tournamentReportData
+        }
         firstReport.tournamentReport.isSubmitted = true
+        commit()
 
         TestHelper.initializeGameReport(firstReport)
         TestHelper.initializeGameReport(firstReport)
@@ -85,18 +128,31 @@ class SanitizeDataServiceTest {
         )
         secondReport.tournamentReport.isSubmitted = true
         commit()
-        TestHelper.initializeGameReport(secondReport)
-        TestHelper.initializeGameReport(secondReport)
-        TestHelper.initializeGameReport(secondReport)
+        var gr = TestHelper.initializeGameReport(secondReport)
+        if (leagueRound) {
+            gr?.startTime = gr?.startTime?.minusDays(1)
+        }
+        gr = TestHelper.initializeGameReport(secondReport)
+        if (leagueRound) {
+            gr?.startTime = gr?.startTime?.minusDays(1)
+        }
+        gr = TestHelper.initializeGameReport(secondReport)
+        if (leagueRound) {
+            gr?.startTime = gr?.startTime?.minusDays(1)
+        }
+
         val thirdReport = TestHelper.setUpReport(
             firstReport.tournamentReport.tournament,
             firstReport.tournamentReport.referee
         )
         thirdReport.tournamentReport.isSubmitted = true
         commit()
-        TestHelper.initializeGameReport(thirdReport)
-        TestHelper.initializeGameReport(thirdReport)
-        TestHelper.initializeGameReport(thirdReport)
+        gr = TestHelper.initializeGameReport(thirdReport)
+
+        gr = TestHelper.initializeGameReport(thirdReport)
+
+        gr = TestHelper.initializeGameReport(thirdReport)
+
         val mergedGRIds = firstReport.tournamentReport.gameReports.map { it.id.value } +
                 secondReport.tournamentReport.gameReports.map { it.id.value } +
                 thirdReport.tournamentReport.gameReports.map { it.id.value }
@@ -120,7 +176,7 @@ class SanitizeDataServiceTest {
 
         val unaffectedReportSameTournament = TestHelper.setUpReport(
             firstReport.tournamentReport.tournament,
-            null
+            null,
         )
         unaffectedReportSameTournament.tournamentReport.isSubmitted = true
         commit()
