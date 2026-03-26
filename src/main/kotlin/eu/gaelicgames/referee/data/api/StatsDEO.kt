@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.lockedTransaction
 import org.jetbrains.exposed.sql.*
 import kotlin.math.pow
+import kotlin.math.roundToLong
 
 
 suspend fun StatsDEO.Companion.load(): StatsDEO {
@@ -227,6 +228,8 @@ private fun computeAverageCardsPerGame(): AverageCardsPerGameDEO {
     }
 }
 
+private fun gaaScore(goals: Int, points: Int) = goals * 3 + points
+
 private fun computeTeamElos(): List<TeamEloDEO> {
     data class GameResult(
         val tournamentDate: java.time.LocalDate,
@@ -251,8 +254,8 @@ private fun computeTeamElos(): List<TeamEloDEO> {
         )
         .where { TournamentReports.isSubmitted eq true }
         .map { row ->
-            val teamAScore = row[GameReports.teamAGoals] * 3 + row[GameReports.teamAPoints]
-            val teamBScore = row[GameReports.teamBGoals] * 3 + row[GameReports.teamBPoints]
+            val teamAScore = gaaScore(row[GameReports.teamAGoals], row[GameReports.teamAPoints])
+            val teamBScore = gaaScore(row[GameReports.teamBGoals], row[GameReports.teamBPoints])
             GameResult(
                 tournamentDate = row[Tournaments.date],
                 teamAId = row[GameReports.teamA].value,
@@ -305,7 +308,7 @@ private fun computeTeamElos(): List<TeamEloDEO> {
             TeamEloDEO(
                 teamId = teamId,
                 teamName = teamNames[teamId] ?: "Unknown",
-                eloScore = Math.round(elo * 10.0) / 10.0,
+                eloScore = (elo * 10.0).roundToLong() / 10.0,
                 gamesPlayed = gamesPlayed[teamId] ?: 0
             )
         }
