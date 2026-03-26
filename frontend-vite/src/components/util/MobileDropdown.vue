@@ -36,8 +36,8 @@ const filteredOptions = computed(() => {
   if (searchTerm.value) {
     if (props.filterFields) {
       return props.options.filter((option:any) => {
-        for (let field of props.filterFields!!) {
-          let match = resolveFieldData(option, field)
+        for (const field of props.filterFields!) {
+          const match = resolveFieldData(option, field)
               ?.toLowerCase()?.includes(searchTerm.value.toLowerCase()) ?? false
           if (match) {
             return true

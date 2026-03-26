@@ -42,13 +42,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     async function fetchMyReports() {
         isLoading.value = true
-        let gcProm = getGameCodes()
+        const gcProm = getGameCodes()
             .then(serverCodes => codes.value = serverCodes)
             .catch(reason => newError(reason))
-        let myRepProm = loadMyReports()
+        const myRepProm = loadMyReports()
             .then(reports => myReports.value = reports)
             .catch(reason => newError(reason))
-        let allTournProm = loadAllTournaments()
+        const allTournProm = loadAllTournaments()
             .then(data => tournaments.value = data)
             .catch(reason => newError(reason))
         await Promise.all([gcProm, myRepProm, allTournProm])

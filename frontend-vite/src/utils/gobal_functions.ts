@@ -22,8 +22,8 @@ export function checkGameReportNecessary(gameReport:GameReport): boolean {
         gameReport.gameLength != undefined
 }
 export function checkGameReportSuggestion(gameReport:GameReport): boolean {
-    let sumGoals = (gameReport.teamBReport.goals ?? 0) + (gameReport.teamAReport.goals ?? 0)
-    let sumPoints = (gameReport.teamBReport.points ?? 0) + (gameReport.teamAReport.points ?? 0)
+    const sumGoals = (gameReport.teamBReport.goals ?? 0) + (gameReport.teamAReport.goals ?? 0)
+    const sumPoints = (gameReport.teamBReport.points ?? 0) + (gameReport.teamAReport.points ?? 0)
     return checkGameReportMinimal(gameReport) &&
         sumGoals + sumPoints > 0
 }

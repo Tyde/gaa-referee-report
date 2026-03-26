@@ -47,8 +47,8 @@ type TransformedTournamentReport = CompactTournamentReportDEO & {
 }
 const transformedReports = computed(() => {
   return props.reports.map(report => {
-    let code = store.findCodeById(report.code)
-    let tournament = store.findTournamentById(report.tournament)
+    const code = store.findCodeById(report.code)
+    const tournament = store.findTournamentById(report.tournament)
     return {
       ...report,
       codeName: (code?.name ?? ''),

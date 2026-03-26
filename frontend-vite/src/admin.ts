@@ -112,5 +112,5 @@ app.component('MultiSelect', MultiSelect)
 app.component('FloatLabel', FloatLabel)
 app.use(ToastService);
 
-app.component(VueFeather.name!!,VueFeather)
+app.component(VueFeather.name!,VueFeather)
 app.mount('#app')

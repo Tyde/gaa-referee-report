@@ -28,9 +28,9 @@ const tournamentsSortedByDate = computed(() => {
     }
   }).filter(teamFilterPredicate)
       .filter(tournament => {
-        let tDate = tournament.date
-        let isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
-        let isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
+        const tDate = tournament.date
+        const isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
+        const isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
         return isLaterThanStart && isEarlierThanEnd
       })
 })
@@ -57,7 +57,7 @@ const teamFilterPredicate = (tournament: DatabaseTournament) => {
 const router = useRouter()
 
 function navigateToReport(reportID: number) {
-  let id = reportID.toString()
+  const id = reportID.toString()
   router.push({path: `/tournament/${id}`})
 }
 

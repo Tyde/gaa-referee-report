@@ -38,8 +38,8 @@ watch(() => props.visible, (newValue) => {
 })
 
 async function mergeTeams() {
-  let mergeInto = props.selectedTeam
-  let mergeFrom = teamsToMerge.value
+  const mergeInto = props.selectedTeam
+  const mergeFrom = teamsToMerge.value
   mergeTeamsOnServer(mergeInto, mergeFrom)
       .catch(reason => store.newError(reason))
       .then(resTeam => {

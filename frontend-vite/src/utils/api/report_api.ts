@@ -137,7 +137,7 @@ const SubmitReportDEO = z.object({
 })
 
 export async function submitReportToServer(report:Report):Promise<number> {
-    let submitReportObj = SubmitReportDEO.parse({
+    const submitReportObj = SubmitReportDEO.parse({
         id: report.id
     })
     return makePostRequest(
