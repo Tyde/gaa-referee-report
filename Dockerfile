@@ -1,7 +1,7 @@
-FROM gradle:7-jdk11 AS build
+FROM gradle:8-jdk21 AS build
 
-RUN apt-get install -y curl \
-  && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+RUN apt-get update && apt-get install -y curl \
+  && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && apt-get install -y nodejs \
   && npm install -g npm@latest
 
@@ -19,7 +19,7 @@ RUN npm run build
 WORKDIR /home/gradle/src
 RUN gradle shadowJar
 
-FROM openjdk:17
+FROM eclipse-temurin:21-jre-alpine
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/report-system.jar
 WORKDIR /app
 RUN mkdir data
