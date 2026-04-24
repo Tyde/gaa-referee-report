@@ -180,6 +180,10 @@ fun Route.sites() {
         respondWithStaticFileOnSystem("public_dashboard.html")
 
     }
+
+    get("/stats") {
+        respondWithStaticFileOnSystem("stats.html")
+    }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.respondWithStaticFileOnSystem(

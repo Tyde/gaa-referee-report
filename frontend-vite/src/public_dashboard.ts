@@ -80,5 +80,5 @@ app.component('Column',Column)
 app.component('Row',Row)
 app.component('BlockUI',BlockUI)
 
-app.component(VueFeather.name!!,VueFeather)
+app.component(VueFeather.name!,VueFeather)
 app.mount('#app')

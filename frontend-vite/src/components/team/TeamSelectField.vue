@@ -84,7 +84,7 @@ const showNewAmalgamation = ref(false)
 const newSquadSelectedTeam = ref<Team | undefined>(undefined)
 //const teamsAvailable = ref(<Team[]>[])
 const isLoading = ref(false)
-const hide_squads = ref<Boolean | undefined>(false)
+const hide_squads = ref<boolean | undefined>(false)
 
 const expandedTeam = ref<Team | undefined>(undefined)
 
@@ -171,7 +171,7 @@ const filtered_list = computed(() => {
   }
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {
 
-    let excludelist = props.exclude_team_list
+    const excludelist = props.exclude_team_list
     //console.log("Checking excludes")
     preparedlist = preparedlist.filter(value => {
       return excludelist.findIndex(exclude_val => {
@@ -181,9 +181,9 @@ const filtered_list = computed(() => {
   }
   if (searchTerm.value) {
     return preparedlist.filter(value => {
-      let isInName = value.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
-      let isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
-        let isInLocalName = cv.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
+      const isInName = value.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
+      const isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
+        const isInLocalName = cv.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
         return pv || isInLocalName
       }, false)
       return isInName || isInAmalgamations

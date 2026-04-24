@@ -99,7 +99,7 @@ app.component('Accordion', Accordion)
 app.component('AccordionPanel', AccordionPanel)
 app.component('AccordionHeader', AccordionHeader)
 app.component('AccordionContent', AccordionContent)
-app.component(VueFeather.name!!,VueFeather)
+app.component(VueFeather.name!,VueFeather)
 const pinia = createPinia()
 app.use(pinia)
 
