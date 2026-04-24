@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type {TeamEloDEO} from "@/types/stats_types";
+import { ref } from "vue";
 
 defineProps<{
     data: TeamEloDEO[];
 }>();
+
+const first = ref(0);
 </script>
 
 <template>
-    <DataTable :value="data" :rows="10" paginator rowHover stripedRows>
+    <DataTable :value="data" :rows="25" paginator rowHover stripedRows v-model:first="first">
         <Column header="Rank" style="width: 4rem">
-            <template #body="{ index }">{{ index + 1 }}</template>
+            <template #body="{ index }">{{ first + index + 1 }}</template>
         </Column>
         <Column field="teamName" header="Team" sortable />
         <Column field="eloScore" header="ELO Rating" sortable style="width: 8rem">
