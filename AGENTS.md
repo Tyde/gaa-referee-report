@@ -1,43 +1,42 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- Backend (Kotlin/Ktor): `src/main/kotlin/eu/gaelicgames/referee/...`
-- Common API Data Exchange Object Classes: `gaa-referee-report-common/src/main/kotlin/...`
-- Backend resources/templates: `src/main/resources`
-- Tests (JUnit 5): `src/test/kotlin/...`
-- Frontend (Vue 3 + Vite): `frontend-vite/` (build outputs are served by the backend)
-- Vue 3: Composition API style, pinia stores, and primevue ui elements
-- Docker/Dev: `docker-compose.yml`, `docker-compose.dev.yml`
-- Gradle build: `build.gradle.kts`, `settings.gradle.kts`
-- Database is handled with the Kotlin Expose library and is found in the ReportData.kt file.
+## Project Structure
+- Backend: Ktor on Netty, port 8080. Entry: `Application.kt:20` → `ApplicationKt` (set in `build.gradle.kts:20`)
+- Frontend: Vue 3 + Vite in `frontend-vite/`. Builds to `src/main/resources/static` (set in `vite.config.ts:64`). Backend serves these.
+- `gaa-referee-report-common/` is a git submodule — run `git submodule update --init` before building
+- Shared DEO classes live in the submodule under `*/Base.kt` and are copied into backend source set (`build.gradle.kts:31-33`)
+- `referee-kottster/` is a separate Kottster admin panel, not wired into the main build
 
-## Build, Test, and Development Commands
-- Backend build + tests: `./gradlew build`
-- Run backend locally: `./gradlew run` (starts Ktor on `:8080`)
-- Unit tests only: `./gradlew test`
-- Uber JAR (optional): `./gradlew shadowJar`
-- Frontend one-off build: `cd frontend-vite && npm install && npm run build`
-- Frontend watch build: `cd frontend-vite && npm run watch-build`
-- Full dev stack via Docker: `docker compose -f docker-compose.dev.yml up --build`
+## Build & Dev Commands
+- Backend: `./gradlew build`, `./gradlew run`, `./gradlew test`
+- Single test class: `./gradlew test --tests "eu.gaelicgames.referee.data.api.GameReportDEOTest"`
+- Frontend build: `cd frontend-vite && npm install && npm run build` (outputs to backend static dir)
+- Frontend watch: `cd frontend-vite && npm run watch-build`
+- Docker dev stack: `docker compose -f docker-compose.dev.yml up --build`
+- Fat JAR: `./gradlew shadowJar`
 
-## Coding Style & Naming Conventions
-- Kotlin: use official style (`kotlin.code.style=official`, 4-space indent). Package root: `eu.gaelicgames.referee`.
-- One top-level type per file; descriptive names (e.g., `SanitizeDataService.kt`).
-- Tests: mirror package, name classes `*Test.kt` and methods with backticked, descriptive names.
-- Frontend: TypeScript + Vue 3. Use ESLint and `npm run lint` before committing.
+## Configuration
+- Local config: `gge-referee.properties` (gitignored; see `gge-referee.properties.sample`)
+- Env vars override properties. Key vars: `SERVER_URL`, `MAILJET_PUBLIC/SECRET`, `REDIS_*`, `POSTGRES_*`, `OBJECTSTORAGE_*`
+- `ADD_MOCK_DATA=true` seeds 280 mock reports + users/tournaments/teams at startup
+- `CLAUDE_ACCESSTOKEN` enables AI-powered rule translation (`RuleTranslationUtil.kt`)
+- Kotlin version in `build.gradle.kts:11` (1.9.22) overrides `gradle.properties:2` (1.8.22)
 
+## Testing
+- Framework: JUnit 5 + Ktor test utilities
+- Tests need `TestHelper.setupDatabase()` / `tearDownDatabase()` — they handle schema creation and cleanup
+- `USE_POSTGRES` flag in tests; CI runs against a Postgres service container (see `.github/workflows/gradle.yml:23-40`)
+- Cypress is configured (`frontend-vite/cypress.config.ts`) but has no CI workflow
 
-## Testing Guidelines
-- Framework: JUnit 5 with Ktor test utilities; see examples under `src/test/kotlin`.
-- Run locally: `./gradlew test` (uses JUnit Platform).
-- Add tests alongside changes; prefer small, deterministic tests. Keep DB helpers under `TestHelper` patterns.
+## Architecture Notes
+- Plugin init order matters: Templating → Serialization → Security → Routing (`Application.kt:99-102`)
+- Three background coroutines launch on startup: `NotifyCCCService`, `CleanExpiredDataService`, `SanitizeDataService`
+- Auth: session + JWT (RSA-256). Three scopes: `referee`, `admin`, `ccc` (see `plugins/Routing.kt:83-93`)
+- Type-safe routing via Ktor Resources (`resources/Api.kt`)
+- DB schema: `ReportData.kt` (Exposed ORM, all tables in one file)
+- Redis cache: `CacheUtil.kt`, configured in `Application.kt:33`
 
-## Commit & Pull Request Guidelines
-- Commits: imperative mood and concise titles (e.g., "Fix race in SanitizeDataService"). Reference issues (`#123`) when relevant.
-- PRs: clear description, linked issues, reproduction steps, and risk/rollout notes. Include screenshots/GIFs for UI changes (frontend).
-- CI should be green: backend tests pass and frontend lints/builds.
-
-## Security & Configuration Tips
-- Configure via env vars or `gge-referee.properties` (see `gge-referee.properties.sample`). Common vars: `SERVER_URL`, `MAILJET_PUBLIC/SECRET`, `REDIS_*`, `POSTGRES_*`.
-- Do not commit secrets. For local dev, prefer `docker-compose.dev.yml` which provisions Postgres and Redis.
-- Optional seeding: set `ADD_MOCK_DATA=true` to generate sample data at startup.
+## Style Conventions
+- Kotlin: official style, 4-space indent (`kotlin.code.style=official` in `gradle.properties`)
+- One top-level type per file; `*Test.kt` for tests with backticked method names
+- Frontend: Composition API, pinia stores, primevue UI. Run `npm run lint` before committing

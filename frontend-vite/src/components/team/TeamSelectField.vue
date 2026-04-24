@@ -2,7 +2,7 @@
 import type {PropType} from 'vue';
 import {computed, onMounted, ref} from "vue";
 import CreateTeam from "@/components/team/CreateTeam.vue";
-import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
+import SmartCreateAmalgamation from "@/components/team/SmartCreateAmalgamation.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 import CreateSplitTeam from "@/components/team/CreateSplitTeam.vue";
@@ -372,7 +372,7 @@ function onSquadCancel() {
       />
     </template>
     <template v-if="showNewAmalgamation">
-      <CreateAmalgamation
+      <SmartCreateAmalgamation
           :rough_amalgamation_name="searchTerm"
           @on_cancel="showNewAmalgamation = false; showSelect = true"
           @on_new_amalgamation="new_team_created"
