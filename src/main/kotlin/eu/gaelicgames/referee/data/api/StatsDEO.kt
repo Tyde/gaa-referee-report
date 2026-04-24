@@ -16,14 +16,6 @@ import kotlin.math.roundToLong
 
 private fun buildSingleTeamAmalgamationMap(): Map<Long, Long> {
     val result = mutableMapOf<Long, Long>()
-    val baseTeamNames = mutableMapOf<Long, String>()
-    
-    Amalgamations
-        .innerJoin(Teams, { Amalgamations.addedTeam }, { Teams.id })
-        .select(Amalgamations.addedTeam, Teams.name)
-        .forEach { row ->
-            baseTeamNames[row[Amalgamations.addedTeam].value] = row[Teams.name]
-        }
     
     Amalgamations
         .innerJoin(Teams, { Amalgamations.amalgamation }, { Teams.id })
@@ -31,35 +23,17 @@ private fun buildSingleTeamAmalgamationMap(): Map<Long, Long> {
         .where { Teams.isAmalgamation eq true }
         .groupBy { it[Amalgamations.amalgamation].value }
         .forEach { (amalgamationId, rows) ->
-            if (rows.size == 1) {
+            if (rows.size == 1 && isSquadATeam(rows[0][Teams.name])) {
                 val baseTeamId = rows[0][Amalgamations.addedTeam].value
-                val amalgamationName = rows[0][Teams.name]
-                val baseName = baseTeamNames[baseTeamId] ?: ""
-                
-                if (isSquadATeam(amalgamationName, baseName)) {
-                    result[amalgamationId] = baseTeamId
-                }
+                result[amalgamationId] = baseTeamId
             }
         }
     return result
 }
 
-private fun isSquadATeam(amalgamationName: String, baseName: String): Boolean {
-    val normalizedAmalgamation = amalgamationName.trim().lowercase()
-    val normalizedBase = baseName.trim().lowercase()
-    
-    val patterns = listOf(
-        normalizedBase + " a",
-        normalizedBase + "a",
-        normalizedBase + " a-team",
-        normalizedBase + " a team",
-        normalizedBase + "-a",
-        normalizedBase + " a squad"
-    )
-    
-    return patterns.any { normalizedAmalgamation == it } ||
-           (normalizedAmalgamation.startsWith(normalizedBase) && 
-            normalizedAmalgamation.substring(normalizedBase.length).trim() in listOf("a", " a", "-a", " a-team", " a team"))
+private fun isSquadATeam(teamName: String): Boolean {
+    val normalized = teamName.trim().lowercase()
+    return normalized.endsWith(" a") || normalized.endsWith("-a")
 }
 
 suspend fun StatsDEO.Companion.load(): StatsDEO {

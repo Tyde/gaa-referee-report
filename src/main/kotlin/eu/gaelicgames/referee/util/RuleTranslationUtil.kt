@@ -29,7 +29,7 @@ object RuleTranslationUtil {
     """.trimIndent()
 
     private val CLAUDE_ENDPOINT = "https://api.anthropic.com/v1/messages"
-    private val CLAUDE_MODEL = "claude-3-sonnet-20240229"
+    private val CLAUDE_MODEL = "claude-sonnet-4-6"
 
     private val ktorClient = HttpClient(CIO) {
         install(ContentNegotiation) {
