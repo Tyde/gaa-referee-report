@@ -71,7 +71,6 @@ private fun computeCardsByYear(): List<CardStatsByYearDEO> {
         var cautionCount: Int = 0,
         var blackCardCount: Int = 0,
         var redCardCount: Int = 0,
-        val gameIds: MutableSet<Long> = mutableSetOf()
     )
 
     val statsByYear = mutableMapOf<Int, YearStats>()
@@ -82,8 +81,6 @@ private fun computeCardsByYear(): List<CardStatsByYearDEO> {
         .innerJoin(Tournaments, { TournamentReports.tournament }, { Tournaments.id })
         .innerJoin(Rules, { DisciplinaryActions.rule }, { Rules.id })
         .select(
-            DisciplinaryActions.id,
-            GameReports.id,
             Tournaments.date,
             Rules.isCaution,
             Rules.isBlack,
@@ -94,7 +91,6 @@ private fun computeCardsByYear(): List<CardStatsByYearDEO> {
         .forEach { row ->
             val year = row[Tournaments.date].year
             val stats = statsByYear.getOrPut(year) { YearStats() }
-            stats.gameIds.add(row[GameReports.id].value)
             when {
                 row[Rules.isRed] || row[DisciplinaryActions.redCardIssued] -> stats.redCardCount++
                 row[Rules.isBlack] -> stats.blackCardCount++
@@ -102,7 +98,7 @@ private fun computeCardsByYear(): List<CardStatsByYearDEO> {
             }
         }
 
-    // Also count games without any cards to get total games per year
+    // Count all games (including those with no cards) to get total games per year
     val gamesByYear = mutableMapOf<Int, MutableSet<Long>>()
     GameReports
         .innerJoin(TournamentReports, { GameReports.report }, { TournamentReports.id })
@@ -114,24 +110,23 @@ private fun computeCardsByYear(): List<CardStatsByYearDEO> {
             gamesByYear.getOrPut(year) { mutableSetOf() }.add(row[GameReports.id].value)
         }
 
-    return statsByYear.map { (year, stats) ->
+    return gamesByYear.keys.sorted().map { year ->
+        val stats = statsByYear[year]
         CardStatsByYearDEO(
             year = year,
-            cautionCount = stats.cautionCount,
-            blackCardCount = stats.blackCardCount,
-            redCardCount = stats.redCardCount,
-            totalGames = gamesByYear[year]?.size ?: stats.gameIds.size
+            cautionCount = stats?.cautionCount ?: 0,
+            blackCardCount = stats?.blackCardCount ?: 0,
+            redCardCount = stats?.redCardCount ?: 0,
+            totalGames = gamesByYear[year]?.size ?: 0
         )
-    }.sortedBy { it.year }
+    }
 }
 
 private fun computeCardsByRegion(): List<CardStatsByRegionDEO> {
     data class RegionStats(
-        val regionName: String,
         var cautionCount: Int = 0,
         var blackCardCount: Int = 0,
         var redCardCount: Int = 0,
-        val gameIds: MutableSet<Long> = mutableSetOf()
     )
 
     val statsByRegion = mutableMapOf<Long, RegionStats>()
@@ -143,10 +138,7 @@ private fun computeCardsByRegion(): List<CardStatsByRegionDEO> {
         .innerJoin(Regions, { Tournaments.region }, { Regions.id })
         .innerJoin(Rules, { DisciplinaryActions.rule }, { Rules.id })
         .select(
-            DisciplinaryActions.id,
-            GameReports.id,
             Regions.id,
-            Regions.name,
             Rules.isCaution,
             Rules.isBlack,
             Rules.isRed,
@@ -155,10 +147,7 @@ private fun computeCardsByRegion(): List<CardStatsByRegionDEO> {
         .where { TournamentReports.isSubmitted eq true }
         .forEach { row ->
             val regionId = row[Regions.id].value
-            val stats = statsByRegion.getOrPut(regionId) {
-                RegionStats(regionName = row[Regions.name])
-            }
-            stats.gameIds.add(row[GameReports.id].value)
+            val stats = statsByRegion.getOrPut(regionId) { RegionStats() }
             when {
                 row[Rules.isRed] || row[DisciplinaryActions.redCardIssued] -> stats.redCardCount++
                 row[Rules.isBlack] -> stats.blackCardCount++
@@ -166,26 +155,30 @@ private fun computeCardsByRegion(): List<CardStatsByRegionDEO> {
             }
         }
 
-    // Count total games per region
+    // Count total games per region and collect region names
     val gamesByRegion = mutableMapOf<Long, MutableSet<Long>>()
+    val regionNames = mutableMapOf<Long, String>()
     GameReports
         .innerJoin(TournamentReports, { GameReports.report }, { TournamentReports.id })
         .innerJoin(Tournaments, { TournamentReports.tournament }, { Tournaments.id })
-        .select(GameReports.id, Tournaments.region)
+        .innerJoin(Regions, { Tournaments.region }, { Regions.id })
+        .select(GameReports.id, Tournaments.region, Regions.name)
         .where { TournamentReports.isSubmitted eq true }
         .forEach { row ->
             val regionId = row[Tournaments.region].value
+            regionNames[regionId] = row[Regions.name]
             gamesByRegion.getOrPut(regionId) { mutableSetOf() }.add(row[GameReports.id].value)
         }
 
-    return statsByRegion.map { (regionId, stats) ->
+    return gamesByRegion.keys.map { regionId ->
+        val stats = statsByRegion[regionId]
         CardStatsByRegionDEO(
             regionId = regionId,
-            regionName = stats.regionName,
-            cautionCount = stats.cautionCount,
-            blackCardCount = stats.blackCardCount,
-            redCardCount = stats.redCardCount,
-            totalGames = gamesByRegion[regionId]?.size ?: stats.gameIds.size
+            regionName = regionNames[regionId] ?: "Unknown",
+            cautionCount = stats?.cautionCount ?: 0,
+            blackCardCount = stats?.blackCardCount ?: 0,
+            redCardCount = stats?.redCardCount ?: 0,
+            totalGames = gamesByRegion[regionId]?.size ?: 0
         )
     }.sortedBy { it.regionName }
 }

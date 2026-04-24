@@ -16,7 +16,7 @@ function fetchAllTeams() {
 
 function onTeamUpdated(team: Team) {
   const slot = store.publicStore.teams.findIndex(it => it.id === team.id)
-  if(slot) {
+  if (slot >= 0) {
     store.publicStore.teams[slot] = team
   }
   fetchAllTeams()
