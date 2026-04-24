@@ -1,7 +1,7 @@
 FROM gradle:8-jdk21 AS build
 
 RUN apt-get update && apt-get install -y curl \
-  && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+  && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
   && apt-get install -y nodejs \
   && npm install -g npm@latest
 
