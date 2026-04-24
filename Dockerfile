@@ -19,7 +19,7 @@ RUN npm run build
 WORKDIR /home/gradle/src
 RUN gradle shadowJar
 
-FROM openjdk:11
+FROM openjdk:17
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/report-system.jar
 WORKDIR /app
 RUN mkdir data
