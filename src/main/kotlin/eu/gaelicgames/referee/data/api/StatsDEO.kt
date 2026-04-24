@@ -1,6 +1,12 @@
 package eu.gaelicgames.referee.data.api
 
-import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.DisciplinaryActions
+import eu.gaelicgames.referee.data.GameReports
+import eu.gaelicgames.referee.data.Regions
+import eu.gaelicgames.referee.data.Rules
+import eu.gaelicgames.referee.data.Teams
+import eu.gaelicgames.referee.data.TournamentReports
+import eu.gaelicgames.referee.data.Tournaments
 import eu.gaelicgames.referee.util.lockedTransaction
 import org.jetbrains.exposed.sql.*
 import kotlin.math.pow
