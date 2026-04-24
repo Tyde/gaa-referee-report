@@ -35,8 +35,8 @@ const emit = defineEmits<{
 const editedTournament = ref<Tournament>({
   date: DateTime.now(), location: "", name: "", region: 0, isLeague: false, endDate: null
 })
-const allowChangeDate = ref<Boolean>(false)
-const isLoading = ref<Boolean>(true)
+const allowChangeDate = ref<boolean>(false)
+const isLoading = ref<boolean>(true)
 onMounted(() => {
   editedTournament.value.date = DateTime.fromJSDate(props.preselectedDate)
 })

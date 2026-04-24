@@ -74,8 +74,8 @@ export function injuryIssuesForGameReport(gameReport: GameReport): Array<Injurie
         gameReport.teamBReport.injuries
     ).map((injury) => {
         if (!injuryIsBlank(injury)) {
-            let fullName = injury.firstName + " " + injury.lastName
-            let issues: Array<InjuryIssue> = []
+            const fullName = injury.firstName + " " + injury.lastName
+            const issues: Array<InjuryIssue> = []
             if (fullName.trim().length == 0) {
                 issues.push(InjuryIssue.NoName)
             }
@@ -95,8 +95,8 @@ export function disciplinaryActionIssuesForGameReport(gameReport: GameReport): A
     return gameReport.teamAReport.disciplinaryActions.concat(
         gameReport.teamBReport.disciplinaryActions
     ).map((disciplinaryAction) => {
-        let issues: Array<DisciplinaryActionIssue> = []
-        let fullName = disciplinaryAction.firstName + " " + disciplinaryAction.lastName
+        const issues: Array<DisciplinaryActionIssue> = []
+        const fullName = disciplinaryAction.firstName + " " + disciplinaryAction.lastName
         if (!disciplinaryActionIsBlank(disciplinaryAction)) {
             if (fullName.trim().length == 0) {
                 issues.push(DisciplinaryActionIssue.NoName)

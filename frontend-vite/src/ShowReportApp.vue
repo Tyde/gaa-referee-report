@@ -75,7 +75,7 @@ async function handleDownloadedReport(report: CompleteReportDEO) {
   )
 
 
-  let pitches = report.pitches
+  const pitches = report.pitches
   const pV = store.pitchVariables
   if (pitches && pV) {
 
@@ -92,15 +92,15 @@ onMounted(() => {
   promiseList.value.push(store.loadAuxiliaryInformationFromSerer(false).then(() => {
     console.log("Loaded auxiliary information")
   }))
-  let loc = new URL(location.href)
+  const loc = new URL(location.href)
   // If loc contains "share" in path, then we have to load by uuid given
   if (loc.pathname.includes("share")) {
-    let uuid = loc.pathname.split("/")[3]
+    const uuid = loc.pathname.split("/")[3]
     if (uuid) {
       downloadReportByUUID(uuid)
     }
   }
-  let id = props.id || Number(loc.pathname.split("/")[3])
+  const id = props.id || Number(loc.pathname.split("/")[3])
   if (id) {
     downloadReport(id)
   }

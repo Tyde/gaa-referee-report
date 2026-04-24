@@ -9,17 +9,17 @@ import {useRouter} from "vue-router";
 import {useConfirm} from "primevue/useconfirm";
 import {firstDateFromCalendarValue, type CalendarModelValue} from "@/utils/calendar";
 
-let props = defineProps<{
+const props = defineProps<{
   tournament: DatabaseTournament
 }>();
 
 
-let emit = defineEmits<{
+const emit = defineEmits<{
   (e: 'tournament_updated', tournament: DatabaseTournament): void,
   (e: 'canceled'): void
 }>()
 
-let store = useAdminStore()
+const store = useAdminStore()
 
 function onTournamentDateChange(value: CalendarModelValue) {
   if (!editedTournament.value) {
@@ -88,9 +88,9 @@ function cancel() {
   emit('canceled')
 }
 
-let loading = ref(false)
-let currentlyEditing = ref(false)
-let editedTournament = ref<DatabaseTournament | undefined>()
+const loading = ref(false)
+const currentlyEditing = ref(false)
+const editedTournament = ref<DatabaseTournament | undefined>()
 const router = useRouter()
 
 function goToCompleteTournamentReport(id: number) {

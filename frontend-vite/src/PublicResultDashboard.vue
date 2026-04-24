@@ -5,11 +5,11 @@ import {ref} from "vue";
 import {useRouter} from "vue-router";
 
 const store = usePublicStore();
-const isLoading = ref<Boolean>(true)
+const isLoading = ref<boolean>(true)
 
 {
-  let promiseAux = store.loadAuxiliaryInformationFromSerer()
-  let promiseTurn = store.loadTournaments()
+  const promiseAux = store.loadAuxiliaryInformationFromSerer()
+  const promiseTurn = store.loadTournaments()
   Promise.all([promiseAux, promiseTurn])
       .then(() => {
         isLoading.value = false
@@ -32,6 +32,7 @@ const router = useRouter()
 
         <img src="./assets/logo.png" alt="Logo" class="w-12 h-12 m-2 cursor-pointer" @click="router.push('/')">
         <div class="grow font-bold text-xl cursor-pointer" @click="router.push('/')">GGE Referee Report System</div>
+        <div class="mr-4"><a href="/stats" class="text-blue-400 hover:underline">Statistics</a></div>
         <div class="mr-2">Public Reports</div>
       </div>
   <router-view></router-view>

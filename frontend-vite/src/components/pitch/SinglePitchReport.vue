@@ -9,7 +9,7 @@ const props = defineProps<{
 
 const store = useReportStore()
 const pitch = computed(() => {
-  return store.selectedPitchReport!!
+  return store.selectedPitchReport!
 })
 const emit = defineEmits<{
   (e: 'deleteThisReport', value: Pitch): void
@@ -33,13 +33,13 @@ function deleteThisReport(pitch: Pitch | undefined) {
 watch(() => store.selectedPitchReport, (value, oldValue) => {
   console.log("Switched report, oldReport is ",oldValue, " newReport is ", value)
   if(!props.toBeDeleted) {
-    asyncUpload(oldValue!!)
+    asyncUpload(oldValue!)
   }
 })
 onBeforeUnmount(() => {
   console.log("unmounting SinglePitchReport")
   if(!props.toBeDeleted) {
-    asyncUpload(store.selectedPitchReport!!)
+    asyncUpload(store.selectedPitchReport!)
   }
 })
 

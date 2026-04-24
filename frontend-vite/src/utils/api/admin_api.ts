@@ -63,20 +63,20 @@ export async function updateGameTypeOnServer(gameType: GameType) {
 }
 
 export async function updateTournamentOnServer(tournament: DatabaseTournament) {
-    let data = databaseTournamentToTournamentDAO(tournament)
+    const data = databaseTournamentToTournamentDAO(tournament)
     return makePostRequest("/api/tournament/update", data)
         .then(data => parseAndHandleDEO(data, DatabaseTournament))
 }
 
 export async function deleteTournamentOnServer(tournament: DatabaseTournament) {
-    let data = {id: tournament.id}
+    const data = {id: tournament.id}
     return makePostRequest("api/tournament/delete", data)
         .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
 }
 
 
 export async function mergeTournamentOnServer(fromTournament: DatabaseTournament, toTournament: DatabaseTournament) {
-    let data = {
+    const data = {
         mergeFromId: fromTournament.id,
         mergeToId: toTournament.id
     }

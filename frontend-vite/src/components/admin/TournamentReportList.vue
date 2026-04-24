@@ -24,8 +24,8 @@ const rows = ref(10)
 const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
   return tournaments.value.toSorted((a, b) => {
-    let relevantADate = (a.isLeague ? a.endDate : a.date) ?? DateTime.now()
-    let relevantBDate = (b.isLeague ? b.endDate : b.date) ?? DateTime.now()
+    const relevantADate = (a.isLeague ? a.endDate : a.date) ?? DateTime.now()
+    const relevantBDate = (b.isLeague ? b.endDate : b.date) ?? DateTime.now()
     return relevantADate.diff(relevantBDate).milliseconds < 0 ? 1 : -1
   })
 })
@@ -38,9 +38,9 @@ const tournamentsFiltered = computed(() => {
       return true
     }
   }).filter(tournament => {
-    let tDate = tournament.date
-    let isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
-    let isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
+    const tDate = tournament.date
+    const isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
+    const isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
     return isLaterThanStart && isEarlierThanEnd
   })
 })
@@ -67,9 +67,9 @@ const filters = ref({
 })
 
 function reportsByTournament(tournament: DatabaseTournament) {
-  let filteed = reports.value.filter(report => report.tournament == tournament.id)
+  const filteed = reports.value.filter(report => report.tournament == tournament.id)
   return filteed.map(report => {
-    let code = publicStore.findCodeById(report.code)
+    const code = publicStore.findCodeById(report.code)
     return {...report, codeName: (code?.name ?? '')}
   })
 

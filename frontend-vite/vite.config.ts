@@ -70,6 +70,7 @@ export default defineConfig(({mode}) => {
                     onboarding: resolve(__dirname, 'onboarding.html'),
                     userDashboard: resolve(__dirname, 'user_dashboard.html'),
                     publicDashboard: resolve(__dirname, 'public_dashboard.html'),
+                    stats: resolve(__dirname, 'stats.html'),
                 },
                 /*
                 output: {

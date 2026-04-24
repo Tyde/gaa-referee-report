@@ -97,7 +97,7 @@ const nativePickerUsed = ref(false)
 
 
 function detectTouchscreen() {
-  var result = false;
+  let result = false;
   if (window.PointerEvent && ('maxTouchPoints' in navigator)) {
     console.log("Pointer Events supported")
     // if Pointer Events are supported, just check maxTouchPoints

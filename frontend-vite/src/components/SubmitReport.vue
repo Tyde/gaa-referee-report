@@ -57,10 +57,10 @@ async function uploadAllData() {
   await delay(500) // Lets wait for the unwinding of unmounted components to finish
 
   await store.waitForAllTransfersDone()
-  let promisesPitch = store.pitchReports.map((pitch) => {
+  const promisesPitch = store.pitchReports.map((pitch) => {
     return store.sendPitchReport(pitch, true)
   })
-  let promisesReports = store.gameReports.map((gameReport) => {
+  const promisesReports = store.gameReports.map((gameReport) => {
     store.sendGameReport(gameReport,true)
   })
   await Promise.all(promisesPitch).catch((e) => {
@@ -72,22 +72,22 @@ async function uploadAllData() {
   await Promise.all(promisesReports).catch((e) => {
     store.newError(e)
   })
-  let updateDiAndInjuries = store.gameReports.map((gameReport) => {
+  const updateDiAndInjuries = store.gameReports.map((gameReport) => {
     if (gameReport.id) {
-      let tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
+      const tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
         return store.sendDisciplinaryAction(da, gameReport,true)
       })
-      let tBdiP = gameReport.teamBReport.disciplinaryActions.map((da) => {
+      const tBdiP = gameReport.teamBReport.disciplinaryActions.map((da) => {
         return store.sendDisciplinaryAction(da, gameReport,true)
       })
-      let tAinP = gameReport.teamAReport.injuries.map((injury) => {
+      const tAinP = gameReport.teamAReport.injuries.map((injury) => {
         return store.sendInjury(injury, gameReport, true)
       })
-      let tBinP = gameReport.teamBReport.injuries.map((injury) => {
+      const tBinP = gameReport.teamBReport.injuries.map((injury) => {
         return store.sendInjury(injury, gameReport, true)
       })
       //concat all four arrays
-      let allPromises = tAdiP.concat(tBdiP).concat(tAinP).concat(tBinP)
+      const allPromises = tAdiP.concat(tBdiP).concat(tAinP).concat(tBinP)
       return Promise.all(allPromises)
     } else {
       return Promise.reject("Game report not uploaded even though it should have been uploaded before")

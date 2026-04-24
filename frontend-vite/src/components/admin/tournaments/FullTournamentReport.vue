@@ -79,7 +79,7 @@ function transformDEO(ctr: CompleteTournamentReportDEO): Array<GameReport> {
       submitDate: it.refereeReport.submitDate ?? undefined,
       referee: referee,
     } as Report
-    let gr = it.gameReport
+    const gr = it.gameReport
     return gameReportDEOToGameReport(
         gr,
         report,
@@ -234,8 +234,8 @@ function scrollToGameReports() {
 }
 
 function isTeamAWinner(gr:GameReport) {
-  let teamATotal = calcuateTotalPoints(gr.teamAReport);
-  let teamBTotal = calcuateTotalPoints(gr.teamBReport);
+  const teamATotal = calcuateTotalPoints(gr.teamAReport);
+  const teamBTotal = calcuateTotalPoints(gr.teamBReport);
   if(teamATotal > teamBTotal) {
     return 1
   } else if(teamATotal < teamBTotal) {

@@ -22,9 +22,9 @@ const displayInjuries = ref(false)
 
 const currentSingleTeamGameReport = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport
+    return store.selectedGameReport!.teamAReport
   } else {
-    return store.selectedGameReport!!.teamBReport
+    return store.selectedGameReport!.teamBReport
   }
 })
 
