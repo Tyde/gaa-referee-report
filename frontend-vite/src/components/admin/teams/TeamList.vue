@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const editingTeams = ref<Team[]>([])
 
 function editTeam(event: DataTableRowEditSaveEvent) {
-  let {newData, index } = event
+  const {newData, index } = event
   editTeamOnServer(newData)
       .then((dbTeam) => {
         props.teams[index] = dbTeam

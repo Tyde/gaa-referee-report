@@ -3,9 +3,9 @@
 import type {Pitch} from "@/types/pitch_types";
 import {onMounted} from "vue";
 
-let props = defineProps<{
+const props = defineProps<{
   pitchReport: Pitch,
-  showRefereeName?: Boolean
+  showRefereeName?: boolean
 }>()
 
 

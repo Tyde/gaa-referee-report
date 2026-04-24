@@ -41,7 +41,7 @@ async function send_new_team_to_server() {
 }
 
 class TeamNameWarning {
-  ignore: boolean = false
+  ignore = false
   constructor(public message: string) {
   }
 }

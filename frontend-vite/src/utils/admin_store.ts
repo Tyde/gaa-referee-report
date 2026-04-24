@@ -109,8 +109,8 @@ export const useAdminStore = defineStore('admin', () => {
     async function getCompleteReport(reportId: number) {
         const deo = await loadReportDEO(reportId)
         await publicStore.waitForAllVariablesPresent()
-        let currentReport = completeReportDEOToReport(deo, publicStore.codes)
-        let allGameReports = extractGameReportsFromCompleteReportDEO(
+        const currentReport = completeReportDEOToReport(deo, publicStore.codes)
+        const allGameReports = extractGameReportsFromCompleteReportDEO(
             deo,
             currentReport,
             publicStore.gameTypes,
@@ -119,8 +119,8 @@ export const useAdminStore = defineStore('admin', () => {
             publicStore.rules,
             publicStore.teams
         )
-        let allPitchReports = deo.pitches
-            ?.map(it => pitchDEOtoPitch(it, currentReport, publicStore.pitchVariables!!)) ?? []
+        const allPitchReports = deo.pitches
+            ?.map(it => pitchDEOtoPitch(it, currentReport, publicStore.pitchVariables!)) ?? []
         return {
             report: currentReport,
             gameReports: allGameReports,
@@ -155,8 +155,8 @@ export const useAdminStore = defineStore('admin', () => {
 
     async function updateGameType(gameType: GameType) {
         try {
-            let result = await updateGameTypeOnServer(gameType)
-            let index = publicStore.gameTypes.findIndex(it => it.id === result.id)
+            const result = await updateGameTypeOnServer(gameType)
+            const index = publicStore.gameTypes.findIndex(it => it.id === result.id)
             if (index >= 0) {
                 publicStore.gameTypes[index] = result
             }
@@ -167,7 +167,7 @@ export const useAdminStore = defineStore('admin', () => {
 
     async function createGameType(type: GameType) {
         try {
-            let result = await uploadNewGameType(type.name)
+            const result = await uploadNewGameType(type.name)
             publicStore.gameTypes.push(result)
         } catch (e: any) {
             newError(e)
@@ -176,8 +176,8 @@ export const useAdminStore = defineStore('admin', () => {
 
     async function updateGameLength(option: GameLengthOption) {
         try {
-            let result = await updateGameLengthOnServer(option)
-            let index = publicStore.gameLengthOptions.findIndex(it => it.id === result.id)
+            const result = await updateGameLengthOnServer(option)
+            const index = publicStore.gameLengthOptions.findIndex(it => it.id === result.id)
             if (index >= 0) {
                 publicStore.gameLengthOptions[index] = result
             }
@@ -188,7 +188,7 @@ export const useAdminStore = defineStore('admin', () => {
 
     async function createGameLength(option: GameLengthOption) {
         try {
-            let result = await createGameLengthOnServer(option)
+            const result = await createGameLengthOnServer(option)
             publicStore.gameLengthOptions.push(result)
         } catch (e: any) {
             newError(e)
