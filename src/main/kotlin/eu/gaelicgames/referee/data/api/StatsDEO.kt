@@ -14,8 +14,14 @@ import kotlin.math.pow
 import kotlin.math.roundToLong
 
 
-private fun buildSingleTeamAmalgamationMap(): Map<Long, Long> {
-    val result = mutableMapOf<Long, Long>()
+private data class AmalgamationMappings(
+    val singleTeamSquadMap: Map<Long, Long>,
+    val multiClubAmalgamationIds: Set<Long>
+)
+
+private fun buildAmalgamationMappings(): AmalgamationMappings {
+    val singleTeamSquadMap = mutableMapOf<Long, Long>()
+    val multiClubAmalgamationIds = mutableSetOf<Long>()
     
     Amalgamations
         .innerJoin(Teams, { Amalgamations.amalgamation }, { Teams.id })
@@ -25,10 +31,12 @@ private fun buildSingleTeamAmalgamationMap(): Map<Long, Long> {
         .forEach { (amalgamationId, rows) ->
             if (rows.size == 1 && isSquadATeam(rows[0][Teams.name])) {
                 val baseTeamId = rows[0][Amalgamations.addedTeam].value
-                result[amalgamationId] = baseTeamId
+                singleTeamSquadMap[amalgamationId] = baseTeamId
+            } else if (rows.size >= 2) {
+                multiClubAmalgamationIds.add(amalgamationId)
             }
         }
-    return result
+    return AmalgamationMappings(singleTeamSquadMap, multiClubAmalgamationIds)
 }
 
 private fun isSquadATeam(teamName: String): Boolean {
@@ -38,12 +46,12 @@ private fun isSquadATeam(teamName: String): Boolean {
 
 suspend fun StatsDEO.Companion.load(): StatsDEO {
     return lockedTransaction {
-        val singleTeamAmalgamationMap = buildSingleTeamAmalgamationMap()
-        val teamTournamentCounts = computeTeamTournamentCounts(singleTeamAmalgamationMap)
+        val mappings = buildAmalgamationMappings()
+        val teamTournamentCounts = computeTeamTournamentCounts(mappings)
         val cardsByYear = computeCardsByYear()
         val cardsByRegion = computeCardsByRegion()
         val averageCardsPerGame = computeAverageCardsPerGame()
-        val teamElos = computeTeamElos(singleTeamAmalgamationMap)
+        val teamElos = computeTeamElos(mappings)
         StatsDEO(
             teamTournamentCounts = teamTournamentCounts,
             cardsByYear = cardsByYear,
@@ -54,7 +62,7 @@ suspend fun StatsDEO.Companion.load(): StatsDEO {
     }
 }
 
-private fun computeTeamTournamentCounts(singleTeamAmalgamationMap: Map<Long, Long>): List<TeamTournamentCountDEO> {
+private fun computeTeamTournamentCounts(mappings: AmalgamationMappings): List<TeamTournamentCountDEO> {
     // Count distinct tournaments each team participated in (as teamA or teamB in submitted reports)
 
     // Get all (teamId, tournamentId) pairs from submitted tournament reports
@@ -68,10 +76,15 @@ private fun computeTeamTournamentCounts(singleTeamAmalgamationMap: Map<Long, Lon
             val tournamentId = row[TournamentReports.tournament].value
             val teamAId = row[GameReports.teamA].value
             val teamBId = row[GameReports.teamB].value
-            val effectiveTeamAId = singleTeamAmalgamationMap[teamAId] ?: teamAId
-            val effectiveTeamBId = singleTeamAmalgamationMap[teamBId] ?: teamBId
-            teamTournamentPairs.add(Pair(effectiveTeamAId, tournamentId))
-            teamTournamentPairs.add(Pair(effectiveTeamBId, tournamentId))
+            
+            if (teamAId !in mappings.multiClubAmalgamationIds) {
+                val effectiveTeamAId = mappings.singleTeamSquadMap[teamAId] ?: teamAId
+                teamTournamentPairs.add(Pair(effectiveTeamAId, tournamentId))
+            }
+            if (teamBId !in mappings.multiClubAmalgamationIds) {
+                val effectiveTeamBId = mappings.singleTeamSquadMap[teamBId] ?: teamBId
+                teamTournamentPairs.add(Pair(effectiveTeamBId, tournamentId))
+            }
         }
 
     // Count tournaments per team
@@ -257,7 +270,7 @@ private fun computeAverageCardsPerGame(): AverageCardsPerGameDEO {
 
 private fun gaaScore(goals: Int, points: Int) = goals * 3 + points
 
-private fun computeTeamElos(singleTeamAmalgamationMap: Map<Long, Long>): List<TeamEloDEO> {
+private fun computeTeamElos(mappings: AmalgamationMappings): List<TeamEloDEO> {
     data class GameResult(
         val tournamentDate: java.time.LocalDate,
         val teamAId: Long,
@@ -280,13 +293,20 @@ private fun computeTeamElos(singleTeamAmalgamationMap: Map<Long, Long>): List<Te
             Tournaments.date
         )
         .where { TournamentReports.isSubmitted eq true }
-        .map { row ->
-            val teamAScore = gaaScore(row[GameReports.teamAGoals], row[GameReports.teamAPoints])
-            val teamBScore = gaaScore(row[GameReports.teamBGoals], row[GameReports.teamBPoints])
+        .mapNotNull { row ->
             val rawTeamAId = row[GameReports.teamA].value
             val rawTeamBId = row[GameReports.teamB].value
-            val effectiveTeamAId = singleTeamAmalgamationMap[rawTeamAId] ?: rawTeamAId
-            val effectiveTeamBId = singleTeamAmalgamationMap[rawTeamBId] ?: rawTeamBId
+            
+            // Skip games involving multi-club amalgamations
+            if (rawTeamAId in mappings.multiClubAmalgamationIds || 
+                rawTeamBId in mappings.multiClubAmalgamationIds) {
+                return@mapNotNull null
+            }
+            
+            val teamAScore = gaaScore(row[GameReports.teamAGoals], row[GameReports.teamAPoints])
+            val teamBScore = gaaScore(row[GameReports.teamBGoals], row[GameReports.teamBPoints])
+            val effectiveTeamAId = mappings.singleTeamSquadMap[rawTeamAId] ?: rawTeamAId
+            val effectiveTeamBId = mappings.singleTeamSquadMap[rawTeamBId] ?: rawTeamBId
             GameResult(
                 tournamentDate = row[Tournaments.date],
                 teamAId = effectiveTeamAId,
