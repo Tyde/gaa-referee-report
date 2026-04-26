@@ -9,31 +9,33 @@ const store = useAdminStore()
 
 <template>
   <h2>Pitch options</h2>
+  <hr class="h-px my-8 bg-surface-600 border-0 mx-32">
+
   <div class="flex flex-wrap flex-row">
     <div>
-      <h4>Pitch markings:</h4>
+      <h3>Pitch markings:</h3>
       <SingleOptionEditor
           :type="PitchPropertyType.markingsOptions"
       />
     </div>
     <div>
-      <h4>Pitch lenghts:</h4>
+      <h3>Pitch lenghts:</h3>
       <SingleOptionEditor :type="PitchPropertyType.length"/>
     </div>
     <div>
-      <h4>Pitch widths:</h4>
+      <h3>Pitch widths:</h3>
       <SingleOptionEditor :type="PitchPropertyType.width"/>
     </div>
     <div>
-      <h4>Pitch surfaces:</h4>
+      <h3>Pitch surfaces:</h3>
       <SingleOptionEditor :type="PitchPropertyType.surface" />
     </div>
     <div>
-      <h4>Goal dimensions</h4>
+      <h3>Goal dimensions</h3>
       <SingleOptionEditor :type="PitchPropertyType.goalDimensions"/>
     </div>
     <div>
-      <h4>Goalposts</h4>
+      <h3>Goalposts</h3>
       <SingleOptionEditor :type="PitchPropertyType.goalPosts"/>
     </div>
   </div>
@@ -41,14 +43,6 @@ const store = useAdminStore()
 
 
 <style scoped>
-h2 {
-  @apply text-center text-2xl;
-  @apply font-bold;
-  @apply mb-2;
-}
-h4 {
-  @apply text-center text-lg;
-  @apply font-bold;
-  @apply mb-2;
-}
+
+
 </style>

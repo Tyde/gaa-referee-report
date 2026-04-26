@@ -1,5 +1,5 @@
 
-import {GameType} from "@/types";
+import {GameLengthOption, GameType} from "@/types";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
 import {Referee, RefereeWithRoleDEO, UpdateRefereePasswordResponse} from "@/types/referee_types";
@@ -63,20 +63,20 @@ export async function updateGameTypeOnServer(gameType: GameType) {
 }
 
 export async function updateTournamentOnServer(tournament: DatabaseTournament) {
-    let data = databaseTournamentToTournamentDAO(tournament)
+    const data = databaseTournamentToTournamentDAO(tournament)
     return makePostRequest("/api/tournament/update", data)
         .then(data => parseAndHandleDEO(data, DatabaseTournament))
 }
 
 export async function deleteTournamentOnServer(tournament: DatabaseTournament) {
-    let data = {id: tournament.id}
+    const data = {id: tournament.id}
     return makePostRequest("api/tournament/delete", data)
         .then(data => parseAndHandleDEO(data, z.object({id: z.number()})))
 }
 
 
 export async function mergeTournamentOnServer(fromTournament: DatabaseTournament, toTournament: DatabaseTournament) {
-    let data = {
+    const data = {
         mergeFromId: fromTournament.id,
         mergeToId: toTournament.id
     }
@@ -88,4 +88,14 @@ export async function mergeTournamentOnServer(fromTournament: DatabaseTournament
 export async function translateRule(englishDescription: string) {
     return makePostRequest("/api/rule/translate", {description: englishDescription})
         .then(data => parseAndHandleDEO(data, RuleTranslation))
+}
+
+export async function updateGameLengthOnServer(gl: GameLengthOption) {
+    return makePostRequest("/api/gamelength/update", gl)
+        .then(data => parseAndHandleDEO(data, GameLengthOption))
+}
+
+export async function createGameLengthOnServer(gl: GameLengthOption) {
+    return makePostRequest("/api/gamelength/new", gl)
+        .then(data => parseAndHandleDEO(data, GameLengthOption))
 }

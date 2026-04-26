@@ -201,7 +201,8 @@ class TournamentDEOTest {
                     tr.id.value,
                     report.teamIDs,
                     report.gameTypeIDs,
-                    report.extraTimeIDs
+                    report.extraTimeIDs,
+                    report.gameLengthIDs
                 )
                 val gr = TestHelper.initializeGameReportAndDisciplinaryAction(trd)
                 Pair(trd, gr)

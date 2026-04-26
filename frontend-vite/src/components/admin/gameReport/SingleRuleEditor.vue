@@ -13,7 +13,7 @@ import type {Rule} from "@/types/rules_types";
 
 const store = useAdminStore()
 const props = defineProps<{
-  ruleId: Number
+  ruleId: number
 }>()
 const editing = ref(false)
 const askDeleteOrDisable = ref(false)
@@ -28,7 +28,7 @@ const shadowCopyRule = ref<Rule | undefined>()
 
 
 function editRule() {
-  if (rule) {
+  if (rule.value) {
     editing.value = true
     shadowCopyRule.value = JSON.parse(JSON.stringify(rule.value))
   }
@@ -41,7 +41,7 @@ function cancelEdit() {
 
 function startDeleteProcess() {
   isLoading.value = true
-  checkIfRuleDeletable(rule.value!!)
+  checkIfRuleDeletable(rule.value!)
       .then((isDeletable) => {
         if (isDeletable) {
           askDeleteOrDisable.value = true
@@ -58,7 +58,7 @@ function startDeleteProcess() {
 }
 
 function enableRule() {
-  toggleRuleStateOnServer(rule.value!!)
+  toggleRuleStateOnServer(rule.value!)
       .then((rule) => {
         store.updateRuleInStore(rule)
         askDeleteOrDisable.value = false
@@ -70,7 +70,7 @@ function enableRule() {
 }
 
 function disableRule() {
-  toggleRuleStateOnServer(rule.value!!)
+  toggleRuleStateOnServer(rule.value!)
       .then((rule) => {
         store.updateRuleInStore(rule)
         askDeleteOrDisable.value = false
@@ -81,7 +81,7 @@ function disableRule() {
       })
 }
 function deleteRule() {
-  deleteRuleOnServer(rule.value!!)
+  deleteRuleOnServer(rule.value!)
       .then((ruleId) => {
 
         askDeleteOrDisable.value = false
@@ -103,7 +103,7 @@ function saveRule() {
         .then(() => {
           editing.value = false
 
-          let index = store.publicStore.rules.indexOf(rule.value!!)
+          const index = store.publicStore.rules.indexOf(rule.value!)
           store.publicStore.rules[index] = ruleForUpdate
           shadowCopyRule.value = undefined
         })
@@ -142,11 +142,11 @@ const waitingForTranslation = ref(false)
 async function tryTranslateRule() {
   if(shadowCopyRule.value) {
     waitingForTranslation.value = true
-    translateRule(shadowCopyRule.value!!.description)
+    translateRule(shadowCopyRule.value!.description)
         .then((translated) => {
-          shadowCopyRule.value!!.descriptionFr = translated.ruleFr
-          shadowCopyRule.value!!.descriptionEs = translated.ruleEs
-          shadowCopyRule.value!!.descriptionDe = translated.ruleDe
+          shadowCopyRule.value!.descriptionFr = translated.ruleFr
+          shadowCopyRule.value!.descriptionEs = translated.ruleEs
+          shadowCopyRule.value!.descriptionDe = translated.ruleDe
         })
         .catch((e) => {
           store.newError(e)
@@ -236,7 +236,7 @@ async function tryTranslateRule() {
 <style scoped>
 .rule-text-card {
   @apply p-2 m-1;
-  @apply bg-gray-100;
+  @apply bg-surface-600;
   @apply rounded;
   @apply w-full;
 }
@@ -251,10 +251,10 @@ async function tryTranslateRule() {
   @apply hover:cursor-pointer;
 }
 .loading {
-  @apply bg-gray-800;
+  @apply bg-surface-500;
 }
 .disabled-tag {
-  @apply bg-red-400;
+  @apply bg-red-800;
   @apply text-white;
   @apply rounded;
   @apply p-1;

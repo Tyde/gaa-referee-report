@@ -189,6 +189,22 @@ fun Route.adminApiRouting() {
         }
     }
 
+    post<Api.GameLength.New> {
+        receiveAndHandleDEO<GameLengthOptionDEO> { deo ->
+            deo.createInDatabase().map { GameLengthOptionDEO.fromGameLengthOption(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.GameLength.Update> {
+        receiveAndHandleDEO<GameLengthOptionDEO> { deo ->
+            deo.updateInDatabase().map { GameLengthOptionDEO.fromGameLengthOption(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
 
     post<Api.Tournaments.Delete> {
         receiveAndHandleDEO<DeleteCompleteTournamentDEO> { deleteDEO ->

@@ -14,7 +14,7 @@ const store = useAdminStore()
 const token = ref("")
 const tokenInvalid = ref(false)
 onMounted(() => {
-  let loc = new URL(location.href)
+  const loc = new URL(location.href)
   //URL schema https://referee.gaelicgames.eu/user/activate/:token  - get token from URL
   token.value = loc.pathname.split("/")[3]
   if (token.value && token.value.length > 0) {
@@ -80,10 +80,5 @@ const passwordMinLength = computed(() => {
 
 
 <style scoped>
-h1 {
-  @apply text-2xl;
-  @apply font-bold;
-  @apply text-gray-900;
-  @apply text-center;
-}
+
 </style>

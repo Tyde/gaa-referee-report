@@ -17,7 +17,8 @@ object TestHelper {
         val tournamentReportID: Long,
         val teamIDs: MutableList<Long>,
         val gameTypeIDs: MutableList<Long>,
-        val extraTimeIDs: MutableList<Long>
+        val extraTimeIDs: MutableList<Long>,
+        val gameLengthIDs: MutableList<Long>
     )
 
 
@@ -46,7 +47,8 @@ object TestHelper {
     fun setUpReport(
         preselectedTournament: Tournament? = null,
         preselectedUser: User? = null,
-        preselectedTeams: List<Team> = emptyList()
+        preselectedTeams: List<Team> = emptyList(),
+        makeLeagueRound: Boolean = false
     ):TournamentReportData {
 
         var tournamentReport: TournamentReport? = null
@@ -54,9 +56,11 @@ object TestHelper {
         val teamIDs = mutableListOf<Long>()
         val gameTypeIDs = mutableListOf<Long>()
         val extraTimeIDs = mutableListOf<Long>()
+        val gameLengthIDs = mutableListOf<Long>()
         return transaction {
             GameType.all().forEach { gameTypeIDs.add(it.id.value) }
             ExtraTimeOption.all().forEach { extraTimeIDs.add(it.id.value) }
+            GameLengthOption.all().forEach { gameLengthIDs.add(it.id.value) }
             val firstRegion = Region.all().first()
 
             val tournament = preselectedTournament
@@ -65,6 +69,10 @@ object TestHelper {
                     date = LocalDate.now()
                     region = firstRegion
                     location = "Test Location"
+                    isLeague = makeLeagueRound
+                    if (makeLeagueRound) {
+                        endDate = LocalDate.now().plusDays(10)
+                    }
                 }
             val referee = preselectedUser ?: User.new {
                 this.firstName = "Test"
@@ -109,7 +117,8 @@ object TestHelper {
                 tournamentReportID,
                 teamIDs,
                 gameTypeIDs,
-                extraTimeIDs
+                extraTimeIDs,
+                gameLengthIDs
             )
         }
     }
@@ -126,6 +135,7 @@ object TestHelper {
             startTime = LocalDateTime.now(),
             gameType = tournamentReportData.gameTypeIDs[0],
             extraTime = tournamentReportData.extraTimeIDs[0],
+            gameLength = tournamentReportData.gameLengthIDs[0],
             umpirePresentOnTime = true,
             umpireNotes = "abv",
             generalNotes = "def"

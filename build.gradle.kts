@@ -10,7 +10,12 @@ plugins {
     application
     kotlin("jvm") version "1.9.22"
     kotlin("plugin.serialization") version "1.7.10"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.2"
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 group = "eu.gaelicgames"

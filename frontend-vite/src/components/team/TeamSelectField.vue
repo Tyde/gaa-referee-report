@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref, watch} from "vue";
+import type {PropType} from 'vue';
+import {computed, onMounted, ref} from "vue";
 import CreateTeam from "@/components/team/CreateTeam.vue";
-import CreateAmalgamation from "@/components/team/CreateAmalgamation.vue";
+import SmartCreateAmalgamation from "@/components/team/SmartCreateAmalgamation.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
+import CreateSplitTeam from "@/components/team/CreateSplitTeam.vue";
 
 interface SearchResultTeam {
   team: Team,
@@ -12,8 +14,6 @@ interface SearchResultTeam {
 
 const store = useReportStore()
 
-
-import type { PropType } from 'vue';
 
 const props = defineProps({
   /**
@@ -81,9 +81,12 @@ const searchTerm = ref("")
 const showSelect = ref(true)
 const showNewTeam = ref(false)
 const showNewAmalgamation = ref(false)
+const newSquadSelectedTeam = ref<Team | undefined>(undefined)
 //const teamsAvailable = ref(<Team[]>[])
 const isLoading = ref(false)
-const hide_squads = ref<Boolean | undefined>(false)
+const hide_squads = ref<boolean | undefined>(false)
+
+const expandedTeam = ref<Team | undefined>(undefined)
 
 /*
 watch(() => props.show_hide_squad_box, (value, oldValue, onCleanup) => {
@@ -134,6 +137,25 @@ function thisTeamInExludedList(team: Team): boolean {
   return !!props.exclude_team_list?.find(t => t.id === team.id)
 }
 
+function normalizeForSearch(str: string): string {
+  const extraMap: Record<string, string> = {
+    "ß": "ss",
+    "æ": "ae",
+    "œ": "oe",
+    "ø": "o",
+    "đ": "d",
+    "ð": "d",
+    "þ": "th",
+    "ł": "l"
+  };
+
+  return str
+      .toLocaleLowerCase()
+      .replace(/[ßæœøđðþł]/g, char => extraMap[char] || char)
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "");
+}
+
 function classForTeam(team: Team): string {
   return thisTeamInExludedList(team) ? "already-selected-item" : "p-listbox-item"
 }
@@ -150,12 +172,12 @@ const filtered_list = computed(() => {
       return true
     })
   }
-  if(!props.show_teams) {
+  if (!props.show_teams) {
     preparedlist = preparedlist.filter(value => {
       return value.isAmalgamation
     })
   }
-  if(!props.show_amalgamations) {
+  if (!props.show_amalgamations) {
     preparedlist = preparedlist.filter(value => {
       return !(value.isAmalgamation && value.amalgamationTeams && value.amalgamationTeams.length > 1)
     })
@@ -168,7 +190,7 @@ const filtered_list = computed(() => {
   }
   if (props.force_hide_exclude_team_list && props.exclude_team_list !== undefined) {
 
-    let excludelist = props.exclude_team_list
+    const excludelist = props.exclude_team_list
     //console.log("Checking excludes")
     preparedlist = preparedlist.filter(value => {
       return excludelist.findIndex(exclude_val => {
@@ -177,10 +199,11 @@ const filtered_list = computed(() => {
     })
   }
   if (searchTerm.value) {
+    const searchNormalized = normalizeForSearch(searchTerm.value)
     return preparedlist.filter(value => {
-      let isInName = value.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
-      let isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
-        let isInLocalName = cv.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
+      const isInName = normalizeForSearch(value.name).includes(searchNormalized)
+      const isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
+        const isInLocalName = normalizeForSearch(cv.name).includes(searchNormalized)
         return pv || isInLocalName
       }, false)
       return isInName || isInAmalgamations
@@ -202,6 +225,31 @@ function unselect_team(team: Team) {
   emit("team_unselected", team)
 }
 
+function createSquad(team: Team) {
+  showSelect.value = false
+  newSquadSelectedTeam.value = team
+}
+
+function onSquadSuccessful(teams: Team[]) {
+  fetch_available_teams().then(
+      () => {
+        isLoading.value = false
+        showSelect.value = true
+        newSquadSelectedTeam.value = undefined
+        expandedTeam.value = undefined
+        for (const team of teams) {
+          emit("team_selected", team)
+        }
+      }
+  )
+}
+
+function onSquadCancel() {
+  showSelect.value = true
+  newSquadSelectedTeam.value = undefined
+  expandedTeam.value = undefined
+}
+
 
 </script>
 
@@ -213,11 +261,9 @@ function unselect_team(team: Team) {
 
       <div class="flex flex-row justify-evenly items-stretch">
         <div class="md:w-32 grow"></div>
-        <div class="self-center w-min ">
-          <span class="p-float-label">
-            <InputText id="search_term" v-model="searchTerm"/>
-            <label for="search_term">{{ $t('teamSelect.enterNameForSearch') }}</label>
-          </span>
+        <div class="self-center w-min flex flex-col">
+          <label for="search_term">{{ $t('teamSelect.enterNameForSearch') }}</label>
+          <InputText id="search_term" v-model="searchTerm"/>
         </div>
 
 
@@ -270,6 +316,7 @@ function unselect_team(team: Team) {
                                       srt.team.amalgamationTeams.length == 1
                 },classForTeam(srt.team)]"
               @click="on_team_click(srt.team)"
+              class="group"
           >
             <template v-if="srt.team.isAmalgamation">
               {{ srt.team.name }} -
@@ -284,18 +331,54 @@ function unselect_team(team: Team) {
               </p>
 
             </template>
-            <template v-else>
-              {{ srt.team.name }}
-              <div class="float-right flex flex-row justify-end">
-                <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
-                  {{ $t('teamSelect.alreadyInSelection') }} <i
-                    v-if="thisTeamInExludedList(srt.team) && props.allow_unselect"
-                    class="pi pi-times hover:cursor-pointer mr-2"
-                    @click.stop="emit('team_unselected', srt.team)"/>
-                </p>
+            <div class="flex flex-col" v-else>
+              <div class="flex flex-row justify-between items-center">
+                <div>{{ srt.team.name }}</div>
+                <div class="flex flex-row justify-end">
+                  <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
+                    {{ $t('teamSelect.alreadyInSelection') }} <i
+                      v-if="thisTeamInExludedList(srt.team) && props.allow_unselect"
+                      class="pi pi-times hover:cursor-pointer mr-2"
+                      @click.stop="emit('team_unselected', srt.team)"/>
+                  </p>
+                  <Button v-if="expandedTeam != srt.team" unstyled
+                          class="hidden group-hover:block touch:block "
+                          pt:root="touch:border touch:rounded aspect-square"
+                          @click.stop="expandedTeam = srt.team">
+                    <vue-feather type="chevron-down" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
+                  </Button>
+                  <Button v-if="expandedTeam == srt.team"
+                          unstyled
+                          pt:root="touch:border touch:rounded aspect-square"
+                          @click.stop="expandedTeam = undefined">
+                    <vue-feather type="chevron-up" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
+                  </Button>
+                </div>
               </div>
+              <transition
+                  enter-active-class="transition-all duration-500 ease-in-out"
+                  enter-from-class="max-h-0 opacity-0"
+                  enter-to-class="max-h-10 opacity-100"
+                  leave-active-class="transition-all duration-500 ease-in-out"
+                  leave-from-class="max-h-10 opacity-100"
+                  leave-to-class="max-h-0 opacity-0"
+              >
+                <div v-if="expandedTeam == srt.team" class="w-full flex flex-row justify-between mt-2">
+                  <div class="grow"></div>
+                  <div>
+                    <Button
+                        unstyled
+                        pt:root="bg-primary-600 p-2 rounded-lg hover:bg-primary-500 m-1"
+                        pt:label="text-primary-contrast"
+                        @click.stop="createSquad(srt.team)"
+                    >
+                      Create Squad
+                    </Button>
+                  </div>
+                </div>
+              </transition>
 
-            </template>
+            </div>
           </li>
         </ul>
       </div>
@@ -309,44 +392,49 @@ function unselect_team(team: Team) {
       />
     </template>
     <template v-if="showNewAmalgamation">
-      <CreateAmalgamation
+      <SmartCreateAmalgamation
           :rough_amalgamation_name="searchTerm"
           @on_cancel="showNewAmalgamation = false; showSelect = true"
           @on_new_amalgamation="new_team_created"
       />
+    </template>
+    <template v-if="newSquadSelectedTeam != undefined">
+
+      <CreateSplitTeam
+          :base-team="newSquadSelectedTeam"
+          @on_new_team_split="onSquadSuccessful"
+          @on_cancel="onSquadCancel"
+      />
+
     </template>
 
   </div>
 </template>
 
 <style scoped>
-h2 {
-  @apply text-xl;
-  @apply text-center;
-  @apply font-bold;
-  @apply mb-2;
-}
+
 
 .listbox {
   @apply m-2;
-  @apply border-2 border-gray-400 rounded;
+  @apply border border-surface-400 rounded;
 }
 
 .listbox li {
   @apply pt-3 pb-3 pl-2 pr-2;
-  @apply hover:bg-gray-200 hover:cursor-pointer;
+  @apply hover:bg-surface-600 hover:cursor-pointer;
 }
 
 .team-selector-box {
-  @apply h-96 overflow-scroll;
+  @apply h-96 overflow-y-scroll;
 }
 
 .amalgamation_item {
-  background-color: burlywood;
+  @apply bg-primary text-primary-contrast;
+  @apply hover:!bg-primary-600
 }
 
 .squad_item {
-  @apply bg-blue-300
+  @apply bg-surface-500
 }
 
 .amalgamation_subtitle {

@@ -31,6 +31,7 @@ suspend fun GameReportDEO.Companion.fromGameReport(report: GameReport): GameRepo
             report.startTime,
             report.gameType?.id?.value,
             report.extraTime?.id?.value,
+            report.gameLength?.id?.value,
             report.umpirePresentOnTime,
             report.umpireNotes,
             report.generalNotes
@@ -52,6 +53,7 @@ suspend fun GameReportDEO.Companion.wrapRow(row: ResultRow): GameReportDEO {
         row[GameReports.startTime],
         row[GameReports.gameType]?.value,
         row[GameReports.extraTime]?.value,
+        row[GameReports.gameLength]?.value,
         row[GameReports.umpirePresentOnTime],
         row[GameReports.umpireNotes],
         row[GameReports.generalNotes]
@@ -79,7 +81,8 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
         grUpdate.teamAGoals != null &&
         grUpdate.teamBGoals != null &&
         grUpdate.teamAPoints != null &&
-        grUpdate.teamBPoints != null
+        grUpdate.teamBPoints != null &&
+        grUpdate.gameLength != null
     ) {
 
         CacheUtil.deleteCachedReport(grUpdate.report)
@@ -93,6 +96,9 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
             }
             val extraTime = grUpdate.extraTime?.let {
                 ExtraTimeOption.findById(it)
+            }
+            val gameLengthOption = grUpdate.gameLength?.let {
+                GameLengthOption.findById(it)
             }
             if (report != null && teamA != null && teamB != null) {
                 val tournamentID = report.tournament.id.value
@@ -115,6 +121,11 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
                     extraTime?.let {
                         this.extraTime = it
                     }
+                    if (gameLengthOption == null) {
+                        throw IllegalArgumentException("Game length option must be set")
+                    } else {
+                        this.gameLength = gameLengthOption
+                    }
                     grUpdate.umpirePresentOnTime?.let {
                         this.umpirePresentOnTime = it
                     }
@@ -132,7 +143,7 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
                 Result.failure(
                     IllegalArgumentException(
                         "Trying to insert a game report with either an invalid " +
-                                "Team A ${grUpdate.teamA} B ${grUpdate.teamB} or invalid report ${grUpdate.report}"
+                                "Team A ${grUpdate.teamA} B ${grUpdate.teamB} or invalid report ${grUpdate.report} or invalid game length ${grUpdate.gameLength}"
                     )
                 )
             }
@@ -201,6 +212,11 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
                 grUpdate.extraTime?.let { extraTime ->
                     ExtraTimeOption.findById(extraTime)?.let { eto ->
                         originalGameReport.extraTime = eto
+                    }
+                }
+                grUpdate.gameLength?.let { glId ->
+                    GameLengthOption.findById(glId)?.let { gl ->
+                        originalGameReport.gameLength = gl
                     }
                 }
                 grUpdate.gameType?.let { gameType ->
@@ -298,7 +314,11 @@ suspend fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
             val gts = GameType.all().map {
                 GameTypeDEO.fromGameType(it)
             }
-            val dbgrc = GameReportClassesDEO(etos, gts)
+            val gls = GameLengthOptions.selectAll().orderBy(GameLengthOptions.minutes to SortOrder.ASC)
+                .map {
+                GameLengthOptionDEO.fromGameLengthOption(GameLengthOption.wrapRow(it))
+            }
+            val dbgrc = GameReportClassesDEO(etos, gts, gls)
             runBlocking { dbgrc.setCache() }
             dbgrc
         }
@@ -310,6 +330,55 @@ fun ExtraTimeOptionDEO.Companion.fromExtraTimeOption(extraTimeOption: ExtraTimeO
     return ExtraTimeOptionDEO(
         extraTimeOption.id.value,
         extraTimeOption.name
+    )
+}
+
+fun GameLengthOptionDEO.Companion.fromGameLengthOption(option: GameLengthOption): GameLengthOptionDEO {
+    return GameLengthOptionDEO(
+        option.id.value,
+        option.name,
+        option.minutes
+    )
+}
+
+@Suppress("unused")
+suspend fun GameLengthOptionDEO.createInDatabase(): Result<GameLengthOption> {
+    GameReportClassesDEO.deleteCache()
+
+    if (this.id == -1L && this.name.isNotBlank()) {
+        return Result.success(lockedTransaction {
+            GameLengthOption.new {
+                this.name = this@createInDatabase.name
+                this.minutes = this@createInDatabase.minutes
+            }
+        })
+    }
+    return Result.failure(
+        IllegalArgumentException("GameLengthOption name/minutes invalid or already has an id")
+    )
+}
+
+@Suppress("unused")
+suspend fun GameLengthOptionDEO.updateInDatabase(): Result<GameLengthOption> {
+    GameReportClassesDEO.deleteCache()
+
+    val update = this
+    if (update.id != null) {
+        return lockedTransaction {
+            val opt = GameLengthOption.findById(update.id)
+            if (opt != null) {
+                opt.name = update.name
+                opt.minutes = update.minutes
+                Result.success(opt)
+            } else {
+                Result.failure(
+                    IllegalArgumentException("GameLengthOption not found")
+                )
+            }
+        }
+    }
+    return Result.failure(
+        IllegalArgumentException("GameLengthOption id not found")
     )
 }
 
@@ -932,7 +1001,6 @@ suspend fun PublicGameReportDEO.Companion.fromGameReport(gameReport: GameReport)
 
     }
 }
-
 
 
 
