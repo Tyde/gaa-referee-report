@@ -20,6 +20,7 @@ WORKDIR /home/gradle/src
 RUN gradle shadowJar
 
 FROM eclipse-temurin:21-jre-alpine
+RUN apk add --no-cache curl
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/report-system.jar
 WORKDIR /app
 RUN mkdir data
