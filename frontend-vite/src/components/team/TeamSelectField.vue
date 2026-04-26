@@ -137,6 +137,25 @@ function thisTeamInExludedList(team: Team): boolean {
   return !!props.exclude_team_list?.find(t => t.id === team.id)
 }
 
+function normalizeForSearch(str: string): string {
+  const extraMap: Record<string, string> = {
+    "ß": "ss",
+    "æ": "ae",
+    "œ": "oe",
+    "ø": "o",
+    "đ": "d",
+    "ð": "d",
+    "þ": "th",
+    "ł": "l"
+  };
+
+  return str
+      .toLocaleLowerCase()
+      .replace(/[ßæœøđðþł]/g, char => extraMap[char] || char)
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "");
+}
+
 function classForTeam(team: Team): string {
   return thisTeamInExludedList(team) ? "already-selected-item" : "p-listbox-item"
 }
@@ -180,10 +199,11 @@ const filtered_list = computed(() => {
     })
   }
   if (searchTerm.value) {
+    const searchNormalized = normalizeForSearch(searchTerm.value)
     return preparedlist.filter(value => {
-      const isInName = value.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
+      const isInName = normalizeForSearch(value.name).includes(searchNormalized)
       const isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
-        const isInLocalName = cv.name.toLowerCase().search(searchTerm.value.toLowerCase()) != -1
+        const isInLocalName = normalizeForSearch(cv.name).includes(searchNormalized)
         return pv || isInLocalName
       }, false)
       return isInName || isInAmalgamations
