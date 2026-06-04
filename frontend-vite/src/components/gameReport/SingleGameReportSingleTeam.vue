@@ -174,8 +174,8 @@ function stripRuleCardsFromDescription(description?: string) {
         </Button>
         <div class="text-sm flex flex-col">
           <div
-              v-for="substitution in currentSingleTeamGameReport.substitutions"
-              :key="substitution.id"
+              v-for="(substitution, index) in currentSingleTeamGameReport.substitutions"
+              :key="substitution.id ?? `new-${index}`"
           >
             <template v-if="substitution.id">
               {{ substitution.minute }}' #{{ substitution.playerOffNumber }} {{ substitution.playerOffLastName }}

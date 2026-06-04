@@ -884,13 +884,20 @@ suspend fun SubstitutionDEO.Companion.wrapRow(row: ResultRow): SubstitutionDEO {
 
 suspend fun SubstitutionDEO.getRefereeId(): Long? {
     return lockedTransaction {
-        TournamentReports.leftJoin(GameReports)
-            .selectAll()
-            .where { GameReports.id eq this@getRefereeId.game }
-            .firstOrNull()
-            ?.let {
-                it[TournamentReports.referee].value
-            }
+        // For updates resolve ownership from the persisted row so a client cannot
+        // pass a game they own together with a substitution id they do not own.
+        val persisted = this@getRefereeId.id?.let { Substitution.findById(it) }
+        if (persisted != null) {
+            persisted.game.report.referee.id.value
+        } else {
+            TournamentReports.leftJoin(GameReports)
+                .selectAll()
+                .where { GameReports.id eq this@getRefereeId.game }
+                .firstOrNull()
+                ?.let {
+                    it[TournamentReports.referee].value
+                }
+        }
     }
 }
 
@@ -957,16 +964,9 @@ suspend fun SubstitutionDEO.updateInDatabase(): Result<Substitution> {
                 substitutionUpdate.playerOffLastName?.let { substitution.playerOffLastName = it }
                 substitutionUpdate.playerOffNumber?.let { substitution.playerOffNumber = it }
                 substitutionUpdate.minute?.let { substitution.minute = it }
-                substitutionUpdate.team?.let { team ->
-                    Team.findById(team)?.let {
-                        substitution.team = it
-                    }
-                }
-                substitutionUpdate.game?.let { g ->
-                    GameReport.findById(g)?.let { gr ->
-                        substitution.game = gr
-                    }
-                }
+                // team and game are intentionally immutable on update: a substitution
+                // stays with its game report, and follows team changes via
+                // GameReport.updateInDatabase()'s team reassignment.
                 Result.success(substitution)
             } else {
                 Result.failure(

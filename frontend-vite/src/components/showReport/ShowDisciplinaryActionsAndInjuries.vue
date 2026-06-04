@@ -41,7 +41,8 @@ const props = defineProps<{
       <span class="bg-sky-200 print:bg-sky-200 text-black">Substitutions:</span><br>
       <ul>
         <li
-            v-for="substitution in props.teamReport.substitutions"
+            v-for="(substitution, index) in props.teamReport.substitutions"
+            :key="substitution.id ?? `new-${index}`"
             class="border-t-2 border-gray-500"
         >
           {{ substitution.minute }}':

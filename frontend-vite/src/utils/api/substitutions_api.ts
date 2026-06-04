@@ -34,14 +34,14 @@ export function substitutionDEOToSubstitution(substitutionDEO: SubstitutionDEO, 
 }
 
 function checkSubstitutionReadyForUpload(substitution: Substitution) {
+    const playerOnHasName = (substitution.playerOnFirstName.trim() + substitution.playerOnLastName.trim()).length > 0
+    const playerOffHasName = (substitution.playerOffFirstName.trim() + substitution.playerOffLastName.trim()).length > 0
     return substitution.team != undefined &&
         substitution.playerOnNumber != undefined &&
         substitution.playerOffNumber != undefined &&
         substitution.minute != undefined &&
-        (substitution.playerOnFirstName != "" ||
-            substitution.playerOnLastName != "" ||
-            substitution.playerOffFirstName != "" ||
-            substitution.playerOffLastName != "")
+        playerOnHasName &&
+        playerOffHasName
 }
 
 export async function uploadSubstitution(substitution: Substitution, gameReportId: number): Promise<number> {

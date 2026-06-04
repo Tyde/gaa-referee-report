@@ -61,7 +61,7 @@ const {t} = useI18n()
 const substitutionDialogTitle = computed(() => {
   return t("gameReport.substitutionsTitle") + " " + selectedTeam.value?.name
 })
-watch(() => selectedSubstitutionArray, () => {
+watch(selectedSubstitutionArray, () => {
   //Always add empty substitution if there is no empty row
   generateEmptySubstitution()
 }, {deep: true, immediate: true})
