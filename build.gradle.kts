@@ -8,16 +8,17 @@ val coroutines_version = "1.9.0" // Added explicit coroutines version
 
 plugins {
     application
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    kotlin("jvm") version "2.3.21"
+    kotlin("plugin.serialization") version "2.3.21"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.2"
 }
 
 group = "eu.gaelicgames"
 version = "1.0-ALPHA"
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 application {
@@ -77,14 +78,14 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-json", exposed_version)
     implementation("com.zaxxer:HikariCP:5.1.0")
 
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.48")
 
     implementation("com.mailjet", "mailjet-client", "5.2.1")
 
     implementation("com.natpryce:konfig:1.6.10.0")
 
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
-    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.postgresql:postgresql:42.7.11")
 
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")

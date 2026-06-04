@@ -75,7 +75,7 @@ function addNewGameTypeEditor() {
     <div v-if="showNewGameTypeInput"  class="single-game-type-option">
       <SingleGameTypeEditor :game-type="newGameType" @on_save="onSaveEdit" @on_cancel="onCancelEdit"/>
     </div>
-    <div v-else class="flex flex-row justify-center m-2 rounded bg-gray-300">
+    <div v-else class="flex flex-row justify-center m-2 rounded bg-surface-500">
       <Button
           @click="addNewGameTypeEditor"
           class="p-button-sm p-button-primary m-1"
@@ -89,7 +89,7 @@ function addNewGameTypeEditor() {
 
 <style>
 .single-game-type-option {
-  @apply rounded bg-blue-100 border-gray-50;
-  @apply border-2 m-2 p-2 text-lg;
+  @apply rounded bg-surface-600 border-surface-500;
+  @apply border m-2 p-2 text-lg;
 }
 </style>

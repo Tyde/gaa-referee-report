@@ -62,6 +62,15 @@ fun Route.publicApiRouting() {
         call.respond(tournaments)
     }
 
+    get<Api.Tournaments.AllWithTeams> {
+        val tournaments = PublicTournamentListDEO.all()
+        if (tournaments == null) {
+            call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Query failed"))
+        } else {
+            call.respond(tournaments)
+        }
+    }
+
     get<Api.TeamsAvailable> {
         val teams = TeamDEO.allTeamList()
         call.respond(teams)
@@ -149,5 +158,9 @@ fun Route.publicApiRouting() {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }
+    }
+
+    get<Api.Stats> {
+        call.respond(StatsDEO.load())
     }
 }

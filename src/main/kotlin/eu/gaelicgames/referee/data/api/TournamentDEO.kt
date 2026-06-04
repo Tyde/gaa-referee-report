@@ -5,6 +5,10 @@ import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.statements.StatementType
+import java.time.LocalDate
 
 suspend fun TournamentDEO.Companion.fromTournament(input: Tournament): TournamentDEO {
 
@@ -167,6 +171,158 @@ suspend fun PublicTournamentReportDEO.Companion.fromTournamentId(id: Long): Publ
 
 }
 
+
+data class PublicTournamentListWithTeamsRow(
+    val tournamentId: Long,
+    val tournamentName: String,
+    val location: String,
+    val date: LocalDate,
+    val isLeague: Boolean,
+    val endDate: LocalDate?,
+    val teamId: Long,
+    val teamName: String,
+    val isAmalgamation: Boolean,
+    val constituentTeamId: Long?,
+    val constituentTeamName: String?,
+    val region: Long
+)
+
+suspend fun PublicTournamentListDEO.Companion.all(): PublicTournamentListDEO? {
+    return lockedTransaction {
+        val result = exec(
+            """
+              WITH tournament_teams AS (
+        -- Get teams from team_a position
+        SELECT DISTINCT
+            t.id AS tournament_id,
+            t.name AS tournament_name,
+            t.location,
+            t.date,
+            t.is_league,
+            t.end_date,
+            t.region,
+            team_a.id AS team_id,
+            team_a.name AS team_name,
+            team_a.is_amalgamation
+        FROM 
+            tournaments t
+            LEFT JOIN tournamentreports tr ON tr.tournament = t.id
+            LEFT JOIN gamereports gr ON gr.report_id = tr.id
+            LEFT JOIN teams team_a ON gr.team_a = team_a.id
+        WHERE 
+            team_a.id IS NOT NULL AND tr.is_submitted = true
+    
+        UNION
+    
+        -- Get teams from team_b position
+        SELECT DISTINCT
+            t.id AS tournament_id,
+            t.name AS tournament_name,
+            t.location,
+            t.date,
+            t.is_league,
+            t.end_date,
+            t.region,
+            team_b.id AS team_id,
+            team_b.name AS team_name,
+            team_b.is_amalgamation
+        FROM 
+            tournaments t
+            LEFT JOIN tournamentreports tr ON tr.tournament = t.id
+            LEFT JOIN gamereports gr ON gr.report_id = tr.id
+            LEFT JOIN teams team_b ON gr.team_b = team_b.id
+        WHERE 
+            team_b.id IS NOT NULL AND tr.is_submitted = true
+    )
+    SELECT 
+        tt.tournament_id,
+        tt.tournament_name,
+        tt.location,
+        tt.date,
+        tt.is_league,
+        tt.end_date,
+        tt.team_id,
+        tt.team_name,
+        tt.is_amalgamation,
+        tt.region,
+        at.added_team AS constituent_team_id,
+        added_team_details.name AS constituent_team_name
+    FROM 
+        tournament_teams tt
+        LEFT JOIN amalgamations at ON tt.is_amalgamation AND tt.team_id = at.amalgamation
+        LEFT JOIN teams added_team_details ON at.added_team = added_team_details.id
+    ORDER BY 
+        tt.date,
+        tt.tournament_name,
+        tt.team_name,
+        constituent_team_name;""", explicitStatementType = StatementType.SELECT
+        ) { rs ->
+            val outList = mutableListOf<PublicTournamentListWithTeamsRow>()
+                while (rs.next()) {
+                    outList.add(
+                        PublicTournamentListWithTeamsRow(
+                            rs.getLong("tournament_id"),
+                            rs.getString("tournament_name"),
+                            rs.getString("location"),
+                            rs.getDate("date").toLocalDate(),
+                            rs.getBoolean("is_league"),
+                            rs.getDate("end_date")?.toLocalDate(),
+                            rs.getLong("team_id"),
+                            rs.getString("team_name"),
+                            rs.getBoolean("is_amalgamation"),
+                            rs.getLong("constituent_team_id"),
+                            rs.getString("constituent_team_name"),
+                            rs.getLong("region")
+                        )
+                    )
+                }
+            outList.toList()
+        }
+        val transformed = result?.groupBy { it.tournamentId }?.mapValues { it.value.groupBy { it.teamId } }
+            ?.mapValues { it ->
+                val teams = it.value.mapValues { innerRow ->
+                    val innerVal = innerRow.value
+                    val amalgamatedTeams = if (innerVal.first().isAmalgamation) {
+                        innerVal.map { teamRow ->
+                            TeamDEO(
+                                teamRow.constituentTeamName ?: "",
+                                teamRow.constituentTeamId ?: -1,
+                                false,
+                                listOf()
+                            )
+                        }
+                    } else {
+                        listOf()
+                    }
+                    TeamDEO(
+                        innerVal.first().teamName,
+                        innerVal.first().teamId,
+                        innerVal.first().isAmalgamation,
+                        amalgamatedTeams
+                    )
+                }.values.toList()
+                val firstRow = it.value.values.first().first()
+                PublicTournamentWithTeamsDEO(
+                    TournamentDEO(
+                        firstRow.tournamentId,
+                        firstRow.tournamentName,
+                        firstRow.location,
+                        firstRow.date,
+                        firstRow.region,
+                        firstRow.isLeague,
+                        firstRow.endDate
+                    ),
+                    teams
+                )
+            }?.values?.toList()
+
+
+        return@lockedTransaction transformed?.let { PublicTournamentListDEO(it) }
+
+    }
+}
+
+
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun CompleteTournamentReportDEO.Companion.fromTournament(input: Tournament): CompleteTournamentReportDEO {
     return lockedTransaction {
@@ -258,6 +414,9 @@ suspend fun DeleteCompleteTournamentDEO.delete(): Result<Long> {
             tournamentReports.forEach { tr ->
                 tr.deleteComplete()
             }
+            TournamentTeamPreSelections.deleteWhere {
+                TournamentTeamPreSelections.tournament eq tournament.id
+            }
             tournament.delete()
             Result.success(tournamentID)
         } else {
@@ -280,6 +439,18 @@ suspend fun MergeTournamentDEO.updateInDatabase(): Result<Tournament> {
             val mergeFromReports = TournamentReport.find { TournamentReports.tournament eq mergeFrom.id }
             mergeFromReports.forEach {
                 it.tournament = mergeTo
+            }
+            // Reassign team preselections to the target tournament, dropping any
+            // that would duplicate a preselection already present on the target.
+            val mergeToTeamIds = TournamentTeamPreSelections.selectAll()
+                .where { TournamentTeamPreSelections.tournament eq mergeTo.id }
+                .map { it[TournamentTeamPreSelections.team].value }
+            TournamentTeamPreSelections.deleteWhere {
+                TournamentTeamPreSelections.tournament eq mergeFrom.id and
+                        (TournamentTeamPreSelections.team inList mergeToTeamIds)
+            }
+            TournamentTeamPreSelections.update({ TournamentTeamPreSelections.tournament eq mergeFrom.id }) {
+                it[tournament] = mergeTo.id
             }
             mergeFrom.delete()
 

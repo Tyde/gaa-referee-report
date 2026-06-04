@@ -9,7 +9,7 @@ import {DateTime} from "luxon";
 import RangedDateTimePicker from "@/components/util/RangedDateTimePicker.vue";
 import {useRouter} from "vue-router";
 
-let store = useAdminStore()
+const store = useAdminStore()
 
 //const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
@@ -26,9 +26,9 @@ const tournamentsFiltered = computed(() => {
       return true
     }
   }).filter(tournament => {
-    let tDate = tournament.date
-    let isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
-    let isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
+    const tDate = tournament.date
+    const isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
+    const isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
     return isLaterThanStart && isEarlierThanEnd
   })
 })

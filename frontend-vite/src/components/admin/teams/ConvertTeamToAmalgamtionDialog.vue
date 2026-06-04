@@ -93,7 +93,7 @@ function switchModeAsSquadAlreadyExists(chosenSquad: Team) {
 
 
 onMounted(() => {
-  tabActiveIndex.value = 0
+  tabActiveIndex.value = 1
 })
 
 const convertToAmalgamationTeamList = ref<Team[]>([])
@@ -122,8 +122,14 @@ function convertToAmalgamation() {
       :pt="{ root: { class: 'convert-diag'}}"
       :modal="true"
   >
-    <TabView v-model:active-index="tabActiveIndex">
-      <TabPanel header="Convert to new Squad">
+    <Tabs :value="tabActiveIndex">
+      <TabList>
+        <Tab value="0">Convert to new Squad</Tab>
+        <Tab value="1">Merge with existing Squad</Tab>
+        <Tab value="2">Convert to new Amalgamation</Tab>
+      </TabList>
+      <TabPanels>
+      <TabPanel value="0">
         <div class="flex flex-col">
 
           <div>Convert
@@ -167,7 +173,7 @@ function convertToAmalgamation() {
             <Button label="Convert" @click="convertTeam"/>
           </div>
         </div></TabPanel>
-      <TabPanel header="Merge with existing Squad">
+      <TabPanel value="1">
         <div class="flex flex-col">
 
           <div>Merge
@@ -200,7 +206,7 @@ function convertToAmalgamation() {
           </div>
         </div>
       </TabPanel>
-      <TabPanel header="Convert to new Amalgamation">
+      <TabPanel value="2">
           <div class="flex flex-col">
             <div>Create Amalgamation with Name <span class="font-bold" v-if="selectedTeam">{{ selectedTeam.name }}</span></div>
             <div>
@@ -234,7 +240,8 @@ function convertToAmalgamation() {
             </div>
           </div>
       </TabPanel>
-    </TabView>
+      </TabPanels>
+    </Tabs>
 
   </Dialog>
 </template>

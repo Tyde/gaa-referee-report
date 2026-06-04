@@ -86,10 +86,12 @@ object DatabaseHandler {
         TournamentTeamPreSelections,
         GameTypes,
         ExtraTimeOptions,
+        GameLengthOptions,
         GameReports,
         Rules,
         DisciplinaryActions,
         Injuries,
+        Substitutions,
         PitchSurfaceOptions,
         PitchLengthOptions,
         PitchWidthOptions,
@@ -132,12 +134,23 @@ object DatabaseHandler {
             //Migration 6 - Add Multilanguage Support for Rules
             SchemaUtils.createMissingTablesAndColumns(Rules)
 
-            //Migration 7 - Add TeamsheetRegistrations
+            //Migration 7 - Add GameLengthOptions and reference from GameReports
+            SchemaUtils.createMissingTablesAndColumns(GameLengthOptions)
+            SchemaUtils.createMissingTablesAndColumns(GameReports)
+
+            //Migration 8 - Add Substitutions table
+            SchemaUtils.createMissingTablesAndColumns(Substitutions)
+
+            //Migration 9 - Add TeamsheetRegistrations
             SchemaUtils.createMissingTablesAndColumns(TeamsheetRegistrations)
         }
     }
 
     suspend fun populate_base_data() {
+        // Game Length Options (name + minutes)
+        populate_game_length_options_from_csv(
+            "game_length_options.csv"
+        )
         populate_name_only_table_from_csv(
             ExtraTimeOptions,
             "extra_time_options.csv",
@@ -193,11 +206,34 @@ object DatabaseHandler {
 
     }
 
-    private suspend fun populate_name_only_table_from_csv(
-        table: LongIdTable,
-        filename: String,
-        nameColumn: Column<String>
-    ) {
+    private suspend fun populate_game_length_options_from_csv(filename: String) {
+        val alreadyPopulated = lockedTransaction {
+            GameLengthOptions.selectAll().count() != 0L
+        }
+        if (!alreadyPopulated) {
+            val resource = this.javaClass.classLoader.getResourceAsStream("base_data/$filename")
+            resource.use {
+                val reader = BufferedReader(
+                    InputStreamReader(
+                        resource
+                    )
+                )
+                val csvParser = CSVParser(reader, CSVFormat.DEFAULT)
+                lockedTransaction {
+                    for (csvRecord in csvParser) {
+                        val name = csvRecord.get(0)
+                        val minutes = csvRecord.get(1).trim().toInt()
+                        GameLengthOptions.insert {
+                            it[GameLengthOptions.name] = name
+                            it[GameLengthOptions.minutes] = minutes
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun populate_name_only_table_from_csv(table: LongIdTable, filename: String, nameColumn: Column<String>) {
         val alreadyPopulated = lockedTransaction {
             table.selectAll().count() != 0L
         }
@@ -419,5 +455,4 @@ fun main() {
 
 
 }
-
 

@@ -200,6 +200,22 @@ suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
                         }
                     }
 
+                    //Update all TournamentTeamPreSelections
+                    TournamentTeamPreSelection.find {
+                        TournamentTeamPreSelections.team eq mergeTeam.id
+                    }.forEach {
+                        //Avoid duplicates
+                        val bothTeamsInSameTournament = TournamentTeamPreSelection.find {
+                            TournamentTeamPreSelections.tournament eq it.tournament.id and
+                                    (TournamentTeamPreSelections.team eq team.id)
+                        }.count() > 0
+                        if (!bothTeamsInSameTournament) {
+                            it.team = team
+                        } else {
+                            it.delete()
+                        }
+                    }
+
                     //Delete the team
                     mergeTeam.delete()
                 }

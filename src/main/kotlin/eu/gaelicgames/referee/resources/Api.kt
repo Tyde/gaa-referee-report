@@ -58,6 +58,10 @@ class Api() {
         class All(val parent: Tournaments)
 
         @Serializable
+        @Resource("all_with_teams")
+        class AllWithTeams(val parent: Tournaments)
+
+        @Serializable
         @Resource("update")
         class Update(val parent: Tournaments)
 
@@ -254,6 +258,22 @@ class Api() {
             class Delete(val parent: Injury)
         }
 
+        @Serializable
+        @Resource("substitution")
+        class Substitution(val parent: GameReports) {
+            @Serializable
+            @Resource("new")
+            class New(val parent: Substitution)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Substitution)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Substitution)
+        }
+
 
     }
 
@@ -267,6 +287,18 @@ class Api() {
         @Serializable
         @Resource("update")
         class Update(val parent: GameType)
+    }
+
+    @Serializable
+    @Resource("gamelength")
+    class GameLength(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: GameLength)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: GameLength)
     }
     @Serializable
     @Resource("pitch")
@@ -381,5 +413,9 @@ class Api() {
         @Resource("replace_teamsheet_file")
         class ReplaceTeamsheetFile(val parent: Teamsheet)
     }
+
+    @Serializable
+    @Resource("stats")
+    class Stats(val parent: Api = Api())
 
 }

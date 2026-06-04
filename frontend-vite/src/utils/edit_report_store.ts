@@ -22,10 +22,11 @@ import {
     getGameReportVariables,
     updateGameReport
 } from "@/utils/api/game_report_api";
-import {checkGameReportMinimal} from "@/utils/gobal_functions";
+import {checkGameReportMinimal, checkGameReportNecessary} from "@/utils/gobal_functions";
 import {uploadInjury} from "@/utils/api/injuries_api";
+import {uploadSubstitution} from "@/utils/api/substitutions_api";
 import type {Report} from "@/types/report_types";
-import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
+import type {DisciplinaryAction, GameReport, Injury, Substitution} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
 import {loadAllRegions, loadTournamentPreselectedTeams} from "@/utils/api/tournament_api";
@@ -35,12 +36,12 @@ import {
     GameReportIssue,
     GameReportIssues,
     injuryIssuesForGameReport,
+    substitutionIssuesForGameReport,
     PitchReportIssue
 } from "@/types/issue_types";
 import type {Team} from "@/types/team_types";
 import {loadAllTeams} from "@/utils/api/teams_api";
 import {usePublicStore} from "@/utils/public_store";
-import {compileAsync} from "sass";
 import {computedAsync} from "@vueuse/core";
 
 
@@ -83,7 +84,7 @@ export const useReportStore = defineStore('report', () => {
 
     const enabledPitchVariables = computed(() => {
         if (publicStore.pitchVariables != undefined) {
-            let local = {
+            const local = {
                 ... publicStore.pitchVariables,
             } as PitchVariables
             local.goalDimensions = local.goalDimensions.filter(it => !it.disabled)
@@ -151,18 +152,22 @@ export const useReportStore = defineStore('report', () => {
             const reportDEO = await reportDEOPromise
             if (reportDEO) {
                 report.value = completeReportDEOToReport(reportDEO, publicStore.codes)
+                console.log("Report loaded", report.value)
                 gameReports.value = extractGameReportsFromCompleteReportDEO(
                     reportDEO,
                     report.value,
                     publicStore.gameTypes,
                     publicStore.extraTimeOptions,
+                    publicStore.gameLengthOptions,
                     publicStore.rules,
                     publicStore.teams
                 )
+                console.log("Game reports loaded", gameReports.value)
                 if (publicStore.pitchVariables) {
                     pitchReports.value = reportDEO.pitches?.map(pitch => {
-                        return pitchDEOtoPitch(pitch, report.value, publicStore.pitchVariables!!)
+                        return pitchDEOtoPitch(pitch, report.value, publicStore.pitchVariables!)
                     }) ?? []
+                    console.log("Pitch reports loaded", pitchReports.value)
                 }
                 return true
             }
@@ -184,7 +189,7 @@ export const useReportStore = defineStore('report', () => {
                         newError(error)
                     })
             }
-            let index = gameReports.value.indexOf(gameReport)
+            const index = gameReports.value.indexOf(gameReport)
             gameReports.value.splice(index, 1)
             selectedGameReportIndex.value = Math.min(index, gameReports.value.length-1)
             return true
@@ -201,22 +206,23 @@ export const useReportStore = defineStore('report', () => {
      * @param gameReport the game report to be created
      * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
      */
-    async function sendGameReport(gameReport: GameReport, allowAsync: boolean = false, throwIfNotReady: boolean = false) {
+    async function sendGameReport(gameReport: GameReport, allowAsync = false, throwIfNotReady = false) {
 
         if(!allowAsync) await waitForAllTransfersDone()
-        if (checkGameReportMinimal(gameReport)) {
-            if (gameReport.id) {
-
+        if (gameReport.id) {
+            if (checkGameReportMinimal(gameReport)) {
                 await trackTransfer(updateGameReport(gameReport))
                     .catch((error) => {
                         newError(error)
                     })
-            } else {
-                gameReport.id = await trackTransfer(createGameReport(gameReport))
+            } else if (throwIfNotReady) {
+                throw new Error(`Game report "id: ${gameReport.id}" not ready for upload`)
             }
         } else {
-            if(throwIfNotReady) {
-                throw new Error(`Game report "id: ${gameReport.id}" not ready for upload`)
+            if (checkGameReportNecessary(gameReport)) {
+                gameReport.id = await trackTransfer(createGameReport(gameReport))
+            } else if (throwIfNotReady) {
+                throw new Error(`Game report "id: ${gameReport.id}" not ready for creation (missing required fields) `)
             }
         }
     }
@@ -229,7 +235,7 @@ export const useReportStore = defineStore('report', () => {
      * @param pitchReport the pitch report to be created/updated
      * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
      */
-    async function sendPitchReport(pitchReport: Pitch, allowAsync: boolean = false, throwIfNotReady: boolean = false) {
+    async function sendPitchReport(pitchReport: Pitch, allowAsync = false, throwIfNotReady = false) {
         //Warning! Only use allowAsync if you already checked before that
         // all transfers are completed.
         if(!allowAsync) await waitForAllTransfersDone()
@@ -255,10 +261,10 @@ export const useReportStore = defineStore('report', () => {
      * @param gameReport the game report to which the action belongs
      * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
      */
-    async function sendDisciplinaryAction(disciplinaryAction: DisciplinaryAction, gameReport: GameReport, allowAsync: boolean = false) {
+    async function sendDisciplinaryAction(disciplinaryAction: DisciplinaryAction, gameReport: GameReport, allowAsync = false) {
         if(!allowAsync) await waitForAllTransfersDone()
         if (gameReport.id) {
-            let hasNoId = disciplinaryAction.id == undefined
+            const hasNoId = disciplinaryAction.id == undefined
             await trackTransfer(uploadDisciplinaryAction(disciplinaryAction, gameReport.id))
                 .then((data) => {
                     if (hasNoId && data != -1) {
@@ -278,14 +284,37 @@ export const useReportStore = defineStore('report', () => {
      * @param gameReport the game report to which the injury belongs
      * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
      */
-    async function sendInjury(injury: Injury, gameReport: GameReport, allowAsync: boolean = false) {
+    async function sendInjury(injury: Injury, gameReport: GameReport, allowAsync = false) {
         if(!allowAsync) await waitForAllTransfersDone()
         if (gameReport.id) {
-            let hasNoId = injury.id == undefined
+            const hasNoId = injury.id == undefined
             await trackTransfer(uploadInjury(injury, gameReport.id))
                 .then((data) => {
                     if (hasNoId && data != -1) {
                         injury.id = data
+                    }
+                })
+        }
+    }
+
+    /**
+     * Sends Substitution to server - Does not check for correctness of the action.
+     * This function will update the id of the substitution if it was created on the server.
+     *
+     * Warning! Only use allowAsync if you already checked before that
+     *     all transfers are completed.
+     * @param substitution the substitution to be created/updated
+     * @param gameReport the game report to which the substitution belongs
+     * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
+     */
+    async function sendSubstitution(substitution: Substitution, gameReport: GameReport, allowAsync = false) {
+        if(!allowAsync) await waitForAllTransfersDone()
+        if (gameReport.id) {
+            const hasNoId = substitution.id == undefined
+            await trackTransfer(uploadSubstitution(substitution, gameReport.id))
+                .then((data) => {
+                    if (hasNoId && data != -1) {
+                        substitution.id = data
                     }
                 })
         }
@@ -324,7 +353,7 @@ export const useReportStore = defineStore('report', () => {
                     newError(error)
                 })
         }
-        let index = pitchReports.value.indexOf(pitchReport)
+        const index = pitchReports.value.indexOf(pitchReport)
         if (index >= 0) {
             pitchReports.value.splice(index, 1)
             if(pitchReports.value.length > 0) {
@@ -345,7 +374,7 @@ export const useReportStore = defineStore('report', () => {
 
     const pitchReportIssues = computed(() => {
         return pitchReports.value.map((pitch) => {
-            let issues: Array<PitchReportIssue> = []
+            const issues: Array<PitchReportIssue> = []
             if (pitch.name.trim().length == 0) {
                 issues.push(PitchReportIssue.NoName)
             }
@@ -374,7 +403,7 @@ export const useReportStore = defineStore('report', () => {
 
     const gameReportIssues = computed(() => {
         return gameReports.value.map((gameReport) => {
-            let issues: Array<GameReportIssue> = []
+            const issues: Array<GameReportIssue> = []
             if (gameReport.gameType == undefined) {
                 issues.push(GameReportIssue.NoGameType)
             }
@@ -383,6 +412,9 @@ export const useReportStore = defineStore('report', () => {
             }
             if (gameReport.extraTime == undefined) {
                 issues.push(GameReportIssue.NoExtraTimeOption)
+            }
+            if (gameReport.gameLength == undefined) {
+                issues.push(GameReportIssue.NoGameLengthOption)
             }
             if (gameReport.teamAReport.team == undefined) {
                 issues.push(GameReportIssue.NoTeamA)
@@ -399,14 +431,16 @@ export const useReportStore = defineStore('report', () => {
             if(gameReport.teamAReport.team == gameReport.teamBReport.team) {
                 issues.push(GameReportIssue.TeamAEqualTeamB)
             }
-            let daIssues = disciplinaryActionIssuesForGameReport(gameReport)
-            let inIssues = injuryIssuesForGameReport(gameReport)
+            const daIssues = disciplinaryActionIssuesForGameReport(gameReport)
+            const inIssues = injuryIssuesForGameReport(gameReport)
+            const subIssues = substitutionIssuesForGameReport(gameReport)
 
 
-            return new GameReportIssues(gameReport, issues, daIssues, inIssues)
+            return new GameReportIssues(gameReport, issues, daIssues, inIssues, subIssues)
         }).filter((gris) => (gris.issues.length +
             gris.injuriesIssues.length +
-            gris.disciplinaryActionIssues.length) > 0)
+            gris.disciplinaryActionIssues.length +
+            gris.substitutionsIssues.length) > 0)
     })
     async function uploadDataToServerBeforeLeaving() {
         await waitForAllTransfersDone()
@@ -451,6 +485,7 @@ export const useReportStore = defineStore('report', () => {
         sendPitchReport,
         sendDisciplinaryAction,
         sendInjury,
+        sendSubstitution,
         waitForAllTransfersDone,
         deletePitchReport,
         newError,

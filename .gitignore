@@ -61,3 +61,16 @@ data/data.db
 data/data.db.BAK
 data/*
 *.db
+/.gradle-home/*
+
+
+referee-kottster/
+gaa-referee-api/
+
+frontend-vite/cypress/
+
+src/test/julia/
+
+other/
+
+scripts/

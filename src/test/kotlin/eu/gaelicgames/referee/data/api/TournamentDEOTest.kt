@@ -201,7 +201,8 @@ class TournamentDEOTest {
                     tr.id.value,
                     report.teamIDs,
                     report.gameTypeIDs,
-                    report.extraTimeIDs
+                    report.extraTimeIDs,
+                    report.gameLengthIDs
                 )
                 val gr = TestHelper.initializeGameReportAndDisciplinaryAction(trd)
                 Pair(trd, gr)
@@ -299,6 +300,57 @@ class TournamentDEOTest {
                 val intoTournamentReportsIDs = TournamentReport.find { TournamentReports.tournament eq intoTournamentID }
                     .map { it.id.value }
                 assert(intoTournamentReportsIDs.containsAll(fromTournamentReportsIDs))
+            }
+        }
+    }
+
+    @Test
+    fun deleteCompleteTournamentDEO_withPreselections() {
+        runBlocking {
+            val tournamentID = generateFakeCompleteTournament()
+            // Add tournament team preselections - the rows that previously caused
+            // deletion to fail with a foreign key constraint violation.
+            val teamIds = transaction { Team.all().take(3).map { it.id.value } }
+            val addResult = TournamentTeamPreselectionDEO(tournamentID, teamIds).add()
+            assert(addResult.isSuccess)
+            transaction {
+                val count = TournamentTeamPreSelection.find {
+                    TournamentTeamPreSelections.tournament eq tournamentID
+                }.count()
+                assert(count > 0L)
+            }
+
+            val result = DeleteCompleteTournamentDEO(tournamentID).delete()
+            assert(result.isSuccess) { "delete failed: ${result.exceptionOrNull()}" }
+
+            transaction {
+                assert(Tournament.findById(tournamentID) == null)
+                val count = TournamentTeamPreSelection.find {
+                    TournamentTeamPreSelections.tournament eq tournamentID
+                }.count()
+                assert(count == 0L)
+            }
+        }
+    }
+
+    @Test
+    fun mergeTournamentDEO_withPreselections() {
+        runBlocking {
+            val fromTournamentID = generateFakeCompleteTournament()
+            val intoTournamentID = generateFakeCompleteTournament()
+            val teamIds = transaction { Team.all().take(3).map { it.id.value } }
+            assert(TournamentTeamPreselectionDEO(fromTournamentID, teamIds).add().isSuccess)
+
+            val result = MergeTournamentDEO(fromTournamentID, intoTournamentID).updateInDatabase()
+            assert(result.isSuccess) { "merge failed: ${result.exceptionOrNull()}" }
+
+            transaction {
+                assert(Tournament.findById(fromTournamentID) == null)
+                // Preselections were reassigned to the target tournament.
+                val movedTeamIds = TournamentTeamPreSelection.find {
+                    TournamentTeamPreSelections.tournament eq intoTournamentID
+                }.map { it.team.id.value }
+                assert(movedTeamIds.containsAll(teamIds))
             }
         }
     }
