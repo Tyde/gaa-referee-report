@@ -278,6 +278,21 @@ fun Route.refereeApiRouting() {
         }
     }
 
+    post<Api.GameReports.Substitution.New> {
+        handleSubstitutionInput(doUpdate = false)
+    }
+    post<Api.GameReports.Substitution.Update> {
+        handleSubstitutionInput(doUpdate = true)
+    }
+    post<Api.GameReports.Substitution.Delete> {
+        val user = call.principal<UserPrincipal>()?.user!!
+        receiveAndHandleDEO<DeleteSubstitutionDEO> { deo ->
+            deo.deleteChecked(user).map { deo }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
     post<Api.Pitch.New> {
         handlePitchReportInput(doUpdate = false)
 
@@ -432,6 +447,25 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doU
                 deo.createInDatabase()
             }
             updatedReport.map { InjuryDEO.fromInjury(it) }.getOrThrow()
+        }.getOrThrow()
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleSubstitutionInput(doUpdate: Boolean) {
+    receiveAndHandleDEO<SubstitutionDEO> { deo ->
+        val principal = call.principal<UserPrincipal>()!!
+        limitAccess(
+            principal,
+            deo,
+            isUserAllowedPredicate = { user, substitutionDEO -> substitutionDEO.getRefereeId() == user.user.id.value },
+            customUserDisallowedMessage = "Substitution can only be edited by the referee who created the report"
+        ) { substitutionDEO ->
+            val updatedReport = if (doUpdate) {
+                deo.updateInDatabase()
+            } else {
+                deo.createInDatabase()
+            }
+            updatedReport.map { SubstitutionDEO.fromSubstitution(it) }.getOrThrow()
         }.getOrThrow()
     }
 }

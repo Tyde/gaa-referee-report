@@ -2,6 +2,7 @@
 
 import {computed, ref} from "vue";
 import InjuryEditor from "@/components/gameReport/InjuryEditor.vue";
+import SubstitutionEditor from "@/components/gameReport/SubstitutionEditor.vue";
 import DisciplinaryEditor from "@/components/gameReport/DisciplinaryEditor.vue";
 import {useReportStore} from "@/utils/edit_report_store";
 import MobileDropdown from "@/components/util/MobileDropdown.vue";
@@ -18,6 +19,7 @@ const props = defineProps<{
 const displayDisciplinary = ref(false)
 const displayDisciplinaryTable = ref(false)
 const displayInjuries = ref(false)
+const displaySubstitutions = ref(false)
 
 
 const currentSingleTeamGameReport = computed(() => {
@@ -48,6 +50,17 @@ function openInjuryDialog() {
 
 function closeInjuryDialog() {
   displayInjuries.value = false;
+}
+
+function openSubstitutionDialog() {
+  if (store.selectedGameReport) {
+    store.sendGameReport(store.selectedGameReport)
+  }
+  displaySubstitutions.value = true;
+}
+
+function closeSubstitutionDialog() {
+  displaySubstitutions.value = false;
 }
 
 function stripRuleCardsFromDescription(description?: string) {
@@ -150,6 +163,27 @@ function stripRuleCardsFromDescription(description?: string) {
           </div>
         </div>
       </div>
+
+      <div class="col-span-2 p-1 flex flex-col">
+        <Button
+            :disabled="!store.selectedGameReportPassesMinimalRequirements"
+            class="flex-shrink"
+            @click="openSubstitutionDialog"
+        >
+          {{ $t('gameReport.editSubstitutions') }} ({{ currentSingleTeamGameReport.substitutions.length - 1 }})
+        </Button>
+        <div class="text-sm flex flex-col">
+          <div
+              v-for="(substitution, index) in currentSingleTeamGameReport.substitutions"
+              :key="substitution.id ?? `new-${index}`"
+          >
+            <template v-if="substitution.id">
+              {{ substitution.minute }}' #{{ substitution.playerOffNumber }} {{ substitution.playerOffLastName }}
+              &rarr; #{{ substitution.playerOnNumber }} {{ substitution.playerOnLastName }}
+            </template>
+          </div>
+        </div>
+      </div>
       <Button v-if="false"
         @click="displayDisciplinaryTable = true">Open Table Dis</Button>
 
@@ -170,6 +204,12 @@ function stripRuleCardsFromDescription(description?: string) {
     <InjuryEditor
         :is-team-a="props.isTeamA"
         v-model:visible="displayInjuries"
+        v-if="currentSingleTeamGameReport.team"
+    />
+
+    <SubstitutionEditor
+        :is-team-a="props.isTeamA"
+        v-model:visible="displaySubstitutions"
         v-if="currentSingleTeamGameReport.team"
     />
   </div>

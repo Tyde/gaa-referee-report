@@ -1,6 +1,7 @@
 import {ExtraTimeOption, GameLengthOption, GameType} from "@/types";
 import {z} from "zod"
 import {injuryDEOToInjury} from "@/utils/api/injuries_api";
+import {substitutionDEOToSubstitution} from "@/utils/api/substitutions_api";
 import {fromDisciplinaryActionDEOToDisciplinaryAction} from "@/utils/api/disciplinary_action_api";
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import type {Report} from "@/types/report_types";
@@ -38,19 +39,27 @@ export function gameReportDEOToGameReport(
         const teamBdisciplinaryActions = cGameReportDEO.disciplinaryActions
             ?.filter(disciplinaryAction => disciplinaryAction.team === gameReportDEO.teamB)
             ?.map(disciplinaryAction => fromDisciplinaryActionDEOToDisciplinaryAction(disciplinaryAction, rules, teamBVal));
+        const teamAsubstitutions = cGameReportDEO.substitutions
+            ?.filter(substitution => substitution.team === gameReportDEO.teamA)
+            ?.map(substitution => substitutionDEOToSubstitution(substitution, teamAVal));
+        const teamBsubstitutions = cGameReportDEO.substitutions
+            ?.filter(substitution => substitution.team === gameReportDEO.teamB)
+            ?.map(substitution => substitutionDEOToSubstitution(substitution, teamBVal));
         const teamAReport = {
             team: teamAVal,
             goals: gameReportDEO.teamAGoals,
             points: gameReportDEO.teamAPoints,
             injuries: teamAinjuries,
-            disciplinaryActions: teamAdisciplinaryActions
+            disciplinaryActions: teamAdisciplinaryActions,
+            substitutions: teamAsubstitutions ?? []
         } as SingleTeamGameReport
         const teamBReport = {
             team: teamBVal,
             goals: gameReportDEO.teamBGoals,
             points: gameReportDEO.teamBPoints,
             injuries: teamBinjuries,
-            disciplinaryActions: teamBdisciplinaryActions
+            disciplinaryActions: teamBdisciplinaryActions,
+            substitutions: teamBsubstitutions ?? []
         } as SingleTeamGameReport
         return {
             id: gameReportDEO.id,

@@ -215,6 +215,7 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
     var umpireNotes by GameReports.umpireNotes
     val injuries by Injury referrersOn Injuries.game
     val disciplinaryActions by DisciplinaryAction referrersOn DisciplinaryActions.game
+    val substitutions by Substitution referrersOn Substitutions.game
     var generalNotes by GameReports.generalNotes
 
 
@@ -253,6 +254,23 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
         }
     }
 
+    suspend fun teamASubstitutions():SizedIterable<Substitution> {
+        return lockedTransaction {
+            Substitution.find {
+                (Substitutions.game eq this@GameReport.id) and
+                        (Substitutions.team eq teamA.id)
+            }
+        }
+    }
+    suspend fun teamBSubstitutions():SizedIterable<Substitution> {
+        return lockedTransaction {
+            Substitution.find {
+                (Substitutions.game eq this@GameReport.id) and
+                        (Substitutions.team eq teamB.id)
+            }
+        }
+    }
+
     suspend fun deleteComplete() {
         val game = this
         lockedTransaction {
@@ -261,6 +279,9 @@ class GameReport(id:EntityID<Long>):LongEntity(id) {
             }
             DisciplinaryActions.deleteWhere {
                 DisciplinaryActions.game eq game.id
+            }
+            Substitutions.deleteWhere {
+                Substitutions.game eq game.id
             }
             game.delete()
         }
@@ -337,6 +358,31 @@ class Injury(id:EntityID<Long>):LongEntity(id) {
     var firstName by Injuries.firstName
     var lastName by Injuries.lastName
     var details by Injuries.details
+}
+
+object Substitutions : LongIdTable() {
+    val game = reference("game", GameReports)
+    val team = reference("team", Teams)
+    val playerOnFirstName = varchar("player_on_first_name", 80)
+    val playerOnLastName = varchar("player_on_last_name", 80)
+    val playerOnNumber = integer("player_on_number")
+    val playerOffFirstName = varchar("player_off_first_name", 80)
+    val playerOffLastName = varchar("player_off_last_name", 80)
+    val playerOffNumber = integer("player_off_number")
+    val minute = integer("minute")
+}
+
+class Substitution(id:EntityID<Long>):LongEntity(id) {
+    companion object : LongEntityClass<Substitution>(Substitutions)
+    var game by GameReport referencedOn Substitutions.game
+    var team by Team referencedOn Substitutions.team
+    var playerOnFirstName by Substitutions.playerOnFirstName
+    var playerOnLastName by Substitutions.playerOnLastName
+    var playerOnNumber by Substitutions.playerOnNumber
+    var playerOffFirstName by Substitutions.playerOffFirstName
+    var playerOffLastName by Substitutions.playerOffLastName
+    var playerOffNumber by Substitutions.playerOffNumber
+    var minute by Substitutions.minute
 }
 
 interface PitchPropertyEntity {

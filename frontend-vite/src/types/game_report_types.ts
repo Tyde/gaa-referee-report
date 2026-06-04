@@ -30,6 +30,18 @@ export const InjuryDEO = z.object({
     team: z.number()
 })
 export type InjuryDEO = z.infer<typeof InjuryDEO>
+export const SubstitutionDEO = z.object({
+    id: z.number(),
+    team: z.number(),
+    playerOnFirstName: z.string(),
+    playerOnLastName: z.string(),
+    playerOnNumber: z.number(),
+    playerOffFirstName: z.string(),
+    playerOffLastName: z.string(),
+    playerOffNumber: z.number(),
+    minute: z.number(),
+})
+export type SubstitutionDEO = z.infer<typeof SubstitutionDEO>
 export const DisciplinaryActionDEO = z.object({
     id: z.number(),
     team: z.number(),
@@ -62,12 +74,25 @@ export interface Injury {
     team?: Team,
 }
 
+export interface Substitution {
+    id?: number,
+    playerOnFirstName: string,
+    playerOnLastName: string,
+    playerOnNumber?: number,
+    playerOffFirstName: string,
+    playerOffLastName: string,
+    playerOffNumber?: number,
+    minute?: number,
+    team?: Team,
+}
+
 export interface SingleTeamGameReport {
     team?: Team,
     goals?: number,
     points?: number,
     injuries: Injury[],
     disciplinaryActions: DisciplinaryAction[],
+    substitutions: Substitution[],
 }
 
 export const GameReportDEO = z.object({
@@ -91,7 +116,8 @@ export type GameReportDEO = z.infer<typeof GameReportDEO>;
 export const CompleteGameReportDEO = z.object({
     gameReport: GameReportDEO,
     injuries: InjuryDEO.array().nullable(),
-    disciplinaryActions: DisciplinaryActionDEO.array().nullable()
+    disciplinaryActions: DisciplinaryActionDEO.array().nullable(),
+    substitutions: SubstitutionDEO.array().nullable().optional()
 })
 export type CompleteGameReportDEO = z.infer<typeof CompleteGameReportDEO>;
 

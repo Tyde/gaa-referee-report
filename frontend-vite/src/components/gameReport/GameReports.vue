@@ -56,6 +56,7 @@ function newGameReport() {
       points: 0,
       injuries : [],
       disciplinaryActions : [],
+      substitutions : [],
     },
     teamBReport : {
       team: undefined,
@@ -63,6 +64,7 @@ function newGameReport() {
       points: 0,
       injuries : [],
       disciplinaryActions : [],
+      substitutions : [],
     },
     umpirePresentOnTime: true,
     umpireNotes: "",
