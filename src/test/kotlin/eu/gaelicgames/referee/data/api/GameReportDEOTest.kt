@@ -611,6 +611,103 @@ internal class GameReportDEOTest {
     }
 
     @Test
+    fun substitutionDEO_create() {
+        runBlocking {
+            val gameReport = TestHelper.initializeGameReport(tournamentReportData)
+            val teamID = transaction {
+                gameReport!!.teamA.id.value
+            }
+            val deo = SubstitutionDEO(
+                team = teamID,
+                playerOnFirstName = "On",
+                playerOnLastName = "Player",
+                playerOnNumber = 17,
+                playerOffFirstName = "Off",
+                playerOffLastName = "Player",
+                playerOffNumber = 9,
+                minute = 53,
+                game = gameReport!!.id.value,
+            )
+            val result = deo.createInDatabase()
+            assert(result.isSuccess) { "create failed: ${result.exceptionOrNull()}" }
+            val substitution = result.getOrNull()
+            assert(substitution != null)
+            assert(substitution!!.id.value > 0)
+
+            transaction {
+                val testVal = Substitution.findById(substitution.id.value)
+                assert(testVal != null)
+                assert(testVal!!.team.id.value == teamID)
+                assert(testVal.playerOnFirstName == "On")
+                assert(testVal.playerOnLastName == "Player")
+                assert(testVal.playerOnNumber == 17)
+                assert(testVal.playerOffFirstName == "Off")
+                assert(testVal.playerOffLastName == "Player")
+                assert(testVal.playerOffNumber == 9)
+                assert(testVal.minute == 53)
+                assert(testVal.game.id.value == gameReport.id.value)
+            }
+        }
+    }
+
+    @Test
+    fun substitutionDEO_createMissingFieldsFails() {
+        runBlocking {
+            val gameReport = TestHelper.initializeGameReport(tournamentReportData)
+            val teamID = transaction { gameReport!!.teamA.id.value }
+            val deo = SubstitutionDEO(
+                team = teamID,
+                playerOnFirstName = "On",
+                playerOnLastName = "Player",
+                playerOnNumber = 17,
+                // missing playerOff* / minute
+                game = gameReport!!.id.value,
+            )
+            val result = deo.createInDatabase()
+            assert(result.isFailure)
+            assert(result.exceptionOrNull() is IllegalArgumentException)
+        }
+    }
+
+    @Test
+    fun substitutionDEO_update_and_delete() {
+        runBlocking {
+            val gameReport = TestHelper.initializeGameReport(tournamentReportData)
+            val teamID = transaction { gameReport!!.teamA.id.value }
+            val created = SubstitutionDEO(
+                team = teamID,
+                playerOnFirstName = "On",
+                playerOnLastName = "Player",
+                playerOnNumber = 17,
+                playerOffFirstName = "Off",
+                playerOffLastName = "Player",
+                playerOffNumber = 9,
+                minute = 53,
+                game = gameReport!!.id.value,
+            ).createInDatabase().getOrThrow()
+
+            val updateResult = SubstitutionDEO(
+                id = created.id.value,
+                minute = 60,
+                playerOnNumber = 21,
+            ).updateInDatabase()
+            assert(updateResult.isSuccess)
+            transaction {
+                val v = Substitution.findById(created.id.value)!!
+                assert(v.minute == 60)
+                assert(v.playerOnNumber == 21)
+                assert(v.playerOffNumber == 9)
+            }
+
+            val deleteResult = DeleteSubstitutionDEO(created.id.value).deleteFromDatabase()
+            assert(deleteResult.isSuccess)
+            transaction {
+                assert(Substitution.findById(created.id.value) == null)
+            }
+        }
+    }
+
+    @Test
     fun completeGameReportDEO_load() {
         runBlocking {
             val (gameReport, teamID, disciplinaryAction) = TestHelper.initializeGameReportAndDisciplinaryAction(
@@ -635,6 +732,7 @@ internal class GameReportDEOTest {
                 assert(deo.gameReport.generalNotes == gameReport.generalNotes)
                 assert(deo.disciplinaryActions.isNotEmpty())
                 assert(deo.injuries.isEmpty())
+                assert(deo.substitutions.isEmpty())
             }
 
         }

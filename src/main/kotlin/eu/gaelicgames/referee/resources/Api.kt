@@ -258,6 +258,22 @@ class Api() {
             class Delete(val parent: Injury)
         }
 
+        @Serializable
+        @Resource("substitution")
+        class Substitution(val parent: GameReports) {
+            @Serializable
+            @Resource("new")
+            class New(val parent: Substitution)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Substitution)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Substitution)
+        }
+
 
     }
 

@@ -177,6 +177,9 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
                             originalGameReport.teamAInjuries().map {
                                 it.team = team
                             }
+                            originalGameReport.teamASubstitutions().map {
+                                it.team = team
+                            }
                         }
                         originalGameReport.teamA = team
                     }
@@ -188,6 +191,9 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
                                 it.team = team
                             }
                             originalGameReport.teamBInjuries().map {
+                                it.team = team
+                            }
+                            originalGameReport.teamBSubstitutions().map {
                                 it.team = team
                             }
                         }
@@ -279,6 +285,9 @@ suspend fun DeleteGameReportDEO.deleteFromDatabase(): Result<Boolean> {
                     it.delete()
                 }
                 Injury.find { Injuries.game eq originalGameReport.id }.forEach {
+                    it.delete()
+                }
+                Substitution.find { Substitutions.game eq originalGameReport.id }.forEach {
                     it.delete()
                 }
                 originalGameReport.delete()
@@ -839,6 +848,177 @@ suspend fun DeleteInjuryDEO.deleteFromDatabase(): Result<Boolean> {
 }
 
 
+suspend fun SubstitutionDEO.Companion.fromSubstitution(substitution: Substitution): SubstitutionDEO {
+    return lockedTransaction {
+        SubstitutionDEO(
+            substitution.id.value,
+            substitution.team.id.value,
+            substitution.playerOnFirstName,
+            substitution.playerOnLastName,
+            substitution.playerOnNumber,
+            substitution.playerOffFirstName,
+            substitution.playerOffLastName,
+            substitution.playerOffNumber,
+            substitution.minute,
+            substitution.game.id.value
+        )
+    }
+}
+
+suspend fun SubstitutionDEO.Companion.wrapRow(row: ResultRow): SubstitutionDEO {
+    return lockedTransaction {
+        SubstitutionDEO(
+            row[Substitutions.id].value,
+            row[Substitutions.team].value,
+            row[Substitutions.playerOnFirstName],
+            row[Substitutions.playerOnLastName],
+            row[Substitutions.playerOnNumber],
+            row[Substitutions.playerOffFirstName],
+            row[Substitutions.playerOffLastName],
+            row[Substitutions.playerOffNumber],
+            row[Substitutions.minute],
+            row[Substitutions.game].value
+        )
+    }
+}
+
+suspend fun SubstitutionDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        TournamentReports.leftJoin(GameReports)
+            .selectAll()
+            .where { GameReports.id eq this@getRefereeId.game }
+            .firstOrNull()
+            ?.let {
+                it[TournamentReports.referee].value
+            }
+    }
+}
+
+suspend fun SubstitutionDEO.createInDatabase(): Result<Substitution> {
+    val substitutionUpdate = this
+    if (substitutionUpdate.team != null &&
+        substitutionUpdate.playerOnFirstName != null &&
+        substitutionUpdate.playerOnLastName != null &&
+        substitutionUpdate.playerOnNumber != null &&
+        substitutionUpdate.playerOffFirstName != null &&
+        substitutionUpdate.playerOffLastName != null &&
+        substitutionUpdate.playerOffNumber != null &&
+        substitutionUpdate.minute != null &&
+        substitutionUpdate.game != null
+    ) {
+        return lockedTransaction {
+            val team = Team.findById(substitutionUpdate.team)
+            val game = GameReport.findById(substitutionUpdate.game)
+            if (team != null && game != null) {
+                clearCacheForGameReport(game)
+
+                Result.success(Substitution.new {
+                    this.team = team
+                    this.playerOnFirstName = substitutionUpdate.playerOnFirstName
+                    this.playerOnLastName = substitutionUpdate.playerOnLastName
+                    this.playerOnNumber = substitutionUpdate.playerOnNumber
+                    this.playerOffFirstName = substitutionUpdate.playerOffFirstName
+                    this.playerOffLastName = substitutionUpdate.playerOffLastName
+                    this.playerOffNumber = substitutionUpdate.playerOffNumber
+                    this.minute = substitutionUpdate.minute
+                    this.game = game
+                })
+            } else {
+                Result.failure(
+                    IllegalArgumentException(
+                        "Trying to insert a substitution with either an invalid " +
+                                "Team $team or invalid game $game"
+                    )
+                )
+            }
+        }
+    } else {
+        return Result.failure(
+            IllegalArgumentException(
+                "Trying to insert a substitution with missing fields"
+            )
+        )
+    }
+}
+
+suspend fun SubstitutionDEO.updateInDatabase(): Result<Substitution> {
+    val substitutionUpdate = this
+    if (substitutionUpdate.id != null) {
+        return lockedTransaction {
+            val substitution = Substitution.findById(substitutionUpdate.id)
+            if (substitution != null) {
+                val game = substitution.game
+                clearCacheForGameReport(game)
+
+                substitutionUpdate.playerOnFirstName?.let { substitution.playerOnFirstName = it }
+                substitutionUpdate.playerOnLastName?.let { substitution.playerOnLastName = it }
+                substitutionUpdate.playerOnNumber?.let { substitution.playerOnNumber = it }
+                substitutionUpdate.playerOffFirstName?.let { substitution.playerOffFirstName = it }
+                substitutionUpdate.playerOffLastName?.let { substitution.playerOffLastName = it }
+                substitutionUpdate.playerOffNumber?.let { substitution.playerOffNumber = it }
+                substitutionUpdate.minute?.let { substitution.minute = it }
+                substitutionUpdate.team?.let { team ->
+                    Team.findById(team)?.let {
+                        substitution.team = it
+                    }
+                }
+                substitutionUpdate.game?.let { g ->
+                    GameReport.findById(g)?.let { gr ->
+                        substitution.game = gr
+                    }
+                }
+                Result.success(substitution)
+            } else {
+                Result.failure(
+                    IllegalArgumentException(
+                        "Trying to update a substitution with invalid id ${substitutionUpdate.id}"
+                    )
+                )
+            }
+        }
+    } else {
+        return Result.failure(
+            IllegalArgumentException(
+                "Trying to update a substitution with missing id"
+            )
+        )
+    }
+}
+
+suspend fun DeleteSubstitutionDEO.deleteChecked(user: User): Result<Boolean> {
+    val deleteId = this.id
+    return lockedTransaction {
+        Substitution.findById(deleteId)?.let {
+            if (it.game.report.referee.id == user.id) {
+                deleteFromDatabase()
+            } else {
+                Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
+            }
+        } ?: Result.failure(IllegalArgumentException("Substitution does not exist"))
+    }
+}
+
+suspend fun DeleteSubstitutionDEO.deleteFromDatabase(): Result<Boolean> {
+    val deleteId = this.id
+    return lockedTransaction {
+        val substitution = Substitution.findById(deleteId)
+        if (substitution != null) {
+            val game = substitution.game
+            clearCacheForGameReport(game)
+
+            substitution.delete()
+            Result.success(true)
+        } else {
+            Result.failure(
+                IllegalArgumentException(
+                    "Trying to delete a substitution with invalid id ${this.id}"
+                )
+            )
+        }
+    }
+}
+
+
 suspend fun GameTypeDEO.Companion.fromGameType(gameType: GameType): GameTypeDEO {
     return lockedTransaction {
         GameTypeDEO(
@@ -896,7 +1076,8 @@ suspend fun CompleteGameReportDEO.Companion.fromGameReport(gameReport: GameRepor
                 DisciplinaryActionDEO.fromDisciplinaryAction(
                     it
                 )
-            })
+            },
+            substitutions = gameReport.substitutions.map { SubstitutionDEO.fromSubstitution(it) })
     }
 }
 
@@ -912,7 +1093,10 @@ suspend fun CompleteGameReportDEO.Companion.wrapRow(row: ResultRow): CompleteGam
         disciplinaryActions = DisciplinaryActions.selectAll()
             .where { DisciplinaryActions.game eq grDEO.id }.map {
                 DisciplinaryActionDEO.wrapRow(it)
-            }
+            },
+        substitutions = Substitutions.selectAll().where { Substitutions.game eq grDEO.id }.map {
+            SubstitutionDEO.wrapRow(it)
+        }
     )
 
 

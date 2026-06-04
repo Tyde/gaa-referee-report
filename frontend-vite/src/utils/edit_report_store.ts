@@ -24,8 +24,9 @@ import {
 } from "@/utils/api/game_report_api";
 import {checkGameReportMinimal, checkGameReportNecessary} from "@/utils/gobal_functions";
 import {uploadInjury} from "@/utils/api/injuries_api";
+import {uploadSubstitution} from "@/utils/api/substitutions_api";
 import type {Report} from "@/types/report_types";
-import type {DisciplinaryAction, GameReport, Injury} from "@/types/game_report_types";
+import type {DisciplinaryAction, GameReport, Injury, Substitution} from "@/types/game_report_types";
 import type {Rule} from "@/types/rules_types";
 import type {Pitch, PitchVariables} from "@/types/pitch_types";
 import {loadAllRegions, loadTournamentPreselectedTeams} from "@/utils/api/tournament_api";
@@ -35,6 +36,7 @@ import {
     GameReportIssue,
     GameReportIssues,
     injuryIssuesForGameReport,
+    substitutionIssuesForGameReport,
     PitchReportIssue
 } from "@/types/issue_types";
 import type {Team} from "@/types/team_types";
@@ -296,6 +298,29 @@ export const useReportStore = defineStore('report', () => {
     }
 
     /**
+     * Sends Substitution to server - Does not check for correctness of the action.
+     * This function will update the id of the substitution if it was created on the server.
+     *
+     * Warning! Only use allowAsync if you already checked before that
+     *     all transfers are completed.
+     * @param substitution the substitution to be created/updated
+     * @param gameReport the game report to which the substitution belongs
+     * @param allowAsync if false, the function will wait until all transfers are completed before sending the request
+     */
+    async function sendSubstitution(substitution: Substitution, gameReport: GameReport, allowAsync = false) {
+        if(!allowAsync) await waitForAllTransfersDone()
+        if (gameReport.id) {
+            const hasNoId = substitution.id == undefined
+            await trackTransfer(uploadSubstitution(substitution, gameReport.id))
+                .then((data) => {
+                    if (hasNoId && data != -1) {
+                        substitution.id = data
+                    }
+                })
+        }
+    }
+
+    /**
      * Helper function to track the current promises waiting for a response from the server.
      *
      * This is used for waitForAllTransfersDone
@@ -408,12 +433,14 @@ export const useReportStore = defineStore('report', () => {
             }
             const daIssues = disciplinaryActionIssuesForGameReport(gameReport)
             const inIssues = injuryIssuesForGameReport(gameReport)
+            const subIssues = substitutionIssuesForGameReport(gameReport)
 
 
-            return new GameReportIssues(gameReport, issues, daIssues, inIssues)
+            return new GameReportIssues(gameReport, issues, daIssues, inIssues, subIssues)
         }).filter((gris) => (gris.issues.length +
             gris.injuriesIssues.length +
-            gris.disciplinaryActionIssues.length) > 0)
+            gris.disciplinaryActionIssues.length +
+            gris.substitutionsIssues.length) > 0)
     })
     async function uploadDataToServerBeforeLeaving() {
         await waitForAllTransfersDone()
@@ -458,6 +485,7 @@ export const useReportStore = defineStore('report', () => {
         sendPitchReport,
         sendDisciplinaryAction,
         sendInjury,
+        sendSubstitution,
         waitForAllTransfersDone,
         deletePitchReport,
         newError,

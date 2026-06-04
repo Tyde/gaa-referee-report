@@ -94,6 +94,7 @@ object DatabaseHandler {
         Rules,
         DisciplinaryActions,
         Injuries,
+        Substitutions,
         PitchSurfaceOptions,
         PitchLengthOptions,
         PitchWidthOptions,
@@ -138,6 +139,9 @@ object DatabaseHandler {
             //Migration 7 - Add GameLengthOptions and reference from GameReports
             SchemaUtils.createMissingTablesAndColumns(GameLengthOptions)
             SchemaUtils.createMissingTablesAndColumns(GameReports)
+
+            //Migration 8 - Add Substitutions table
+            SchemaUtils.createMissingTablesAndColumns(Substitutions)
         }
     }
 

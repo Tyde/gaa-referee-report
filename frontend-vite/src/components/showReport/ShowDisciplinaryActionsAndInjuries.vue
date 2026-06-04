@@ -37,6 +37,20 @@ const props = defineProps<{
         </li>
       </ul>
     </div>
+    <div class="p-2" v-if="props.teamReport.substitutions.length > 0">
+      <span class="bg-sky-200 print:bg-sky-200 text-black">Substitutions:</span><br>
+      <ul>
+        <li
+            v-for="substitution in props.teamReport.substitutions"
+            class="border-t-2 border-gray-500"
+        >
+          {{ substitution.minute }}':
+          <span class="text-red-700">#{{ substitution.playerOffNumber }} {{ substitution.playerOffFirstName }} {{ substitution.playerOffLastName }}</span>
+          &rarr;
+          <span class="text-green-700">#{{ substitution.playerOnNumber }} {{ substitution.playerOnFirstName }} {{ substitution.playerOnLastName }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
