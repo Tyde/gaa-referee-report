@@ -199,11 +199,6 @@ const allAdditionalInfo = computed(() => {
 
 
 
-const formattedAdditionalInfoString = computed(() => {
-  return allAdditionalInfo.value?.map(it => {
-    return it.referee + ": " + it.info
-  }).join("<br>\n")
-})
 onMounted(() => {
 
 })
@@ -261,7 +256,9 @@ function isTeamAWinner(gr:GameReport) {
           {{ tournament?.location ?? "" }}</h2>
         <div v-if="allAdditionalInfo && allAdditionalInfo.length > 0">
           <span class="italic">Additional Information: </span><br>
-          <span v-html="formattedAdditionalInfoString"></span>
+          <template v-for="(item, index) in allAdditionalInfo" :key="index">
+            <span>{{ item.referee }}: {{ item.info }}</span><br>
+          </template>
         </div>
         <Accordion :active-index="null" >
           <AccordionPanel value="0">
