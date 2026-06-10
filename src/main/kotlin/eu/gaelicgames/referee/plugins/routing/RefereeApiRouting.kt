@@ -99,11 +99,17 @@ fun Route.refereeApiRouting() {
 
     post<Api.Reports.UpdateAdditionalInformation> {
         receiveAndHandleDEO<UpdateReportAdditionalInformationDEO> { deo ->
-            deo.updateInDatabase().map {
-                UpdateReportAdditionalInformationDEO.fromTournamentReportReport(it)
-            }.getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                deo,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value },
+                customUserDisallowedMessage = "Report can only be edited by the referee who created it"
+            ) { allowedDeo ->
+                allowedDeo.updateInDatabase().map {
+                    UpdateReportAdditionalInformationDEO.fromTournamentReportReport(it)
+                }.getOrThrow()
+            }.getOrThrow()
         }
     }
 
@@ -188,21 +194,33 @@ fun Route.refereeApiRouting() {
 
     post<Api.Reports.Update> {
         receiveAndHandleDEO<NewTournamentReportDEO> { newTournamentReportDEO ->
-            newTournamentReportDEO.updateInDatabase().map {
-                NewTournamentReportDEO.fromTournamentReport(it)
-            }.getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                newTournamentReportDEO,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value },
+                customUserDisallowedMessage = "Report can only be edited by the referee who created it"
+            ) { allowedDeo ->
+                allowedDeo.updateInDatabase().map {
+                    NewTournamentReportDEO.fromTournamentReport(it)
+                }.getOrThrow()
+            }.getOrThrow()
         }
     }
 
     post<Api.Reports.Submit> {
         receiveAndHandleDEO<TournamentReportByIdDEO> { deo ->
-            deo.submitInDatabase().map {
-                TournamentReportByIdDEO.fromTournamentReport(it)
-            }.getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                deo,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value },
+                customUserDisallowedMessage = "Report can only be submitted by the referee who created it"
+            ) { allowedDeo ->
+                allowedDeo.submitInDatabase().map {
+                    TournamentReportByIdDEO.fromTournamentReport(it)
+                }.getOrThrow()
+            }.getOrThrow()
         }
     }
 
@@ -221,9 +239,15 @@ fun Route.refereeApiRouting() {
 
     post<Api.Reports.Share> {
         receiveAndHandleDEO<TournamentReportByIdDEO> { deo ->
-            deo.createShareLink().getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                deo,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value || user.user.role.hasCCCorHigher() },
+                customUserDisallowedMessage = "Share link can only be created by the referee who created the report"
+            ) { allowedDeo ->
+                allowedDeo.createShareLink().getOrThrow()
+            }.getOrThrow()
         }
     }
 
@@ -343,6 +367,9 @@ fun Route.refereeApiRouting() {
 
     post<Api.User.UpdateMe> {
         receiveAndHandleDEO<UpdateRefereeDAO> { dao ->
+            if(call.principal<UserPrincipal>()?.user?.id?.value != dao.id) {
+                return@receiveAndHandleDEO ApiError(ApiErrorOptions.INSERTION_FAILED, "User can only update their own data")
+            }
             dao.updateInDatabase().map {
                 RefereeDEO.fromReferee(it)
             }.getOrElse { ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Could not update user") }
