@@ -343,6 +343,9 @@ fun Route.refereeApiRouting() {
 
     post<Api.User.UpdateMe> {
         receiveAndHandleDEO<UpdateRefereeDAO> { dao ->
+            if(call.principal<UserPrincipal>()?.user?.id?.value != dao.id) {
+                return@receiveAndHandleDEO ApiError(ApiErrorOptions.INSERTION_FAILED, "User can only update their own data")
+            }
             dao.updateInDatabase().map {
                 RefereeDEO.fromReferee(it)
             }.getOrElse { ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Could not update user") }
