@@ -71,6 +71,7 @@ export default defineConfig(({mode}) => {
                     userDashboard: resolve(__dirname, 'user_dashboard.html'),
                     publicDashboard: resolve(__dirname, 'public_dashboard.html'),
                     stats: resolve(__dirname, 'stats.html'),
+                    teamsheet: resolve(__dirname, 'teamsheets.html'),
                 },
                 /*
                 output: {

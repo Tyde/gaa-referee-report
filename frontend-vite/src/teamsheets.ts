@@ -4,9 +4,8 @@ import PrimeVue from 'primevue/config';
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import './index.css';
-import 'primevue/resources/themes/mdc-light-indigo/theme.css';
-import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
+import {RefReportColorPreset} from "@/utils/colors";
 import InputNumber from "primevue/inputnumber";
 import ConfirmationService from 'primevue/confirmationservice';
 import VueFeather from 'vue-feather';
@@ -35,7 +34,11 @@ const router = createRouter({
 
 const pinia = createPinia()
 const app = createApp(App);
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    theme: {
+        preset: RefReportColorPreset
+    }
+})
 app.use(pinia)
 app.use(router)
 app.use(ConfirmationService)
