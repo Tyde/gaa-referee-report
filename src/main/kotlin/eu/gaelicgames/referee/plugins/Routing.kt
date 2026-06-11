@@ -49,7 +49,6 @@ fun Application.configureRouting() {
         post<Api.Login> {
             try {
                 val login = call.receive<LoginDEO>()
-                println(login)
                 val user = login.validate()
                 if (user.isSuccess) {
                     val publicKey = JWTUtil.publicKey
