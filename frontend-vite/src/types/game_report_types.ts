@@ -4,7 +4,7 @@ import {CompactTournamentReportDEO} from "@/types/report_types";
 import {DateTime} from "luxon";
 import {z} from "zod";
 import type {Team} from "@/types/team_types";
-import type {ExtraTimeOption, GameType} from "@/types";
+import type {ExtraTimeOption, GameLengthOption, GameType} from "@/types";
 import type {Rule} from "@/types/rules_types";
 
 export interface GameReport {
@@ -15,6 +15,7 @@ export interface GameReport {
     teamAReport: SingleTeamGameReport,
     teamBReport: SingleTeamGameReport,
     extraTime?: ExtraTimeOption,
+    gameLength?: GameLengthOption,
     umpirePresentOnTime: boolean,
     umpireNotes: string
     generalNotes: string
@@ -29,6 +30,18 @@ export const InjuryDEO = z.object({
     team: z.number()
 })
 export type InjuryDEO = z.infer<typeof InjuryDEO>
+export const SubstitutionDEO = z.object({
+    id: z.number(),
+    team: z.number(),
+    playerOnFirstName: z.string(),
+    playerOnLastName: z.string(),
+    playerOnNumber: z.number(),
+    playerOffFirstName: z.string(),
+    playerOffLastName: z.string(),
+    playerOffNumber: z.number(),
+    minute: z.number(),
+})
+export type SubstitutionDEO = z.infer<typeof SubstitutionDEO>
 export const DisciplinaryActionDEO = z.object({
     id: z.number(),
     team: z.number(),
@@ -61,12 +74,25 @@ export interface Injury {
     team?: Team,
 }
 
+export interface Substitution {
+    id?: number,
+    playerOnFirstName: string,
+    playerOnLastName: string,
+    playerOnNumber?: number,
+    playerOffFirstName: string,
+    playerOffLastName: string,
+    playerOffNumber?: number,
+    minute?: number,
+    team?: Team,
+}
+
 export interface SingleTeamGameReport {
     team?: Team,
     goals?: number,
     points?: number,
     injuries: Injury[],
     disciplinaryActions: DisciplinaryAction[],
+    substitutions: Substitution[],
 }
 
 export const GameReportDEO = z.object({
@@ -81,6 +107,7 @@ export const GameReportDEO = z.object({
     startTime: z.string().transform((value) => DateTime.fromISO(value)),
     extraTime: z.number().optional().nullable(),
     gameType: z.number().optional().nullable(),
+    gameLength: z.number().optional().nullable(),
     umpirePresentOnTime: z.boolean(),
     umpireNotes: z.string(),
     generalNotes: z.string().optional().nullable(),
@@ -89,7 +116,8 @@ export type GameReportDEO = z.infer<typeof GameReportDEO>;
 export const CompleteGameReportDEO = z.object({
     gameReport: GameReportDEO,
     injuries: InjuryDEO.array().nullable(),
-    disciplinaryActions: DisciplinaryActionDEO.array().nullable()
+    disciplinaryActions: DisciplinaryActionDEO.array().nullable(),
+    substitutions: SubstitutionDEO.array().nullable().optional()
 })
 export type CompleteGameReportDEO = z.infer<typeof CompleteGameReportDEO>;
 

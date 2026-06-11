@@ -258,6 +258,22 @@ class Api() {
             class Delete(val parent: Injury)
         }
 
+        @Serializable
+        @Resource("substitution")
+        class Substitution(val parent: GameReports) {
+            @Serializable
+            @Resource("new")
+            class New(val parent: Substitution)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Substitution)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Substitution)
+        }
+
 
     }
 
@@ -271,6 +287,18 @@ class Api() {
         @Serializable
         @Resource("update")
         class Update(val parent: GameType)
+    }
+
+    @Serializable
+    @Resource("gamelength")
+    class GameLength(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: GameLength)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: GameLength)
     }
     @Serializable
     @Resource("pitch")
@@ -356,5 +384,9 @@ class Api() {
     @Serializable
     @Resource("website_feed")
     class WebsiteFeed(val parent: Api)
+
+    @Serializable
+    @Resource("stats")
+    class Stats(val parent: Api = Api())
 
 }

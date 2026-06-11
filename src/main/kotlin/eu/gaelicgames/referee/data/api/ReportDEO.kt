@@ -16,8 +16,7 @@ suspend fun Transaction.clearCacheForTournamentReport(report: TournamentReport) 
     CacheUtil.deleteCachedCompleteTournamentReport(tournamentID)
     CacheUtil.deleteCachedPublicTournamentReport(tournamentID)
     CacheUtil.deleteCachedReport(report.id.value)
-
-
+    CacheUtil.deleteCachedClubAndCountyApi()
 
 }
 
@@ -95,6 +94,29 @@ suspend fun TournamentReportByIdDEO.Companion.fromTournamentReport(tournamentRep
         TournamentReportByIdDEO(
             tournamentReport.id.value
         )
+    }
+}
+
+/**
+ * Returns the id of the referee that owns the report referenced by this DEO,
+ * or null if the report does not exist. Used for ownership/access checks.
+ */
+suspend fun TournamentReportByIdDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        TournamentReport.findById(this@getRefereeId.id)?.referee?.id?.value
+    }
+}
+
+suspend fun UpdateReportAdditionalInformationDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        TournamentReport.findById(this@getRefereeId.id)?.referee?.id?.value
+    }
+}
+
+suspend fun NewTournamentReportDEO.getRefereeId(): Long? {
+    val reportId = this.id ?: return null
+    return lockedTransaction {
+        TournamentReport.findById(reportId)?.referee?.id?.value
     }
 }
 

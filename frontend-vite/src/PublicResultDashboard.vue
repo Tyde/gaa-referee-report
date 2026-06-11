@@ -2,13 +2,14 @@
 
 import {usePublicStore} from "@/utils/public_store";
 import {ref} from "vue";
+import {useRouter} from "vue-router";
 
 const store = usePublicStore();
-const isLoading = ref<Boolean>(true)
+const isLoading = ref<boolean>(true)
 
 {
-  let promiseAux = store.loadAuxiliaryInformationFromSerer()
-  let promiseTurn = store.loadTournaments()
+  const promiseAux = store.loadAuxiliaryInformationFromSerer()
+  const promiseTurn = store.loadTournaments()
   Promise.all([promiseAux, promiseTurn])
       .then(() => {
         isLoading.value = false
@@ -17,7 +18,7 @@ const isLoading = ref<Boolean>(true)
         store.newError(e)
       })
 }
-
+const router = useRouter()
 
 </script>
 
@@ -25,10 +26,25 @@ const isLoading = ref<Boolean>(true)
   <transition-group name="p-message" tag="div">
     <Message v-for="msg in store.currentErrors" severity="error" :key="msg.timestamp">{{msg.message}}</Message>
   </transition-group>
+  <div class="flex flex-row justify-center">
+    <div class="referee-container">
+      <div class="header no-print items-center">
+
+        <img src="./assets/logo.png" alt="Logo" class="w-12 h-12 m-2 cursor-pointer" @click="router.push('/')">
+        <div class="grow font-bold text-xl cursor-pointer" @click="router.push('/')">GGE Referee Report System</div>
+        <div class="mr-4"><a href="/stats" class="text-blue-400 hover:underline">Statistics</a></div>
+        <div class="mr-2">Public Reports</div>
+      </div>
   <router-view></router-view>
+    </div>
+  </div>
 
 </template>
 
-<style scoped>
-
+<style>
+@media print {
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}
 </style>

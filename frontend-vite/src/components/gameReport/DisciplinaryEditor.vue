@@ -19,17 +19,17 @@ const props = defineProps<{
 
 const selectedDisciplinaryActions = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport.disciplinaryActions
+    return store.selectedGameReport!.teamAReport.disciplinaryActions
   } else {
-    return store.selectedGameReport!!.teamBReport.disciplinaryActions
+    return store.selectedGameReport!.teamBReport.disciplinaryActions
   }
 })
 
 const selectedTeam = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport.team
+    return store.selectedGameReport!.teamAReport.team
   } else {
-    return store.selectedGameReport!!.teamBReport.team
+    return store.selectedGameReport!.teamBReport.team
   }
 })
 
@@ -51,7 +51,7 @@ const localVisible = computed({
 async function uploadActionsToServer() {
   if (store.selectedGameReport?.id) {
     await store.waitForAllTransfersDone()
-    for (let action of selectedDisciplinaryActions.value) {
+    for (const action of selectedDisciplinaryActions.value) {
       store.sendDisciplinaryAction(action, store.selectedGameReport, true)
           .catch((error) => {
             store.newError(error)
@@ -83,7 +83,7 @@ watch(() => selectedDisciplinaryActions, () => {
 }, {deep: true, immediate: true})
 
 function generateEmptydAFields() {
-  let newActions = selectedDisciplinaryActions.value
+  const newActions = selectedDisciplinaryActions.value
 
   if (newActions.length == 0) {
     addEmptyDisciplinaryAction()
@@ -225,7 +225,7 @@ onMounted(() => {
 
 
           <div class="hidden md:flex md:flex-col">
-            <Dropdown
+            <Select
                 v-model="dAction.rule"
                 :options="filteredRules"
                 :show-clear="true"
@@ -255,7 +255,7 @@ onMounted(() => {
                 </div>
 
               </template>
-            </Dropdown>
+            </Select>
             <div v-if="dAction.rule" class="w-[22rem] p-2">
               {{ localizedDescription(dAction.rule) }}
             </div>
@@ -269,7 +269,7 @@ onMounted(() => {
               class="block md:hidden"
               :placeholder="$t('gameReport.rule')"
           >
-            <template #option="slotProps:{option:Rule}">
+            <template #option="slotProps">
 
               <div>
                 <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>

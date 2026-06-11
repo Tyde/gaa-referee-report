@@ -33,7 +33,6 @@ fun Application.configureSecurity() {
                 acceptLeeway(3)
             }
             validate { credential ->
-                println(credential)
                 if (credential.payload.getClaim("username").asString() != "") {
                     JWTPrincipal(credential.payload)
                 } else {

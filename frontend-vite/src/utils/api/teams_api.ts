@@ -30,7 +30,7 @@ export async function editTeamOnServer(team: Team): Promise<Team> {
 }
 
 export async function mergeTeamsOnServer(baseTeam: Team, mergeTeams: Array<Team>): Promise<Team> {
-    let data = MergeTeamsDEO.safeParse({
+    const data = MergeTeamsDEO.safeParse({
         baseTeam: baseTeam.id,
         teamsToMerge: mergeTeams.map(value => value.id)
     })

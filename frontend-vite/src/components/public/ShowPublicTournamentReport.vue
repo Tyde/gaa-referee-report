@@ -8,22 +8,22 @@ import type {GameReportDEO} from "@/types/game_report_types";
 import type {GameCode} from "@/types";
 import type {Team} from "@/types/team_types";
 
-let {id} = defineProps<{
+const {id} = defineProps<{
   id: string
 }>()
 
-let store = usePublicStore()
-let selectedCode = ref<GameCode | undefined>()
-let tournament = computed(() => {
+const store = usePublicStore()
+const selectedCode = ref<GameCode | undefined>()
+const tournament = computed(() => {
   return store.tournaments.filter(it => it.id == Number(id))[0]
 })
 
-let report = ref<PublicTournamentReportDEO | undefined>(undefined)
+const report = ref<PublicTournamentReportDEO | undefined>(undefined)
 loadPublicTournamentReport(Number(id))
     .then(it => report.value = it)
     .catch(err => store.newError(err))
 
-let gameReportsByTime = computed(() => {
+const gameReportsByTime = computed(() => {
 
     return report.value?.games.toSorted((first,second) => {
       return first.gameReport.startTime.diff(second.gameReport.startTime).milliseconds < 0 ? -1 : 1
@@ -53,6 +53,11 @@ function translateGameTypeIdToGameType(gameTypeID: number) {
   return store.gameTypes.filter(it => it.id == gameTypeID)[0]
 }
 
+function translateGameLengthIdToGameLength(gameLengthID?: number) {
+  if (gameLengthID === undefined || gameLengthID === null) return undefined
+  return store.gameLengthOptions.find(it => it.id === gameLengthID)
+}
+
 function translateCodeIdToGameCode(codeID: number) {
   return store.codes.filter(it => it.id == codeID)[0]
 }
@@ -69,7 +74,7 @@ function isTeamAWinner(gameReport:GameReportDEO) {
   return (gameReport.teamAGoals*3 + gameReport.teamAPoints) > (gameReport.teamBGoals*3 + gameReport.teamBPoints)
 }
 
-let codesAtTournament = computed(() => {
+const codesAtTournament = computed(() => {
   return [...new Set(report.value?.games.map(it => it.code))].map(it => translateCodeIdToGameCode(it))
 })
 
@@ -85,12 +90,12 @@ function gameCodeColor(gameCode: GameCode) {
 }
 
 const allTeams = computed(() => {
-  let teams = report.value?.games
+  const teams = report.value?.games
       .map(it => it.gameReport.teamA)
       .concat(report.value?.games
           .map(it => it.gameReport.teamB))
 
-  let uniqueSet = new Set(teams)
+  const uniqueSet = new Set(teams)
   return [...uniqueSet].map(it => translateTeamIdToTeam(it))
 })
 const selectedTeam = ref<Team>()
@@ -115,7 +120,7 @@ const selectedTeam = ref<Team>()
       </div>
     </div>
     <div class="flex flex-row justify-center content-center m-2">
-      <Dropdown
+      <Select
           v-model="selectedTeam"
           :options="allTeams"
           optionLabel="name"
@@ -133,7 +138,12 @@ const selectedTeam = ref<Team>()
         :class="gameCodeColor(translateCodeIdToGameCode(game.code))"
     >
       <h3>{{ game.gameReport.startTime.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{ translateCodeIdToGameCode(game.code)?.name}}</h3>
-      <span v-if="game.gameReport.gameType" class="italic">{{ translateGameTypeIdToGameType(game.gameReport.gameType)?.name }}</span>
+      <span v-if="game.gameReport.gameType" class="italic">
+        {{ translateGameTypeIdToGameType(game.gameReport.gameType)?.name }}
+        <template v-if="game.gameReport.gameLength">
+          · {{ translateGameLengthIdToGameLength(game.gameReport.gameLength)?.name }}
+        </template>
+      </span>
 
       <div class="flex flex-row">
         <div class="flex-1 flex">

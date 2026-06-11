@@ -3,7 +3,7 @@
 import {computed, onMounted, ref} from "vue";
 import {loadAllTournaments} from "@/utils/api/tournament_api";
 import {loadAllReports} from "@/utils/api/report_api";
-import {FilterMatchMode, FilterOperator} from "primevue/api";
+import { FilterMatchMode,FilterOperator } from '@primevue/core/api';
 import {useRouter} from "vue-router";
 import type {DatabaseTournament} from "@/types/tournament_types";
 import {RegionDEO} from "@/types/tournament_types";
@@ -24,8 +24,8 @@ const rows = ref(10)
 const tournaments = ref<DatabaseTournament[]>([])
 const tournamentsSortedByDate = computed(() => {
   return tournaments.value.toSorted((a, b) => {
-    let relevantADate = (a.isLeague ? a.endDate : a.date) ?? DateTime.now()
-    let relevantBDate = (b.isLeague ? b.endDate : b.date) ?? DateTime.now()
+    const relevantADate = (a.isLeague ? a.endDate : a.date) ?? DateTime.now()
+    const relevantBDate = (b.isLeague ? b.endDate : b.date) ?? DateTime.now()
     return relevantADate.diff(relevantBDate).milliseconds < 0 ? 1 : -1
   })
 })
@@ -38,9 +38,9 @@ const tournamentsFiltered = computed(() => {
       return true
     }
   }).filter(tournament => {
-    let tDate = tournament.date
-    let isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
-    let isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
+    const tDate = tournament.date
+    const isLaterThanStart = tDate.diff(dateTimeRange.value[0]).milliseconds > 0
+    const isEarlierThanEnd = tDate.diff(dateTimeRange.value[1]).milliseconds < 0
     return isLaterThanStart && isEarlierThanEnd
   })
 })
@@ -67,9 +67,9 @@ const filters = ref({
 })
 
 function reportsByTournament(tournament: DatabaseTournament) {
-  let filteed = reports.value.filter(report => report.tournament == tournament.id)
+  const filteed = reports.value.filter(report => report.tournament == tournament.id)
   return filteed.map(report => {
-    let code = publicStore.findCodeById(report.code)
+    const code = publicStore.findCodeById(report.code)
     return {...report, codeName: (code?.name ?? '')}
   })
 
@@ -134,6 +134,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
     <div
         v-for="tournament in tournamentsPaginated"
         :key="tournament.id"
+        class="mb-8 bg-surface-700 rounded-lg p-4"
     >
       <div class="flex flex-row">
         <div class="grow">
@@ -154,6 +155,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
           :value="reportsByTournament(tournament)"
           filterDisplay="menu"
           v-model:filters="filters"
+          class="report-list-table"
       >
         <Column v-if="tournament.isLeague" header="Last Game on">
           <template #body="{data}:{data:CompactTournamentReportDEO}">
@@ -228,17 +230,16 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
 
 
 <style scoped>
-h3 {
-  @apply text-2xl;
-  @apply font-bold;
-  @apply mt-2;
-  @apply text-center;
+.report-list-table {
+  --p-datatable-header-cell-background: var(--p-surface-700);
+  --p-datatable-row-background: var(--p-surface-600);
 }
 
-h4 {
-  @apply text-xl;
-  @apply font-bold;
-  @apply mb-2;
-  @apply text-center;
-}
+
+
+</style>
+
+
+<style>
+
 </style>

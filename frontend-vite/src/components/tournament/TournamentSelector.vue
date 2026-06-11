@@ -77,7 +77,7 @@ onMounted(() => {
 </script>
 <template>
 
-  <div class="mx-auto w-full md:w-10/12 xl:w-5/12">
+  <div class="mx-auto w-full md:w-10/12 xl:w-8/12">
     <div v-if="!show_create_new_tournament">
 
 
@@ -93,10 +93,10 @@ onMounted(() => {
       <div class="flex flex-row justify-center">
         <div class="pr-3 flex items-center"><label for="dateformat">{{ $t('tournament.date') }}: </label></div>
         <div>
-          <Calendar id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
+          <DatePicker id="dateformat" v-model="date" dateFormat="yy-mm-dd"/>
         </div>
       </div>
-      <div class="p-listbox">
+      <div class="m-2 tournament-list">
         <ul class="p-listbox-list">
           <li
               v-if="loading"
@@ -105,7 +105,7 @@ onMounted(() => {
           </li>
           <li
               v-if="showingRecentTournaments && found_tournaments.length >0"
-              class=" italic bg-amber-200 hover:bg-amber-200 p-listbox-item"
+              class="italic bg-surface-800 hover:!bg-surface-800 text-center !cursor-default"
           >
             {{ $t('tournament.recent') }}
           </li>
@@ -162,9 +162,25 @@ onMounted(() => {
 
 
 <style scoped>
-h2 {
-  @apply text-2xl font-bold text-gray-700 text-center mt-2 mb-2;
+.tournament-list {
+  @apply bg-surface-700 rounded-lg p-4 m-2;
+  @apply border border-surface-600;
+  @apply w-full;
+
 }
+.tournament-list > ul {
+  @apply list-none p-0;
+  @apply flex flex-col;
+
+}
+.tournament-list > ul > li {
+  @apply m-1;
+  @apply p-2;
+  @apply rounded-sm;
+  @apply hover:bg-surface-600;
+  @apply cursor-pointer;
+}
+
 .tournamentselect-add-option {
   font-style: italic;
   font-weight: bold;
