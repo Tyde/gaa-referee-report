@@ -8,21 +8,17 @@ val coroutines_version = "1.9.0" // Added explicit coroutines version
 
 plugins {
     application
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("jvm") version "2.3.21"
+    kotlin("plugin.serialization") version "2.3.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jetbrains.kotlinx.kover") version "0.9.2"
-}
-
-kotlin {
-    jvmToolchain(21)
 }
 
 group = "eu.gaelicgames"
 version = "1.0-ALPHA"
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 application {
