@@ -319,7 +319,6 @@ suspend fun PublicTournamentListDEO.Companion.all(): PublicTournamentListDEO? {
 
         return@lockedTransaction transformed?.let { PublicTournamentListDEO(it) }
 
-    }
 }
 
 

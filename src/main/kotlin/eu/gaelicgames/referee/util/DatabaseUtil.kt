@@ -1,12 +1,9 @@
 package eu.gaelicgames.referee.util
 
-import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import eu.gaelicgames.referee.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.coroutines.newSingleThreadContext
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.jetbrains.exposed.dao.id.LongIdTable
@@ -103,7 +100,8 @@ object DatabaseHandler {
         PitchGoalDimensionOptions,
         Pitches,
         ActivationTokens,
-        TournamentReportShareLinks
+        TournamentReportShareLinks,
+        TeamsheetRegistrations
     )
 
     suspend fun createSchema() {
@@ -142,6 +140,10 @@ object DatabaseHandler {
 
             //Migration 8 - Add Substitutions table
             SchemaUtils.createMissingTablesAndColumns(Substitutions)
+
+			//Migration 9 - Add TeamsheetRegistrations
+            SchemaUtils.createMissingTablesAndColumns(TeamsheetRegistrations)
+
         }
     }
 
@@ -418,7 +420,7 @@ object DatabaseHandler {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun <T> lockedTransaction(statement: suspend Transaction.() -> T): T {
-    return newSuspendedTransaction(Dispatchers.IO,DatabaseHandler.db) {
+    return newSuspendedTransaction(Dispatchers.IO, DatabaseHandler.db) {
         val t = statement()
         commit()
         t
