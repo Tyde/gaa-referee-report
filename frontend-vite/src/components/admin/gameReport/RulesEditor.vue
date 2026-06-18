@@ -43,7 +43,7 @@ store.publicStore.waitForAllVariablesPresent().then(() => {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel v-for="code in store.publicStore.codes" key="id" :value="code.id" class="bg-surface-700">
+        <TabPanel v-for="code in store.publicStore.codes" :key="code.id" :value="code.id" class="bg-surface-700">
           <div class="flex flex-col">
             <div class="flex flex-row justify-center">
               <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>

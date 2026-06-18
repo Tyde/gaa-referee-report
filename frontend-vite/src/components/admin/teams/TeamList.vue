@@ -81,7 +81,7 @@ function onAmalgamationEdited(team: Team) {
 }
 
 const orderedTeamsList = computed(() => {
-  return props.teams.sort((a, b) => a.name > b.name ? 1 : -1)
+  return [...props.teams].sort((a, b) => a.name > b.name ? 1 : -1)
 })
 </script>
 
