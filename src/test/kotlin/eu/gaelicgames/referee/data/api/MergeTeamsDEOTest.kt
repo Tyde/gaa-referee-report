@@ -150,10 +150,16 @@ class MergeTeamsDEOTest {
                 }
             }
             newSuspendedTransaction {
-                //First check if the duplicate team is removed from the db
+                //First check if the duplicate team is soft-deleted in the db
                 val newDuplicateTeamQueried = Team.findById(duplicateTeamId)
-                assert(newDuplicateTeamQueried == null) {
-                    "Duplicate team should be deleted, found instead: ${newDuplicateTeamQueried?.id?.value} ${newDuplicateTeamQueried?.name}"
+                assert(newDuplicateTeamQueried != null) {
+                    "Duplicate team should still exist (soft-deleted), but was not found"
+                }
+                assert(newDuplicateTeamQueried!!.deletedAt != null) {
+                    "Duplicate team should be soft-deleted (deleted_at set)"
+                }
+                assert(newDuplicateTeamQueried.mergedInto?.id?.value == baseTeamId) {
+                    "Duplicate team should have been merged into the base team"
                 }
 
 
