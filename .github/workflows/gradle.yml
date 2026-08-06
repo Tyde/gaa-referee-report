@@ -76,7 +76,8 @@ jobs:
         REDIS_HOST: "cache"
         REDIS_PORT: "6379"
         REDIS_PASSWORD: ""
-        CLAUDE_ACCESSTOKEN: ""
+        OPENROUTER_API_KEY: ""
+        OPENROUTER_MODEL: "deepseek/deepseek-v4-pro"
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: failure() || always()

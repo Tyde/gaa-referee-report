@@ -17,9 +17,9 @@
 
 ## Configuration
 - Local config: `gge-referee.properties` (gitignored; see `gge-referee.properties.sample`)
-- Env vars override properties. Key vars: `SERVER_URL`, `MAILJET_PUBLIC/SECRET`, `REDIS_*`, `POSTGRES_*`, `OBJECTSTORAGE_*`
+- Env vars override properties. Key vars: `SERVER_URL`, `MAILJET_PUBLIC/SECRET`, `REDIS_*`, `POSTGRES_*`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OBJECTSTORAGE_*`
 - `ADD_MOCK_DATA=true` seeds 280 mock reports + users/tournaments/teams at startup
-- `CLAUDE_ACCESSTOKEN` enables AI-powered rule translation (`RuleTranslationUtil.kt`)
+- `OPENROUTER_API_KEY` enables AI-powered rule translation via OpenRouter (`RuleTranslationUtil.kt`)
 - Kotlin version in `build.gradle.kts:11` (1.9.22) overrides `gradle.properties:2` (1.8.22)
 
 ## Testing

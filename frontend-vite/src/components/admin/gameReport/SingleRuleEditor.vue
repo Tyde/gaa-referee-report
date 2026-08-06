@@ -204,13 +204,13 @@ async function tryTranslateRule() {
     <template v-else>
       <template v-if="shadowCopyRule !== undefined">
       <InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                 v-model="shadowCopyRule.description"/>
+                 v-model="shadowCopyRule.description" :disabled="waitingForTranslation"/>
         <b>FR:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionFr"/>
+                  v-model="shadowCopyRule.descriptionFr" :disabled="waitingForTranslation"/>
         <b>ES:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionEs"/>
+                  v-model="shadowCopyRule.descriptionEs" :disabled="waitingForTranslation"/>
         <b>DE:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionDe"/>
+                  v-model="shadowCopyRule.descriptionDe" :disabled="waitingForTranslation"/>
       <div class="float-left">
         <SelectButton v-model="selectedCardInCopy" :options="cards" class="m-1" optionLabel="label"/>
       </div>
@@ -220,8 +220,9 @@ async function tryTranslateRule() {
             link
             :disabled="waitingForTranslation"
             @click="tryTranslateRule()"
-        ><vue-feather class="mr-2" type="feather" />
-          Translate Rules with AI...</Button>
+        ><vue-feather v-if="!waitingForTranslation" class="mr-2" type="feather" />
+          <vue-feather v-else class="mr-2 animate-spin" type="loader" />
+          {{ waitingForTranslation ? 'Translating...' : 'Translate Rules with AI' }}</Button>
         <vue-feather class="m-2" type="x" @click="cancelEdit()"/>
         <vue-feather class="m-2" type="check" @click="saveRule()"/>
       </div>
