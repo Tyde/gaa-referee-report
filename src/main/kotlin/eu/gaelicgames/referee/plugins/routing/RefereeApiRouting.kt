@@ -125,11 +125,18 @@ fun Route.refereeApiRouting() {
                     "Team with same name already exists"
                 )
             }
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            val changeDate = newTeam.changeDate ?: LocalDate.now()
             val newTeamDB = lockedTransaction {
-                Team.new {
+                val team = Team.new {
                     name = newTeam.name
                     isAmalgamation = false
                 }
+                writeTeamHistoryEventInTransaction(
+                    team, TeamChangeType.CREATED, changeDate,
+                    null, team.name, recordedBy
+                )
+                team
             }
             TeamDEO.fromTeam(newTeamDB)
         }
@@ -138,7 +145,8 @@ fun Route.refereeApiRouting() {
 
     post<Api.NewAmalgamation> {
         receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
-            newAmalgamation.createInDatabase().map {
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            newAmalgamation.createInDatabase(recordedBy).map {
                 TeamDEO.fromTeam(it)
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")

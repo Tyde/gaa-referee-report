@@ -39,6 +39,10 @@ class Api() {
         @Serializable
         @Resource("merge")
         class Merge(val parent: Team)
+
+        @Serializable
+        @Resource("history/{id}")
+        class History(val parent: Team, val id: Long)
     }
 
     @Serializable

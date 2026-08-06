@@ -454,3 +454,82 @@ data class TeamHistoryEventDEO(
 - Frontend admin: `components/admin/teams/TeamManager.vue`, `TeamList.vue`,
   `EditAmalgamationDialog.vue`, `ConvertTeamToAmalgamtionDialog.vue`;
   `router/admin_router.ts`; `utils/api/teams_api.ts`; `types/team_types.ts`.
+
+
+---
+
+## 10. Implementation status
+
+All of section 5 (recommended design) is implemented on `feature/team-history`:
+
+**Database (`ReportData.kt`, `DatabaseUtil.kt`)**
+- `Teams` + `deleted_at` (timestamp) and `merged_into` (self-FK) columns.
+- `TeamChangeType` enum (`CREATED`, `RENAMED`, `CONVERTED_TO_AMALGAMATION`,
+  `CONVERTED_TO_TEAM`, `MEMBER_ADDED`, `MEMBER_REMOVED`, `MERGED_INTO`).
+- `TeamHistoryEvents` table (`team_id`, `change_type`, `change_date`,
+  `old_value`, `new_value`, `recorded_at`, `recorded_by`) + entity.
+- Migration 9 in `DatabaseHandler.createSchema()` (`createMissingTablesAndColumns(Teams)`)
+  + idempotent backfill that writes a `CREATED` event (date = today) for every
+  existing team without history.
+
+**Backend logic (`TeamDEO.kt`)**
+- `writeTeamHistoryEventInTransaction(...)` helper (atomic with the change).
+- `TeamDEO.updateInDatabase(recordedBy)` — records `RENAMED`,
+  `CONVERTED_TO_AMALGAMATION`/`CONVERTED_TO_TEAM`, and per-member
+  `MEMBER_ADDED`/`MEMBER_REMOVED` diffs.
+- `MergeTeamsDEO.updateInDatabase(recordedBy)` — records `MERGED_INTO` on the
+  merged-away team, `MEMBER_ADDED`/`MEMBER_REMOVED` on affected amalgamations,
+  and **soft-deletes** the merged team (`deleted_at`, `merged_into`) instead of
+  hard-deleting. Also fixes a pre-existing bug: merging a team that is a member
+  of an amalgamation which already contains the base team no longer creates a
+  duplicate member row.
+- `NewAmalgamationDEO.createInDatabase(recordedBy)` — `CREATED` + `MEMBER_ADDED`
+  per member.
+- `post<Api.NewTeam>` — `CREATED` event.
+- `TeamDEO.allTeamList()` (public list) filters soft-deleted teams; `wrapRow` /
+  `wrapJoinedRow` skip deleted members.
+- `TeamDEO.historyForTeam(teamId)` returns events sorted by `change_date`.
+
+**API (`Api.kt`, `AdminApiRouting.kt`)**
+- New admin-only route `GET /api/team/history/{id}` returning
+  `List<TeamHistoryEventDEO>` (under `authenticate("admin-session")`).
+- Optional `changeDate` (ISO date, backdatable) added to `TeamDEO`,
+  `NewTeamDEO`, `NewAmalgamationDEO`, `MergeTeamsDEO` — defaults to today
+  server-side when omitted, so **existing clients are unaffected**.
+
+**Shared DTOs (`gaa-referee-report-common` submodule)** — `TeamHistoryEventDEO`
++ optional `changeDate` fields (all with kotlinx defaults for
+backward compatibility).
+
+**Frontend**
+- `TeamHistoryDialog.vue` — admin dialog rendering the event timeline
+  (created / renamed / converted / member added / member removed / merged).
+- `TeamList.vue` — "History" button per row; the inline row editor gained a
+  "Date of change" picker so renames can be backdated.
+- `EditAmalgamationDialog.vue`, `ConvertTeamToAmalgamtionDialog.vue`,
+  `MergeTeamDialog.vue` — "Date of change" picker for amalgamation edits,
+  conversions and merges.
+- `types/team_types.ts`, `utils/api/teams_api.ts` — new DTO types + API calls.
+
+**User-facing surface unchanged** — `/api/teams_available`, `/api/new_team`,
+`/api/new_amalgamation`, `/api/team/update`, `/api/team/merge` keep their
+payload/response shapes; referee/CCC/public flows untouched.
+
+**Tests**
+- `TeamHistoryDEOTest` (new): creation, rename with backdated date, convert to
+  amalgamation, member remove, merge (soft-delete + `MERGED_INTO`), public list
+  excludes deleted teams, events sorted by date, duplicate-member prevention.
+- `MergeTeamsDEOTest` updated: merged team is now expected to be soft-deleted
+  (`deleted_at` set, `merged_into` pointing at base) instead of hard-deleted.
+
+**Verified**
+- Full backend test suite green against Postgres (`./gradlew test`).
+- Schema migration on an existing database: `ALTER TABLE teams` adds
+  `deleted_at` + `merged_into` (with FK) and `team_history_events` is created;
+  backfill writes `CREATED` events for pre-existing teams.
+- End-to-end HTTP smoke test (scratch Postgres DB): login → create teams →
+  rename with `changeDate=2023-05-01` → create amalgamation → add member →
+  merge with `changeDate=2025-02-10` → histories returned correctly; merged
+  team hidden from `/api/teams_available`; no duplicate amalgamation members.
+- Frontend: `eslint` clean on changed files, `vue-tsc` type-check and `vite
+  build` pass.

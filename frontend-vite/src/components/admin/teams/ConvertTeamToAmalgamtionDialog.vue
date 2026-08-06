@@ -3,10 +3,8 @@
 import type {Team} from "@/types/team_types";
 import TeamSelectField from "@/components/team/TeamSelectField.vue";
 import {computed, onMounted, ref, watch} from "vue";
-import {useReportStore} from "@/utils/edit_report_store";
 import {editTeamOnServer, mergeTeamsOnServer} from "@/utils/api/teams_api";
 import {useAdminStore} from "@/utils/admin_store";
-import {boolean} from "zod";
 
 const localVisible = defineModel<boolean>('visible')
 const props = defineProps<{
@@ -30,6 +28,14 @@ const noSquadAmalgamationExcludes = computed(() => {
 
 const baseTeamForNewSquad = ref<Team>()
 const conversionTarget = ref<Team>()
+const changeDate = ref<Date>(new Date())
+
+function changeDateIso(): string | undefined {
+  if (!changeDate.value) {
+    return undefined
+  }
+  return new Date(changeDate.value).toISOString().slice(0, 10)
+}
 
 function onConversionDone(resultTeam:Team) {
   store.publicStore.loadTeams()
@@ -42,6 +48,7 @@ async function convertTeam() {
     const teamCopy = JSON.parse(JSON.stringify(props.selectedTeam))
     teamCopy.isAmalgamation = true
     teamCopy.amalgamationTeams = [baseTeamForNewSquad.value]
+    teamCopy.changeDate = changeDateIso()
     editTeamOnServer(teamCopy)
         .then((resTeam) => {
           onConversionDone(resTeam)
@@ -57,6 +64,7 @@ watch(localVisible, (newValue) => {
     conversionTarget.value = undefined
     tabActiveIndex.value = 0
     convertToAmalgamationTeamList.value = []
+    changeDate.value = new Date()
   }
 })
 
@@ -64,7 +72,8 @@ async function mergeIntoSquad() {
   if (conversionTarget.value) {
     mergeTeamsOnServer(
         conversionTarget.value,
-        [props.selectedTeam]
+        [props.selectedTeam],
+        changeDateIso()
     )
         .then((resTeam) => {
           onConversionDone(resTeam)
@@ -103,6 +112,7 @@ function convertToAmalgamation() {
     const teamCopy = JSON.parse(JSON.stringify(props.selectedTeam))
     teamCopy.isAmalgamation = true
     teamCopy.amalgamationTeams = convertToAmalgamationTeamList.value
+    teamCopy.changeDate = changeDateIso()
     editTeamOnServer(teamCopy)
         .then((resTeam) => {
           onConversionDone(resTeam)
@@ -122,6 +132,10 @@ function convertToAmalgamation() {
       :pt="{ root: { class: 'convert-diag'}}"
       :modal="true"
   >
+    <div class="flex flex-row items-center gap-2 m-2">
+      <label>Date of change</label>
+      <DatePicker v-model="changeDate" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-full"/>
+    </div>
     <Tabs :value="tabActiveIndex">
       <TabList>
         <Tab value="0">Convert to new Squad</Tab>

@@ -16,12 +16,16 @@ import java.time.LocalDate
 object Teams : LongIdTable() {
     val name = varchar("name", 100)
     val isAmalgamation = bool("is_amalgamation")
+    val deletedAt = datetime("deleted_at").nullable()
+    val mergedInto = optReference("merged_into", Teams)
 }
 
 class Team(id:EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<Team>(Teams)
     var name by Teams.name
     var isAmalgamation by Teams.isAmalgamation
+    var deletedAt by Teams.deletedAt
+    var mergedInto by Team optionalReferencedOn Teams.mergedInto
 }
 
 object Amalgamations : LongIdTable() {
@@ -33,6 +37,37 @@ class Amalgamation(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<Amalgamation>(Amalgamations)
     var amalgamation by Team referencedOn Amalgamations.amalgamation
     var addedTeam by Team referencedOn Amalgamations.addedTeam
+}
+
+enum class TeamChangeType(val displayName: String) {
+    CREATED("Team created"),
+    RENAMED("Name changed"),
+    CONVERTED_TO_AMALGAMATION("Converted to amalgamation"),
+    CONVERTED_TO_TEAM("Converted to regular team"),
+    MEMBER_ADDED("Team added to amalgamation"),
+    MEMBER_REMOVED("Team removed from amalgamation"),
+    MERGED_INTO("Team merged into another team")
+}
+
+object TeamHistoryEvents : LongIdTable() {
+    val team = reference("team_id", Teams)
+    val changeType = enumerationByName<TeamChangeType>("change_type", 40)
+    val changeDate = date("change_date")
+    val oldValue = text("old_value").nullable()
+    val newValue = text("new_value").nullable()
+    val recordedAt = datetime("recorded_at")
+    val recordedBy = optReference("recorded_by", Users)
+}
+
+class TeamHistoryEvent(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<TeamHistoryEvent>(TeamHistoryEvents)
+    var team by Team referencedOn TeamHistoryEvents.team
+    var changeType by TeamHistoryEvents.changeType
+    var changeDate by TeamHistoryEvents.changeDate
+    var oldValue by TeamHistoryEvents.oldValue
+    var newValue by TeamHistoryEvents.newValue
+    var recordedAt by TeamHistoryEvents.recordedAt
+    var recordedBy by User optionalReferencedOn TeamHistoryEvents.recordedBy
 }
 
 object Regions : LongIdTable() {

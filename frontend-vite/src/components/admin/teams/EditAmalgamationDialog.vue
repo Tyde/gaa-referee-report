@@ -28,14 +28,20 @@ const localVisible = computed({
 })
 
 const teamEditCopy = ref<Team>(JSON.parse(JSON.stringify(props.selectedTeam)))
+const changeDate = ref<Date>(new Date())
 watch(() => props.visible, (newValue) => {
   if (newValue) {
     teamEditCopy.value = JSON.parse(JSON.stringify(props.selectedTeam))
+    changeDate.value = teamEditCopy.value.changeDate ? new Date(teamEditCopy.value.changeDate) : new Date()
   }
 })
 
 function saveEdit() {
-  editTeamOnServer(teamEditCopy.value)
+  const payload: Team = {
+    ...teamEditCopy.value,
+    changeDate: changeDate.value ? changeDate.value.toISOString().slice(0, 10) : undefined
+  }
+  editTeamOnServer(payload)
       .then((dbTeam) => {
         emits('teamUpdated', dbTeam)
       })
@@ -59,6 +65,10 @@ function saveEdit() {
     <div class="flex flex-col">
       <div>
         Name: <InputText v-model="teamEditCopy.name" />
+      </div>
+      <div class="flex flex-row items-center gap-2 m-2">
+        <label>Date of change</label>
+        <DatePicker v-model="changeDate" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-full"/>
       </div>
       <div v-if="teamEditCopy.amalgamationTeams">
         Teams:
