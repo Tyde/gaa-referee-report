@@ -2,6 +2,7 @@ package eu.gaelicgames.referee.plugins
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import eu.gaelicgames.referee.data.*
+import eu.gaelicgames.referee.data.api.validateApiToken
 import eu.gaelicgames.referee.util.JWTUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.http.*
@@ -174,7 +175,16 @@ fun Application.configureSecurity() {
             }
         }
 
+        configureApiTokenAuth()
 
     }
 }
 
+internal fun AuthenticationConfig.configureApiTokenAuth() {
+    bearer("auth-api-token") {
+        realm = "Admin API token"
+        authenticate { credential ->
+            validateApiToken(credential.token).map { UserPrincipal(it) }.getOrNull()
+        }
+    }
+}
