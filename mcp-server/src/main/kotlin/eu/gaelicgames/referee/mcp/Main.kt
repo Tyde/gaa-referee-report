@@ -32,9 +32,13 @@ import kotlinx.io.asSource
 import kotlinx.io.buffered
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -52,7 +56,7 @@ data class TeamDEO(
     val name: String,
     val id: Long,
     val isAmalgamation: Boolean,
-    val amalgamationTeams: List<TeamDEO>? = null,
+    val amalgamationTeams: List<TeamDEO>?,
 )
 
 @Serializable
@@ -100,6 +104,9 @@ private suspend fun HttpResponse.prettyResultOrThrow(): String {
     if (status.value in 200..299) {
         val body = bodyAsText()
         if (body.isBlank()) return "{}"
+        runCatching { json.decodeFromString<ApiError>(body) }.getOrNull()?.let {
+            throw ApiCallException(it.message)
+        }
         return prettyJson.encodeToString(
             JsonElement.serializer(),
             prettyJson.parseToJsonElement(body)
@@ -138,7 +145,7 @@ suspend fun mergeTournaments(client: HttpClient, mergeTournamentDEO: MergeTourna
         setBody(mergeTournamentDEO)
     }.prettyResultOrThrow()
 
-private suspend fun <T> callTool(
+internal suspend fun <T> callTool(
     arguments: JsonObject?,
     decode: (JsonObject?) -> T,
     invoke: suspend (T) -> String,
@@ -169,6 +176,21 @@ private fun arraySchema(description: String, itemsType: String = "integer") = bu
     put("type", "array")
     put("description", description)
     put("items", buildJsonObject { put("type", itemsType) })
+}
+
+private fun teamArraySchema(description: String) = buildJsonObject {
+    put("type", "array")
+    put("description", description)
+    put("items", buildJsonObject {
+        put("type", "object")
+        put("description", "A TeamDEO object; at minimum 'id' is required")
+        put("properties", buildJsonObject {
+            put("name", stringSchema("Team name"))
+            put("id", intSchema("Team id"))
+            put("isAmalgamation", booleanSchema("Whether the team is an amalgamation"))
+        })
+        put("required", buildJsonArray { add("id") })
+    })
 }
 
 fun buildMcpServer(client: HttpClient): Server = Server(
@@ -202,7 +224,10 @@ fun buildMcpServer(client: HttpClient): Server = Server(
                 put("isAmalgamation", booleanSchema("Whether the team is an amalgamation"))
                 put(
                     "amalgamationTeams",
-                    arraySchema("Optional list of member team ids for an amalgamation", itemsType = "object")
+                    teamArraySchema(
+                        "Optional list of member TeamDEO objects for the amalgamation. " +
+                            "Each object requires at least 'id'; 'name' and 'isAmalgamation' are forwarded if provided."
+                    )
                 )
             },
             required = listOf("id", "name", "isAmalgamation"),
@@ -231,7 +256,13 @@ fun buildMcpServer(client: HttpClient): Server = Server(
         inputSchema = ToolSchema(
             properties = buildJsonObject {
                 put("name", stringSchema("Name of the new amalgamation"))
-                put("teams", arraySchema("Teams that form the amalgamation", itemsType = "object"))
+                put(
+                    "teams",
+                    teamArraySchema(
+                        "TeamDEO objects that form the amalgamation. " +
+                            "Each object requires at least 'id'; 'name' and 'isAmalgamation' are forwarded if provided."
+                    )
+                )
             },
             required = listOf("name", "teams"),
         ),
@@ -254,31 +285,47 @@ fun buildMcpServer(client: HttpClient): Server = Server(
     }
 }
 
-private fun decodeTeamArguments(arguments: JsonObject?): TeamDEO {
+private fun decodeTeamElement(element: JsonElement): TeamDEO {
+    val obj = element as? JsonObject
+        ?: throw ApiCallException("Each member team must be a JSON object with an 'id'")
+    val id = obj["id"]?.jsonPrimitive?.longOrNull
+        ?: throw ApiCallException("Each member team object requires an 'id'")
+    val name = obj["name"]?.jsonPrimitive?.contentOrNull ?: ""
+    val isAmalgamation = obj["isAmalgamation"]?.jsonPrimitive?.booleanOrNull ?: false
+    return TeamDEO(name = name, id = id, isAmalgamation = isAmalgamation, amalgamationTeams = null)
+}
+
+internal fun decodeTeamArguments(arguments: JsonObject?): TeamDEO {
     val args = arguments ?: throw ApiCallException("Missing tool arguments")
     val id = args["id"]?.jsonPrimitive?.longOrNull ?: throw ApiCallException("Missing or invalid 'id'")
     val name = args["name"]?.jsonPrimitive?.contentOrNull ?: throw ApiCallException("Missing or invalid 'name'")
     val isAmalgamation = args["isAmalgamation"]?.jsonPrimitive?.booleanOrNull
         ?: throw ApiCallException("Missing or invalid 'isAmalgamation'")
-    val amalgamationTeams = args["amalgamationTeams"]?.jsonArray?.map { element ->
-        json.decodeFromJsonElement(TeamDEO.serializer(), element)
+    val amalgamationTeams = when (val value = args["amalgamationTeams"]) {
+        null, is JsonNull -> null
+        is JsonArray -> value.map { decodeTeamElement(it) }
+        else -> throw ApiCallException("Missing or invalid 'amalgamationTeams'")
     }
     return TeamDEO(name = name, id = id, isAmalgamation = isAmalgamation, amalgamationTeams = amalgamationTeams)
 }
 
-private fun decodeMergeTeamsArguments(arguments: JsonObject?): MergeTeamsDEO {
+internal fun decodeMergeTeamsArguments(arguments: JsonObject?): MergeTeamsDEO {
     val args = arguments ?: throw ApiCallException("Missing tool arguments")
     val baseTeam = args["baseTeam"]?.jsonPrimitive?.longOrNull ?: throw ApiCallException("Missing or invalid 'baseTeam'")
-    val teamsToMerge = args["teamsToMerge"]?.jsonArray?.map { it.jsonPrimitive.long } ?: emptyList()
+    val teamsToMerge = when (val value = args["teamsToMerge"]) {
+        is JsonArray -> value.map { it.jsonPrimitive.long }
+        else -> throw ApiCallException("Missing or invalid 'teamsToMerge'")
+    }
     return MergeTeamsDEO(baseTeam = baseTeam, teamsToMerge = teamsToMerge)
 }
 
-private fun decodeNewAmalgamationArguments(arguments: JsonObject?): NewAmalgamationDEO {
+internal fun decodeNewAmalgamationArguments(arguments: JsonObject?): NewAmalgamationDEO {
     val args = arguments ?: throw ApiCallException("Missing tool arguments")
     val name = args["name"]?.jsonPrimitive?.contentOrNull ?: throw ApiCallException("Missing or invalid 'name'")
-    val teams = args["teams"]?.jsonArray?.map { element ->
-        json.decodeFromJsonElement(TeamDEO.serializer(), element)
-    } ?: emptyList()
+    val teams = when (val value = args["teams"]) {
+        is JsonArray -> value.map { decodeTeamElement(it) }
+        else -> throw ApiCallException("Missing or invalid 'teams'")
+    }
     return NewAmalgamationDEO(name = name, teams = teams)
 }
 

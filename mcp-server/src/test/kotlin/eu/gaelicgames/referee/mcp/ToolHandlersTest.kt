@@ -7,10 +7,16 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 private val testConfig = MCPConfig(serverUrl = "https://referee.example.com", apiToken = "gge_testtoken")
@@ -28,6 +34,20 @@ private fun MockRequestHandleScope.jsonResponse(
 }
 
 private val json = Json
+
+@Serializable
+private data class BackendFaithfulTeamDEO(
+    val name: String,
+    val id: Long,
+    val isAmalgamation: Boolean,
+    val amalgamationTeams: List<BackendFaithfulTeamDEO>?,
+)
+
+@Serializable
+private data class BackendFaithfulNewAmalgamationDEO(
+    val name: String,
+    val teams: List<BackendFaithfulTeamDEO>,
+)
 
 class ToolHandlersTest {
 
@@ -67,8 +87,22 @@ class ToolHandlersTest {
             assertEquals("New Name", sent.name)
             jsonResponse("""{"name":"New Name","id":1,"isAmalgamation":false,"amalgamationTeams":null}""")
         }
-        val result = updateTeam(client, TeamDEO(name = "New Name", id = 1, isAmalgamation = false))
+        val result = updateTeam(client, TeamDEO(name = "New Name", id = 1, isAmalgamation = false, amalgamationTeams = null))
         assertTrue(result.contains("New Name"))
+    }
+
+    @Test
+    fun `update_team body matches backend wire contract with required amalgamationTeams`() = runBlocking {
+        val client = mockClient { request ->
+            val body = (request.body as io.ktor.http.content.TextContent).text
+            assertTrue(body.contains("amalgamationTeams"), "body must always carry amalgamationTeams: $body")
+            val sent = json.decodeFromString(BackendFaithfulTeamDEO.serializer(), body)
+            assertEquals("New Name", sent.name)
+            assertEquals(1L, sent.id)
+            assertEquals(null, sent.amalgamationTeams)
+            jsonResponse("""{"name":"New Name","id":1,"isAmalgamation":false,"amalgamationTeams":null}""")
+        }
+        updateTeam(client, TeamDEO(name = "New Name", id = 1, isAmalgamation = false, amalgamationTeams = null))
     }
 
     @Test
@@ -76,7 +110,22 @@ class ToolHandlersTest {
         val client = mockClient {
             jsonResponse("""{"error":"insertionFailed","message":"Team not found"}""", HttpStatusCode.BadRequest)
         }
-        val thrown = runCatching { updateTeam(client, TeamDEO(name = "New Name", id = 999, isAmalgamation = false)) }
+        val thrown = runCatching {
+            updateTeam(client, TeamDEO(name = "New Name", id = 999, isAmalgamation = false, amalgamationTeams = null))
+        }
+            .exceptionOrNull()
+        assertTrue(thrown is ApiCallException)
+        assertEquals("Team not found", thrown.message)
+    }
+
+    @Test
+    fun `update_team 200 with ApiError body surfaces as tool error with message`() = runBlocking {
+        val client = mockClient {
+            jsonResponse("""{"error":"insertionFailed","message":"Team not found"}""", HttpStatusCode.OK)
+        }
+        val thrown = runCatching {
+            updateTeam(client, TeamDEO(name = "New Name", id = 999, isAmalgamation = false, amalgamationTeams = null))
+        }
             .exceptionOrNull()
         assertTrue(thrown is ApiCallException)
         assertEquals("Team not found", thrown.message)
@@ -123,10 +172,30 @@ class ToolHandlersTest {
             client,
             NewAmalgamationDEO(
                 name = "County XI",
-                teams = listOf(TeamDEO(name = "Team A", id = 1, isAmalgamation = false)),
+                teams = listOf(TeamDEO(name = "Team A", id = 1, isAmalgamation = false, amalgamationTeams = null)),
             ),
         )
         assertTrue(result.contains("County XI"))
+    }
+
+    @Test
+    fun `create_amalgamation body matches backend wire contract with required amalgamationTeams`() = runBlocking {
+        val client = mockClient { request ->
+            val body = (request.body as io.ktor.http.content.TextContent).text
+            assertTrue(body.contains("amalgamationTeams"), "body must always carry amalgamationTeams: $body")
+            val sent = json.decodeFromString(BackendFaithfulNewAmalgamationDEO.serializer(), body)
+            assertEquals("County XI", sent.name)
+            assertEquals(1L, sent.teams.single().id)
+            assertEquals(null, sent.teams.single().amalgamationTeams)
+            jsonResponse("""{"name":"County XI","id":5,"isAmalgamation":true,"amalgamationTeams":null}""")
+        }
+        createAmalgamation(
+            client,
+            NewAmalgamationDEO(
+                name = "County XI",
+                teams = listOf(TeamDEO(name = "Team A", id = 1, isAmalgamation = false, amalgamationTeams = null)),
+            ),
+        )
     }
 
     @Test
@@ -137,7 +206,7 @@ class ToolHandlersTest {
         val thrown = runCatching {
             createAmalgamation(
                 client,
-                NewAmalgamationDEO(name = "County XI", teams = listOf(TeamDEO(name = "Team A", id = 1, isAmalgamation = false))),
+                NewAmalgamationDEO(name = "County XI", teams = listOf(TeamDEO(name = "Team A", id = 1, isAmalgamation = false, amalgamationTeams = null))),
             )
         }.exceptionOrNull()
         assertTrue(thrown is ApiCallException)
@@ -178,5 +247,71 @@ class ToolHandlersTest {
         val thrown = runCatching { listTeams(client) }.exceptionOrNull()
         assertTrue(thrown is ApiCallException)
         assertTrue(thrown.message.orEmpty().contains("502"))
+    }
+
+    @Test
+    fun `merge_teams missing required teamsToMerge yields tool error naming the argument`() = runBlocking {
+        val client = mockClient { jsonResponse("{}") }
+        val result = callTool(
+            buildJsonObject { put("baseTeam", 1) },
+            { decodeMergeTeamsArguments(it) },
+            { mergeTeams(client, it) },
+        )
+        assertTrue(result.isError == true)
+        val text = (result.content.first() as TextContent).text
+        assertTrue(text.contains("teamsToMerge"))
+    }
+
+    @Test
+    fun `create_amalgamation missing required teams yields tool error naming the argument`() = runBlocking {
+        val client = mockClient { jsonResponse("{}") }
+        val result = callTool(
+            buildJsonObject { put("name", "County XI") },
+            { decodeNewAmalgamationArguments(it) },
+            { createAmalgamation(client, it) },
+        )
+        assertTrue(result.isError == true)
+        val text = (result.content.first() as TextContent).text
+        assertTrue(text.contains("teams"))
+    }
+
+    @Test
+    fun `update_team with explicit null amalgamationTeams decodes to null`() {
+        val team = decodeTeamArguments(
+            buildJsonObject {
+                put("id", 1)
+                put("name", "New Name")
+                put("isAmalgamation", false)
+                put("amalgamationTeams", null)
+            }
+        )
+        assertEquals(null, team.amalgamationTeams)
+    }
+
+    @Test
+    fun `object array schemas describe nested TeamDEO properties`() = runBlocking {
+        val server = buildMcpServer(mockClient { jsonResponse("[]") })
+        val updateSchema = server.tools.getValue("update_team").tool.inputSchema
+        val updateItems = updateSchema.properties!!
+            .getValue("amalgamationTeams").jsonObject
+            .getValue("items").jsonObject
+        val updateProps = updateItems.getValue("properties").jsonObject
+        assertTrue(updateProps.containsKey("id"))
+        assertTrue(updateProps.containsKey("name"))
+        assertTrue(updateProps.containsKey("isAmalgamation"))
+        assertFalse(updateProps.containsKey("amalgamationTeams"))
+        assertTrue(updateSchema.properties!!
+            .getValue("amalgamationTeams").jsonObject
+            .getValue("description").toString().contains("id"))
+
+        val createSchema = server.tools.getValue("create_amalgamation").tool.inputSchema
+        val createProps = createSchema.properties!!
+            .getValue("teams").jsonObject
+            .getValue("items").jsonObject
+            .getValue("properties").jsonObject
+        assertTrue(createProps.containsKey("id"))
+        assertTrue(createProps.containsKey("name"))
+        assertTrue(createProps.containsKey("isAmalgamation"))
+        assertFalse(createProps.containsKey("amalgamationTeams"))
     }
 }
