@@ -126,5 +126,6 @@ The SDD ledger at `.superpowers/sdd/2026-08-11-team-name-aliases/progress.md` ho
 full task-by-task record, including every fix round and ruling. It is git-ignored scratch —
 this document is the durable summary.
 
-To continue, resume subagent-driven execution of the plan at Task 8. Each remaining task's
-brief can be regenerated with the `task-brief` script against the plan file.
+To continue, resume subagent-driven execution of the plan at Task 9 — the first frontend task,
+which sets up Vitest and the shared normalizer that tasks 10–13 all build on. Each remaining
+task's brief can be regenerated with the `task-brief` script against the plan file.
