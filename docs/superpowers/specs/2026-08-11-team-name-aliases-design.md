@@ -101,8 +101,13 @@ with the survivor's canonical name are dropped, not failed on.
 `gaa-referee-report-common/.../TeamDEOBase.kt`, `src/.../api/TeamDEO.kt`,
 `AdminApiRouting.kt`.
 
-- `TeamDEO` gains `val aliases: List<String>? = null`. Nullable with a default keeps the
-  wire format compatible, so `mcp-server` and the kottster admin keep compiling unchanged.
+- `TeamDEO` gains `val aliases: List<TeamAliasDEO>? = null`, where
+  `TeamAliasDEO(id: Long, teamId: Long, alias: String)`. Objects rather than bare strings,
+  because the admin UI needs alias ids to edit and delete individual rows. Nullable with a
+  default keeps the wire format compatible, so `mcp-server` and the kottster admin keep
+  compiling unchanged.
+- Aliases are attached to top-level teams only. Amalgamation *member* teams inside
+  `amalgamationTeams` carry no aliases; members are already matched by canonical name.
 - New admin-only DEOs and routes:
   - `NewTeamAliasDEO(teamId: Long, alias: String)`
   - `UpdateTeamAliasDEO(id: Long, alias: String)`
