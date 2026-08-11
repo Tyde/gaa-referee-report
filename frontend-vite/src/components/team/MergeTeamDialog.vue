@@ -30,17 +30,20 @@ const amalgamationMode = computed(() => props.selectedTeam.isAmalgamation)
 const store = useAdminStore()
 
 const teamsToMerge = ref<Team[]>([])
+const changeDate = ref<Date>(new Date())
 
 watch(() => props.visible, (newValue) => {
   if (newValue) {
     teamsToMerge.value = []
+    changeDate.value = new Date()
   }
 })
 
 async function mergeTeams() {
   const mergeInto = props.selectedTeam
   const mergeFrom = teamsToMerge.value
-  mergeTeamsOnServer(mergeInto, mergeFrom)
+  const changeDateIso = changeDate.value ? new Date(changeDate.value).toISOString().slice(0, 10) : undefined
+  mergeTeamsOnServer(mergeInto, mergeFrom, changeDateIso)
       .catch(reason => store.newError(reason))
       .then(resTeam => {
         if (resTeam) {
@@ -87,6 +90,10 @@ const excludeTeamList = computed(() => {
               :show_amalgamations="amalgamationMode"
               :show_squads="amalgamationMode"
           />
+        </div>
+        <div class="flex flex-row items-center gap-2 m-2">
+          <label>Date of change</label>
+          <DatePicker v-model="changeDate" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-full"/>
         </div>
         <div class="flex flex-col justify-end m-2">
           <Button label="Merge" @click="mergeTeams"/>

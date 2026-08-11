@@ -96,6 +96,7 @@ object DatabaseHandler {
         DisciplinaryActions,
         Injuries,
         Substitutions,
+        TeamHistoryEvents,
         PitchSurfaceOptions,
         PitchLengthOptions,
         PitchWidthOptions,
@@ -143,6 +144,24 @@ object DatabaseHandler {
 
             //Migration 8 - Add Substitutions table
             SchemaUtils.createMissingTablesAndColumns(Substitutions)
+
+            //Migration 9 - Team history: soft-delete columns on Teams + TeamHistoryEvents table
+            SchemaUtils.createMissingTablesAndColumns(Teams)
+
+            //Backfill: existing teams get a CREATED history event so the timeline starts with a creation
+            val teamsWithoutHistory = Team.all().filter { team ->
+                TeamHistoryEvent.find { TeamHistoryEvents.team eq team.id }.empty()
+            }
+            val now = java.time.LocalDateTime.now()
+            for (team in teamsWithoutHistory) {
+                TeamHistoryEvent.new {
+                    this.team = team
+                    changeType = TeamChangeType.CREATED
+                    changeDate = java.time.LocalDate.now()
+                    newValue = team.name
+                    recordedAt = now
+                }
+            }
         }
     }
 
