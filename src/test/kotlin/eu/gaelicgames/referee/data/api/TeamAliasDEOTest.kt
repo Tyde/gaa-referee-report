@@ -1,5 +1,7 @@
 package eu.gaelicgames.referee.data.api
 
+import eu.gaelicgames.referee.data.Amalgamation
+import eu.gaelicgames.referee.data.Amalgamations
 import eu.gaelicgames.referee.data.Team
 import eu.gaelicgames.referee.data.TeamAlias
 import eu.gaelicgames.referee.data.TeamAliases
@@ -365,6 +367,63 @@ class TeamAliasDEOTest {
             assertTrue(result.isSuccess)
             newSuspendedTransaction {
                 assertEquals("Clash Rename New", Team.findById(teamId)!!.name)
+                assertTrue(TeamAlias.find { TeamAliases.team eq teamId }.empty())
+            }
+        }
+    }
+
+    @Test
+    fun `unchanged name suppresses alias creation even when requested`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Unchanged Name FC"; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            val result = UpdateTeamDEO(
+                name = "Unchanged Name FC",
+                id = teamId,
+                isAmalgamation = false,
+                amalgamationTeams = null,
+                keepOldNameAsAlias = "Some Other Spelling"
+            ).updateInDatabase()
+
+            assertTrue(result.isSuccess, "expected success, got ${result.exceptionOrNull()}")
+            newSuspendedTransaction {
+                assertEquals("Unchanged Name FC", Team.findById(teamId)!!.name)
+                assertTrue(TeamAlias.find { TeamAliases.team eq teamId }.empty())
+            }
+        }
+    }
+
+    @Test
+    fun `amalgamation membership change with unchanged name creates no alias`() {
+        runBlocking {
+            var teamId = 0L
+            var memberId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Membership Change Squad"; isAmalgamation = true }.id.value
+                memberId = Team.new { name = "Membership Change Member"; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            val result = UpdateTeamDEO(
+                name = "Membership Change Squad",
+                id = teamId,
+                isAmalgamation = true,
+                amalgamationTeams = listOf(
+                    TeamDEO("Membership Change Member", memberId, false, null)
+                ),
+                keepOldNameAsAlias = "Membership Change Squad Old Spelling"
+            ).updateInDatabase()
+
+            assertTrue(result.isSuccess, "expected success, got ${result.exceptionOrNull()}")
+            newSuspendedTransaction {
+                assertEquals("Membership Change Squad", Team.findById(teamId)!!.name)
+                val members = Amalgamation.find { Amalgamations.amalgamation eq teamId }.toList()
+                assertEquals(1, members.size)
+                assertEquals(memberId, members.first().addedTeam.id.value)
                 assertTrue(TeamAlias.find { TeamAliases.team eq teamId }.empty())
             }
         }
