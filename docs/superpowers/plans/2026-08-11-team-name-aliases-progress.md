@@ -4,7 +4,7 @@
 **Branch:** `feature/team_spelling_support`
 **Plan:** `docs/superpowers/plans/2026-08-11-team-name-aliases.md`
 **Spec:** `docs/superpowers/specs/2026-08-11-team-name-aliases-design.md`
-**Status:** Backend tasks 1–7 complete and reviewed. Stopped here by request. Tasks 8–14 not started.
+**Status:** Backend tasks 1–8 complete and reviewed. Tasks 9–14 remain.
 
 ## What works now
 
@@ -12,13 +12,15 @@ The backend half of the feature is in place. A team can carry any number of
 admin-maintained alternative spellings; the canonical name is still the only thing
 displayed anywhere. Merging and renaming both offer to keep the disappearing name
 as a spelling, and the API serves the spellings alongside every team so the
-frontend can search them without a new endpoint.
+frontend can search them without a new endpoint. Migration 10 also backfills
+names from already-merged teams, including multi-hop merge chains, as aliases
+of the surviving team.
 
 Nothing is wired into the UI yet — that is tasks 9–13.
 
 ## Commits on this branch
 
-Ten commits, oldest first, on top of `1abb653`:
+Eleven commits, oldest first, on top of `1abb653`:
 
 | Commit | Task | What |
 |---|---|---|
@@ -32,6 +34,7 @@ Ten commits, oldest first, on top of `1abb653`:
 | `d67e7e3` | 6 fix | Carried-alias collision tests |
 | `8fd8506` | 7 | Rename can keep the old name as a spelling |
 | `1bae5dd` | 7 fix | Unchanged-name gate tests |
+| `a31bc9f` | 8 | Backfill search aliases from previously merged teams |
 
 ## Submodule state — read this before continuing
 
@@ -55,7 +58,6 @@ a gitlink that only resolves via a feature branch.
 
 | Task | Scope |
 |---|---|
-| 8 | Backfill aliases from already-merged teams (Migration 10 backfill half) |
 | 9 | Vitest setup, TypeScript normalizer, alias-aware search scoring |
 | 10 | Team picker uses alias search, matched-alias subtitle, `:key` fix, i18n |
 | 11 | Alias API client and admin chip editor |
@@ -63,7 +65,7 @@ a gitlink that only resolves via a feature branch.
 | 13 | Rename control in three admin components |
 | 14 | Full verification, including the end-to-end walkthrough |
 
-Task 8 is the last backend task and is independent of the frontend work.
+Task 8 was the last backend task and is independent of the frontend work.
 Tasks 10–13 all depend on task 9 and are independent of each other once it lands.
 
 ## Corrections to the plan — do not "fix" the code to match the prose
