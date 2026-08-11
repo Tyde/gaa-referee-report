@@ -18,5 +18,5 @@ postgres.database=postgres
 postgres.user=postgres
 postgres.password=postgres
 
-openrouter.api_key=
+openrouter.apiKey=
 openrouter.model=deepseek/deepseek-v4-pro
