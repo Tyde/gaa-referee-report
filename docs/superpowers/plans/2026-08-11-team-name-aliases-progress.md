@@ -4,7 +4,7 @@
 **Branch:** `feature/team_spelling_support`
 **Plan:** `docs/superpowers/plans/2026-08-11-team-name-aliases.md`
 **Spec:** `docs/superpowers/specs/2026-08-11-team-name-aliases-design.md`
-**Status:** Backend tasks 1–8 complete and reviewed. Tasks 9–14 remain.
+**Status:** Tasks 1–9 complete and reviewed. Tasks 10–14 remain.
 
 ## What works now
 
@@ -14,13 +14,14 @@ displayed anywhere. Merging and renaming both offer to keep the disappearing nam
 as a spelling, and the API serves the spellings alongside every team so the
 frontend can search them without a new endpoint. Migration 10 also backfills
 names from already-merged teams, including multi-hop merge chains, as aliases
-of the surviving team.
+of the surviving team. The frontend now has Vitest coverage, a shared
+normalizer, alias-aware scoring, and the corresponding API types.
 
 Nothing is wired into the UI yet — that is tasks 9–13.
 
 ## Commits on this branch
 
-Eleven commits, oldest first, on top of `1abb653`:
+Twelve implementation commits, oldest first, on top of `1abb653`:
 
 | Commit | Task | What |
 |---|---|---|
@@ -35,6 +36,7 @@ Eleven commits, oldest first, on top of `1abb653`:
 | `8fd8506` | 7 | Rename can keep the old name as a spelling |
 | `1bae5dd` | 7 fix | Unchanged-name gate tests |
 | `a31bc9f` | 8 | Backfill search aliases from previously merged teams |
+| `4182a02` | 9 | Add Vitest and alias-aware team search scoring |
 
 ## Submodule state — read this before continuing
 
@@ -58,7 +60,6 @@ a gitlink that only resolves via a feature branch.
 
 | Task | Scope |
 |---|---|
-| 9 | Vitest setup, TypeScript normalizer, alias-aware search scoring |
 | 10 | Team picker uses alias search, matched-alias subtitle, `:key` fix, i18n |
 | 11 | Alias API client and admin chip editor |
 | 12 | Merge dialog per-team alias rows |
