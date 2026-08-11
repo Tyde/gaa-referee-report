@@ -23,6 +23,7 @@ class TeamNameNormalizerTest {
         "Þórshöfn" to "thorshofn",
         "Łódź" to "lodz",
         "Ðjurgården" to "djurgarden",
+        "A\u00a0B" to "a\u00a0b",
         "" to ""
     )
 

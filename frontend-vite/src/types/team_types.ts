@@ -1,11 +1,24 @@
 import {z} from "zod";
 
+export interface TeamAliasDEO {
+    id: number,
+    teamId: number,
+    alias: string,
+}
+
+export const TeamAliasDEO: z.ZodType<TeamAliasDEO> = z.object({
+    id: z.number(),
+    teamId: z.number(),
+    alias: z.string().min(1),
+})
+
 export interface Team {
     name: string,
     id: number,
     isAmalgamation: boolean,
     amalgamationTeams?: Team[] | null,
     changeDate?: string | null,
+    aliases?: TeamAliasDEO[] | null,
 }
 
 export const Team: z.ZodType<Team> = z.lazy(() =>
@@ -14,7 +27,8 @@ export const Team: z.ZodType<Team> = z.lazy(() =>
         id: z.number(),
         isAmalgamation: z.boolean(),
         amalgamationTeams: Team.array().optional().nullable(),
-        changeDate: z.string().optional().nullable()
+        changeDate: z.string().optional().nullable(),
+        aliases: TeamAliasDEO.array().optional().nullable()
     })
 );
 export const NewTeamDEO = z.object({
@@ -27,6 +41,7 @@ export const MergeTeamsDEO = z.object({
     baseTeam: z.number(),
     teamsToMerge: z.array(z.number()),
     changeDate: z.string().optional().nullable(),
+    aliasesToCreate: z.record(z.string(), z.string()).optional(),
 })
 
 export type MergeTeamsDEO = z.infer<typeof MergeTeamsDEO>;
