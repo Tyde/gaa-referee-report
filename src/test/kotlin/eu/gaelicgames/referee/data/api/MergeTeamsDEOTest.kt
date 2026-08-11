@@ -4,6 +4,8 @@ import eu.gaelicgames.referee.data.Amalgamation
 import eu.gaelicgames.referee.data.Amalgamations
 import eu.gaelicgames.referee.data.GameReport
 import eu.gaelicgames.referee.data.Team
+import eu.gaelicgames.referee.data.TeamAlias
+import eu.gaelicgames.referee.data.TeamAliases
 import eu.gaelicgames.referee.data.TournamentReportTeamPreSelection
 import eu.gaelicgames.referee.data.TournamentReportTeamPreSelections
 import eu.gaelicgames.referee.data.api.ReportDEOTest
@@ -11,6 +13,9 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
@@ -226,5 +231,81 @@ class MergeTeamsDEOTest {
         }
     }
 
+    @Test
+    fun `merge creates requested alias and skips denied one`() {
+        runBlocking {
+            var baseId = 0L
+            var keptId = 0L
+            var deniedId = 0L
+            newSuspendedTransaction {
+                baseId = Team.new { name = "Alias Merge Base"; isAmalgamation = false }.id.value
+                keptId = Team.new { name = "Alias Merge Kept"; isAmalgamation = false }.id.value
+                deniedId = Team.new { name = "Alias Merge Denied"; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            MergeTeamsDEO(
+                baseTeam = baseId,
+                teamsToMerge = listOf(keptId, deniedId),
+                aliasesToCreate = mapOf(keptId to "Alias Merge Kept Edited")
+            ).updateInDatabase().getOrThrow()
+
+            newSuspendedTransaction {
+                val aliases = TeamAlias.find { TeamAliases.team eq baseId }.map { it.alias }
+                assertEquals(listOf("Alias Merge Kept Edited"), aliases)
+            }
+        }
+    }
+
+    @Test
+    fun `merge succeeds even when the proposed alias collides`() {
+        runBlocking {
+            var baseId = 0L
+            var mergedId = 0L
+            newSuspendedTransaction {
+                baseId = Team.new { name = "Collide Merge Base"; isAmalgamation = false }.id.value
+                mergedId = Team.new { name = "Collide Merge Other"; isAmalgamation = false }.id.value
+                Team.new { name = "Collide Merge Taken"; isAmalgamation = false }
+                commit()
+            }
+
+            val result = MergeTeamsDEO(
+                baseTeam = baseId,
+                teamsToMerge = listOf(mergedId),
+                aliasesToCreate = mapOf(mergedId to "Collide Merge Taken")
+            ).updateInDatabase()
+
+            assertTrue(result.isSuccess, "merge itself must not fail on a rejected alias")
+            newSuspendedTransaction {
+                assertTrue(TeamAlias.find { TeamAliases.team eq baseId }.empty())
+                assertNotNull(Team.findById(mergedId)!!.mergedInto)
+            }
+        }
+    }
+
+    @Test
+    fun `aliases of a merged team follow it to the survivor`() {
+        runBlocking {
+            var baseId = 0L
+            var mergedId = 0L
+            newSuspendedTransaction {
+                baseId = Team.new { name = "Repoint Base"; isAmalgamation = false }.id.value
+                mergedId = Team.new { name = "Repoint Merged"; isAmalgamation = false }.id.value
+                commit()
+            }
+            NewTeamAliasDEO(mergedId, "Repoint Carried Spelling").createInDatabase().getOrThrow()
+
+            MergeTeamsDEO(
+                baseTeam = baseId,
+                teamsToMerge = listOf(mergedId),
+                aliasesToCreate = emptyMap()
+            ).updateInDatabase().getOrThrow()
+
+            newSuspendedTransaction {
+                val aliases = TeamAlias.find { TeamAliases.team eq baseId }.map { it.alias }
+                assertTrue(aliases.contains("Repoint Carried Spelling"))
+            }
+        }
+    }
 
 }

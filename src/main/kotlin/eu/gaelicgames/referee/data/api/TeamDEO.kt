@@ -359,6 +359,25 @@ suspend fun MergeTeamsDEO.updateInDatabase(recordedBy: User? = null): Result<Tea
                         }
                     }
 
+                    //Aliases owned by the merged team follow it to the survivor.
+                    //Collisions are dropped rather than failing the merge.
+                    TeamAlias.find { TeamAliases.team eq mergeTeam.id }.toList().forEach { existingAlias ->
+                        val stillFree = validateAliasInTransaction(
+                            existingAlias.alias, excludeAliasId = existingAlias.id.value
+                        ).isSuccess
+                        if (stillFree) {
+                            existingAlias.team = team
+                        } else {
+                            existingAlias.delete()
+                        }
+                    }
+
+                    //The admin may have asked to keep the merged team's name as an alias.
+                    //A rejected alias must never fail the merge.
+                    aliasesToCreate[mergeTeamId]?.let { requestedAlias ->
+                        createTeamAliasInTransaction(team, requestedAlias, changeDate, recordedBy)
+                    }
+
                     //History + soft-delete instead of hard delete
                     writeTeamHistoryEventInTransaction(
                         mergeTeam, TeamChangeType.MERGED_INTO, changeDate,
