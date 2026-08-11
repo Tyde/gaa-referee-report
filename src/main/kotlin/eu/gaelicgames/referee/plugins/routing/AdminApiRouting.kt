@@ -146,7 +146,7 @@ fun Route.adminApiRouting() {
         receiveAndHandleDEO<TeamDEO> { teamDEO ->
             val recordedBy = call.principal<UserPrincipal>()?.user
             teamDEO.updateInDatabase(recordedBy).map {
-                TeamDEO.fromTeam(it)
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -157,7 +157,7 @@ fun Route.adminApiRouting() {
         receiveAndHandleDEO<MergeTeamsDEO> { mergeTeamsDEO ->
             val recordedBy = call.principal<UserPrincipal>()?.user
             mergeTeamsDEO.updateInDatabase(recordedBy).map {
-                TeamDEO.fromTeam(it)
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }

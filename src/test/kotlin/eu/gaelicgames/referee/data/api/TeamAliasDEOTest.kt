@@ -6,6 +6,7 @@ import eu.gaelicgames.referee.data.TeamAliases
 import eu.gaelicgames.referee.data.TeamChangeType
 import eu.gaelicgames.referee.data.TeamHistoryEvent
 import eu.gaelicgames.referee.data.TeamHistoryEvents
+import eu.gaelicgames.referee.util.lockedTransaction
 import eu.gaelicgames.referee.util.normalizeTeamName
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -211,6 +212,86 @@ class TeamAliasDEOTest {
             }
             val listed = TeamDEO.allTeamList().first { it.id == teamId }
             assertEquals(emptyList<String>(), listed.aliases!!.map { it.alias })
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Regression coverage for the "fromTeam outside a transaction" bug:
+    // the production route handlers call `fromTeam` (directly or via
+    // `.map { ... }`) AFTER the transaction that created/updated the team
+    // has already closed. Unlike the tests above, these deliberately do NOT
+    // wrap the call under test in a `newSuspendedTransaction` of their own -
+    // they call the exact production sequence (DB mutation, then a fresh
+    // `lockedTransaction { TeamDEO.fromTeam(...) }`, matching the fixed
+    // routing code) at the top level, so a missing transaction wrap around
+    // `fromTeam` at any of those call sites would surface as a thrown
+    // exception here, just like it did at the HTTP layer.
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `fromTeam works right after plain entity creation, mirroring the NewTeam route`() {
+        runBlocking {
+            // Mirrors RefereeApiRouting's `Api.NewTeam` handler: the team is
+            // created inside its own `lockedTransaction`, which has already
+            // committed and closed by the time `fromTeam` is called.
+            val newTeamDB = lockedTransaction {
+                Team.new { name = "Regression New Team FC"; isAmalgamation = false }
+            }
+
+            val deo = lockedTransaction { TeamDEO.fromTeam(newTeamDB) }
+
+            assertEquals("Regression New Team FC", deo.name)
+            assertEquals(emptyList<String>(), deo.aliases!!.map { it.alias })
+        }
+    }
+
+    @Test
+    fun `fromTeam works after createInDatabase resolves, mirroring the NewAmalgamation route`() {
+        runBlocking {
+            var memberTeamId = 0L
+            newSuspendedTransaction {
+                memberTeamId = Team.new { name = "Regression Member FC"; isAmalgamation = false }.id.value
+                commit()
+            }
+            NewTeamAliasDEO(memberTeamId, "Regression Member Spelling").createInDatabase().getOrThrow()
+            val memberDeo = TeamDEO(
+                name = "Regression Member FC", id = memberTeamId, isAmalgamation = false, amalgamationTeams = null
+            )
+
+            // Mirrors RefereeApiRouting's `Api.NewAmalgamation` handler exactly:
+            // `createInDatabase()` opens and closes its own transaction internally,
+            // and its `Result` is mapped to `fromTeam` outside of that transaction.
+            val result = NewAmalgamationDEO("Regression Amalgamation FC", listOf(memberDeo)).createInDatabase(null)
+                .map { lockedTransaction { TeamDEO.fromTeam(it) } }
+
+            assertTrue(result.isSuccess, "expected success, got ${result.exceptionOrNull()}")
+            assertEquals("Regression Amalgamation FC", result.getOrThrow().name)
+            assertEquals(emptyList<String>(), result.getOrThrow().aliases!!.map { it.alias })
+        }
+    }
+
+    @Test
+    fun `fromTeam carries aliases after updateInDatabase resolves, mirroring the Team Update route`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Regression Update FC"; isAmalgamation = false }.id.value
+                commit()
+            }
+            NewTeamAliasDEO(teamId, "Regression Update Spelling").createInDatabase().getOrThrow()
+            val toUpdate = TeamDEO(
+                name = "Regression Update FC Renamed", id = teamId, isAmalgamation = false, amalgamationTeams = null
+            )
+
+            // Mirrors AdminApiRouting's `Api.Team.Update` handler exactly:
+            // `updateInDatabase()` opens and closes its own transaction internally,
+            // and its `Result` is mapped to `fromTeam` outside of that transaction.
+            val result = toUpdate.updateInDatabase(null).map { lockedTransaction { TeamDEO.fromTeam(it) } }
+
+            assertTrue(result.isSuccess, "expected success, got ${result.exceptionOrNull()}")
+            val deo = result.getOrThrow()
+            assertEquals("Regression Update FC Renamed", deo.name)
+            assertEquals(listOf("Regression Update Spelling"), deo.aliases!!.map { it.alias })
         }
     }
 }
