@@ -24,6 +24,8 @@ services:
       POSTGRES_DATABASE: "referee"
       POSTGRES_USER: "referee"
       POSTGRES_PASSWORD: "password"
+      OPENROUTER_APIKEY: "__api_key__"
+      OPENROUTER_MODEL: "deepseek/deepseek-v4-pro"
   cache:
     image: 'redis/redis-stack-server:latest'
   db:
