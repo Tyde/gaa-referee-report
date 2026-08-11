@@ -167,6 +167,10 @@ object DatabaseHandler {
             //Migration 10 - Team name aliases
             SchemaUtils.createMissingTablesAndColumns(TeamAliases)
         }
+
+        //Migration 10 backfill: every team already merged away becomes a
+        //search alias of the team that survived the merge.
+        backfillAliasesFromMergedTeams()
     }
 
     suspend fun populate_base_data() {
@@ -478,4 +482,3 @@ fun main() {
 
 
 }
-

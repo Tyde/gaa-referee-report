@@ -9,6 +9,7 @@ import eu.gaelicgames.referee.data.TeamChangeType
 import eu.gaelicgames.referee.data.TeamHistoryEvent
 import eu.gaelicgames.referee.data.TeamHistoryEvents
 import eu.gaelicgames.referee.util.lockedTransaction
+import eu.gaelicgames.referee.util.backfillAliasesFromMergedTeams
 import eu.gaelicgames.referee.util.normalizeTeamName
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -426,6 +427,38 @@ class TeamAliasDEOTest {
                 assertEquals(memberId, members.first().addedTeam.id.value)
                 assertTrue(TeamAlias.find { TeamAliases.team eq teamId }.empty())
             }
+        }
+    }
+
+    @Test
+    fun `backfill walks the mergedInto chain to the surviving team`() {
+        runBlocking {
+            var survivorId = 0L
+            newSuspendedTransaction {
+                val survivor = Team.new { name = "Backfill Survivor"; isAmalgamation = false }
+                val firstDead = Team.new { name = "Backfill Dead One"; isAmalgamation = false }
+                val secondDead = Team.new { name = "Backfill Dead Two"; isAmalgamation = false }
+                survivorId = survivor.id.value
+
+                // secondDead -> firstDead -> survivor
+                firstDead.deletedAt = LocalDateTime.now()
+                firstDead.mergedInto = survivor
+                secondDead.deletedAt = LocalDateTime.now()
+                secondDead.mergedInto = firstDead
+                commit()
+            }
+
+            val created = backfillAliasesFromMergedTeams()
+            assertTrue(created >= 2, "expected at least two aliases, got $created")
+
+            newSuspendedTransaction {
+                val aliases = TeamAlias.find { TeamAliases.team eq survivorId }.map { it.alias }
+                assertTrue(aliases.contains("Backfill Dead One"), "aliases were $aliases")
+                assertTrue(aliases.contains("Backfill Dead Two"), "aliases were $aliases")
+            }
+
+            // Idempotent: a second run creates nothing new
+            assertEquals(0, backfillAliasesFromMergedTeams())
         }
     }
 }
