@@ -17,7 +17,7 @@ names from already-merged teams, including multi-hop merge chains, as aliases
 of the surviving team. The frontend now has Vitest coverage, a shared
 normalizer, alias-aware scoring, and the corresponding API types.
 
-Nothing is wired into the UI yet — that is tasks 9–13.
+Nothing is wired into the UI yet — that is tasks 10–13.
 
 ## Commits on this branch
 
