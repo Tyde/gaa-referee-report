@@ -7,7 +7,7 @@
 - Shared DEO classes live in the submodule under `*/Base.kt` and are copied into backend source set (`build.gradle.kts:31-33`)
 - DEO convention: `@Serializable` DEO **definitions** (data classes) go in the submodule (`data/api/*DEOBase.kt`); **DB-related functions** go in the main repo (`data/api/*.kt`) as extensions, e.g. `fun TeamDEO.Companion.fromTeam(...)`. Keep submodule DEO files free of backend dependencies (no Exposed/entity imports) so other components (e.g. `mcp-server/`) can reuse them
 - `referee-kottster/` is a separate Kottster admin panel, not wired into the main build
-- `mcp-server/` is a standalone stdio MCP server (admin tools over the HTTP API). Composite build via `includeBuild` in `settings.gradle.kts` — own Kotlin 2.x / Ktor 3.x client stack, fully isolated from the backend toolchain
+- `mcp-server/` is a standalone stdio MCP server (admin tools over the HTTP API) with its own Gradle build — own Kotlin 2.x / Ktor 3.x client stack, fully isolated from the backend build and Docker image
 
 ## Build & Dev Commands
 - Backend: `./gradlew build`, `./gradlew run`, `./gradlew test`
@@ -16,7 +16,7 @@
 - Frontend watch: `cd frontend-vite && npm run watch-build`
 - Docker dev stack: `docker compose -f docker-compose.dev.yml up --build`
 - Fat JAR: `./gradlew shadowJar`
-- MCP server JAR: `./gradlew :mcp-server:shadowJar` (run with env `GGE_SERVER_URL` + `GGE_API_TOKEN`)
+- MCP server JAR: `./gradlew -p mcp-server shadowJar` (run with env `GGE_SERVER_URL` + `GGE_API_TOKEN`)
 
 ## Configuration
 - Local config: `gge-referee.properties` (gitignored; see `gge-referee.properties.sample`)
@@ -45,4 +45,3 @@
 - Kotlin: official style, 4-space indent (`kotlin.code.style=official` in `gradle.properties`)
 - One top-level type per file; `*Test.kt` for tests with backticked method names
 - Frontend: Composition API, pinia stores, primevue UI. Run `npm run lint` before committing
-
