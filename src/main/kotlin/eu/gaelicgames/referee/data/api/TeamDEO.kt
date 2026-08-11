@@ -58,7 +58,13 @@ suspend fun TeamDEO.Companion.historyForTeam(teamId: Long): List<TeamHistoryEven
 // ---------------------------------------------------------------------------
 
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
-    return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
+    return TeamDEO(
+        input.name,
+        input.id.value,
+        input.isAmalgamation,
+        amalgamationTeams,
+        aliases = TeamAlias.find { TeamAliases.team eq input.id }.map { it.toDEO() }
+    )
 }
 
 fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
@@ -142,8 +148,12 @@ suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
                     query.selectAll().where { Teams.deletedAt.isNull() }.toList(),
                     alias
                 )
-                CacheUtil.cacheTeamList(dbTeams)
-                dbTeams
+                val aliasesByTeam = aliasesForTeamsInTransaction(dbTeams.map { it.id })
+                val withAliases = dbTeams.map { team ->
+                    team.copy(aliases = aliasesByTeam[team.id] ?: emptyList())
+                }
+                CacheUtil.cacheTeamList(withAliases)
+                withAliases
             }
         }
 

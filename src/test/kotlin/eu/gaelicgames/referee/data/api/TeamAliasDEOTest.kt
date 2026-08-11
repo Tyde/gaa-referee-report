@@ -181,4 +181,36 @@ class TeamAliasDEOTest {
             }
         }
     }
+
+    @Test
+    fun `all team list carries aliases`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Listed Alias FC"; isAmalgamation = false }.id.value
+                commit()
+            }
+            NewTeamAliasDEO(teamId, "Listed Spelling One").createInDatabase().getOrThrow()
+            NewTeamAliasDEO(teamId, "Listed Spelling Two").createInDatabase().getOrThrow()
+
+            val listed = TeamDEO.allTeamList().first { it.id == teamId }
+            assertEquals(
+                listOf("Listed Spelling One", "Listed Spelling Two"),
+                listed.aliases!!.map { it.alias }.sorted()
+            )
+        }
+    }
+
+    @Test
+    fun `team without aliases reports an empty list`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "No Alias FC"; isAmalgamation = false }.id.value
+                commit()
+            }
+            val listed = TeamDEO.allTeamList().first { it.id == teamId }
+            assertEquals(emptyList<String>(), listed.aliases!!.map { it.alias })
+        }
+    }
 }
