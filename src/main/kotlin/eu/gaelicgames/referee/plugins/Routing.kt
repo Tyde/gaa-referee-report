@@ -79,12 +79,16 @@ fun Application.configureRouting() {
         }
 
 
-        authenticate("auth-session", "auth-jwt") {
+        authenticate("auth-session", "auth-jwt", "auth-api-token") {
             refereeApiRouting()
         }
 
-        authenticate("admin-session") {
+        authenticate("admin-session", "auth-api-token") {
             adminApiRouting()
+        }
+
+        authenticate("admin-session") {
+            adminTokenManagementRouting()
         }
 
         authenticate("ccc-session") {

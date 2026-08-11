@@ -6,6 +6,7 @@ import {Referee, RefereeWithRoleDEO, UpdateRefereePasswordResponse} from "@/type
 import type {NewUser} from "@/types/referee_types";
 import {NewRuleDEO, Rule, RuleTranslation} from "@/types/rules_types";
 import {DatabaseTournament, databaseTournamentToTournamentDAO} from "@/types/tournament_types";
+import {ApiTokenCreatedDEO, ApiTokenDEO, NewApiTokenDEO} from "@/types/api_token_types";
 
 
 
@@ -98,4 +99,20 @@ export async function updateGameLengthOnServer(gl: GameLengthOption) {
 export async function createGameLengthOnServer(gl: GameLengthOption) {
     return makePostRequest("/api/gamelength/new", gl)
         .then(data => parseAndHandleDEO(data, GameLengthOption))
+}
+
+export async function createApiToken(token: NewApiTokenDEO) {
+    return makePostRequest("/api/api_token/new", token)
+        .then(data => parseAndHandleDEO(data, ApiTokenCreatedDEO))
+}
+
+export async function listApiTokens(): Promise<Array<ApiTokenDEO>> {
+    return fetch("/api/api_token/all")
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, z.array(ApiTokenDEO)))
+}
+
+export async function revokeApiToken(id: number) {
+    return makePostRequest("/api/api_token/revoke", {id: id})
+        .then(data => parseAndHandleDEO(data, ApiTokenDEO))
 }

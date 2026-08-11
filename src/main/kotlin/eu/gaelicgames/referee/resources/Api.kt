@@ -386,6 +386,22 @@ class Api() {
     class WebsiteFeed(val parent: Api)
 
     @Serializable
+    @Resource("api_token")
+    class ApiToken(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: ApiToken)
+
+        @Serializable
+        @Resource("all")
+        class All(val parent: ApiToken)
+
+        @Serializable
+        @Resource("revoke")
+        class Revoke(val parent: ApiToken)
+    }
+
+    @Serializable
     @Resource("stats")
     class Stats(val parent: Api = Api())
 

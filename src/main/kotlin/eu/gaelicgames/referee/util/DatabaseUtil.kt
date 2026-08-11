@@ -79,6 +79,7 @@ object DatabaseHandler {
     val tables = listOf(
         Users,
         Sessions,
+        ApiTokens,
         Teams,
         Amalgamations,
         Regions,
