@@ -308,4 +308,79 @@ class MergeTeamsDEOTest {
         }
     }
 
+    @Test
+    fun `carried alias wins when the requested alias has the same spelling`() {
+        runBlocking {
+            var baseId = 0L
+            var mergedId = 0L
+            newSuspendedTransaction {
+                baseId = Team.new { name = "SameSpelling Base"; isAmalgamation = false }.id.value
+                mergedId = Team.new { name = "SameSpelling Merged"; isAmalgamation = false }.id.value
+                commit()
+            }
+            val carriedAliasId = NewTeamAliasDEO(mergedId, "SameSpelling Shared")
+                .createInDatabase().getOrThrow().id
+
+            MergeTeamsDEO(
+                baseTeam = baseId,
+                teamsToMerge = listOf(mergedId),
+                aliasesToCreate = mapOf(mergedId to "SameSpelling Shared")
+            ).updateInDatabase().getOrThrow()
+
+            newSuspendedTransaction {
+                val aliases = TeamAlias.find { TeamAliases.team eq baseId }.toList()
+                val matching = aliases.filter { it.alias == "SameSpelling Shared" }
+                assertEquals(1, matching.size, "there should be exactly one alias with that spelling")
+                assertEquals(
+                    carriedAliasId, matching.first().id.value,
+                    "the carried alias row must be the one that survives, not a freshly created one"
+                )
+            }
+        }
+    }
+
+    // Note: two live aliases can never share a spelling (TeamAliases.normalized has a real DB-level
+    // unique index, enforced independently of validateAliasInTransaction), so "two merged teams each
+    // already carrying an identical-spelling alias" cannot be constructed even by inserting rows
+    // directly - Postgres itself would reject the second insert. The nearest constructible equivalent
+    // that still exercises the carried-alias collision -> delete (not carry, not fail) branch is a
+    // carried alias whose spelling collides with another *team's own live canonical name* - which is
+    // reachable because team creation never cross-checks the alias table.
+    @Test
+    fun `carried alias colliding with another merging team's live name is dropped, not carried, merge still succeeds`() {
+        runBlocking {
+            var baseId = 0L
+            var mergedAId = 0L
+            var mergedBId = 0L
+            newSuspendedTransaction {
+                baseId = Team.new { name = "CarriedVsLiveName Base"; isAmalgamation = false }.id.value
+                mergedAId = Team.new { name = "CarriedVsLiveName Merged A"; isAmalgamation = false }.id.value
+                commit()
+            }
+            // Create the alias while no team is yet named "CarriedVsLiveName Merged B", so creation
+            // passes validation; only create team B (with that exact name) afterwards, so the
+            // collision only exists once the merge re-validates the carried alias.
+            NewTeamAliasDEO(mergedAId, "CarriedVsLiveName Merged B").createInDatabase().getOrThrow()
+            newSuspendedTransaction {
+                mergedBId = Team.new { name = "CarriedVsLiveName Merged B"; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            val result = MergeTeamsDEO(
+                baseTeam = baseId,
+                teamsToMerge = listOf(mergedAId, mergedBId),
+                aliasesToCreate = emptyMap()
+            ).updateInDatabase()
+
+            assertTrue(result.isSuccess, "merge must succeed even though the carried alias collides with team B's live name")
+            newSuspendedTransaction {
+                val matching = TeamAlias.find { TeamAliases.team eq baseId }
+                    .filter { it.alias == "CarriedVsLiveName Merged B" }
+                assertTrue(matching.isEmpty(), "the colliding carried alias should have been deleted, not carried")
+                assertNotNull(Team.findById(mergedAId)!!.mergedInto)
+                assertNotNull(Team.findById(mergedBId)!!.mergedInto)
+            }
+        }
+    }
+
 }
