@@ -97,6 +97,7 @@ object DatabaseHandler {
         Injuries,
         Substitutions,
         TeamHistoryEvents,
+        TeamAliases,
         PitchSurfaceOptions,
         PitchLengthOptions,
         PitchWidthOptions,
@@ -162,6 +163,9 @@ object DatabaseHandler {
                     recordedAt = now
                 }
             }
+
+            //Migration 10 - Team name aliases
+            SchemaUtils.createMissingTablesAndColumns(TeamAliases)
         }
     }
 
