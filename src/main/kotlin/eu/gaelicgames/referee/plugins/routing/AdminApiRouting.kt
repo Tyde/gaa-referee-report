@@ -169,6 +169,33 @@ fun Route.adminApiRouting() {
         call.respond(events)
     }
 
+    post<Api.Team.Alias.New> {
+        receiveAndHandleDEO<NewTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.createInDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Team.Alias.Update> {
+        receiveAndHandleDEO<UpdateTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.updateInDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Team.Alias.Delete> {
+        receiveAndHandleDEO<DeleteTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.deleteFromDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.DELETE_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
     post<Api.Tournaments.Update> {
         receiveAndHandleDEO<TournamentDEO> { tournamentDEO ->
             tournamentDEO.updateInDatabase().map {

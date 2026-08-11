@@ -43,6 +43,23 @@ class Api() {
         @Serializable
         @Resource("history/{id}")
         class History(val parent: Team, val id: Long)
+
+        @Serializable
+        @Resource("alias")
+        class Alias(val parent: Team) {
+
+            @Serializable
+            @Resource("new")
+            class New(val parent: Alias)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Alias)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Alias)
+        }
     }
 
     @Serializable
