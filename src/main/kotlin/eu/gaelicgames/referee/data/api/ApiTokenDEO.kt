@@ -5,53 +5,21 @@ import eu.gaelicgames.referee.data.ApiTokens
 import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.UserRole
 import eu.gaelicgames.referee.util.lockedTransaction
-import kotlinx.serialization.Serializable
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.util.Base64
 
-@Serializable
-data class NewApiTokenDEO(
-    val name: String,
-    val expiresInDays: Int? = null
-)
-
-@Serializable
-data class ApiTokenCreatedDEO(
-    val id: Long,
-    val name: String,
-    val token: String,
-    val expiresAt: String?
-)
-
-@Serializable
-data class ApiTokenDEO(
-    val id: Long,
-    val name: String,
-    val createdAt: String,
-    val expiresAt: String?,
-    val revoked: Boolean,
-    val lastUsedAt: String?
-) {
-    companion object {
-        fun fromApiToken(token: ApiToken): ApiTokenDEO {
-            return ApiTokenDEO(
-                id = token.id.value,
-                name = token.name,
-                createdAt = token.createdAt.toString(),
-                expiresAt = token.expiresAt?.toString(),
-                revoked = token.revoked,
-                lastUsedAt = token.lastUsedAt?.toString()
-            )
-        }
-    }
+fun ApiTokenDEO.Companion.fromApiToken(token: ApiToken): ApiTokenDEO {
+    return ApiTokenDEO(
+        id = token.id.value,
+        name = token.name,
+        createdAt = token.createdAt.toString(),
+        expiresAt = token.expiresAt?.toString(),
+        revoked = token.revoked,
+        lastUsedAt = token.lastUsedAt?.toString()
+    )
 }
-
-@Serializable
-data class RevokeApiTokenDEO(
-    val id: Long
-)
 
 private fun generateApiToken(): String {
     val bytes = ByteArray(32)
