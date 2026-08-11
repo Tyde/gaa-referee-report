@@ -143,7 +143,7 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Team.Update> {
-        receiveAndHandleDEO<TeamDEO> { teamDEO ->
+        receiveAndHandleDEO<UpdateTeamDEO> { teamDEO ->
             val recordedBy = call.principal<UserPrincipal>()?.user
             teamDEO.updateInDatabase(recordedBy).map {
                 lockedTransaction { TeamDEO.fromTeam(it) }

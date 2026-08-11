@@ -170,7 +170,7 @@ suspend fun TeamDEO.Companion.fromTeamId(it: Long): Result<TeamDEO> {
 // Team mutations (with history recording)
 // ---------------------------------------------------------------------------
 
-suspend fun TeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
+suspend fun UpdateTeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
 
     CacheUtil.deleteCachedTeamList()
 
@@ -217,6 +217,11 @@ suspend fun TeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
                 writeTeamHistoryEventInTransaction(
                     team, TeamChangeType.RENAMED, changeDate, oldName, team.name, recordedBy
                 )
+                //The admin may have asked to keep the old name findable.
+                //A rejected alias must never fail the rename.
+                thisTeam.keepOldNameAsAlias?.let { requestedAlias ->
+                    createTeamAliasInTransaction(team, requestedAlias, changeDate, recordedBy)
+                }
             }
             if (oldIsAmalgamation != team.isAmalgamation) {
                 val changeType = if (team.isAmalgamation) {

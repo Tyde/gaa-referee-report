@@ -279,7 +279,7 @@ class TeamAliasDEOTest {
                 commit()
             }
             NewTeamAliasDEO(teamId, "Regression Update Spelling").createInDatabase().getOrThrow()
-            val toUpdate = TeamDEO(
+            val toUpdate = UpdateTeamDEO(
                 name = "Regression Update FC Renamed", id = teamId, isAmalgamation = false, amalgamationTeams = null
             )
 
@@ -292,6 +292,81 @@ class TeamAliasDEOTest {
             val deo = result.getOrThrow()
             assertEquals("Regression Update FC Renamed", deo.name)
             assertEquals(listOf("Regression Update Spelling"), deo.aliases!!.map { it.alias })
+        }
+    }
+
+    @Test
+    fun `rename keeps the old name as an alias when requested`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Old Rename Name"; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            UpdateTeamDEO(
+                name = "New Rename Name",
+                id = teamId,
+                isAmalgamation = false,
+                amalgamationTeams = null,
+                keepOldNameAsAlias = "Old Rename Name"
+            ).updateInDatabase().getOrThrow()
+
+            newSuspendedTransaction {
+                assertEquals("New Rename Name", Team.findById(teamId)!!.name)
+                assertEquals(
+                    listOf("Old Rename Name"),
+                    TeamAlias.find { TeamAliases.team eq teamId }.map { it.alias }
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `rename without the flag creates no alias`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Silent Rename Old"; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            UpdateTeamDEO(
+                name = "Silent Rename New",
+                id = teamId,
+                isAmalgamation = false,
+                amalgamationTeams = null
+            ).updateInDatabase().getOrThrow()
+
+            newSuspendedTransaction {
+                assertTrue(TeamAlias.find { TeamAliases.team eq teamId }.empty())
+            }
+        }
+    }
+
+    @Test
+    fun `rename succeeds even when the proposed alias collides`() {
+        runBlocking {
+            var teamId = 0L
+            newSuspendedTransaction {
+                teamId = Team.new { name = "Clash Rename Old"; isAmalgamation = false }.id.value
+                Team.new { name = "Clash Rename Taken"; isAmalgamation = false }
+                commit()
+            }
+
+            val result = UpdateTeamDEO(
+                name = "Clash Rename New",
+                id = teamId,
+                isAmalgamation = false,
+                amalgamationTeams = null,
+                keepOldNameAsAlias = "Clash Rename Taken"
+            ).updateInDatabase()
+
+            assertTrue(result.isSuccess)
+            newSuspendedTransaction {
+                assertEquals("Clash Rename New", Team.findById(teamId)!!.name)
+                assertTrue(TeamAlias.find { TeamAliases.team eq teamId }.empty())
+            }
         }
     }
 }
