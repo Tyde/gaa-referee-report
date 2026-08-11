@@ -59,7 +59,7 @@ object GGERefereeConfig {
     }
 
     object openrouter : PropertyGroup() {
-        val apiKey by stringType
+        val api_key by stringType
         val model by stringType
     }
 
@@ -86,7 +86,7 @@ object GGERefereeConfig {
         postgresUser = config[postgres.user]
         postgresPassword = config[postgres.password]
 
-        openRouterApiKey = config[openrouter.apiKey]
+        openRouterApiKey = config[openrouter.api_key]
         openRouterModel = config[openrouter.model]
 
 
