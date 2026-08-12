@@ -4,7 +4,7 @@
 **Branch:** `feature/team_spelling_support`
 **Plan:** `docs/superpowers/plans/2026-08-11-team-name-aliases.md`
 **Spec:** `docs/superpowers/specs/2026-08-11-team-name-aliases-design.md`
-**Status:** Tasks 1–9 complete and reviewed. Tasks 10–14 remain.
+**Status:** Tasks 1–10 complete and reviewed. Tasks 11–14 remain.
 
 ## What works now
 
@@ -15,13 +15,15 @@ as a spelling, and the API serves the spellings alongside every team so the
 frontend can search them without a new endpoint. Migration 10 also backfills
 names from already-merged teams, including multi-hop merge chains, as aliases
 of the surviving team. The frontend now has Vitest coverage, a shared
-normalizer, alias-aware scoring, and the corresponding API types.
+normalizer, alias-aware scoring, and the corresponding API types. The team
+picker now searches aliases, identifies alias-only matches, and keeps stable
+team-id row keys.
 
-Nothing is wired into the UI yet — that is tasks 10–13.
+The remaining UI work is tasks 11–13.
 
 ## Commits on this branch
 
-Twelve implementation commits, oldest first, on top of `1abb653`:
+Thirteen implementation commits, oldest first, on top of `1abb653`:
 
 | Commit | Task | What |
 |---|---|---|
@@ -37,6 +39,7 @@ Twelve implementation commits, oldest first, on top of `1abb653`:
 | `1bae5dd` | 7 fix | Unchanged-name gate tests |
 | `a31bc9f` | 8 | Backfill search aliases from previously merged teams |
 | `4182a02` | 9 | Add Vitest and alias-aware team search scoring |
+| `80f8375` | 10 | Team picker finds teams by alternative spellings |
 
 ## Submodule state — read this before continuing
 
@@ -60,14 +63,13 @@ a gitlink that only resolves via a feature branch.
 
 | Task | Scope |
 |---|---|
-| 10 | Team picker uses alias search, matched-alias subtitle, `:key` fix, i18n |
 | 11 | Alias API client and admin chip editor |
 | 12 | Merge dialog per-team alias rows |
 | 13 | Rename control in three admin components |
 | 14 | Full verification, including the end-to-end walkthrough |
 
 Task 8 was the last backend task and is independent of the frontend work.
-Tasks 10–13 all depend on task 9 and are independent of each other once it lands.
+Tasks 11–13 depend on task 9 and are independent of each other.
 
 ## Corrections to the plan — do not "fix" the code to match the prose
 
