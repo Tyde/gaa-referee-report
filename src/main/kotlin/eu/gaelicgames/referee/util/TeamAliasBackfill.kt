@@ -14,7 +14,7 @@ import java.time.LocalDate
  * and silently skipped. Returns the number of aliases created.
  */
 suspend fun backfillAliasesFromMergedTeams(): Int {
-    return lockedTransaction {
+    val created = lockedTransaction {
         var created = 0
         val mergedTeams = Team.find { Teams.mergedInto.isNotNull() }.toList()
         for (deadTeam in mergedTeams) {
@@ -31,6 +31,14 @@ suspend fun backfillAliasesFromMergedTeams(): Int {
         }
         created
     }
+
+    // The backfill runs during startup, after Redis has been initialized. An
+    // existing team-list cache may still contain the pre-alias payload, so it
+    // must be invalidated after the transaction commits.
+    if (created > 0) {
+        CacheUtil.deleteCachedTeamList()
+    }
+    return created
 }
 
 /**
