@@ -1,5 +1,11 @@
 import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
-import {MergeTeamsDEO, Team, TeamHistoryEventDEO} from "@/types/team_types";
+import {
+    DeletedTeamAliasDEO,
+    MergeTeamsDEO,
+    Team,
+    TeamAliasDEO,
+    TeamHistoryEventDEO
+} from "@/types/team_types";
 
 
 export async function createTeam(name: string, changeDate?: string): Promise<Team> {
@@ -27,6 +33,21 @@ export async function createAmalgamationOnServer(name: string, teams: Array<Team
 export async function editTeamOnServer(team: Team): Promise<Team> {
     return makePostRequest("/api/team/update", team)
         .then(data => parseAndHandleDEO(data, Team))
+}
+
+export async function addTeamAlias(teamId: number, alias: string): Promise<TeamAliasDEO> {
+    return makePostRequest("/api/team/alias/new", {teamId: teamId, alias: alias.trim()})
+        .then(data => parseAndHandleDEO(data, TeamAliasDEO))
+}
+
+export async function updateTeamAlias(id: number, alias: string): Promise<TeamAliasDEO> {
+    return makePostRequest("/api/team/alias/update", {id: id, alias: alias.trim()})
+        .then(data => parseAndHandleDEO(data, TeamAliasDEO))
+}
+
+export async function deleteTeamAlias(id: number): Promise<DeletedTeamAliasDEO> {
+    return makePostRequest("/api/team/alias/delete", {id: id})
+        .then(data => parseAndHandleDEO(data, DeletedTeamAliasDEO))
 }
 
 export async function mergeTeamsOnServer(baseTeam: Team, mergeTeams: Array<Team>, changeDate?: string): Promise<Team> {

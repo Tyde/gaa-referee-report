@@ -10,6 +10,7 @@ import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";
 import ConvertTeamToAmalgamtionDialog from "@/components/admin/teams/ConvertTeamToAmalgamtionDialog.vue";
 import EditAmalgamationDialog from "@/components/admin/teams/EditAmalgamationDialog.vue";
 import TeamHistoryDialog from "@/components/admin/teams/TeamHistoryDialog.vue";
+import TeamAliasEditor from "@/components/admin/teams/TeamAliasEditor.vue";
 
 const store = useAdminStore()
 
@@ -152,17 +153,23 @@ const orderedTeamsList = computed(() => {
                   <span>{{ team.name }}</span>
                 </div>
               </div>
+              <div class="col-span-2">
+                <TeamAliasEditor :team="data" @aliases-changed="() => emit('teamUpdated', data)"/>
+              </div>
             </div>
 
           </template>
           <template v-else>
-            <div class="flex flex-row items-center">
-              <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
-              <div>
-                <Button text label="History" @click="() => showHistory(data)"/>
-                <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
-                <Button text label="Convert" @click="() => startAmalgamationConvert(data)"/>
+            <div class="flex flex-col">
+              <div class="flex flex-row items-center">
+                <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
+                <div>
+                  <Button text label="History" @click="() => showHistory(data)"/>
+                  <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
+                  <Button text label="Convert" @click="() => startAmalgamationConvert(data)"/>
+                </div>
               </div>
+              <TeamAliasEditor :team="data" @aliases-changed="() => emit('teamUpdated', data)"/>
             </div>
           </template>
         </template>

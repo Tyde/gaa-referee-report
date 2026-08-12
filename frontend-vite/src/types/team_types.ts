@@ -12,6 +12,9 @@ export const TeamAliasDEO: z.ZodType<TeamAliasDEO> = z.object({
     alias: z.string().min(1),
 })
 
+export const DeletedTeamAliasDEO = z.object({id: z.number()})
+export type DeletedTeamAliasDEO = z.infer<typeof DeletedTeamAliasDEO>;
+
 export interface Team {
     name: string,
     id: number,
