@@ -8,6 +8,7 @@ import RulesEditor from "@/components/admin/gameReport/RulesEditor.vue";
 import TournamentList from "@/components/admin/tournaments/TournamentList.vue";
 import FullTournamentReport from "@/components/admin/tournaments/FullTournamentReport.vue";
 import ApiTokenManager from "@/components/admin/ApiTokenManager.vue";
+import TeamGamesPage from "@/components/admin/teams/TeamGamesPage.vue";
 
 
 export const routes = [
@@ -58,6 +59,11 @@ export const routes = [
     {
         path: "/teams",
         component: TeamManager,
+    },
+    {
+        path: "/teams/:teamId/games",
+        component: TeamGamesPage,
+        props: true
     },
     {
         path: "/api-tokens",
