@@ -4,7 +4,7 @@
 **Branch:** `feature/team_spelling_support`
 **Plan:** `docs/superpowers/plans/2026-08-11-team-name-aliases.md`
 **Spec:** `docs/superpowers/specs/2026-08-11-team-name-aliases-design.md`
-**Status:** Tasks 1–12 complete and reviewed. Tasks 13–14 remain.
+**Status:** Tasks 1–13 complete and reviewed. Task 14 remains.
 
 ## What works now
 
@@ -20,13 +20,14 @@ picker now searches aliases, identifies alias-only matches, and keeps stable
 team-id row keys. Admins can now add and remove aliases through the team
 management UI, with collision errors shown inline.
 The merge dialog now lets admins keep, edit, or deny each merged team's name as
-an alias.
+an alias. Rename-capable admin editors now offer to preserve the old name as an
+editable alias while keeping read-only alias data out of update payloads.
 
-The remaining UI work is task 13.
+The remaining work is full verification in task 14.
 
 ## Commits on this branch
 
-Fifteen implementation commits, oldest first, on top of `1abb653`:
+Sixteen implementation commits, oldest first, on top of `1abb653`:
 
 | Commit | Task | What |
 |---|---|---|
@@ -45,6 +46,7 @@ Fifteen implementation commits, oldest first, on top of `1abb653`:
 | `80f8375` | 10 | Team picker finds teams by alternative spellings |
 | `1fad4c9` | 11 | Admin can manage alternative team spellings |
 | `362a854` | 12 | Merge dialog offers to keep merged names as spellings |
+| `03d81b3` | 13 | Rename offers to keep the old team name as a spelling |
 
 ## Submodule state — read this before continuing
 
@@ -68,11 +70,10 @@ a gitlink that only resolves via a feature branch.
 
 | Task | Scope |
 |---|---|
-| 13 | Rename control in three admin components |
 | 14 | Full verification, including the end-to-end walkthrough |
 
 Task 8 was the last backend task and is independent of the frontend work.
-Tasks 12–13 depend on task 9 and are independent of each other.
+Tasks 12–13 depended on task 9 and are complete; task 14 performs final verification.
 
 ## Corrections to the plan — do not "fix" the code to match the prose
 
