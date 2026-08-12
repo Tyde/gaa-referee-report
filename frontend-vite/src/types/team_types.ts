@@ -76,7 +76,7 @@ export const TeamGameDEO = z.object({
         date: z.string().transform((value) => DateTime.fromISO(value)),
         region: z.number(),
         isLeague: z.boolean().optional(),
-        endDate: z.string().optional().transform((value) => value ? DateTime.fromISO(value) : null)
+        endDate: z.string().nullable().optional().transform((value) => value ? DateTime.fromISO(value) : null)
     }),
     startTime: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
     playedAsTeam: Team,

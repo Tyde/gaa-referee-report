@@ -1,6 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {DateTime} from "luxon";
-import type {TeamGameDEO} from "@/types/team_types";
+import {TeamGamesDEO, type TeamGameDEO} from "@/types/team_types";
 import {
     formatGaaScore,
     gaaScoreTotal,
@@ -95,5 +95,41 @@ describe("team game view helpers", () => {
         ];
 
         expect(sortTeamGamesByStartTime(games).map(item => item.gameId)).toEqual([3, 1, 2]);
+    });
+
+    it("parses backend payloads with a tournament null end date", () => {
+        const parsed = TeamGamesDEO.parse({
+            selectedTeam: {id: 2, name: "Dublin GAA", isAmalgamation: false, amalgamationTeams: null},
+            includedAmalgamations: [],
+            games: [{
+                gameId: 1,
+                reportId: 10,
+                tournament: {
+                    id: 100,
+                    name: "Spring Tournament",
+                    location: "Dublin",
+                    date: "2026-03-01",
+                    region: 1,
+                    isLeague: false,
+                    endDate: null
+                },
+                startTime: null,
+                playedAsTeam: {id: 2, name: "Dublin GAA", isAmalgamation: false, amalgamationTeams: null},
+                opponentTeam: {id: 3, name: "Cork GAA", isAmalgamation: false, amalgamationTeams: null},
+                playedAsGoals: 1,
+                playedAsPoints: 5,
+                opponentGoals: 0,
+                opponentPoints: 8,
+                refereeId: 4,
+                refereeName: "Ref Eree",
+                codeId: 5,
+                codeName: "Football",
+                gameTypeId: null,
+                gameTypeName: null
+            }]
+        });
+
+        expect(parsed.games[0].tournament.endDate).toBeNull();
+        expect(parsed.games[0].startTime).toBeNull();
     });
 });

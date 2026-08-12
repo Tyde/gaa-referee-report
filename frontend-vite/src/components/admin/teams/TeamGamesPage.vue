@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
 import {useRouter} from "vue-router";
 import {DateTime} from "luxon";
 import {useAdminStore} from "@/utils/admin_store";
@@ -63,7 +63,13 @@ function openCompleteTournamentReport(tournamentId: number) {
   router.push({path: `/tournament-reports/complete/${tournamentId}`});
 }
 
-onMounted(loadGames);
+watch(() => props.teamId, () => {
+  if (includeAmalgamatedTeams.value) {
+    includeAmalgamatedTeams.value = false;
+  } else {
+    loadGames();
+  }
+}, {immediate: true});
 
 watch(includeAmalgamatedTeams, loadGames);
 </script>
