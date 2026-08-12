@@ -1,10 +1,10 @@
 # Team Name Aliases — Progress Report
 
-**Date:** 2026-08-11
+**Date:** 2026-08-12
 **Branch:** `feature/team_spelling_support`
 **Plan:** `docs/superpowers/plans/2026-08-11-team-name-aliases.md`
 **Spec:** `docs/superpowers/specs/2026-08-11-team-name-aliases-design.md`
-**Status:** Tasks 1–13 complete and reviewed. Task 14 remains.
+**Status:** Tasks 1–14 complete and reviewed.
 
 ## What works now
 
@@ -23,11 +23,28 @@ The merge dialog now lets admins keep, edit, or deny each merged team's name as
 an alias. Rename-capable admin editors now offer to preserve the old name as an
 editable alias while keeping read-only alias data out of update payloads.
 
-The remaining work is full verification in task 14.
+Task 14 verification is complete. The native-PostgreSQL HTTP walkthrough initially
+found that a requested merged-team name was rejected as a live canonical-name
+collision before the source team was soft-deleted. Commit `07166b4` fixes that
+atomic merge case while retaining all other alias collision checks.
+
+Verification results:
+
+- `./gradlew test --max-workers=1` — passed. Running the suite without serialization
+  still exposes the repository's existing shared-PostgreSQL-schema concurrency race.
+- Focused `MergeTeamsDEOTest` and `TeamAliasDEOTest` — passed.
+- `frontend-vite`: `npm run test:unit`, `npm run type-check`, and `npm run build` —
+  passed (14 unit tests; 1,137 modules transformed).
+- Native PostgreSQL HTTP walkthrough — passed for direct alias search, canonical and
+  alias collisions, merge with and without alias preservation, rename preservation,
+  and alias history. Redis was unavailable locally; the application continued with
+  cache disabled as designed.
+- Canonical-only rendering was confirmed by the report, public-results, and stats
+  paths reading `Team.name`; alias text is limited to team-picker search feedback.
 
 ## Commits on this branch
 
-Sixteen implementation commits, oldest first, on top of `1abb653`:
+Seventeen implementation commits, oldest first, on top of `1abb653`:
 
 | Commit | Task | What |
 |---|---|---|
@@ -47,6 +64,7 @@ Sixteen implementation commits, oldest first, on top of `1abb653`:
 | `1fad4c9` | 11 | Admin can manage alternative team spellings |
 | `362a854` | 12 | Merge dialog offers to keep merged names as spellings |
 | `03d81b3` | 13 | Rename offers to keep the old team name as a spelling |
+| `07166b4` | 14 | Preserve merged names as aliases during atomic merge validation |
 
 ## Submodule state — read this before continuing
 
@@ -70,7 +88,7 @@ a gitlink that only resolves via a feature branch.
 
 | Task | Scope |
 |---|---|
-| 14 | Full verification, including the end-to-end walkthrough |
+| 14 | Full verification, including the end-to-end walkthrough — complete |
 
 Task 8 was the last backend task and is independent of the frontend work.
 Tasks 12–13 depended on task 9 and are complete; task 14 performs final verification.
@@ -123,9 +141,9 @@ whole-branch review can triage them rather than rediscovering them.
    is called on alias mutations; it was verified by source reading. Redis is not connected
    in the test environment, which matches existing practice in this codebase.
 
-5. **Task 5's manual route check was never performed.** No server could be started in the
-   implementer's session, so `/api/team/alias/new` and its siblings have not been exercised
-   over HTTP at all. This must happen in Task 14's walkthrough.
+5. **Task 5's manual route check — resolved in Task 14.** The alias routes were exercised
+   over HTTP against native PostgreSQL, including successful creation/deletion and the
+   collision errors returned by `/api/team/alias/new`.
 
 ## How to resume
 
@@ -133,6 +151,5 @@ The SDD ledger at `.superpowers/sdd/2026-08-11-team-name-aliases/progress.md` ho
 full task-by-task record, including every fix round and ruling. It is git-ignored scratch —
 this document is the durable summary.
 
-To continue, resume subagent-driven execution of the plan at Task 9 — the first frontend task,
-which sets up Vitest and the shared normalizer that tasks 10–13 all build on. Each remaining
-task's brief can be regenerated with the `task-brief` script against the plan file.
+All tasks in this plan are complete. Before merging this feature, follow the submodule
+integration note above so the feature branch gitlink resolves from the submodule's `main`.
