@@ -50,11 +50,17 @@ export async function deleteTeamAlias(id: number): Promise<DeletedTeamAliasDEO> 
         .then(data => parseAndHandleDEO(data, DeletedTeamAliasDEO))
 }
 
-export async function mergeTeamsOnServer(baseTeam: Team, mergeTeams: Array<Team>, changeDate?: string): Promise<Team> {
+export async function mergeTeamsOnServer(
+    baseTeam: Team,
+    mergeTeams: Array<Team>,
+    changeDate?: string,
+    aliasesToCreate?: Record<string, string>
+): Promise<Team> {
     const data = MergeTeamsDEO.safeParse({
         baseTeam: baseTeam.id,
         teamsToMerge: mergeTeams.map(value => value.id),
-        changeDate: changeDate
+        changeDate: changeDate,
+        aliasesToCreate: aliasesToCreate ?? {}
     })
     if (!data.success) {
         return Promise.reject("Could not parse data")

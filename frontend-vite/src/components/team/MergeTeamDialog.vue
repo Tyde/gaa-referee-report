@@ -31,11 +31,25 @@ const store = useAdminStore()
 
 const teamsToMerge = ref<Team[]>([])
 const changeDate = ref<Date>(new Date())
+const aliasKeep = ref<Record<number, boolean>>({})
+const aliasText = ref<Record<number, string>>({})
+
+function trackAlias(team: Team) {
+  aliasKeep.value[team.id] = true
+  aliasText.value[team.id] = team.name
+}
+
+function untrackAlias(team: Team) {
+  delete aliasKeep.value[team.id]
+  delete aliasText.value[team.id]
+}
 
 watch(() => props.visible, (newValue) => {
   if (newValue) {
     teamsToMerge.value = []
     changeDate.value = new Date()
+    aliasKeep.value = {}
+    aliasText.value = {}
   }
 })
 
@@ -43,7 +57,14 @@ async function mergeTeams() {
   const mergeInto = props.selectedTeam
   const mergeFrom = teamsToMerge.value
   const changeDateIso = changeDate.value ? new Date(changeDate.value).toISOString().slice(0, 10) : undefined
-  mergeTeamsOnServer(mergeInto, mergeFrom, changeDateIso)
+  const aliasesToCreate: Record<string, string> = {}
+  for (const team of mergeFrom) {
+    const alias = aliasText.value[team.id]?.trim()
+    if (aliasKeep.value[team.id] && alias) {
+      aliasesToCreate[String(team.id)] = alias
+    }
+  }
+  mergeTeamsOnServer(mergeInto, mergeFrom, changeDateIso, aliasesToCreate)
       .catch(reason => store.newError(reason))
       .then(resTeam => {
         if (resTeam) {
@@ -83,13 +104,29 @@ const excludeTeamList = computed(() => {
               :exclude_team_list="excludeTeamList"
               :force_hide_exclude_team_list="true"
               :allow_unselect="true"
-              @team_selected="team => teamsToMerge.push(team)"
-              @team_unselected="team => teamsToMerge = teamsToMerge.filter(it => it.id !== team.id)"
+              @team_selected="team => { teamsToMerge.push(team); trackAlias(team) }"
+              @team_unselected="team => { teamsToMerge = teamsToMerge.filter(it => it.id !== team.id); untrackAlias(team) }"
               :show_hide_squad_box="false"
               :show_teams="!amalgamationMode"
               :show_amalgamations="amalgamationMode"
               :show_squads="amalgamationMode"
           />
+        </div>
+        <div v-if="teamsToMerge.length" class="flex flex-col gap-2 m-2">
+          <div class="text-sm opacity-80">
+            Keep the merged names as alternative spellings so referees can still find this team:
+          </div>
+          <div v-for="team in teamsToMerge" :key="team.id" class="flex flex-row items-center gap-2">
+            <Checkbox v-model="aliasKeep[team.id]" :input-id="'keep_alias_' + team.id" binary/>
+            <label :for="'keep_alias_' + team.id">Keep "{{ team.name }}" as an alternative spelling</label>
+            <InputText
+                v-model="aliasText[team.id]"
+                :id="'alias_text_' + team.id"
+                :aria-label="'Alternative spelling for ' + team.name"
+                :disabled="!aliasKeep[team.id]"
+                class="flex-1"
+            />
+          </div>
         </div>
         <div class="flex flex-row items-center gap-2 m-2">
           <label>Date of change</label>
