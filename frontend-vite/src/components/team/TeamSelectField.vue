@@ -6,11 +6,7 @@ import SmartCreateAmalgamation from "@/components/team/SmartCreateAmalgamation.v
 import {useReportStore} from "@/utils/edit_report_store";
 import type {Team} from "@/types/team_types";
 import CreateSplitTeam from "@/components/team/CreateSplitTeam.vue";
-
-interface SearchResultTeam {
-  team: Team,
-  search_score: number
-}
+import {searchTeams, type TeamSearchResult} from "@/utils/team_search";
 
 const store = useReportStore()
 
@@ -137,30 +133,11 @@ function thisTeamInExludedList(team: Team): boolean {
   return !!props.exclude_team_list?.find(t => t.id === team.id)
 }
 
-function normalizeForSearch(str: string): string {
-  const extraMap: Record<string, string> = {
-    "ß": "ss",
-    "æ": "ae",
-    "œ": "oe",
-    "ø": "o",
-    "đ": "d",
-    "ð": "d",
-    "þ": "th",
-    "ł": "l"
-  };
-
-  return str
-      .toLocaleLowerCase()
-      .replace(/[ßæœøđðþł]/g, char => extraMap[char] || char)
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "");
-}
-
 function classForTeam(team: Team): string {
   return thisTeamInExludedList(team) ? "already-selected-item" : "p-listbox-item"
 }
 
-const filtered_list = computed(() => {
+const filtered_list = computed<TeamSearchResult[]>(() => {
   let preparedlist = store.publicStore.teams.toSorted((a, b) => {
     return a.name.localeCompare(b.name)
   })
@@ -198,26 +175,7 @@ const filtered_list = computed(() => {
       }) == -1
     })
   }
-  if (searchTerm.value) {
-    const searchNormalized = normalizeForSearch(searchTerm.value)
-    return preparedlist.filter(value => {
-      const isInName = normalizeForSearch(value.name).includes(searchNormalized)
-      const isInAmalgamations = value.amalgamationTeams?.reduce(function (pv, cv) {
-        const isInLocalName = normalizeForSearch(cv.name).includes(searchNormalized)
-        return pv || isInLocalName
-      }, false)
-      return isInName || isInAmalgamations
-    }).map(value => {
-      return {
-        team: value,
-        search_score: 1
-      } as SearchResultTeam
-    })
-  } else {
-    return preparedlist.map(value => {
-      return {team: value, search_score: 1} as SearchResultTeam
-    })
-  }
+  return searchTeams(preparedlist, searchTerm.value)
 })
 
 
@@ -306,7 +264,7 @@ function onSquadCancel() {
           </li>
           <li
               v-for="srt in filtered_list"
-              :key="srt.search_score"
+              :key="srt.team.id"
               :class="[{
                   amalgamation_item: srt.team.isAmalgamation &&
                                       srt.team.amalgamationTeams &&
@@ -320,6 +278,9 @@ function onSquadCancel() {
           >
             <template v-if="srt.team.isAmalgamation">
               {{ srt.team.name }} -
+              <p v-if="srt.matchedAlias" class="matched-alias-subtitle">
+                {{ $t('teamSelect.matchedAlias', {alias: srt.matchedAlias}) }}
+              </p>
               <template v-if="srt.team.amalgamationTeams!!.length > 1">Amalgamation</template>
               <template v-else>Squad</template>
               <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
@@ -354,6 +315,9 @@ function onSquadCancel() {
                     <vue-feather type="chevron-up" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
                   </Button>
                 </div>
+              </div>
+              <div v-if="srt.matchedAlias" class="matched-alias-subtitle">
+                {{ $t('teamSelect.matchedAlias', {alias: srt.matchedAlias}) }}
               </div>
               <transition
                   enter-active-class="transition-all duration-500 ease-in-out"
@@ -442,6 +406,10 @@ function onSquadCancel() {
   margin-top: 4px;
   margin-bottom: 0;
   @apply mr-2;
+}
+
+.matched-alias-subtitle {
+  @apply text-sm italic opacity-80;
 }
 
 .already-selected-subtitle {

@@ -10,6 +10,7 @@ import MergeTeamDialog from "@/components/team/MergeTeamDialog.vue";
 import ConvertTeamToAmalgamtionDialog from "@/components/admin/teams/ConvertTeamToAmalgamtionDialog.vue";
 import EditAmalgamationDialog from "@/components/admin/teams/EditAmalgamationDialog.vue";
 import TeamHistoryDialog from "@/components/admin/teams/TeamHistoryDialog.vue";
+import TeamAliasEditor from "@/components/admin/teams/TeamAliasEditor.vue";
 
 const store = useAdminStore()
 
@@ -43,6 +44,9 @@ function toIsoDate(value: Date | undefined | null): string | undefined {
 function onRowEditInit(event: DataTableRowEditInitEvent) {
   //Initialize the change date for the editor (defaults to today)
   event.data.changeDateValue = event.data.changeDate ? new Date(event.data.changeDate) : new Date()
+  event.data.originalName = event.data.name
+  event.data.keepOldName = true
+  event.data.oldNameAlias = event.data.name
 }
 
 function editTeam(event: DataTableRowEditSaveEvent) {
@@ -54,7 +58,11 @@ function editTeam(event: DataTableRowEditSaveEvent) {
     amalgamationTeams: newData.amalgamationTeams ?? null,
     changeDate: toIsoDate(newData.changeDateValue)
   }
-  editTeamOnServer(payload)
+  const nameChanged = newData.originalName !== undefined && newData.originalName !== newData.name
+  const keepOldName = nameChanged && newData.keepOldName && newData.oldNameAlias?.trim()
+      ? newData.oldNameAlias.trim()
+      : undefined
+  editTeamOnServer(payload, keepOldName)
       .then((dbTeam) => {
         emit('teamUpdated', dbTeam)
       })
@@ -133,6 +141,14 @@ const orderedTeamsList = computed(() => {
               <label class="text-xs">Date of change</label>
               <DatePicker v-model="slotProps.data.changeDateValue" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-full"/>
             </div>
+            <div v-if="slotProps.data.name !== slotProps.data.originalName" class="flex flex-col gap-1">
+              <label :for="`keep-old-name-${slotProps.data.id}`" class="flex flex-row items-center gap-2 text-xs">
+                <Checkbox :input-id="`keep-old-name-${slotProps.data.id}`" v-model="slotProps.data.keepOldName" binary/>
+                Keep old name as alternative spelling
+              </label>
+              <label :for="`old-name-alias-${slotProps.data.id}`" class="sr-only">Alternative spelling</label>
+              <InputText :id="`old-name-alias-${slotProps.data.id}`" v-model="slotProps.data.oldNameAlias" :disabled="!slotProps.data.keepOldName"/>
+            </div>
           </div>
         </template>
         <template #filter="{filterModel,filterCallback}">
@@ -152,17 +168,23 @@ const orderedTeamsList = computed(() => {
                   <span>{{ team.name }}</span>
                 </div>
               </div>
+              <div class="col-span-2">
+                <TeamAliasEditor :team="data" @aliases-changed="() => emit('teamUpdated', data)"/>
+              </div>
             </div>
 
           </template>
           <template v-else>
-            <div class="flex flex-row items-center">
-              <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
-              <div>
-                <Button text label="History" @click="() => showHistory(data)"/>
-                <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
-                <Button text label="Convert" @click="() => startAmalgamationConvert(data)"/>
+            <div class="flex flex-col">
+              <div class="flex flex-row items-center">
+                <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
+                <div>
+                  <Button text label="History" @click="() => showHistory(data)"/>
+                  <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
+                  <Button text label="Convert" @click="() => startAmalgamationConvert(data)"/>
+                </div>
               </div>
+              <TeamAliasEditor :team="data" @aliases-changed="() => emit('teamUpdated', data)"/>
             </div>
           </template>
         </template>

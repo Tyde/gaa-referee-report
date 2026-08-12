@@ -138,7 +138,7 @@ fun Route.refereeApiRouting() {
                 )
                 team
             }
-            TeamDEO.fromTeam(newTeamDB)
+            lockedTransaction { TeamDEO.fromTeam(newTeamDB) }
         }
 
     }
@@ -147,7 +147,7 @@ fun Route.refereeApiRouting() {
         receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
             val recordedBy = call.principal<UserPrincipal>()?.user
             newAmalgamation.createInDatabase(recordedBy).map {
-                TeamDEO.fromTeam(it)
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }

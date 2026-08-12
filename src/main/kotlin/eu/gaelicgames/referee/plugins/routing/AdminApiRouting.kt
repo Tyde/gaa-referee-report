@@ -143,10 +143,10 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Team.Update> {
-        receiveAndHandleDEO<TeamDEO> { teamDEO ->
+        receiveAndHandleDEO<UpdateTeamDEO> { teamDEO ->
             val recordedBy = call.principal<UserPrincipal>()?.user
             teamDEO.updateInDatabase(recordedBy).map {
-                TeamDEO.fromTeam(it)
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -157,7 +157,7 @@ fun Route.adminApiRouting() {
         receiveAndHandleDEO<MergeTeamsDEO> { mergeTeamsDEO ->
             val recordedBy = call.principal<UserPrincipal>()?.user
             mergeTeamsDEO.updateInDatabase(recordedBy).map {
-                TeamDEO.fromTeam(it)
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -167,6 +167,33 @@ fun Route.adminApiRouting() {
     get<Api.Team.History> { history ->
         val events = TeamDEO.historyForTeam(history.id)
         call.respond(events)
+    }
+
+    post<Api.Team.Alias.New> {
+        receiveAndHandleDEO<NewTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.createInDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Team.Alias.Update> {
+        receiveAndHandleDEO<UpdateTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.updateInDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Team.Alias.Delete> {
+        receiveAndHandleDEO<DeleteTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.deleteFromDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.DELETE_FAILED, it.message ?: "Unknown error")
+            }
+        }
     }
 
     post<Api.Tournaments.Update> {

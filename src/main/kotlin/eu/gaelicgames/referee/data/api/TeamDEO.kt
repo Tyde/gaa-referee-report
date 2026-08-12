@@ -58,7 +58,13 @@ suspend fun TeamDEO.Companion.historyForTeam(teamId: Long): List<TeamHistoryEven
 // ---------------------------------------------------------------------------
 
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
-    return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
+    return TeamDEO(
+        input.name,
+        input.id.value,
+        input.isAmalgamation,
+        amalgamationTeams,
+        aliases = TeamAlias.find { TeamAliases.team eq input.id }.map { it.toDEO() }
+    )
 }
 
 fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
@@ -142,8 +148,12 @@ suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
                     query.selectAll().where { Teams.deletedAt.isNull() }.toList(),
                     alias
                 )
-                CacheUtil.cacheTeamList(dbTeams)
-                dbTeams
+                val aliasesByTeam = aliasesForTeamsInTransaction(dbTeams.map { it.id })
+                val withAliases = dbTeams.map { team ->
+                    team.copy(aliases = aliasesByTeam[team.id] ?: emptyList())
+                }
+                CacheUtil.cacheTeamList(withAliases)
+                withAliases
             }
         }
 
@@ -160,7 +170,7 @@ suspend fun TeamDEO.Companion.fromTeamId(it: Long): Result<TeamDEO> {
 // Team mutations (with history recording)
 // ---------------------------------------------------------------------------
 
-suspend fun TeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
+suspend fun UpdateTeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
 
     CacheUtil.deleteCachedTeamList()
 
@@ -207,6 +217,11 @@ suspend fun TeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
                 writeTeamHistoryEventInTransaction(
                     team, TeamChangeType.RENAMED, changeDate, oldName, team.name, recordedBy
                 )
+                //The admin may have asked to keep the old name findable.
+                //A rejected alias must never fail the rename.
+                thisTeam.keepOldNameAsAlias?.let { requestedAlias ->
+                    createTeamAliasInTransaction(team, requestedAlias, changeDate, recordedBy)
+                }
             }
             if (oldIsAmalgamation != team.isAmalgamation) {
                 val changeType = if (team.isAmalgamation) {
@@ -347,6 +362,31 @@ suspend fun MergeTeamsDEO.updateInDatabase(recordedBy: User? = null): Result<Tea
                         } else {
                             it.delete()
                         }
+                    }
+
+                    //Aliases owned by the merged team follow it to the survivor.
+                    //Collisions are dropped rather than failing the merge.
+                    TeamAlias.find { TeamAliases.team eq mergeTeam.id }.toList().forEach { existingAlias ->
+                        val stillFree = validateAliasInTransaction(
+                            existingAlias.alias, excludeAliasId = existingAlias.id.value
+                        ).isSuccess
+                        if (stillFree) {
+                            existingAlias.team = team
+                        } else {
+                            existingAlias.delete()
+                        }
+                    }
+
+                    //The admin may have asked to keep the merged team's name as an alias.
+                    //A rejected alias must never fail the merge.
+                    aliasesToCreate[mergeTeamId]?.let { requestedAlias ->
+                        createTeamAliasInTransaction(
+                            team,
+                            requestedAlias,
+                            changeDate,
+                            recordedBy,
+                            excludeTeamId = mergeTeam.id.value
+                        )
                     }
 
                     //History + soft-delete instead of hard delete

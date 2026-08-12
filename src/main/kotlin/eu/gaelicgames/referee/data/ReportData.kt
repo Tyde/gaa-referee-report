@@ -39,6 +39,29 @@ class Amalgamation(id: EntityID<Long>) : LongEntity(id) {
     var addedTeam by Team referencedOn Amalgamations.addedTeam
 }
 
+object TeamAliases : LongIdTable() {
+    val team = reference("team", Teams)
+    val alias = varchar("alias", 100)
+
+    /**
+     * Search and uniqueness key, produced by normalizeTeamName().
+     * Unique across ALL teams: a spelling must resolve to exactly one team,
+     * otherwise search is ambiguous.
+     */
+    val normalized = varchar("normalized", 100).uniqueIndex()
+    val createdAt = datetime("created_at")
+    val createdBy = optReference("created_by", Users)
+}
+
+class TeamAlias(id: EntityID<Long>) : LongEntity(id) {
+    companion object : LongEntityClass<TeamAlias>(TeamAliases)
+    var team by Team referencedOn TeamAliases.team
+    var alias by TeamAliases.alias
+    var normalized by TeamAliases.normalized
+    var createdAt by TeamAliases.createdAt
+    var createdBy by User optionalReferencedOn TeamAliases.createdBy
+}
+
 enum class TeamChangeType(val displayName: String) {
     CREATED("Team created"),
     RENAMED("Name changed"),
@@ -46,7 +69,9 @@ enum class TeamChangeType(val displayName: String) {
     CONVERTED_TO_TEAM("Converted to regular team"),
     MEMBER_ADDED("Team added to amalgamation"),
     MEMBER_REMOVED("Team removed from amalgamation"),
-    MERGED_INTO("Team merged into another team")
+    MERGED_INTO("Team merged into another team"),
+    ALIAS_ADDED("Alternative spelling added"),
+    ALIAS_REMOVED("Alternative spelling removed")
 }
 
 object TeamHistoryEvents : LongIdTable() {

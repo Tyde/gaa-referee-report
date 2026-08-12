@@ -67,7 +67,7 @@ class TeamHistoryDEOTest {
                 team.id.value
             }
             val changeDate = LocalDate.of(2024, 3, 15)
-            val result = TeamDEO(
+            val result = UpdateTeamDEO(
                 name = "New Name",
                 id = teamId,
                 isAmalgamation = false,
@@ -99,7 +99,7 @@ class TeamHistoryDEOTest {
                 }
                 Pair(team.id.value, member.id.value)
             }
-            val result = TeamDEO(
+            val result = UpdateTeamDEO(
                 name = "Squad Team",
                 id = teamId,
                 isAmalgamation = true,
@@ -142,7 +142,7 @@ class TeamHistoryDEOTest {
             }
 
             // Remove the member
-            val result = TeamDEO(
+            val result = UpdateTeamDEO(
                 name = "Amalgamation Squad",
                 id = teamId,
                 isAmalgamation = true,
@@ -229,7 +229,7 @@ class TeamHistoryDEOTest {
             }
             //Backdate a rename to before the creation date
             val past = LocalDate.of(2020, 1, 1)
-            TeamDEO(
+            UpdateTeamDEO(
                 name = "Sorting Team Renamed",
                 id = teamId,
                 isAmalgamation = false,
