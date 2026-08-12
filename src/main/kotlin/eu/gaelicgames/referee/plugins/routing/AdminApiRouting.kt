@@ -169,6 +169,15 @@ fun Route.adminApiRouting() {
         call.respond(events)
     }
 
+    get<Api.Team.Games> { games ->
+        TeamGamesDEO.forTeam(games.teamId, games.includeAmalgamatedTeams).fold(
+            onSuccess = { call.respond(it) },
+            onFailure = {
+                call.respond(ApiError(ApiErrorOptions.NOT_FOUND, it.message ?: "Team not found"))
+            }
+        )
+    }
+
     post<Api.Team.Alias.New> {
         receiveAndHandleDEO<NewTeamAliasDEO> { deo ->
             val recordedBy = call.principal<UserPrincipal>()?.user

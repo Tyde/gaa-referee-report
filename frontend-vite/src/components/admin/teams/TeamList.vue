@@ -11,8 +11,10 @@ import ConvertTeamToAmalgamtionDialog from "@/components/admin/teams/ConvertTeam
 import EditAmalgamationDialog from "@/components/admin/teams/EditAmalgamationDialog.vue";
 import TeamHistoryDialog from "@/components/admin/teams/TeamHistoryDialog.vue";
 import TeamAliasEditor from "@/components/admin/teams/TeamAliasEditor.vue";
+import {useRouter} from "vue-router";
 
 const store = useAdminStore()
+const router = useRouter()
 
 //const teams = ref<Team[]>([])
 
@@ -117,6 +119,10 @@ function showHistory(team: Team) {
   historyDialogVisible.value = true
 }
 
+function showGames(team: Team) {
+  router.push({path: `/teams/${team.id}/games`})
+}
+
 const orderedTeamsList = computed(() => {
   return [...props.teams].sort((a, b) => a.name > b.name ? 1 : -1)
 })
@@ -160,6 +166,7 @@ const orderedTeamsList = computed(() => {
               <div>{{ data.name }}</div>
               <div class="flex justify-end">
                 <Button text label="History" @click="() => showHistory(data)"/>
+                <Button text label="Games" @click="() => showGames(data)"/>
                 <Button text label="Edit teams" @click="() => startEditAmalgamation(data)"/>
                 <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
               </div>
@@ -180,6 +187,7 @@ const orderedTeamsList = computed(() => {
                 <div class="flex-1 align-middle inline-block">{{ data.name }}</div>
                 <div>
                   <Button text label="History" @click="() => showHistory(data)"/>
+                  <Button text label="Games" @click="() => showGames(data)"/>
                   <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
                   <Button text label="Convert" @click="() => startAmalgamationConvert(data)"/>
                 </div>
