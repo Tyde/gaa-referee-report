@@ -4,7 +4,7 @@
 **Branch:** `feature/team_spelling_support`
 **Plan:** `docs/superpowers/plans/2026-08-11-team-name-aliases.md`
 **Spec:** `docs/superpowers/specs/2026-08-11-team-name-aliases-design.md`
-**Status:** Tasks 1–10 complete and reviewed. Tasks 11–14 remain.
+**Status:** Tasks 1–11 complete and reviewed. Tasks 12–14 remain.
 
 ## What works now
 
@@ -17,13 +17,14 @@ names from already-merged teams, including multi-hop merge chains, as aliases
 of the surviving team. The frontend now has Vitest coverage, a shared
 normalizer, alias-aware scoring, and the corresponding API types. The team
 picker now searches aliases, identifies alias-only matches, and keeps stable
-team-id row keys.
+team-id row keys. Admins can now add and remove aliases through the team
+management UI, with collision errors shown inline.
 
-The remaining UI work is tasks 11–13.
+The remaining UI work is tasks 12–13.
 
 ## Commits on this branch
 
-Thirteen implementation commits, oldest first, on top of `1abb653`:
+Fourteen implementation commits, oldest first, on top of `1abb653`:
 
 | Commit | Task | What |
 |---|---|---|
@@ -40,6 +41,7 @@ Thirteen implementation commits, oldest first, on top of `1abb653`:
 | `a31bc9f` | 8 | Backfill search aliases from previously merged teams |
 | `4182a02` | 9 | Add Vitest and alias-aware team search scoring |
 | `80f8375` | 10 | Team picker finds teams by alternative spellings |
+| `1fad4c9` | 11 | Admin can manage alternative team spellings |
 
 ## Submodule state — read this before continuing
 
@@ -63,7 +65,6 @@ a gitlink that only resolves via a feature branch.
 
 | Task | Scope |
 |---|---|
-| 11 | Alias API client and admin chip editor |
 | 12 | Merge dialog per-team alias rows |
 | 13 | Rename control in three admin components |
 | 14 | Full verification, including the end-to-end walkthrough |
