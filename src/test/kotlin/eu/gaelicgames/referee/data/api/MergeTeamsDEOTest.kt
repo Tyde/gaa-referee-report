@@ -258,6 +258,32 @@ class MergeTeamsDEOTest {
     }
 
     @Test
+    fun `merge creates the merged team's canonical name as an alias`() {
+        runBlocking {
+            var baseId = 0L
+            var mergedId = 0L
+            val mergedName = "Canonical Merge Source"
+            newSuspendedTransaction {
+                baseId = Team.new { name = "Canonical Merge Base"; isAmalgamation = false }.id.value
+                mergedId = Team.new { name = mergedName; isAmalgamation = false }.id.value
+                commit()
+            }
+
+            MergeTeamsDEO(
+                baseTeam = baseId,
+                teamsToMerge = listOf(mergedId),
+                aliasesToCreate = mapOf(mergedId to mergedName)
+            ).updateInDatabase().getOrThrow()
+
+            newSuspendedTransaction {
+                val aliases = TeamAlias.find { TeamAliases.team eq baseId }.map { it.alias }
+                assertEquals(listOf(mergedName), aliases)
+                assertNotNull(Team.findById(mergedId)!!.deletedAt)
+            }
+        }
+    }
+
+    @Test
     fun `merge succeeds even when the proposed alias collides`() {
         runBlocking {
             var baseId = 0L

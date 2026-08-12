@@ -20,8 +20,13 @@ fun TeamAlias.toDEO(): TeamAliasDEO = TeamAliasDEO(
  * name. Requires an active transaction. Returns the normalized form on success.
  *
  * @param excludeAliasId alias row being updated, excluded from the collision check
+ * @param excludeTeamId live team whose canonical name is allowed during an atomic merge
  */
-fun validateAliasInTransaction(aliasText: String, excludeAliasId: Long? = null): Result<String> {
+fun validateAliasInTransaction(
+    aliasText: String,
+    excludeAliasId: Long? = null,
+    excludeTeamId: Long? = null
+): Result<String> {
     val trimmed = aliasText.trim()
     if (trimmed.isBlank()) {
         return Result.failure(Exception("Alias must not be blank"))
@@ -42,7 +47,9 @@ fun validateAliasInTransaction(aliasText: String, excludeAliasId: Long? = null):
     // Team counts are in the hundreds, so normalizing in memory is cheaper than
     // storing and maintaining a normalized column on Teams.
     val clashingTeam = Team.find { Teams.deletedAt.isNull() }
-        .firstOrNull { normalizeTeamName(it.name) == normalized }
+        .firstOrNull {
+            it.id.value != excludeTeamId && normalizeTeamName(it.name) == normalized
+        }
     if (clashingTeam != null) {
         return Result.failure(
             Exception("\"$trimmed\" is already the name of team ${clashingTeam.name}")
@@ -61,9 +68,10 @@ fun createTeamAliasInTransaction(
     team: Team,
     aliasText: String,
     changeDate: LocalDate,
-    recordedBy: User? = null
+    recordedBy: User? = null,
+    excludeTeamId: Long? = null
 ): Result<TeamAlias> {
-    return validateAliasInTransaction(aliasText).map { normalizedValue ->
+    return validateAliasInTransaction(aliasText, excludeTeamId = excludeTeamId).map { normalizedValue ->
         val trimmed = aliasText.trim()
         val created = TeamAlias.new {
             this.team = team

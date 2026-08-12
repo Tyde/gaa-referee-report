@@ -380,7 +380,13 @@ suspend fun MergeTeamsDEO.updateInDatabase(recordedBy: User? = null): Result<Tea
                     //The admin may have asked to keep the merged team's name as an alias.
                     //A rejected alias must never fail the merge.
                     aliasesToCreate[mergeTeamId]?.let { requestedAlias ->
-                        createTeamAliasInTransaction(team, requestedAlias, changeDate, recordedBy)
+                        createTeamAliasInTransaction(
+                            team,
+                            requestedAlias,
+                            changeDate,
+                            recordedBy,
+                            excludeTeamId = mergeTeam.id.value
+                        )
                     }
 
                     //History + soft-delete instead of hard delete
