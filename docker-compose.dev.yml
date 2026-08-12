@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '80:8080'
+    volumes:
+      - database:/app/data
+    environment:
+      SERVER_URL: "http://referee.gaelicgames.eu"
+      MAILJET_PUBLIC: "__public_key__"
+      MAILJET_SECRET: "__secret_key__"
+      ADMIN_FIRST_NAME: "Admin"
+      ADMIN_LAST_NAME: "User"
+      ADMIN_MAIL: "home@admin.com"
+      ADMIN_PASSWORD: "password"
+      REDIS_HOST: "cache"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "password"
+      POSTGRES_HOST: "db"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DATABASE: "referee"
+      POSTGRES_USER: "referee"
+      POSTGRES_PASSWORD: "password"
+  cache:
+    image: 'redis/redis-stack-server:latest'
+  db:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: "referee"
+      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: 'referee'
+    volumes:
+      - pgsqldata:/var/lib/postgresql/data
+
+volumes:
+  database:
+  pgsqldata:

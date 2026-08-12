@@ -131,9 +131,16 @@ object MockDataGenerator {
                                 firstCheckDone = true
                             }
                         }
-                        Team.new {
+                        val team = Team.new {
                             name = csvRecord.get(0)
                             isAmalgamation = false
+                        }
+                        TeamHistoryEvent.new {
+                            this.team = team
+                            changeType = TeamChangeType.CREATED
+                            changeDate = java.time.LocalDate.now()
+                            newValue = team.name
+                            recordedAt = java.time.LocalDateTime.now()
                         }
                         println(
                             "Adding Team: ${csvRecord.get(0)}"

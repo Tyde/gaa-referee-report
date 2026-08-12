@@ -38,10 +38,6 @@ const submittedReports = computed(() => {
 
 <style scoped>
 h1 {
-  @apply text-2xl;
-  @apply font-bold;
-  @apply text-gray-900;
-  @apply text-center;
-  @apply m-2;
+  @apply text-left;
 }
 </style>

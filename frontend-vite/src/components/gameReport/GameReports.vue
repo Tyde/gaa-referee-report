@@ -56,6 +56,7 @@ function newGameReport() {
       points: 0,
       injuries : [],
       disciplinaryActions : [],
+      substitutions : [],
     },
     teamBReport : {
       team: undefined,
@@ -63,6 +64,7 @@ function newGameReport() {
       points: 0,
       injuries : [],
       disciplinaryActions : [],
+      substitutions : [],
     },
     umpirePresentOnTime: true,
     umpireNotes: "",
@@ -87,9 +89,9 @@ onBeforeMount(()=> {
   if(store.gameReports.length==0){
     newGameReport()
   } else {
-    let queryIdSplit = location.href.split("#")[1]?.split("/")[1]
+    const queryIdSplit = location.href.split("#")[1]?.split("/")[1]
     if(queryIdSplit) {
-      let queryId = parseInt(queryIdSplit)
+      const queryId = parseInt(queryIdSplit)
       store.gameReports.forEach((report, index) => {
         if(report.id == queryId) {
           store.selectedGameReportIndex = index
@@ -132,7 +134,7 @@ async function deleteReport() {
 }
 
 const gameReportsListIndices = computed(() => {
-  let indices = []
+  const indices = []
   for(let i = 0; i < sortedGameReports.value.length; i++) {
     indices.push(store.gameReports.indexOf(sortedGameReports.value[i]))
   }

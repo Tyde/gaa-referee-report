@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 
-import {ErrorMessage, ExtraTimeOption, GameCode, GameType} from "@/types";
+import {ErrorMessage, ExtraTimeOption, GameCode, GameLengthOption, GameType} from "@/types";
 import {Rule} from "@/types/rules_types";
 import type {PitchVariables} from "@/types/pitch_types";
 import {DatabaseTournament, RegionDEO} from "@/types/tournament_types";
@@ -19,6 +19,7 @@ export const usePublicStore = defineStore("public",() =>{
     const rules = ref<Array<Rule>>([])
     const gameTypes = ref<Array<GameType>>([])
     const extraTimeOptions = ref<Array<ExtraTimeOption>>([])
+    const gameLengthOptions = ref<Array<GameLengthOption>>([])
     const pitchVariables = ref<PitchVariables | undefined>()
     const regions = ref<Array<RegionDEO>>([])
     const tournaments = ref<Array<DatabaseTournament>>([])
@@ -55,6 +56,7 @@ export const usePublicStore = defineStore("public",() =>{
                 .then(gameReportVariables => {
                     gameTypes.value = gameReportVariables.gameTypes
                     extraTimeOptions.value = gameReportVariables.extraTimeOptions
+                    gameLengthOptions.value = gameReportVariables.gameLengthOptions
                 })
                 .catch(reason => currentErrors.value.push(new ErrorMessage(reason)))
             )
@@ -129,6 +131,7 @@ export const usePublicStore = defineStore("public",() =>{
                 rules.value.length > 0 &&
                 gameTypes.value.length > 0 &&
                 extraTimeOptions.value.length > 0 &&
+                gameLengthOptions.value.length > 0 &&
                 pitchVariables.value
             ) {
                 break
@@ -149,6 +152,7 @@ export const usePublicStore = defineStore("public",() =>{
         rules,
         gameTypes,
         extraTimeOptions,
+        gameLengthOptions,
         pitchVariables,
         regions,
         tournaments,

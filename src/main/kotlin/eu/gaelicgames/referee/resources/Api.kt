@@ -39,6 +39,35 @@ class Api() {
         @Serializable
         @Resource("merge")
         class Merge(val parent: Team)
+
+        @Serializable
+        @Resource("history/{id}")
+        class History(val parent: Team, val id: Long)
+
+        @Serializable
+        @Resource("games/{teamId}")
+        class Games(
+            val parent: Team,
+            val teamId: Long,
+            val includeAmalgamatedTeams: Boolean = false
+        )
+
+        @Serializable
+        @Resource("alias")
+        class Alias(val parent: Team) {
+
+            @Serializable
+            @Resource("new")
+            class New(val parent: Alias)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Alias)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Alias)
+        }
     }
 
     @Serializable
@@ -258,6 +287,22 @@ class Api() {
             class Delete(val parent: Injury)
         }
 
+        @Serializable
+        @Resource("substitution")
+        class Substitution(val parent: GameReports) {
+            @Serializable
+            @Resource("new")
+            class New(val parent: Substitution)
+
+            @Serializable
+            @Resource("update")
+            class Update(val parent: Substitution)
+
+            @Serializable
+            @Resource("delete")
+            class Delete(val parent: Substitution)
+        }
+
 
     }
 
@@ -271,6 +316,18 @@ class Api() {
         @Serializable
         @Resource("update")
         class Update(val parent: GameType)
+    }
+
+    @Serializable
+    @Resource("gamelength")
+    class GameLength(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: GameLength)
+
+        @Serializable
+        @Resource("update")
+        class Update(val parent: GameLength)
     }
     @Serializable
     @Resource("pitch")
@@ -356,5 +413,25 @@ class Api() {
     @Serializable
     @Resource("website_feed")
     class WebsiteFeed(val parent: Api)
+
+    @Serializable
+    @Resource("api_token")
+    class ApiToken(val parent: Api) {
+        @Serializable
+        @Resource("new")
+        class New(val parent: ApiToken)
+
+        @Serializable
+        @Resource("all")
+        class All(val parent: ApiToken)
+
+        @Serializable
+        @Resource("revoke")
+        class Revoke(val parent: ApiToken)
+    }
+
+    @Serializable
+    @Resource("stats")
+    class Stats(val parent: Api = Api())
 
 }

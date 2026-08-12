@@ -61,3 +61,19 @@ data/data.db
 data/data.db.BAK
 data/*
 *.db
+/.gradle-home/*
+
+
+referee-kottster/
+gaa-referee-api/
+
+frontend-vite/cypress/
+
+src/test/julia/
+
+other/
+
+scripts/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/

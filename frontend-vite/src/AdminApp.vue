@@ -46,9 +46,13 @@ const items = ref([
   }, {
     label: "Referees",
     route: "/referees"
-  },{
+  }, {
     label: "CCC",
     route: "/ccc"
+  }, {
+    label: "API Tokens",
+    route: "/api-tokens",
+    icon: "pi pi-fw pi-key"
   }
 
 ])

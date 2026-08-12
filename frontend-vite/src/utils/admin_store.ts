@@ -7,7 +7,7 @@ import {
     pitchDEOtoPitch,
     updatePitchPropertyOnServer
 } from "@/utils/api/pitch_api";
-import {ErrorMessage, GameType} from "@/types";
+import {ErrorMessage, GameLengthOption, GameType} from "@/types";
 import {
     completeReportDEOToReport,
     extractGameReportsFromCompleteReportDEO,
@@ -15,6 +15,7 @@ import {
 } from "@/utils/api/report_api";
 import {getRules} from "@/utils/api/disciplinary_action_api";
 import {uploadNewGameType} from "@/utils/api/game_report_api";
+import {createGameLengthOnServer, updateGameLengthOnServer} from "@/utils/api/admin_api";
 import {
     addRuleOnServer,
     deleteTournamentOnServer,
@@ -108,17 +109,18 @@ export const useAdminStore = defineStore('admin', () => {
     async function getCompleteReport(reportId: number) {
         const deo = await loadReportDEO(reportId)
         await publicStore.waitForAllVariablesPresent()
-        let currentReport = completeReportDEOToReport(deo, publicStore.codes)
-        let allGameReports = extractGameReportsFromCompleteReportDEO(
+        const currentReport = completeReportDEOToReport(deo, publicStore.codes)
+        const allGameReports = extractGameReportsFromCompleteReportDEO(
             deo,
             currentReport,
             publicStore.gameTypes,
             publicStore.extraTimeOptions,
+            publicStore.gameLengthOptions,
             publicStore.rules,
             publicStore.teams
         )
-        let allPitchReports = deo.pitches
-            ?.map(it => pitchDEOtoPitch(it, currentReport, publicStore.pitchVariables!!)) ?? []
+        const allPitchReports = deo.pitches
+            ?.map(it => pitchDEOtoPitch(it, currentReport, publicStore.pitchVariables!)) ?? []
         return {
             report: currentReport,
             gameReports: allGameReports,
@@ -153,8 +155,8 @@ export const useAdminStore = defineStore('admin', () => {
 
     async function updateGameType(gameType: GameType) {
         try {
-            let result = await updateGameTypeOnServer(gameType)
-            let index = publicStore.gameTypes.findIndex(it => it.id === result.id)
+            const result = await updateGameTypeOnServer(gameType)
+            const index = publicStore.gameTypes.findIndex(it => it.id === result.id)
             if (index >= 0) {
                 publicStore.gameTypes[index] = result
             }
@@ -165,8 +167,29 @@ export const useAdminStore = defineStore('admin', () => {
 
     async function createGameType(type: GameType) {
         try {
-            let result = await uploadNewGameType(type.name)
+            const result = await uploadNewGameType(type.name)
             publicStore.gameTypes.push(result)
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
+    async function updateGameLength(option: GameLengthOption) {
+        try {
+            const result = await updateGameLengthOnServer(option)
+            const index = publicStore.gameLengthOptions.findIndex(it => it.id === result.id)
+            if (index >= 0) {
+                publicStore.gameLengthOptions[index] = result
+            }
+        } catch (e: any) {
+            newError(e)
+        }
+    }
+
+    async function createGameLength(option: GameLengthOption) {
+        try {
+            const result = await createGameLengthOnServer(option)
+            publicStore.gameLengthOptions.push(result)
         } catch (e: any) {
             newError(e)
         }
@@ -203,8 +226,10 @@ export const useAdminStore = defineStore('admin', () => {
         updateRuleInStore,
         deleteRuleInStore,
         updateGameType,
+        updateGameLength,
         addRule,
         createGameType,
+        createGameLength,
         deleteTournament,
         mergeTournament
     }
