@@ -45,6 +45,14 @@ class Api() {
         class History(val parent: Team, val id: Long)
 
         @Serializable
+        @Resource("games/{teamId}")
+        class Games(
+            val parent: Team,
+            val teamId: Long,
+            val includeAmalgamatedTeams: Boolean = false
+        )
+
+        @Serializable
         @Resource("alias")
         class Alias(val parent: Team) {
 
