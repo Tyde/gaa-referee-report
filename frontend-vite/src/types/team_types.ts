@@ -1,4 +1,5 @@
 import {z} from "zod";
+import {DateTime} from "luxon";
 
 export interface TeamAliasDEO {
     id: number,
@@ -64,3 +65,38 @@ export const TeamHistoryEventDEO: z.ZodType<TeamHistoryEventDEO> = z.object({
     newValue: z.string().nullable().optional(),
     recordedAt: z.string(),
 })
+
+export const TeamGameDEO = z.object({
+    gameId: z.number(),
+    reportId: z.number(),
+    tournament: z.object({
+        id: z.number(),
+        name: z.string(),
+        location: z.string(),
+        date: z.string().transform((value) => DateTime.fromISO(value)),
+        region: z.number(),
+        isLeague: z.boolean().optional(),
+        endDate: z.string().optional().transform((value) => value ? DateTime.fromISO(value) : null)
+    }),
+    startTime: z.string().transform((value) => DateTime.fromISO(value)).nullable(),
+    playedAsTeam: Team,
+    opponentTeam: Team,
+    playedAsGoals: z.number(),
+    playedAsPoints: z.number(),
+    opponentGoals: z.number(),
+    opponentPoints: z.number(),
+    refereeId: z.number(),
+    refereeName: z.string(),
+    codeId: z.number(),
+    codeName: z.string(),
+    gameTypeId: z.number().nullable(),
+    gameTypeName: z.string().nullable()
+})
+export type TeamGameDEO = z.infer<typeof TeamGameDEO>
+
+export const TeamGamesDEO = z.object({
+    selectedTeam: Team,
+    includedAmalgamations: z.array(Team),
+    games: z.array(TeamGameDEO)
+})
+export type TeamGamesDEO = z.infer<typeof TeamGamesDEO>

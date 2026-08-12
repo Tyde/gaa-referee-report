@@ -4,6 +4,7 @@ import {
     MergeTeamsDEO,
     Team,
     TeamAliasDEO,
+    TeamGamesDEO,
     TeamHistoryEventDEO
 } from "@/types/team_types";
 
@@ -84,4 +85,16 @@ export async function getTeamHistory(teamId: number): Promise<Array<TeamHistoryE
     return fetch(`/api/team/history/${teamId}`)
         .then(response => response.json())
         .then(data => parseAndHandleDEO(data, TeamHistoryEventDEO.array()))
+}
+
+export async function getTeamGames(
+    teamId: number,
+    includeAmalgamatedTeams: boolean
+): Promise<TeamGamesDEO> {
+    const query = new URLSearchParams({
+        includeAmalgamatedTeams: String(includeAmalgamatedTeams)
+    })
+    return fetch(`/api/team/games/${teamId}?${query}`)
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, TeamGamesDEO))
 }
