@@ -75,6 +75,7 @@ export const editReportFR = {
         enterNameForSearch: 'Entrer le nom de l’équipe pour recherche',
         addNewTeam: 'Ajouter une nouvelle équipe',
         addNewAmalgamation: 'Ajouter une nouvelle fusion',
+        matchedAlias: 'aussi appelé "{alias}"',
         alreadyInSelection: 'Déjà dans la sélection',
         newTeamName: 'Nom de la nouvelle équipe',
         newAmalgamationTitle: 'Créer une nouvelle fusion',
