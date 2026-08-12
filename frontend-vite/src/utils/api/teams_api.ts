@@ -30,8 +30,15 @@ export async function createAmalgamationOnServer(name: string, teams: Array<Team
         .then(data => parseAndHandleDEO(data, Team))
 }
 
-export async function editTeamOnServer(team: Team): Promise<Team> {
-    return makePostRequest("/api/team/update", team)
+export async function editTeamOnServer(team: Team, keepOldNameAsAlias?: string): Promise<Team> {
+    return makePostRequest("/api/team/update", {
+        name: team.name,
+        id: team.id,
+        isAmalgamation: team.isAmalgamation,
+        amalgamationTeams: team.amalgamationTeams ?? null,
+        changeDate: team.changeDate,
+        keepOldNameAsAlias: keepOldNameAsAlias
+    })
         .then(data => parseAndHandleDEO(data, Team))
 }
 

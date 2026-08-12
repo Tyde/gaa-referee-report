@@ -44,6 +44,9 @@ function toIsoDate(value: Date | undefined | null): string | undefined {
 function onRowEditInit(event: DataTableRowEditInitEvent) {
   //Initialize the change date for the editor (defaults to today)
   event.data.changeDateValue = event.data.changeDate ? new Date(event.data.changeDate) : new Date()
+  event.data.originalName = event.data.name
+  event.data.keepOldName = true
+  event.data.oldNameAlias = event.data.name
 }
 
 function editTeam(event: DataTableRowEditSaveEvent) {
@@ -55,7 +58,11 @@ function editTeam(event: DataTableRowEditSaveEvent) {
     amalgamationTeams: newData.amalgamationTeams ?? null,
     changeDate: toIsoDate(newData.changeDateValue)
   }
-  editTeamOnServer(payload)
+  const nameChanged = newData.originalName !== undefined && newData.originalName !== newData.name
+  const keepOldName = nameChanged && newData.keepOldName && newData.oldNameAlias?.trim()
+      ? newData.oldNameAlias.trim()
+      : undefined
+  editTeamOnServer(payload, keepOldName)
       .then((dbTeam) => {
         emit('teamUpdated', dbTeam)
       })
@@ -133,6 +140,14 @@ const orderedTeamsList = computed(() => {
             <div class="flex flex-row items-center gap-2">
               <label class="text-xs">Date of change</label>
               <DatePicker v-model="slotProps.data.changeDateValue" dateFormat="yy-mm-dd" showIcon iconDisplay="input" class="w-full"/>
+            </div>
+            <div v-if="slotProps.data.name !== slotProps.data.originalName" class="flex flex-col gap-1">
+              <label :for="`keep-old-name-${slotProps.data.id}`" class="flex flex-row items-center gap-2 text-xs">
+                <Checkbox :input-id="`keep-old-name-${slotProps.data.id}`" v-model="slotProps.data.keepOldName" binary/>
+                Keep old name as alternative spelling
+              </label>
+              <label :for="`old-name-alias-${slotProps.data.id}`" class="sr-only">Alternative spelling</label>
+              <InputText :id="`old-name-alias-${slotProps.data.id}`" v-model="slotProps.data.oldNameAlias" :disabled="!slotProps.data.keepOldName"/>
             </div>
           </div>
         </template>

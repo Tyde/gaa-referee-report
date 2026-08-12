@@ -29,19 +29,32 @@ const localVisible = computed({
 
 const teamEditCopy = ref<Team>(JSON.parse(JSON.stringify(props.selectedTeam)))
 const changeDate = ref<Date>(new Date())
+const originalName = ref(props.selectedTeam.name)
+const keepOldName = ref(true)
+const oldNameAlias = ref(props.selectedTeam.name)
 watch(() => props.visible, (newValue) => {
   if (newValue) {
     teamEditCopy.value = JSON.parse(JSON.stringify(props.selectedTeam))
     changeDate.value = teamEditCopy.value.changeDate ? new Date(teamEditCopy.value.changeDate) : new Date()
+    originalName.value = teamEditCopy.value.name
+    keepOldName.value = true
+    oldNameAlias.value = teamEditCopy.value.name
   }
 })
 
 function saveEdit() {
   const payload: Team = {
-    ...teamEditCopy.value,
+    name: teamEditCopy.value.name,
+    id: teamEditCopy.value.id,
+    isAmalgamation: teamEditCopy.value.isAmalgamation,
+    amalgamationTeams: teamEditCopy.value.amalgamationTeams ?? null,
     changeDate: changeDate.value ? changeDate.value.toISOString().slice(0, 10) : undefined
   }
-  editTeamOnServer(payload)
+  const nameChanged = originalName.value !== teamEditCopy.value.name
+  const keepOldNameAsAlias = nameChanged && keepOldName.value && oldNameAlias.value.trim()
+      ? oldNameAlias.value.trim()
+      : undefined
+  editTeamOnServer(payload, keepOldNameAsAlias)
       .then((dbTeam) => {
         emits('teamUpdated', dbTeam)
       })
@@ -65,6 +78,18 @@ function saveEdit() {
     <div class="flex flex-col">
       <div>
         Name: <InputText v-model="teamEditCopy.name" />
+      </div>
+      <div v-if="teamEditCopy.name !== originalName" class="flex flex-col gap-1 m-2">
+        <label :for="`keep-old-name-amalgamation-${selectedTeam.id}`" class="flex flex-row items-center gap-2 text-xs">
+          <Checkbox :input-id="`keep-old-name-amalgamation-${selectedTeam.id}`" v-model="keepOldName" binary/>
+          Keep old name as alternative spelling
+        </label>
+        <label :for="`old-name-alias-amalgamation-${selectedTeam.id}`" class="sr-only">Alternative spelling</label>
+        <InputText
+            :id="`old-name-alias-amalgamation-${selectedTeam.id}`"
+            v-model="oldNameAlias"
+            :disabled="!keepOldName"
+        />
       </div>
       <div class="flex flex-row items-center gap-2 m-2">
         <label>Date of change</label>
