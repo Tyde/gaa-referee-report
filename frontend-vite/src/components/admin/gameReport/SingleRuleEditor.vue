@@ -307,14 +307,18 @@ function formatHistoryDate(iso: string | null | undefined): string {
       <template v-if="shadowCopyRule !== undefined">
       <label class="m-1"><b>Rule Number:</b></label><InputText class="m-1 w-[100%]"
                  v-model="shadowCopyRule.ruleNumber" :disabled="waitingForTranslation"/>
-      <InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                 v-model="shadowCopyRule.description" :disabled="waitingForTranslation"/>
-        <b>FR:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionFr" :disabled="waitingForTranslation"/>
-        <b>ES:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionEs" :disabled="waitingForTranslation"/>
-        <b>DE:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionDe" :disabled="waitingForTranslation"/>
+      <Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                 v-model="shadowCopyRule.description" :disabled="waitingForTranslation"
+                 :autoResize="true" rows="3" cols="40"/>
+        <b>FR:</b><Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionFr" :disabled="waitingForTranslation"
+                  :autoResize="true" rows="3" cols="40"/>
+        <b>ES:</b><Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionEs" :disabled="waitingForTranslation"
+                  :autoResize="true" rows="3" cols="40"/>
+        <b>DE:</b><Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionDe" :disabled="waitingForTranslation"
+                  :autoResize="true" rows="3" cols="40"/>
       <div class="float-left">
         <SelectButton v-model="selectedCardInCopy" :options="cards" class="m-1" optionLabel="label"/>
       </div>
@@ -407,5 +411,10 @@ function formatHistoryDate(iso: string | null | undefined): string {
   @apply border border-emerald-500;
   @apply rounded;
   @apply px-2;
+}
+.rule-edit-textarea {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 </style>
