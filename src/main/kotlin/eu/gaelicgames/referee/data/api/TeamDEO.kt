@@ -4,16 +4,74 @@ import eu.gaelicgames.referee.data.*
 import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import org.jetbrains.exposed.sql.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+// ---------------------------------------------------------------------------
+// Team history helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a history event. Requires an active transaction.
+ * Used inside existing `lockedTransaction { }` blocks so history is written
+ * atomically with the change itself.
+ */
+fun writeTeamHistoryEventInTransaction(
+    team: Team,
+    changeType: TeamChangeType,
+    changeDate: LocalDate,
+    oldValue: String? = null,
+    newValue: String? = null,
+    recordedBy: User? = null
+) {
+    TeamHistoryEvent.new {
+        this.team = team
+        this.changeType = changeType
+        this.changeDate = changeDate
+        this.oldValue = oldValue
+        this.newValue = newValue
+        recordedAt = LocalDateTime.now()
+        this.recordedBy = recordedBy
+    }
+}
+
+fun TeamHistoryEvent.toDEO(): TeamHistoryEventDEO {
+    return TeamHistoryEventDEO(
+        changeType = changeType.name,
+        changeDate = changeDate,
+        oldValue = oldValue,
+        newValue = newValue,
+        recordedAt = recordedAt
+    )
+}
+
+suspend fun TeamDEO.Companion.historyForTeam(teamId: Long): List<TeamHistoryEventDEO> {
+    return lockedTransaction {
+        TeamHistoryEvent.find { TeamHistoryEvents.team eq teamId }
+            .sortedBy { it.changeDate }
+            .map { it.toDEO() }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Team DEO mapping
+// ---------------------------------------------------------------------------
 
 fun TeamDEO.Companion.fromTeam(input: Team, amalgamationTeams: List<TeamDEO>? = null): TeamDEO {
-    return TeamDEO(input.name, input.id.value, input.isAmalgamation, amalgamationTeams)
+    return TeamDEO(
+        input.name,
+        input.id.value,
+        input.isAmalgamation,
+        amalgamationTeams,
+        aliases = TeamAlias.find { TeamAliases.team eq input.id }.map { it.toDEO() }
+    )
 }
 
 fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
     val isAmalgamation = row[Teams.isAmalgamation]
     val addedTeams = if (isAmalgamation) {
         Amalgamations.leftJoin(Teams, { addedTeam }, { Teams.id }).selectAll()
-            .where { Amalgamations.amalgamation eq row[Teams.id] }.map {
+            .where { (Amalgamations.amalgamation eq row[Teams.id]) and (Teams.deletedAt.isNull()) }.map {
             TeamDEO.wrapRow(it)
         }
 
@@ -31,14 +89,19 @@ fun TeamDEO.Companion.wrapRow(row: ResultRow): TeamDEO {
 fun TeamDEO.Companion.wrapJoinedRow(row: ResultRow, aliasAddedTeam: Alias<Teams>): TeamDEO {
     val isAmalgamation = row[Teams.isAmalgamation]
     val singleAmalgamationTeam = if (isAmalgamation) {
-        listOf(
-            TeamDEO(
-                row[aliasAddedTeam[Teams.name]],
-                row[aliasAddedTeam[Teams.id]].value,
-                row[aliasAddedTeam[Teams.isAmalgamation]],
-                null
+        val deleted = row[aliasAddedTeam[Teams.deletedAt]]
+        if (deleted == null) {
+            listOf(
+                TeamDEO(
+                    row[aliasAddedTeam[Teams.name]],
+                    row[aliasAddedTeam[Teams.id]].value,
+                    row[aliasAddedTeam[Teams.isAmalgamation]],
+                    null
+                )
             )
-        )
+        } else {
+            listOf()
+        }
     } else {
         listOf()
     }
@@ -81,9 +144,16 @@ suspend fun TeamDEO.Companion.allTeamList(): List<TeamDEO> {
         .getOrElse {
             lockedTransaction {
                 val (query, alias) = wrapJoinQuery()
-                val dbTeams = mapJoinedResultsToTeamDEO(query.selectAll().toList(), alias)
-                CacheUtil.cacheTeamList(dbTeams)
-                dbTeams
+                val dbTeams = mapJoinedResultsToTeamDEO(
+                    query.selectAll().where { Teams.deletedAt.isNull() }.toList(),
+                    alias
+                )
+                val aliasesByTeam = aliasesForTeamsInTransaction(dbTeams.map { it.id })
+                val withAliases = dbTeams.map { team ->
+                    team.copy(aliases = aliasesByTeam[team.id] ?: emptyList())
+                }
+                CacheUtil.cacheTeamList(withAliases)
+                withAliases
             }
         }
 
@@ -96,14 +166,24 @@ suspend fun TeamDEO.Companion.fromTeamId(it: Long): Result<TeamDEO> {
     }
 }
 
-suspend fun TeamDEO.updateInDatabase(): Result<Team> {
+// ---------------------------------------------------------------------------
+// Team mutations (with history recording)
+// ---------------------------------------------------------------------------
+
+suspend fun UpdateTeamDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
 
     CacheUtil.deleteCachedTeamList()
 
     val thisTeam = this
+    val changeDate = thisTeam.changeDate ?: LocalDate.now()
     return lockedTransaction {
         val team = Team.findById(thisTeam.id)
         if (team != null) {
+            val oldName = team.name
+            val oldIsAmalgamation = team.isAmalgamation
+            val oldMemberIds = Amalgamation.find { Amalgamations.amalgamation eq team.id }
+                .map { it.addedTeam.id.value }.toSet()
+
             team.name = thisTeam.name
             team.isAmalgamation = thisTeam.isAmalgamation
             if (thisTeam.isAmalgamation && thisTeam.amalgamationTeams != null) {
@@ -128,6 +208,42 @@ suspend fun TeamDEO.updateInDatabase(): Result<Team> {
             } else if (thisTeam.isAmalgamation && thisTeam.amalgamationTeams == null) {
                 return@lockedTransaction Result.failure(Exception("Amalgamation teams not provided"))
             }
+
+            val newMemberIds = Amalgamation.find { Amalgamations.amalgamation eq team.id }
+                .map { it.addedTeam.id.value }.toSet()
+
+            // ---- history ----
+            if (oldName != team.name) {
+                writeTeamHistoryEventInTransaction(
+                    team, TeamChangeType.RENAMED, changeDate, oldName, team.name, recordedBy
+                )
+                //The admin may have asked to keep the old name findable.
+                //A rejected alias must never fail the rename.
+                thisTeam.keepOldNameAsAlias?.let { requestedAlias ->
+                    createTeamAliasInTransaction(team, requestedAlias, changeDate, recordedBy)
+                }
+            }
+            if (oldIsAmalgamation != team.isAmalgamation) {
+                val changeType = if (team.isAmalgamation) {
+                    TeamChangeType.CONVERTED_TO_AMALGAMATION
+                } else {
+                    TeamChangeType.CONVERTED_TO_TEAM
+                }
+                writeTeamHistoryEventInTransaction(team, changeType, changeDate, null, null, recordedBy)
+            }
+            (newMemberIds - oldMemberIds).forEach { memberId ->
+                val memberName = Team.findById(memberId)?.name ?: memberId.toString()
+                writeTeamHistoryEventInTransaction(
+                    team, TeamChangeType.MEMBER_ADDED, changeDate, null, memberName, recordedBy
+                )
+            }
+            (oldMemberIds - newMemberIds).forEach { memberId ->
+                val memberName = Team.findById(memberId)?.name ?: memberId.toString()
+                writeTeamHistoryEventInTransaction(
+                    team, TeamChangeType.MEMBER_REMOVED, changeDate, memberName, null, recordedBy
+                )
+            }
+
             Result.success(team)
         } else {
             Result.failure(Exception("Team not found"))
@@ -136,19 +252,48 @@ suspend fun TeamDEO.updateInDatabase(): Result<Team> {
 }
 
 
-suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
+suspend fun MergeTeamsDEO.updateInDatabase(recordedBy: User? = null): Result<Team> {
 
     CacheUtil.deleteCachedTeamList()
 
+    val changeDate = this.changeDate ?: LocalDate.now()
     return lockedTransaction {
         val team = Team.findById(baseTeam)
         if (team != null) {
             teamsToMerge.forEach { mergeTeamId ->
                 val mergeTeam = Team.findById(mergeTeamId)
                 if (mergeTeam != null) {
+                    //Capture state before mutation for history purposes
+                    val amalgamationsContainingMergeTeam = Amalgamation.find {
+                        Amalgamations.addedTeam eq mergeTeam.id
+                    }.toList()
+                    val mergeTeamAmalgamationMembers = if (mergeTeam.isAmalgamation) {
+                        Amalgamation.find { Amalgamations.amalgamation eq mergeTeam.id }.toList()
+                    } else {
+                        listOf()
+                    }
+
                     //First update all amalgamations to point to the base team
-                    Amalgamation.find { Amalgamations.addedTeam eq mergeTeam.id }.forEach {
-                        it.addedTeam = team
+                    amalgamationsContainingMergeTeam.forEach { amalgamationEntry ->
+                        val baseTeamAlreadyMember = Amalgamation.find {
+                            (Amalgamations.amalgamation eq amalgamationEntry.amalgamation.id) and
+                                    (Amalgamations.addedTeam eq team.id)
+                        }.count() > 0
+                        if (baseTeamAlreadyMember) {
+                            //The amalgamation already contains the base team -> the merged team
+                            // just disappears from it (avoids duplicate members)
+                            writeTeamHistoryEventInTransaction(
+                                amalgamationEntry.amalgamation, TeamChangeType.MEMBER_REMOVED, changeDate,
+                                mergeTeam.name, null, recordedBy
+                            )
+                            amalgamationEntry.delete()
+                        } else {
+                            amalgamationEntry.addedTeam = team
+                            writeTeamHistoryEventInTransaction(
+                                amalgamationEntry.amalgamation, TeamChangeType.MEMBER_ADDED, changeDate,
+                                mergeTeam.name, team.name, recordedBy
+                            )
+                        }
                     }
 
                     if (mergeTeam.isAmalgamation) {
@@ -156,14 +301,17 @@ suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
                             Amalgamation.find { Amalgamations.amalgamation eq team.id }.map { teamAmalgamation ->
                                 teamAmalgamation.addedTeam.id.value
                             }
-                        Amalgamation.find { Amalgamations.amalgamation eq mergeTeam.id }
-                            .forEach { mergeTeamAmalgamation ->
-                                if (teamAmalgamationIds.contains(mergeTeamAmalgamation.addedTeam.id.value)) {
-                                    mergeTeamAmalgamation.delete()
-                                } else {
-                                    mergeTeamAmalgamation.amalgamation = team
-                                }
+                        mergeTeamAmalgamationMembers.forEach { mergeTeamAmalgamation ->
+                            if (teamAmalgamationIds.contains(mergeTeamAmalgamation.addedTeam.id.value)) {
+                                mergeTeamAmalgamation.delete()
+                            } else {
+                                mergeTeamAmalgamation.amalgamation = team
+                                writeTeamHistoryEventInTransaction(
+                                    team, TeamChangeType.MEMBER_ADDED, changeDate,
+                                    mergeTeam.name, mergeTeamAmalgamation.addedTeam.name, recordedBy
+                                )
                             }
+                        }
                     }
 
                     //Update all DisciplinaryActions
@@ -200,8 +348,54 @@ suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
                         }
                     }
 
-                    //Delete the team
-                    mergeTeam.delete()
+                    //Update all TournamentTeamPreSelections
+                    TournamentTeamPreSelection.find {
+                        TournamentTeamPreSelections.team eq mergeTeam.id
+                    }.forEach {
+                        //Avoid duplicates
+                        val bothTeamsInSameTournament = TournamentTeamPreSelection.find {
+                            TournamentTeamPreSelections.tournament eq it.tournament.id and
+                                    (TournamentTeamPreSelections.team eq team.id)
+                        }.count() > 0
+                        if (!bothTeamsInSameTournament) {
+                            it.team = team
+                        } else {
+                            it.delete()
+                        }
+                    }
+
+                    //Aliases owned by the merged team follow it to the survivor.
+                    //Collisions are dropped rather than failing the merge.
+                    TeamAlias.find { TeamAliases.team eq mergeTeam.id }.toList().forEach { existingAlias ->
+                        val stillFree = validateAliasInTransaction(
+                            existingAlias.alias, excludeAliasId = existingAlias.id.value
+                        ).isSuccess
+                        if (stillFree) {
+                            existingAlias.team = team
+                        } else {
+                            existingAlias.delete()
+                        }
+                    }
+
+                    //The admin may have asked to keep the merged team's name as an alias.
+                    //A rejected alias must never fail the merge.
+                    aliasesToCreate[mergeTeamId]?.let { requestedAlias ->
+                        createTeamAliasInTransaction(
+                            team,
+                            requestedAlias,
+                            changeDate,
+                            recordedBy,
+                            excludeTeamId = mergeTeam.id.value
+                        )
+                    }
+
+                    //History + soft-delete instead of hard delete
+                    writeTeamHistoryEventInTransaction(
+                        mergeTeam, TeamChangeType.MERGED_INTO, changeDate,
+                        mergeTeam.name, team.name, recordedBy
+                    )
+                    mergeTeam.deletedAt = LocalDateTime.now()
+                    mergeTeam.mergedInto = team
                 }
             }
 
@@ -212,7 +406,7 @@ suspend fun MergeTeamsDEO.updateInDatabase(): Result<Team> {
     }
 }
 
-suspend fun NewAmalgamationDEO.createInDatabase(): Result<Team> {
+suspend fun NewAmalgamationDEO.createInDatabase(recordedBy: User? = null): Result<Team> {
     val newAmalgamation = this
     CacheUtil.deleteCachedTeamList()
     val prechecks = lockedTransaction {
@@ -245,17 +439,26 @@ suspend fun NewAmalgamationDEO.createInDatabase(): Result<Team> {
     }
     val newAmalgamationDB = prechecks.map {
         lockedTransaction {
+            val changeDate = newAmalgamation.changeDate ?: LocalDate.now()
 
             val amalgamation_base = Team.new {
                 name = newAmalgamation.name
                 isAmalgamation = true
             }
+            writeTeamHistoryEventInTransaction(
+                amalgamation_base, TeamChangeType.CREATED, changeDate,
+                null, amalgamation_base.name, recordedBy
+            )
             for (team in newAmalgamation.teams) {
                 Team.find { Teams.id eq team.id }.firstOrNull()?.let {
                     Amalgamation.new {
                         amalgamation = amalgamation_base
                         addedTeam = it
                     }
+                    writeTeamHistoryEventInTransaction(
+                        amalgamation_base, TeamChangeType.MEMBER_ADDED, changeDate,
+                        null, it.name, recordedBy
+                    )
                 }
             }
             amalgamation_base
@@ -263,5 +466,3 @@ suspend fun NewAmalgamationDEO.createInDatabase(): Result<Team> {
     }
     return newAmalgamationDB
 }
-
-

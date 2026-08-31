@@ -21,7 +21,7 @@ const props = defineProps<{
           <div v-if="action.rule?.isBlack" class="rule-card card-black"></div>
           <div v-if="action.redCardIssued" class="rule-card-clear-none card-red"></div>
           <template v-if="action.number && action.number >= 0">{{ action.number }}</template>
-          <template v-else-if="action.forTeamOfficial"> T.O. </template> - {{action.firstName}} {{action.lastName}}: {{action.rule?.description || ''}}<br>
+          <template v-else-if="action.forTeamOfficial"> T.O. </template> - {{action.firstName}} {{action.lastName}}: {{action.rule?.ruleNumber ? action.rule.ruleNumber + ' — ' : ''}}{{action.rule?.description || ''}}<span v-if="action.rule && !action.rule.isLatest" class="outdated-badge"> Outdated</span><br>
           {{action.details}}
         </li>
       </ul>
@@ -37,11 +37,30 @@ const props = defineProps<{
         </li>
       </ul>
     </div>
+    <div class="p-2" v-if="props.teamReport.substitutions.length > 0">
+      <span class="bg-sky-200 print:bg-sky-200 text-black">Substitutions:</span><br>
+      <ul>
+        <li
+            v-for="(substitution, index) in props.teamReport.substitutions"
+            :key="substitution.id ?? `new-${index}`"
+            class="border-t-2 border-gray-500"
+        >
+          {{ substitution.minute }}':
+          <span class="text-red-700">#{{ substitution.playerOffNumber }} {{ substitution.playerOffFirstName }} {{ substitution.playerOffLastName }}</span>
+          &rarr;
+          <span class="text-green-700">#{{ substitution.playerOnNumber }} {{ substitution.playerOnFirstName }} {{ substitution.playerOnLastName }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
 
 
 <style scoped>
+
+.outdated-badge {
+  @apply text-xs font-bold text-red-700;
+}
 
 </style>

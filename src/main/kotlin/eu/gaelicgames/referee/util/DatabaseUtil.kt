@@ -13,6 +13,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -21,6 +22,7 @@ val USE_POSTGRES = true
 object DatabaseHandler {
     lateinit var pool: HikariDataSource
     var db: Database? = null
+    private val logger = LoggerFactory.getLogger(DatabaseHandler::class.java)
     fun init(testing: Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
         if (testing) {
             db = if (usePostgres) {
@@ -79,6 +81,7 @@ object DatabaseHandler {
     val tables = listOf(
         Users,
         Sessions,
+        ApiTokens,
         Teams,
         Amalgamations,
         Regions,
@@ -89,10 +92,14 @@ object DatabaseHandler {
         TournamentTeamPreSelections,
         GameTypes,
         ExtraTimeOptions,
+        GameLengthOptions,
         GameReports,
         Rules,
         DisciplinaryActions,
         Injuries,
+        Substitutions,
+        TeamHistoryEvents,
+        TeamAliases,
         PitchSurfaceOptions,
         PitchLengthOptions,
         PitchWidthOptions,
@@ -133,10 +140,79 @@ object DatabaseHandler {
 
             //Migration 6 - Add Multilanguage Support for Rules
             SchemaUtils.createMissingTablesAndColumns(Rules)
+
+            //Migration 7 - Add GameLengthOptions and reference from GameReports
+            SchemaUtils.createMissingTablesAndColumns(GameLengthOptions)
+            SchemaUtils.createMissingTablesAndColumns(GameReports)
+
+            //Migration 8 - Add Substitutions table
+            SchemaUtils.createMissingTablesAndColumns(Substitutions)
+
+            //Migration 9 - Team history: soft-delete columns on Teams + TeamHistoryEvents table
+            SchemaUtils.createMissingTablesAndColumns(Teams)
+
+            //Backfill: existing teams get a CREATED history event so the timeline starts with a creation
+            val teamsWithoutHistory = Team.all().filter { team ->
+                TeamHistoryEvent.find { TeamHistoryEvents.team eq team.id }.empty()
+            }
+            val now = java.time.LocalDateTime.now()
+            for (team in teamsWithoutHistory) {
+                TeamHistoryEvent.new {
+                    this.team = team
+                    changeType = TeamChangeType.CREATED
+                    changeDate = java.time.LocalDate.now()
+                    newValue = team.name
+                    recordedAt = now
+                }
+            }
+
+            //Migration 10 - Team name aliases
+            SchemaUtils.createMissingTablesAndColumns(TeamAliases)
+
+            //Migration 11 - rule versioning + rule_number
+            SchemaUtils.createMissingTablesAndColumns(Rules)
+            val ruleNumberRegex = Regex("""Rule\s+([0-9]+(?:\.[0-9]+)?[a-z]?)""", RegexOption.IGNORE_CASE)
+            val rulePrefixRegex = Regex(
+                """^\s*(CAUTION|BLACK CARD|ORDER OFF):\s*Rule\s+[0-9]+(?:\.[0-9]+)?[a-z]?\s*""",
+                RegexOption.IGNORE_CASE
+            )
+            val migration11Now = java.time.LocalDateTime.now()
+            val rulesWithoutVersion = Rules.selectAll().where {
+                Rules.superseeds.isNull() and Rules.lineageRootId.isNull()
+            }.toList()
+            for (row in rulesWithoutVersion) {
+                val ruleId = row[Rules.id]
+                val description = row[Rules.description]
+                val ruleNumber = ruleNumberRegex.find(description)?.groupValues?.get(1)
+                val ruleNumberSortKey = ruleNumber?.let { RuleSortKeyUtil.deriveSortKey(it) }
+                val updatedDescription = if (ruleNumber != null) {
+                    description.replaceFirst(rulePrefixRegex, "$1: ")
+                } else {
+                    logger.warn("Rule ${ruleId.value} has no rule number in description: $description")
+                    description
+                }
+                Rules.update({ Rules.id eq ruleId }) {
+                    it[Rules.description] = updatedDescription
+                    it[Rules.ruleNumber] = ruleNumber
+                    it[Rules.ruleNumberSortKey] = ruleNumberSortKey
+                    it[Rules.superseeds] = null
+                    it[Rules.isLatest] = true
+                    it[Rules.createdAt] = migration11Now
+                    it[Rules.lineageRootId] = ruleId.value
+                }
+            }
         }
+
+        //Migration 10 backfill: every team already merged away becomes a
+        //search alias of the team that survived the merge.
+        backfillAliasesFromMergedTeams()
     }
 
     suspend fun populate_base_data() {
+        // Game Length Options (name + minutes)
+        populate_game_length_options_from_csv(
+            "game_length_options.csv"
+        )
         populate_name_only_table_from_csv(
             ExtraTimeOptions,
             "extra_time_options.csv",
@@ -190,6 +266,33 @@ object DatabaseHandler {
 
         populate_rules()
 
+    }
+
+    private suspend fun populate_game_length_options_from_csv(filename: String) {
+        val alreadyPopulated = lockedTransaction {
+            GameLengthOptions.selectAll().count() != 0L
+        }
+        if (!alreadyPopulated) {
+            val resource = this.javaClass.classLoader.getResourceAsStream("base_data/$filename")
+            resource.use {
+                val reader = BufferedReader(
+                    InputStreamReader(
+                        resource
+                    )
+                )
+                val csvParser = CSVParser(reader, CSVFormat.DEFAULT)
+                lockedTransaction {
+                    for (csvRecord in csvParser) {
+                        val name = csvRecord.get(0)
+                        val minutes = csvRecord.get(1).trim().toInt()
+                        GameLengthOptions.insert {
+                            it[GameLengthOptions.name] = name
+                            it[GameLengthOptions.minutes] = minutes
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private suspend fun populate_name_only_table_from_csv(table: LongIdTable, filename: String, nameColumn: Column<String>) {
@@ -414,5 +517,3 @@ fun main() {
 
 
 }
-
-

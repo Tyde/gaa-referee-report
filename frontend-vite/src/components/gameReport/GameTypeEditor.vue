@@ -25,7 +25,7 @@ const localVisible = computed({
 
 function storeGameType() {
 
-  let gtDB = uploadNewGameType(newGameType.value)
+  const gtDB = uploadNewGameType(newGameType.value)
       .then((gt) => {
         store.addNewGameType(gt)
         if(store.selectedGameReport) {

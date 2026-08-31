@@ -45,7 +45,7 @@ function updateUserList() {
 
 function editUser(event: DataTableRowEditSaveEvent) {
 
-  let {newData, index} = event
+  const {newData, index} = event
   updateUserOnServer(newData)
       .then(() => {
         users.value[index] = newData

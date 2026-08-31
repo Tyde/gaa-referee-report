@@ -12,7 +12,7 @@ export const Tournament = z.object({
     endDate: z.string().optional()
         .transform((value) => {
             if(!value) return null
-            return DateTime.fromISO(value!!)
+            return DateTime.fromISO(value!)
         }),
 })
 export type Tournament = z.infer<typeof Tournament>

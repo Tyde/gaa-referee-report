@@ -59,8 +59,8 @@ class SanitizeDataService(scope: CoroutineScope) : BaseRegularService(scope) {
     private suspend fun mergeTournamentReports() {
         logger.info("Looking for tournamentreports to merge")
         lockedTransaction {
-            TournamentReports.selectAll()
-                .where { TournamentReports.isSubmitted eq true }
+            TournamentReports.leftJoin(Tournaments).selectAll()
+                .where { TournamentReports.isSubmitted eq true and (Tournaments.isLeague eq false) }
                 .groupBy {
                     Triple(
                         it[TournamentReports.tournament].value,
@@ -88,7 +88,7 @@ class SanitizeDataService(scope: CoroutineScope) : BaseRegularService(scope) {
 
                 val mergeSources = tournamentReportIDs.drop(1)
                     .mapNotNull { TournamentReport.findById(it) }
-                mergeSources.forEach { source ->
+                    mergeSources.forEach { source ->
                     source.gameReports.forEach { gameReport ->
                         gameReport.report = mergeTarget
                     }

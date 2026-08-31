@@ -17,3 +17,6 @@ postgres.port=5432
 postgres.database=postgres
 postgres.user=postgres
 postgres.password=postgres
+
+openrouter.apiKey=
+openrouter.model=deepseek/deepseek-v4-pro

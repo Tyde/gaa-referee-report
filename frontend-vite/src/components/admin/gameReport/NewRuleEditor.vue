@@ -4,7 +4,6 @@ import {useAdminStore} from "@/utils/admin_store";
 import type {GameCode} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
 import type {NewRuleDEO} from "@/types/rules_types";
-import {updateRuleOnServer} from "@/utils/api/admin_api";
 
 const store = useAdminStore()
 
@@ -35,6 +34,7 @@ function reset() {
     isRed: false,
     description: "",
     isDisabled: false,
+    ruleNumber: "",
   }
 }
 onMounted(() => {
@@ -73,6 +73,12 @@ watch(() => props.code, () => {
   }
 })
 
+watch(localVisible, (visible) => {
+  if (visible && props.code) {
+    rule.value.code = props.code.id
+  }
+})
+
 const isLoading = ref(false)
 
 async function saveRule() {
@@ -82,6 +88,7 @@ async function saveRule() {
     ruleForUpdate.isCaution = selectedCardForButton.value.id == 1
     ruleForUpdate.isBlack = selectedCardForButton.value.id == 2
     ruleForUpdate.isRed = selectedCardForButton.value.id == 3
+    ruleForUpdate.ruleNumber = ruleForUpdate.ruleNumber?.trim() || undefined
 
     store.addRule(ruleForUpdate)
         .then(() => {
@@ -111,6 +118,12 @@ function cancelEdit() {
       :modal="true"
 
   >
+    <h5>Rule Number:</h5>
+    <InputText
+        class="m-1 w-[100%]"
+        v-model="rule.ruleNumber"
+        :disabled="isLoading"
+    />
     <h5>Rule:</h5>
     <Textarea
         class="m-1 w-[100%]"
@@ -122,7 +135,7 @@ function cancelEdit() {
         cols="40"
     />
     <h5>Code:</h5>
-    <Dropdown v-model="rule.code" :options="store.publicStore.codes" optionLabel="name" optionValue="id" :disabled="isLoading"/>
+    <Select v-model="rule.code" :options="store.publicStore.codes" optionLabel="name" optionValue="id" :disabled="isLoading"/>
     <h5>Card:</h5>
     <SelectButton v-model="selectedCardForButton" :options="cards" class="m-1" optionLabel="label" :disabled="isLoading"/>
     <br>

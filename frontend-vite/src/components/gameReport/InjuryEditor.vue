@@ -16,22 +16,22 @@ const emits = defineEmits<{
 
 const selectedInjuryArray = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport.injuries
+    return store.selectedGameReport!.teamAReport.injuries
   } else {
-    return store.selectedGameReport!!.teamBReport.injuries
+    return store.selectedGameReport!.teamBReport.injuries
   }
 })
 const selectedTeam = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport.team
+    return store.selectedGameReport!.teamAReport.team
   } else {
-    return store.selectedGameReport!!.teamBReport.team
+    return store.selectedGameReport!.teamBReport.team
   }
 })
 async function uploadInjuriesToServer() {
   if (store.selectedGameReport?.id != undefined) {
     await store.waitForAllTransfersDone()
-    for (let injury of selectedInjuryArray.value) {
+    for (const injury of selectedInjuryArray.value) {
       store.sendInjury(injury,store.selectedGameReport,true)
           .catch((error) => {
             store.newError(error)
@@ -68,7 +68,7 @@ watch(()=>selectedInjuryArray, () => {
 },{deep:true,immediate:true})
 
 function generateEmptyInjury() {
-  let newInjury = selectedInjuryArray.value
+  const newInjury = selectedInjuryArray.value
   if (newInjury.length == 0) {
     addEmptyInjury()
   } else if (!injuryIsBlank(newInjury[newInjury.length - 1])) {

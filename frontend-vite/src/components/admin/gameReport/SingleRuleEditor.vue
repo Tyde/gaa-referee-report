@@ -4,16 +4,18 @@ import {useAdminStore} from "@/utils/admin_store";
 import {computed, ref, watch} from "vue";
 import {
   checkIfRuleDeletable,
+  createNewRuleVersionOnServer,
   deleteRuleOnServer,
+  getRuleHistory,
   toggleRuleStateOnServer, translateRule,
-  updateRuleOnServer
 } from "@/utils/api/admin_api";
-import type {Rule} from "@/types/rules_types";
+import {getRules} from "@/utils/api/disciplinary_action_api";
+import type {NewRuleVersionDEO, Rule, RuleHistoryDEO} from "@/types/rules_types";
 
 
 const store = useAdminStore()
 const props = defineProps<{
-  ruleId: Number
+  ruleId: number
 }>()
 const editing = ref(false)
 const askDeleteOrDisable = ref(false)
@@ -26,9 +28,19 @@ const rule = computed(() => {
 
 const shadowCopyRule = ref<Rule | undefined>()
 
+const hasDuplicateRuleNumber = computed(() => {
+  const current = rule.value
+  if (!current || current.ruleNumber == null) return false
+  return store.publicStore.rules.some(r =>
+      r.id != current.id &&
+      r.code == current.code &&
+      r.ruleNumber == current.ruleNumber
+  )
+})
+
 
 function editRule() {
-  if (rule) {
+  if (rule.value) {
     editing.value = true
     shadowCopyRule.value = JSON.parse(JSON.stringify(rule.value))
   }
@@ -41,7 +53,7 @@ function cancelEdit() {
 
 function startDeleteProcess() {
   isLoading.value = true
-  checkIfRuleDeletable(rule.value!!)
+  checkIfRuleDeletable(rule.value!)
       .then((isDeletable) => {
         if (isDeletable) {
           askDeleteOrDisable.value = true
@@ -58,7 +70,7 @@ function startDeleteProcess() {
 }
 
 function enableRule() {
-  toggleRuleStateOnServer(rule.value!!)
+  toggleRuleStateOnServer(rule.value!)
       .then((rule) => {
         store.updateRuleInStore(rule)
         askDeleteOrDisable.value = false
@@ -70,7 +82,7 @@ function enableRule() {
 }
 
 function disableRule() {
-  toggleRuleStateOnServer(rule.value!!)
+  toggleRuleStateOnServer(rule.value!)
       .then((rule) => {
         store.updateRuleInStore(rule)
         askDeleteOrDisable.value = false
@@ -81,7 +93,7 @@ function disableRule() {
       })
 }
 function deleteRule() {
-  deleteRuleOnServer(rule.value!!)
+  deleteRuleOnServer(rule.value!)
       .then((ruleId) => {
 
         askDeleteOrDisable.value = false
@@ -94,18 +106,26 @@ function deleteRule() {
 }
 
 function saveRule() {
-  if (shadowCopyRule.value) {
-    const ruleForUpdate = JSON.parse(JSON.stringify(shadowCopyRule.value))
-    ruleForUpdate.isCaution = selectedCardInCopy.value.id == 1
-    ruleForUpdate.isBlack = selectedCardInCopy.value.id == 2
-    ruleForUpdate.isRed = selectedCardInCopy.value.id == 3
-    updateRuleOnServer(ruleForUpdate)
-        .then(() => {
+  if (shadowCopyRule.value && rule.value) {
+    const sc = shadowCopyRule.value
+    const newVersion: NewRuleVersionDEO = {
+      parentId: rule.value.id,
+      code: sc.code,
+      isCaution: selectedCardInCopy.value.id == 1,
+      isBlack: selectedCardInCopy.value.id == 2,
+      isRed: selectedCardInCopy.value.id == 3,
+      description: sc.description,
+      isDisabled: sc.isDisabled,
+      ruleNumber: sc.ruleNumber?.trim() || undefined,
+      descriptionFr: sc.descriptionFr,
+      descriptionDe: sc.descriptionDe,
+      descriptionEs: sc.descriptionEs,
+    }
+    createNewRuleVersionOnServer(newVersion)
+        .then(async () => {
           editing.value = false
-
-          let index = store.publicStore.rules.indexOf(rule.value!!)
-          store.publicStore.rules[index] = ruleForUpdate
           shadowCopyRule.value = undefined
+          store.publicStore.rules = await getRules()
         })
         .catch(e => {
           store.newError(e)
@@ -142,11 +162,11 @@ const waitingForTranslation = ref(false)
 async function tryTranslateRule() {
   if(shadowCopyRule.value) {
     waitingForTranslation.value = true
-    translateRule(shadowCopyRule.value!!.description)
+    translateRule(shadowCopyRule.value!.description)
         .then((translated) => {
-          shadowCopyRule.value!!.descriptionFr = translated.ruleFr
-          shadowCopyRule.value!!.descriptionEs = translated.ruleEs
-          shadowCopyRule.value!!.descriptionDe = translated.ruleDe
+          shadowCopyRule.value!.descriptionFr = translated.ruleFr
+          shadowCopyRule.value!.descriptionEs = translated.ruleEs
+          shadowCopyRule.value!.descriptionDe = translated.ruleDe
         })
         .catch((e) => {
           store.newError(e)
@@ -157,6 +177,55 @@ async function tryTranslateRule() {
   }
 }
 
+const showHistory = ref(false)
+const historyData = ref<RuleHistoryDEO | undefined>()
+
+function toggleHistory() {
+  showHistory.value = !showHistory.value
+  if (showHistory.value && rule.value) {
+    getRuleHistory(rule.value.id)
+        .then((history) => {
+          historyData.value = history
+        })
+        .catch((e) => {
+          store.newError(e)
+        })
+  }
+}
+
+function revertVersion(v: Rule) {
+  if (!rule.value) return
+  const newVersion: NewRuleVersionDEO = {
+    parentId: rule.value.id,
+    code: v.code,
+    isCaution: v.isCaution,
+    isBlack: v.isBlack,
+    isRed: v.isRed,
+    description: v.description,
+    isDisabled: v.isDisabled,
+    ruleNumber: v.ruleNumber?.trim() || undefined,
+    descriptionFr: v.descriptionFr,
+    descriptionDe: v.descriptionDe,
+    descriptionEs: v.descriptionEs,
+  }
+  createNewRuleVersionOnServer(newVersion)
+      .then(async () => {
+        showHistory.value = false
+        historyData.value = undefined
+        store.publicStore.rules = await getRules()
+      })
+      .catch((e) => {
+        store.newError(e)
+      })
+}
+
+function formatHistoryDate(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  // createdAt is stored as LocalDateTime.toString() e.g. "2024-05-06T12:34:56.123456"
+  // Strip fractional seconds and replace T with space
+  return iso.replace('T', ' ').replace(/\.\d+$/, '')
+}
+
 </script>
 
 <template>
@@ -164,18 +233,25 @@ async function tryTranslateRule() {
     <template v-if="!editing">
       <div>
         <div class="float-left">
-          <h4><span class="disabled-tag" v-if="rule?.isDisabled">Disabled</span>  {{rule?.description }}</h4>
+          <h4>
+            <span class="rule-number-badge">{{ rule?.ruleNumber ?? '—' }}</span>
+            <span class="latest-tag" v-if="rule?.isLatest">Latest</span>
+            <span class="disabled-tag" v-if="rule?.isDisabled">Disabled</span>
+            {{rule?.description }}
+          </h4>
           <p><b>FR:</b>{{rule?.descriptionFr}}</p>
           <p><b>ES:</b>{{rule?.descriptionEs}}</p>
           <p><b>DE:</b>{{rule?.descriptionDe}}</p>
           <p v-if="rule?.isCaution">Caution</p>
           <p v-else-if="rule?.isBlack">Black</p>
           <p v-else-if="rule?.isRed">Red</p>
+          <p v-if="hasDuplicateRuleNumber" class="duplicate-warning">Duplicate rule number in this code</p>
         </div>
         <div class="group-hover:visible invisible float-right h-buttons">
           <vue-feather v-if="!rule?.isDisabled" type="trash" @click="startDeleteProcess()"/>
           <vue-feather v-else type="check" @click="enableRule()"/>
           <vue-feather type="edit" @click="editRule()"/>
+          <Button link class="m-1" label="History" @click="toggleHistory()"/>
         </div>
       </div>
       <div v-if="isLoading">
@@ -200,17 +276,49 @@ async function tryTranslateRule() {
           <Button label="Cancel" class="m-2 p-button-info" @click="askDisableOnly = false"/>
         </div>
       </template>
+      <template v-if="showHistory">
+        <div class="clear-both m-2 border-blue-400 rounded border-2 p-2">
+          <div class="flex flex-row justify-between items-center">
+            <h5>Rule history</h5>
+            <vue-feather class="m-2" type="x" @click="showHistory = false"/>
+          </div>
+          <div v-if="historyData">
+            <div v-for="version in historyData.versions" :key="version.id" class="history-entry"
+                 :class="{'history-entry-active': version.id === rule?.id, changed: version.description !== rule?.description}">
+              <div class="flex flex-row justify-between items-center">
+                <b><span class="rule-number-badge">{{ version.ruleNumber ?? '—' }}</span>
+                  <span v-if="version.id === rule?.id" class="active-tag">Active</span>
+                  <span v-else-if="version.isLatest" class="latest-tag">Latest</span></b>
+                <span class="history-date">{{ formatHistoryDate(version.createdAt) }}</span>
+                <Button v-if="version.id !== rule?.id" label="Revert" class="p-button-info m-1"
+                        @click="revertVersion(version)"/>
+              </div>
+              <p>{{ version.description }}</p>
+              <p><b>FR:</b>{{ version.descriptionFr }}</p>
+              <p><b>ES:</b>{{ version.descriptionEs }}</p>
+              <p><b>DE:</b>{{ version.descriptionDe }}</p>
+            </div>
+          </div>
+          <p v-else>Loading history...</p>
+        </div>
+      </template>
     </template>
     <template v-else>
       <template v-if="shadowCopyRule !== undefined">
-      <InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                 v-model="shadowCopyRule.description"/>
-        <b>FR:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionFr"/>
-        <b>ES:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionEs"/>
-        <b>DE:</b><InputText class="m-1 w-[100%]" ref="ruleEditInput"
-                  v-model="shadowCopyRule.descriptionDe"/>
+      <label class="m-1"><b>Rule Number:</b></label><InputText class="m-1 w-[100%]"
+                 v-model="shadowCopyRule.ruleNumber" :disabled="waitingForTranslation"/>
+      <Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                 v-model="shadowCopyRule.description" :disabled="waitingForTranslation"
+                 :autoResize="true" rows="3" cols="40"/>
+        <b>FR:</b><Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionFr" :disabled="waitingForTranslation"
+                  :autoResize="true" rows="3" cols="40"/>
+        <b>ES:</b><Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionEs" :disabled="waitingForTranslation"
+                  :autoResize="true" rows="3" cols="40"/>
+        <b>DE:</b><Textarea class="m-1 w-[100%] rule-edit-textarea" ref="ruleEditInput"
+                  v-model="shadowCopyRule.descriptionDe" :disabled="waitingForTranslation"
+                  :autoResize="true" rows="3" cols="40"/>
       <div class="float-left">
         <SelectButton v-model="selectedCardInCopy" :options="cards" class="m-1" optionLabel="label"/>
       </div>
@@ -220,8 +328,9 @@ async function tryTranslateRule() {
             link
             :disabled="waitingForTranslation"
             @click="tryTranslateRule()"
-        ><vue-feather class="mr-2" type="feather" />
-          Translate Rules with AI...</Button>
+        ><vue-feather v-if="!waitingForTranslation" class="mr-2" type="feather" />
+          <vue-feather v-else class="mr-2 animate-spin" type="loader" />
+          {{ waitingForTranslation ? 'Translating...' : 'Translate Rules with AI' }}</Button>
         <vue-feather class="m-2" type="x" @click="cancelEdit()"/>
         <vue-feather class="m-2" type="check" @click="saveRule()"/>
       </div>
@@ -236,7 +345,7 @@ async function tryTranslateRule() {
 <style scoped>
 .rule-text-card {
   @apply p-2 m-1;
-  @apply bg-gray-100;
+  @apply bg-surface-600;
   @apply rounded;
   @apply w-full;
 }
@@ -251,13 +360,61 @@ async function tryTranslateRule() {
   @apply hover:cursor-pointer;
 }
 .loading {
-  @apply bg-gray-800;
+  @apply bg-surface-500;
 }
 .disabled-tag {
-  @apply bg-red-400;
+  @apply bg-red-800;
   @apply text-white;
   @apply rounded;
   @apply p-1;
   @apply m-1;
+}
+.rule-number-badge {
+  @apply bg-blue-800;
+  @apply text-white;
+  @apply rounded;
+  @apply p-1;
+  @apply m-1;
+}
+.latest-tag {
+  @apply bg-green-800;
+  @apply text-white;
+  @apply rounded;
+  @apply p-1;
+  @apply m-1;
+}
+.duplicate-warning {
+  @apply text-yellow-300;
+  @apply font-bold;
+}
+.history-entry {
+  @apply border-b border-surface-400;
+  @apply py-1;
+}
+.history-entry.changed p:first-of-type {
+  @apply text-yellow-300;
+}
+.history-date {
+  @apply text-sm;
+  @apply text-surface-300;
+}
+.active-tag {
+  @apply bg-emerald-600;
+  @apply text-white;
+  @apply rounded;
+  @apply p-1;
+  @apply m-1;
+  @apply border border-emerald-300;
+}
+.history-entry-active {
+  @apply bg-surface-500;
+  @apply border border-emerald-500;
+  @apply rounded;
+  @apply px-2;
+}
+.rule-edit-textarea {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 </style>

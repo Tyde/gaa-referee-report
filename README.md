@@ -40,6 +40,8 @@ services:
       POSTGRES_DATABASE: "referee"
       POSTGRES_USER: "referee"
       POSTGRES_PASSWORD: "password"
+      OPENROUTER_APIKEY: "api-key"
+      OPENROUTER_MODEL: "deepseek/deepseek-v4-pro"
   cache:
     image: 'redis/redis-stack-server:latest'
   db:
@@ -79,3 +81,9 @@ The naming convention is like the following:
 
 `server.url` -> `SERVER_URL`
 
+The OpenRouter settings use the following environment variables for AI-powered rule
+translation:
+
+`openrouter.apiKey` -> `OPENROUTER_APIKEY`
+
+`openrouter.model` -> `OPENROUTER_MODEL`

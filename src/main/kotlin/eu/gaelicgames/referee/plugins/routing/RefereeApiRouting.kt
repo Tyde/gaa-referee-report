@@ -16,6 +16,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -99,11 +100,17 @@ fun Route.refereeApiRouting() {
 
     post<Api.Reports.UpdateAdditionalInformation> {
         receiveAndHandleDEO<UpdateReportAdditionalInformationDEO> { deo ->
-            deo.updateInDatabase().map {
-                UpdateReportAdditionalInformationDEO.fromTournamentReportReport(it)
-            }.getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                deo,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value },
+                customUserDisallowedMessage = "Report can only be edited by the referee who created it"
+            ) { allowedDeo ->
+                allowedDeo.updateInDatabase().map {
+                    UpdateReportAdditionalInformationDEO.fromTournamentReportReport(it)
+                }.getOrThrow()
+            }.getOrThrow()
         }
     }
 
@@ -119,21 +126,29 @@ fun Route.refereeApiRouting() {
                     "Team with same name already exists"
                 )
             }
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            val changeDate = newTeam.changeDate ?: LocalDate.now()
             val newTeamDB = lockedTransaction {
-                Team.new {
+                val team = Team.new {
                     name = newTeam.name
                     isAmalgamation = false
                 }
+                writeTeamHistoryEventInTransaction(
+                    team, TeamChangeType.CREATED, changeDate,
+                    null, team.name, recordedBy
+                )
+                team
             }
-            TeamDEO.fromTeam(newTeamDB)
+            lockedTransaction { TeamDEO.fromTeam(newTeamDB) }
         }
 
     }
 
     post<Api.NewAmalgamation> {
         receiveAndHandleDEO<NewAmalgamationDEO> { newAmalgamation ->
-            newAmalgamation.createInDatabase().map {
-                TeamDEO.fromTeam(it)
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            newAmalgamation.createInDatabase(recordedBy).map {
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -188,21 +203,33 @@ fun Route.refereeApiRouting() {
 
     post<Api.Reports.Update> {
         receiveAndHandleDEO<NewTournamentReportDEO> { newTournamentReportDEO ->
-            newTournamentReportDEO.updateInDatabase().map {
-                NewTournamentReportDEO.fromTournamentReport(it)
-            }.getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                newTournamentReportDEO,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value },
+                customUserDisallowedMessage = "Report can only be edited by the referee who created it"
+            ) { allowedDeo ->
+                allowedDeo.updateInDatabase().map {
+                    NewTournamentReportDEO.fromTournamentReport(it)
+                }.getOrThrow()
+            }.getOrThrow()
         }
     }
 
     post<Api.Reports.Submit> {
         receiveAndHandleDEO<TournamentReportByIdDEO> { deo ->
-            deo.submitInDatabase().map {
-                TournamentReportByIdDEO.fromTournamentReport(it)
-            }.getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                deo,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value },
+                customUserDisallowedMessage = "Report can only be submitted by the referee who created it"
+            ) { allowedDeo ->
+                allowedDeo.submitInDatabase().map {
+                    TournamentReportByIdDEO.fromTournamentReport(it)
+                }.getOrThrow()
+            }.getOrThrow()
         }
     }
 
@@ -221,9 +248,15 @@ fun Route.refereeApiRouting() {
 
     post<Api.Reports.Share> {
         receiveAndHandleDEO<TournamentReportByIdDEO> { deo ->
-            deo.createShareLink().getOrElse {
-                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
-            }
+            val principal = call.principal<UserPrincipal>()!!
+            limitAccess(
+                principal,
+                deo,
+                isUserAllowedPredicate = { user, it -> it.getRefereeId() == user.user.id.value || user.user.role.hasCCCorHigher() },
+                customUserDisallowedMessage = "Share link can only be created by the referee who created the report"
+            ) { allowedDeo ->
+                allowedDeo.createShareLink().getOrThrow()
+            }.getOrThrow()
         }
     }
 
@@ -278,6 +311,21 @@ fun Route.refereeApiRouting() {
         }
     }
 
+    post<Api.GameReports.Substitution.New> {
+        handleSubstitutionInput(doUpdate = false)
+    }
+    post<Api.GameReports.Substitution.Update> {
+        handleSubstitutionInput(doUpdate = true)
+    }
+    post<Api.GameReports.Substitution.Delete> {
+        val user = call.principal<UserPrincipal>()?.user!!
+        receiveAndHandleDEO<DeleteSubstitutionDEO> { deo ->
+            deo.deleteChecked(user).map { deo }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
     post<Api.Pitch.New> {
         handlePitchReportInput(doUpdate = false)
 
@@ -305,7 +353,9 @@ fun Route.refereeApiRouting() {
         }
         val data = if (code != null) {
             newSuspendedTransaction {
-                Rule.find { Rules.code eq code.id }.map { RuleDEO.fromRule(it) }
+                Rule.find { (Rules.code eq code.id) and (Rules.isLatest eq true) and (Rules.isDisabled eq false) }
+                    .orderBy(Rules.ruleNumberSortKey to SortOrder.ASC)
+                    .map { RuleDEO.fromRule(it) }
             }
         } else {
             newSuspendedTransaction {
@@ -328,6 +378,9 @@ fun Route.refereeApiRouting() {
 
     post<Api.User.UpdateMe> {
         receiveAndHandleDEO<UpdateRefereeDAO> { dao ->
+            if(call.principal<UserPrincipal>()?.user?.id?.value != dao.id) {
+                return@receiveAndHandleDEO ApiError(ApiErrorOptions.INSERTION_FAILED, "User can only update their own data")
+            }
             dao.updateInDatabase().map {
                 RefereeDEO.fromReferee(it)
             }.getOrElse { ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Could not update user") }
@@ -432,6 +485,25 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleInjuryInput(doU
                 deo.createInDatabase()
             }
             updatedReport.map { InjuryDEO.fromInjury(it) }.getOrThrow()
+        }.getOrThrow()
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleSubstitutionInput(doUpdate: Boolean) {
+    receiveAndHandleDEO<SubstitutionDEO> { deo ->
+        val principal = call.principal<UserPrincipal>()!!
+        limitAccess(
+            principal,
+            deo,
+            isUserAllowedPredicate = { user, substitutionDEO -> substitutionDEO.getRefereeId() == user.user.id.value },
+            customUserDisallowedMessage = "Substitution can only be edited by the referee who created the report"
+        ) { substitutionDEO ->
+            val updatedReport = if (doUpdate) {
+                deo.updateInDatabase()
+            } else {
+                deo.createInDatabase()
+            }
+            updatedReport.map { SubstitutionDEO.fromSubstitution(it) }.getOrThrow()
         }.getOrThrow()
     }
 }

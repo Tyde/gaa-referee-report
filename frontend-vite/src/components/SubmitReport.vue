@@ -12,6 +12,7 @@ import {
   GameReportIssue,
   GameReportIssues,
   InjuryIssue,
+  SubstitutionIssue,
   PitchReportIssue
 } from "@/types/issue_types";
 /*
@@ -57,10 +58,10 @@ async function uploadAllData() {
   await delay(500) // Lets wait for the unwinding of unmounted components to finish
 
   await store.waitForAllTransfersDone()
-  let promisesPitch = store.pitchReports.map((pitch) => {
+  const promisesPitch = store.pitchReports.map((pitch) => {
     return store.sendPitchReport(pitch, true)
   })
-  let promisesReports = store.gameReports.map((gameReport) => {
+  const promisesReports = store.gameReports.map((gameReport) => {
     store.sendGameReport(gameReport,true)
   })
   await Promise.all(promisesPitch).catch((e) => {
@@ -72,22 +73,22 @@ async function uploadAllData() {
   await Promise.all(promisesReports).catch((e) => {
     store.newError(e)
   })
-  let updateDiAndInjuries = store.gameReports.map((gameReport) => {
+  const updateDiAndInjuries = store.gameReports.map((gameReport) => {
     if (gameReport.id) {
-      let tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
+      const tAdiP = gameReport.teamAReport.disciplinaryActions.map((da) => {
         return store.sendDisciplinaryAction(da, gameReport,true)
       })
-      let tBdiP = gameReport.teamBReport.disciplinaryActions.map((da) => {
+      const tBdiP = gameReport.teamBReport.disciplinaryActions.map((da) => {
         return store.sendDisciplinaryAction(da, gameReport,true)
       })
-      let tAinP = gameReport.teamAReport.injuries.map((injury) => {
+      const tAinP = gameReport.teamAReport.injuries.map((injury) => {
         return store.sendInjury(injury, gameReport, true)
       })
-      let tBinP = gameReport.teamBReport.injuries.map((injury) => {
+      const tBinP = gameReport.teamBReport.injuries.map((injury) => {
         return store.sendInjury(injury, gameReport, true)
       })
       //concat all four arrays
-      let allPromises = tAdiP.concat(tBdiP).concat(tAinP).concat(tBinP)
+      const allPromises = tAdiP.concat(tBdiP).concat(tAinP).concat(tBinP)
       return Promise.all(allPromises)
     } else {
       return Promise.reject("Game report not uploaded even though it should have been uploaded before")
@@ -142,7 +143,8 @@ function gameReportIssuesAreSerious(gris: GameReportIssues) {
       gris.issues.includes(GameReportIssue.NoScores) &&
       gris.issues.length == 1 &&
       gris.injuriesIssues.length == 0 &&
-      gris.disciplinaryActionIssues.length == 0
+      gris.disciplinaryActionIssues.length == 0 &&
+      gris.substitutionsIssues.length == 0
   )
 }
 
@@ -197,6 +199,9 @@ function goToGameReport(id:number | undefined) {
             <template v-else-if="issue===GameReportIssue.NoExtraTimeOption">
               {{ $t('report.issues.noExtraTimeOptionSelected') }}:
             </template>
+            <template v-else-if="issue===GameReportIssue.NoGameLengthOption">
+              {{ $t('report.issues.noGameLengthSelected') }}:
+            </template>
             <template v-else-if="issue===GameReportIssue.NoTeamA">
               {{ $t('report.issues.noTeamASelected') }}:
             </template>
@@ -241,6 +246,29 @@ function goToGameReport(id:number | undefined) {
               </template>
               <template v-if="issue===DisciplinaryActionIssue.NoRule">
                 {{ $t('report.issues.disciplinaryActionNoRule') }} {{ disIssues.action.firstName }} {{ disIssues.action.lastName }}
+              </template>
+              <br><Button
+                class="p-button-info p-button-raised p-button-text"
+                @click="goToGameReport(gris.gameReport.id)"
+            >{{ $t('report.issues.goToGameReport') }}</Button>
+            </li>
+          </template>
+          <template v-for="subIssues in gris.substitutionsIssues">
+            <li v-for="issue in subIssues.issues">
+              <template v-if="issue===SubstitutionIssue.NoPlayerOnName">
+                {{ $t('report.issues.substitutionNoPlayerOnName') }} (#{{ subIssues.action.playerOnNumber }})
+              </template>
+              <template v-if="issue===SubstitutionIssue.NoPlayerOnNumber">
+                {{ $t('report.issues.substitutionNoPlayerOnNumber') }} {{ subIssues.action.playerOnFirstName }} {{ subIssues.action.playerOnLastName }}
+              </template>
+              <template v-if="issue===SubstitutionIssue.NoPlayerOffName">
+                {{ $t('report.issues.substitutionNoPlayerOffName') }} (#{{ subIssues.action.playerOffNumber }})
+              </template>
+              <template v-if="issue===SubstitutionIssue.NoPlayerOffNumber">
+                {{ $t('report.issues.substitutionNoPlayerOffNumber') }} {{ subIssues.action.playerOffFirstName }} {{ subIssues.action.playerOffLastName }}
+              </template>
+              <template v-if="issue===SubstitutionIssue.NoMinute">
+                {{ $t('report.issues.substitutionNoMinute') }}
               </template>
               <br><Button
                 class="p-button-info p-button-raised p-button-text"

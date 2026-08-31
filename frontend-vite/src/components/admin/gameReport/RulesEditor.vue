@@ -4,19 +4,51 @@ import {useAdminStore} from "@/utils/admin_store";
 import type {GameCode} from "@/types";
 import SingleRuleEditor from "@/components/admin/gameReport/SingleRuleEditor.vue";
 import NewRuleEditor from "@/components/admin/gameReport/NewRuleEditor.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 
 const store = useAdminStore()
 
 function rulesByCode(code:GameCode) {
-  const out = store.publicStore.rules.filter(r => r.code == code.id)
-  return out
+  return store.publicStore.rules
+      .filter(r => r.code == code.id)
+      .sort((a, b) => (a.ruleNumberSortKey ?? '').localeCompare(b.ruleNumberSortKey ?? '') || a.id - b.id)
 }
 
-const activeCodeIndex = ref(0)
+const rulesWithoutNumber = computed(() => {
+  return store.publicStore.rules.filter(r => r.ruleNumber == null)
+})
+
+function rulesWithoutNumberForCode(code:GameCode) {
+  return rulesWithoutNumber.value.filter(r => r.code == code.id)
+}
+
+const duplicateRuleNumbers = computed(() => {
+  const counts = new Map<string, number>()
+  for (const r of store.publicStore.rules) {
+    if (r.ruleNumber != null) {
+      const key = `${r.code}:${r.ruleNumber}`
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+  }
+  const byCode = new Map<string, string[]>()
+  for (const [key, count] of counts) {
+    if (count > 1) {
+      const [code, ...rest] = key.split(':')
+      const number = rest.join(':')
+      byCode.set(code, [...(byCode.get(code) ?? []), number])
+    }
+  }
+  return byCode
+})
+
+function duplicateNumbersForCode(code:GameCode): string[] {
+  return duplicateRuleNumbers.value.get(String(code.id)) ?? []
+}
+
+const activeCodeId = ref<number>(0)
 
 const currentCode = computed(() => {
-  return store.publicStore.codes[activeCodeIndex.value]
+  return store.publicStore.codes.find(c => c.id === activeCodeId.value) ?? store.publicStore.codes[0]
 })
 
 const newRuleVisible = ref(false)
@@ -25,39 +57,68 @@ const newRuleVisible = ref(false)
 function addRule() {
   newRuleVisible.value = true
 }
+
+onMounted(() => {
+  store.publicStore.waitForAllVariablesPresent().then(() => {
+    activeCodeId.value = store.publicStore.codes[0]?.id ?? 0
+  })
+})
 </script>
 
 <template>
 <div class="flex flex-row justify-center">
   <div class="container">
-    <TabView v-model:active-index="activeCodeIndex">
-      <TabPanel v-for="code in store.publicStore.codes" key="id" :header="code.name">
-        <div class="flex flex-col">
-          <div class="flex flex-row justify-center">
-            <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>
+    <Tabs v-model:value="activeCodeId">
+      <TabList>
+        <Tab v-for="code in store.publicStore.codes" :key="code.id" :value="code.id">
+          {{ code.name }}
+        </Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel v-for="code in store.publicStore.codes" :key="code.id" :value="code.id" class="bg-surface-700">
+          <div class="flex flex-col">
+            <template v-if="rulesWithoutNumberForCode(code).length > 0">
+              <div class="m-2 border-yellow-400 rounded border-2 p-2">
+                <p>{{ rulesWithoutNumberForCode(code).length }} rule(s) have no rule number and fall at the end of the list.</p>
+              </div>
+            </template>
+            <template v-if="duplicateNumbersForCode(code).length">
+              <div class="m-2 border-red-400 rounded border-2 p-2">
+                <p>Duplicate rule numbers for this code:
+                  <b>{{ duplicateNumbersForCode(code).join(', ') }}</b>
+                </p>
+              </div>
+            </template>
+            <div class="flex flex-row justify-center">
+              <Button label="Add Rule" icon="pi pi-plus" class="p-button-success m-2" @click="addRule()"/>
+            </div>
+            <SingleRuleEditor v-for="rule in rulesByCode(code)" :rule-id="rule.id" :key="rule.id"/>
           </div>
-          <SingleRuleEditor v-for="rule in rulesByCode(code)" :rule-id="rule.id" :key="rule.id"/>
-        </div>
-      </TabPanel>
-    </TabView>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
     <NewRuleEditor :code="currentCode" v-model:visible="newRuleVisible"/>
 
   </div>
 </div>
+<Button
+  label="Add Rule"
+  icon="pi pi-plus"
+  class="floating-add-btn p-button-success"
+  rounded
+  raised
+  @click="addRule()"
+  v-tooltip.left="'Add rule for ' + (currentCode?.name ?? 'current code')"
+/>
 
 </template>
 
 <style scoped>
-.rule-card {
-  @apply p-2 m-1;
-  @apply bg-gray-100;
-  @apply rounded;
-}
-.rule-card h4 {
-  @apply font-bold;
-}
-.h-buttons i {
-  @apply p-1;
-  @apply hover:cursor-pointer;
+.floating-add-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 </style>

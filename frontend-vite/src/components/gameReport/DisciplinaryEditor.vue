@@ -19,17 +19,17 @@ const props = defineProps<{
 
 const selectedDisciplinaryActions = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport.disciplinaryActions
+    return store.selectedGameReport!.teamAReport.disciplinaryActions
   } else {
-    return store.selectedGameReport!!.teamBReport.disciplinaryActions
+    return store.selectedGameReport!.teamBReport.disciplinaryActions
   }
 })
 
 const selectedTeam = computed(() => {
   if (props.isTeamA) {
-    return store.selectedGameReport!!.teamAReport.team
+    return store.selectedGameReport!.teamAReport.team
   } else {
-    return store.selectedGameReport!!.teamBReport.team
+    return store.selectedGameReport!.teamBReport.team
   }
 })
 
@@ -51,7 +51,7 @@ const localVisible = computed({
 async function uploadActionsToServer() {
   if (store.selectedGameReport?.id) {
     await store.waitForAllTransfersDone()
-    for (let action of selectedDisciplinaryActions.value) {
+    for (const action of selectedDisciplinaryActions.value) {
       store.sendDisciplinaryAction(action, store.selectedGameReport, true)
           .catch((error) => {
             store.newError(error)
@@ -83,7 +83,7 @@ watch(() => selectedDisciplinaryActions, () => {
 }, {deep: true, immediate: true})
 
 function generateEmptydAFields() {
-  let newActions = selectedDisciplinaryActions.value
+  const newActions = selectedDisciplinaryActions.value
 
   if (newActions.length == 0) {
     addEmptyDisciplinaryAction()
@@ -137,7 +137,7 @@ function localizedDescription(rule: Rule) {
 }
 
 const ruleFilterFields = computed(() => {
-  const fields = ['description'];
+  const fields = ['description', 'ruleNumber'];
   switch (i8n.locale.value) {
     case "fr":
       fields.unshift('descriptionFr');
@@ -166,6 +166,19 @@ const filteredRules = computed(() => {
     return rule.isDisabled == false && rule.code == store.report.gameCode.id
   })
 })
+
+const allOptions = computed(() => {
+  const latest = filteredRules.value
+  const historic = selectedDisciplinaryActions.value
+      .map(action => action.rule)
+      .filter((rule): rule is Rule => !!rule)
+      .filter(rule => !latest.some(candidate => candidate.id === rule.id))
+  return [...latest, ...historic]
+})
+
+function ruleLabel(rule: Rule) {
+  return (rule.ruleNumber ? rule.ruleNumber + ' — ' : '') + localizedDescription(rule)
+}
 /*
 onUpdated(() => {
   console.log("DA model value:",props.modelValue)
@@ -225,9 +238,9 @@ onMounted(() => {
 
 
           <div class="hidden md:flex md:flex-col">
-            <Dropdown
+            <Select
                 v-model="dAction.rule"
-                :options="filteredRules"
+                :options="allOptions"
                 :show-clear="true"
                 class="dropdown-disciplinary m-2"
                 input-class="dropdown-disciplinary"
@@ -241,7 +254,7 @@ onMounted(() => {
                   <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
                   <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
                   <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.value).substring(0, 20) }} ...
+                  {{ ruleLabel(slotProps.value).substring(0, 20) }} ...
                 </div>
                 <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
               </template>
@@ -251,17 +264,17 @@ onMounted(() => {
                   <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
                   <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
                   <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.option) }}
+                  {{ ruleLabel(slotProps.option) }}
                 </div>
 
               </template>
-            </Dropdown>
+            </Select>
             <div v-if="dAction.rule" class="w-[22rem] p-2">
               {{ localizedDescription(dAction.rule) }}
             </div>
           </div>
           <MobileDropdown
-              :options="filteredRules"
+              :options="allOptions"
               v-model="dAction.rule"
               optionLabel="description"
               optionValue="id"
@@ -269,13 +282,13 @@ onMounted(() => {
               class="block md:hidden"
               :placeholder="$t('gameReport.rule')"
           >
-            <template #option="slotProps:{option:Rule}">
+            <template #option="slotProps">
 
               <div>
                 <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
                 <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
                 <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                {{ localizedDescription(slotProps.option) }}
+                {{ ruleLabel(slotProps.option) }}
               </div>
 
             </template>

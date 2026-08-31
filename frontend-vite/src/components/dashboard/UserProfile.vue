@@ -42,7 +42,7 @@ function updatePassword() {
     return
   }
 
-  let updateDAO = UpdateRefereePasswordDAO.parse({
+  const updateDAO = UpdateRefereePasswordDAO.parse({
     id: store.me.id,
     oldPassword: passwordChange.value.oldPassword,
     newPassword: passwordChange.value.newPassword

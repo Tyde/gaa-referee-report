@@ -10,7 +10,12 @@ plugins {
     application
     kotlin("jvm") version "1.9.22"
     kotlin("plugin.serialization") version "1.7.10"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.2"
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 group = "eu.gaelicgames"
@@ -60,14 +65,14 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-java-time", exposed_version)
     implementation("com.zaxxer:HikariCP:5.1.0")
 
-    implementation("com.nimbusds:nimbus-jose-jwt:9.30.1")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.48")
 
     implementation("com.mailjet", "mailjet-client", "5.2.1")
 
     implementation("com.natpryce:konfig:1.6.10.0")
 
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
-    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.postgresql:postgresql:42.7.11")
 
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("org.apache.commons","commons-csv","1.9.0")

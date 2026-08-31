@@ -50,7 +50,7 @@ watch(i18.locale, () => {
 
 const calcStageOptions = computed(() => {
   return allStages.value.map(stage => {
-    let obj = {
+    const obj = {
       name: translateStageToName.value.get(stage) || "",
       disabled: false,
       stage: stage
@@ -187,12 +187,12 @@ function selectStageByURL(specifier: string) {
 onMounted(() => {
   isLoading.value = true
   i18.locale.value = storedLocale.value
-  let loc = new URL(location.href)
+  const loc = new URL(location.href)
   if (loc.pathname.startsWith("/report/new")) {
     store.publicStore.loadAuxiliaryInformationFromSerer()
         .then(() => isLoading.value = false)
   } else if (loc.pathname.startsWith("/report/edit/")) {
-    let id = Number(loc.pathname.split("/")[3])
+    const id = Number(loc.pathname.split("/")[3])
     if (id) {
       //We are in edit mode, load all data
       isLoading.value = true
@@ -234,6 +234,9 @@ function navigate(stage: ReportEditStage) {
   currentStage.value = stage
 }
 
+const selectedTeams = computed(() => {
+  return store.report.selectedTeams
+})
 </script>
 
 <template>
@@ -263,7 +266,7 @@ function navigate(stage: ReportEditStage) {
   />
   <TeamSelector
       v-if="currentStage === ReportEditStage.SelectTeams"
-      :already-selected-teams="store.report.selectedTeams"
+      :already-selected-teams="selectedTeams"
       @submit-teams="submitTeams"
   />
 
