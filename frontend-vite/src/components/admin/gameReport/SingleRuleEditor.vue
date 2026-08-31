@@ -219,6 +219,13 @@ function revertVersion(v: Rule) {
       })
 }
 
+function formatHistoryDate(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  // createdAt is stored as LocalDateTime.toString() e.g. "2024-05-06T12:34:56.123456"
+  // Strip fractional seconds and replace T with space
+  return iso.replace('T', ' ').replace(/\.\d+$/, '')
+}
+
 </script>
 
 <template>
@@ -277,12 +284,13 @@ function revertVersion(v: Rule) {
           </div>
           <div v-if="historyData">
             <div v-for="version in historyData.versions" :key="version.id" class="history-entry"
-                 :class="{changed: version.description !== rule?.description}">
+                 :class="{'history-entry-active': version.id === rule?.id, changed: version.description !== rule?.description}">
               <div class="flex flex-row justify-between items-center">
                 <b><span class="rule-number-badge">{{ version.ruleNumber ?? '—' }}</span>
-                  <span v-if="version.isLatest">Latest</span></b>
-                <span class="history-date">{{ version.createdAt }}</span>
-                <Button v-if="!version.isLatest" label="Revert" class="p-button-info m-1"
+                  <span v-if="version.id === rule?.id" class="active-tag">Active</span>
+                  <span v-else-if="version.isLatest" class="latest-tag">Latest</span></b>
+                <span class="history-date">{{ formatHistoryDate(version.createdAt) }}</span>
+                <Button v-if="version.id !== rule?.id" label="Revert" class="p-button-info m-1"
                         @click="revertVersion(version)"/>
               </div>
               <p>{{ version.description }}</p>
@@ -385,5 +393,19 @@ function revertVersion(v: Rule) {
 .history-date {
   @apply text-sm;
   @apply text-surface-300;
+}
+.active-tag {
+  @apply bg-emerald-600;
+  @apply text-white;
+  @apply rounded;
+  @apply p-1;
+  @apply m-1;
+  @apply border border-emerald-300;
+}
+.history-entry-active {
+  @apply bg-surface-500;
+  @apply border border-emerald-500;
+  @apply rounded;
+  @apply px-2;
 }
 </style>
