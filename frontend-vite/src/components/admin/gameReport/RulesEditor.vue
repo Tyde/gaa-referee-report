@@ -45,10 +45,10 @@ function duplicateNumbersForCode(code:GameCode): string[] {
   return duplicateRuleNumbers.value.get(String(code.id)) ?? []
 }
 
-const activeCodeIndex = ref(0)
+const activeCodeId = ref<number>(0)
 
 const currentCode = computed(() => {
-  return store.publicStore.codes[activeCodeIndex.value]
+  return store.publicStore.codes.find(c => c.id === activeCodeId.value) ?? store.publicStore.codes[0]
 })
 
 const newRuleVisible = ref(false)
@@ -59,8 +59,8 @@ function addRule() {
 }
 
 onMounted(() => {
-store.publicStore.waitForAllVariablesPresent().then(() => {
-    activeCodeIndex.value = store.publicStore.codes[0].id
+  store.publicStore.waitForAllVariablesPresent().then(() => {
+    activeCodeId.value = store.publicStore.codes[0]?.id ?? 0
   })
 })
 </script>
@@ -68,7 +68,7 @@ store.publicStore.waitForAllVariablesPresent().then(() => {
 <template>
 <div class="flex flex-row justify-center">
   <div class="container">
-    <Tabs :value="activeCodeIndex">
+    <Tabs v-model:value="activeCodeId">
       <TabList>
         <Tab v-for="code in store.publicStore.codes" :key="code.id" :value="code.id">
           {{ code.name }}
@@ -101,9 +101,24 @@ store.publicStore.waitForAllVariablesPresent().then(() => {
 
   </div>
 </div>
+<Button
+  label="Add Rule"
+  icon="pi pi-plus"
+  class="floating-add-btn p-button-success"
+  rounded
+  raised
+  @click="addRule()"
+  v-tooltip.left="'Add rule for ' + (currentCode?.name ?? 'current code')"
+/>
 
 </template>
 
 <style scoped>
-
+.floating-add-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
 </style>

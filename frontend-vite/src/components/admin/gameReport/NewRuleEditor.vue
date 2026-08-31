@@ -73,6 +73,12 @@ watch(() => props.code, () => {
   }
 })
 
+watch(localVisible, (visible) => {
+  if (visible && props.code) {
+    rule.value.code = props.code.id
+  }
+})
+
 const isLoading = ref(false)
 
 async function saveRule() {
