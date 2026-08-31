@@ -137,7 +137,7 @@ function localizedDescription(rule: Rule) {
 }
 
 const ruleFilterFields = computed(() => {
-  const fields = ['description'];
+  const fields = ['description', 'ruleNumber'];
   switch (i8n.locale.value) {
     case "fr":
       fields.unshift('descriptionFr');
@@ -166,6 +166,19 @@ const filteredRules = computed(() => {
     return rule.isDisabled == false && rule.code == store.report.gameCode.id
   })
 })
+
+const allOptions = computed(() => {
+  const latest = filteredRules.value
+  const historic = selectedDisciplinaryActions.value
+      .map(action => action.rule)
+      .filter((rule): rule is Rule => !!rule)
+      .filter(rule => !latest.some(candidate => candidate.id === rule.id))
+  return [...latest, ...historic]
+})
+
+function ruleLabel(rule: Rule) {
+  return (rule.ruleNumber ? rule.ruleNumber + ' — ' : '') + localizedDescription(rule)
+}
 /*
 onUpdated(() => {
   console.log("DA model value:",props.modelValue)
@@ -209,7 +222,7 @@ onMounted(() => {
               class="checkbox-rule-card"
           />
         </td>
-        <td>{{dAction.rule?.description}}</td>
+        <td>{{dAction.rule ? ruleLabel(dAction.rule) : ''}}</td>
         <td>{{dAction.details}}</td>
       </tr>
     </table>

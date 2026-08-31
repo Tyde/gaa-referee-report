@@ -13,6 +13,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -21,6 +22,7 @@ val USE_POSTGRES = true
 object DatabaseHandler {
     lateinit var pool: HikariDataSource
     var db: Database? = null
+    private val logger = LoggerFactory.getLogger(DatabaseHandler::class.java)
     fun init(testing: Boolean = false, usePostgres: Boolean = USE_POSTGRES) {
         if (testing) {
             db = if (usePostgres) {
@@ -166,6 +168,39 @@ object DatabaseHandler {
 
             //Migration 10 - Team name aliases
             SchemaUtils.createMissingTablesAndColumns(TeamAliases)
+
+            //Migration 11 - rule versioning + rule_number
+            SchemaUtils.createMissingTablesAndColumns(Rules)
+            val ruleNumberRegex = Regex("""Rule\s+([0-9]+(?:\.[0-9]+)?[a-z]?)""", RegexOption.IGNORE_CASE)
+            val rulePrefixRegex = Regex(
+                """^\s*(CAUTION|BLACK CARD|ORDER OFF):\s*Rule\s+[0-9]+(?:\.[0-9]+)?[a-z]?\s*""",
+                RegexOption.IGNORE_CASE
+            )
+            val migration11Now = java.time.LocalDateTime.now()
+            val rulesWithoutVersion = Rules.selectAll().where {
+                Rules.superseeds.isNull() and Rules.lineageRootId.isNull()
+            }.toList()
+            for (row in rulesWithoutVersion) {
+                val ruleId = row[Rules.id]
+                val description = row[Rules.description]
+                val ruleNumber = ruleNumberRegex.find(description)?.groupValues?.get(1)
+                val ruleNumberSortKey = ruleNumber?.let { RuleSortKeyUtil.deriveSortKey(it) }
+                val updatedDescription = if (ruleNumber != null) {
+                    description.replaceFirst(rulePrefixRegex, "$1: ")
+                } else {
+                    logger.warn("Rule ${ruleId.value} has no rule number in description: $description")
+                    description
+                }
+                Rules.update({ Rules.id eq ruleId }) {
+                    it[Rules.description] = updatedDescription
+                    it[Rules.ruleNumber] = ruleNumber
+                    it[Rules.ruleNumberSortKey] = ruleNumberSortKey
+                    it[Rules.superseeds] = null
+                    it[Rules.isLatest] = true
+                    it[Rules.createdAt] = migration11Now
+                    it[Rules.lineageRootId] = ruleId.value
+                }
+            }
         }
 
         //Migration 10 backfill: every team already merged away becomes a

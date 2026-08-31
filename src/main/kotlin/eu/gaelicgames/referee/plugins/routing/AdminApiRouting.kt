@@ -2,6 +2,7 @@ package eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.ApiError
 import eu.gaelicgames.referee.data.ApiErrorOptions
+import eu.gaelicgames.referee.data.Rule
 import eu.gaelicgames.referee.data.User
 import eu.gaelicgames.referee.data.UserPrincipal
 import eu.gaelicgames.referee.data.api.*
@@ -99,6 +100,28 @@ fun Route.adminApiRouting() {
             translationRequestDEO.translate().getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
+        }
+    }
+
+    post<Api.Rule.NewVersion> {
+        receiveAndHandleDEO<NewRuleVersionDEO> { newRuleVersionDEO ->
+            newRuleVersionDEO.createNewVersion().map { RuleDEO.fromRule(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    get<Api.Rule.History> { history ->
+        val h = RuleDEO.getHistoryForRule(history.id)
+        call.respond(h.getOrElse {
+            ApiError(ApiErrorOptions.NOT_FOUND, it.message ?: "Rule history not found")
+        })
+    }
+
+    get<Api.Rule.Version> { version ->
+        lockedTransaction {
+            Rule.findById(version.id)?.let { call.respond(RuleDEO.fromRule(it)) }
+                ?: call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Rule version not found"))
         }
     }
 

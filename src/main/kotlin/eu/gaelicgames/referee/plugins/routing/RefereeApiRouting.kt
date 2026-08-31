@@ -16,6 +16,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -352,7 +353,9 @@ fun Route.refereeApiRouting() {
         }
         val data = if (code != null) {
             newSuspendedTransaction {
-                Rule.find { Rules.code eq code.id }.map { RuleDEO.fromRule(it) }
+                Rule.find { (Rules.code eq code.id) and (Rules.isLatest eq true) and (Rules.isDisabled eq false) }
+                    .orderBy(Rules.ruleNumberSortKey to SortOrder.ASC)
+                    .map { RuleDEO.fromRule(it) }
             }
         } else {
             newSuspendedTransaction {
