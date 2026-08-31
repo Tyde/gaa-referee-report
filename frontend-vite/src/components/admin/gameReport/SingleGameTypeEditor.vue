@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import type {GameType} from "@/types";
+import {ref, watch} from "vue";
 
 const props = defineProps<{
   gameType: GameType
@@ -10,29 +11,36 @@ const emit = defineEmits<{
   (e: 'on_cancel', gameType: GameType): void
 }>()
 
-function onSaveEdit(gameType: GameType) {
-  emit('on_save', gameType)
+// Edit on a local copy so typing does not mutate the shared store object
+// directly (which previously also meant Cancel could not revert changes).
+const localGameType = ref<GameType>({...props.gameType})
+watch(() => props.gameType, (gameType) => {
+  localGameType.value = {...gameType}
+})
+
+function onSaveEdit() {
+  emit('on_save', localGameType.value)
 }
-function onCancelEdit(gameType: GameType) {
-  emit('on_cancel', gameType)
+function onCancelEdit() {
+  emit('on_cancel', localGameType.value)
 }
 </script>
 <template>
   <div class="flex flex-row">
     <div class="p-1 flex-grow">
       <InputText
-          v-model="gameType.name"
+          v-model="localGameType.name"
           class="w-full"
-          @keyup.enter="onSaveEdit(gameType)"
+          @keyup.enter="onSaveEdit()"
       />
     </div>
     <div class="p-2">
 
-      <vue-feather class="hover:cursor-pointer" type="x" @click="onCancelEdit(gameType)"/>
+      <vue-feather class="hover:cursor-pointer" type="x" @click="onCancelEdit()"/>
     </div>
   </div>
   <div class="p-1">
-    <Button @click="onSaveEdit(gameType)" class="p-button-sm p-button-success m-1">Save</Button>
+    <Button @click="onSaveEdit()" class="p-button-sm p-button-success m-1">Save</Button>
   </div>
 </template>
 
