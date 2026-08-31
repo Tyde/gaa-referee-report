@@ -359,6 +359,13 @@ object Rules : LongIdTable() {
     val descriptionFr = text("description_fr").nullable()
     val descriptionDe = text("description_de").nullable()
     val descriptionEs = text("description_es").nullable()
+    val ruleNumber = varchar("rule_number", 20).nullable()
+    val ruleNumberSortKey = varchar("rule_number_sort_key", 40).nullable()
+    val superseeds = optReference("superseeds", Rules)
+    val isLatest = bool("is_latest").default(true)
+    val createdAt = datetime("created_at").nullable()
+    val createdBy = optReference("created_by", Users)
+    val lineageRootId = long("lineage_root_id").nullable()
 }
 
 class Rule(id:EntityID<Long>):LongEntity(id) {
@@ -372,6 +379,13 @@ class Rule(id:EntityID<Long>):LongEntity(id) {
     var descriptionFr by Rules.descriptionFr
     var descriptionDe by Rules.descriptionDe
     var descriptionEs by Rules.descriptionEs
+    var ruleNumber by Rules.ruleNumber
+    var ruleNumberSortKey by Rules.ruleNumberSortKey
+    var superseeds by Rule optionalReferencedOn Rules.superseeds
+    var isLatest by Rules.isLatest
+    var createdAt by Rules.createdAt
+    var createdBy by User optionalReferencedOn Rules.createdBy
+    var lineageRootId by Rules.lineageRootId
 
     suspend fun isDeletable(): Boolean {
         return lockedTransaction {

@@ -179,6 +179,18 @@ class Api() {
         @Serializable
         @Resource("translate")
         class Translate(val parent: Rule)
+
+        @Serializable
+        @Resource("new_version")
+        class NewVersion(val parent: Rule)
+
+        @Serializable
+        @Resource("history/{id}")
+        class History(val parent: Rule, val id: Long)
+
+        @Serializable
+        @Resource("versions/{id}")
+        class Version(val parent: Rule, val id: Long)
     }
 
 

@@ -156,11 +156,14 @@ const selectedTeam = ref<Team>()
 
                 <div class="flex flex-row">
                   <div class="mr-2">{{ translateTeamIdToTeam(game.gameReport.teamA)?.name }}</div>
-                  <div v-for="dA in game.disciplinaryActions.filter(it=> it.team==game.gameReport.teamA)" :key="dA.id" :class="{
-                    'rule-card card-red': translateRuleIdToRule(dA.rule)?.isRed || dA.redCardIssued,
-                    'rule-card card-black': translateRuleIdToRule(dA.rule)?.isBlack && !dA.redCardIssued,
-                    'rule-card card-yellow': translateRuleIdToRule(dA.rule)?.isCaution && !dA.redCardIssued,
-                  }"></div>
+                  <template v-for="dA in game.disciplinaryActions.filter(it=> it.team==game.gameReport.teamA)" :key="dA.id">
+                    <div v-if="translateRuleIdToRule(dA.rule)" :class="{
+                      'rule-card card-red': translateRuleIdToRule(dA.rule)?.isRed || dA.redCardIssued,
+                      'rule-card card-black': translateRuleIdToRule(dA.rule)?.isBlack && !dA.redCardIssued,
+                      'rule-card card-yellow': translateRuleIdToRule(dA.rule)?.isCaution && !dA.redCardIssued,
+                    }"></div>
+                    <span v-else class="text-xs">Rule #{{dA.rule}}</span>
+                  </template>
                 </div>
               </div>
               <div class="flex-1 text-right">{{ game.gameReport.teamAGoals }} - {{ game.gameReport.teamAPoints }} (
@@ -181,11 +184,14 @@ const selectedTeam = ref<Team>()
               >
                 <div class="flex flex-row justify-end">
 
-                  <div v-for="dA in game.disciplinaryActions.filter(it=> it.team==game.gameReport.teamB)" :key="dA.id" :class="{
-                    'rule-card card-red': translateRuleIdToRule(dA.rule)?.isRed || dA.redCardIssued,
-                    'rule-card card-black': translateRuleIdToRule(dA.rule)?.isBlack && !dA.redCardIssued,
-                    'rule-card card-yellow': translateRuleIdToRule(dA.rule)?.isCaution && !dA.redCardIssued,
-                  }"></div>
+                  <template v-for="dA in game.disciplinaryActions.filter(it=> it.team==game.gameReport.teamB)" :key="dA.id">
+                    <div v-if="translateRuleIdToRule(dA.rule)" :class="{
+                      'rule-card card-red': translateRuleIdToRule(dA.rule)?.isRed || dA.redCardIssued,
+                      'rule-card card-black': translateRuleIdToRule(dA.rule)?.isBlack && !dA.redCardIssued,
+                      'rule-card card-yellow': translateRuleIdToRule(dA.rule)?.isCaution && !dA.redCardIssued,
+                    }"></div>
+                    <span v-else class="text-xs">Rule #{{dA.rule}}</span>
+                  </template>
                   <div class="ml-2 text-right">{{ translateTeamIdToTeam(game.gameReport.teamB)?.name }}</div>
                 </div>
 

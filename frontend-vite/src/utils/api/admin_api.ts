@@ -4,7 +4,7 @@ import {makePostRequest, parseAndHandleDEO} from "@/utils/api/api_utils";
 import {z} from "zod";
 import {Referee, RefereeWithRoleDEO, UpdateRefereePasswordResponse} from "@/types/referee_types";
 import type {NewUser} from "@/types/referee_types";
-import {NewRuleDEO, Rule, RuleTranslation} from "@/types/rules_types";
+import {NewRuleDEO, NewRuleVersionDEO, Rule, RuleHistoryDEO, RuleTranslation} from "@/types/rules_types";
 import {DatabaseTournament, databaseTournamentToTournamentDAO} from "@/types/tournament_types";
 import {ApiTokenCreatedDEO, ApiTokenDEO, NewApiTokenDEO} from "@/types/api_token_types";
 
@@ -35,6 +35,17 @@ export async function toggleRuleStateOnServer(rule: Rule) {
 export async function addRuleOnServer(rule: NewRuleDEO) {
     return makePostRequest("/api/rule/new", rule)
         .then(data => parseAndHandleDEO(data, Rule))
+}
+
+export async function createNewRuleVersionOnServer(version: NewRuleVersionDEO) {
+    return makePostRequest("/api/rule/new_version", version)
+        .then(data => parseAndHandleDEO(data, Rule))
+}
+
+export async function getRuleHistory(ruleId: number):Promise<RuleHistoryDEO> {
+    return fetch(`/api/rule/history/${ruleId}`)
+        .then(response => response.json())
+        .then(data => parseAndHandleDEO(data, RuleHistoryDEO))
 }
 
 export async function getAllUsers():Promise<Array<RefereeWithRoleDEO>> {

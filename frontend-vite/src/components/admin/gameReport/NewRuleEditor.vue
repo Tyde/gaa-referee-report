@@ -4,7 +4,6 @@ import {useAdminStore} from "@/utils/admin_store";
 import type {GameCode} from "@/types";
 import {computed, onMounted, ref, watch} from "vue";
 import type {NewRuleDEO} from "@/types/rules_types";
-import {updateRuleOnServer} from "@/utils/api/admin_api";
 
 const store = useAdminStore()
 
@@ -35,6 +34,7 @@ function reset() {
     isRed: false,
     description: "",
     isDisabled: false,
+    ruleNumber: "",
   }
 }
 onMounted(() => {
@@ -82,6 +82,7 @@ async function saveRule() {
     ruleForUpdate.isCaution = selectedCardForButton.value.id == 1
     ruleForUpdate.isBlack = selectedCardForButton.value.id == 2
     ruleForUpdate.isRed = selectedCardForButton.value.id == 3
+    ruleForUpdate.ruleNumber = ruleForUpdate.ruleNumber?.trim() || undefined
 
     store.addRule(ruleForUpdate)
         .then(() => {
@@ -111,6 +112,12 @@ function cancelEdit() {
       :modal="true"
 
   >
+    <h5>Rule Number:</h5>
+    <InputText
+        class="m-1 w-[100%]"
+        v-model="rule.ruleNumber"
+        :disabled="isLoading"
+    />
     <h5>Rule:</h5>
     <Textarea
         class="m-1 w-[100%]"

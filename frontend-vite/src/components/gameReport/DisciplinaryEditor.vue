@@ -137,7 +137,7 @@ function localizedDescription(rule: Rule) {
 }
 
 const ruleFilterFields = computed(() => {
-  const fields = ['description'];
+  const fields = ['description', 'ruleNumber'];
   switch (i8n.locale.value) {
     case "fr":
       fields.unshift('descriptionFr');
@@ -166,6 +166,19 @@ const filteredRules = computed(() => {
     return rule.isDisabled == false && rule.code == store.report.gameCode.id
   })
 })
+
+const allOptions = computed(() => {
+  const latest = filteredRules.value
+  const historic = selectedDisciplinaryActions.value
+      .map(action => action.rule)
+      .filter((rule): rule is Rule => !!rule)
+      .filter(rule => !latest.some(candidate => candidate.id === rule.id))
+  return [...latest, ...historic]
+})
+
+function ruleLabel(rule: Rule) {
+  return (rule.ruleNumber ? rule.ruleNumber + ' — ' : '') + localizedDescription(rule)
+}
 /*
 onUpdated(() => {
   console.log("DA model value:",props.modelValue)
@@ -227,7 +240,7 @@ onMounted(() => {
           <div class="hidden md:flex md:flex-col">
             <Select
                 v-model="dAction.rule"
-                :options="filteredRules"
+                :options="allOptions"
                 :show-clear="true"
                 class="dropdown-disciplinary m-2"
                 input-class="dropdown-disciplinary"
@@ -241,7 +254,7 @@ onMounted(() => {
                   <div v-if="slotProps.value.isCaution" class="rule-card card-yellow"></div>
                   <div v-if="slotProps.value.isBlack" class="rule-card card-black"></div>
                   <div v-if="slotProps.value.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.value).substring(0, 20) }} ...
+                  {{ ruleLabel(slotProps.value).substring(0, 20) }} ...
                 </div>
                 <span v-else class="p-disciplinary">{{ slotProps.placeholder }}</span>
               </template>
@@ -251,7 +264,7 @@ onMounted(() => {
                   <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
                   <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
                   <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                  {{ localizedDescription(slotProps.option) }}
+                  {{ ruleLabel(slotProps.option) }}
                 </div>
 
               </template>
@@ -261,7 +274,7 @@ onMounted(() => {
             </div>
           </div>
           <MobileDropdown
-              :options="filteredRules"
+              :options="allOptions"
               v-model="dAction.rule"
               optionLabel="description"
               optionValue="id"
@@ -275,7 +288,7 @@ onMounted(() => {
                 <div v-if="slotProps.option.isCaution" class="rule-card card-yellow"></div>
                 <div v-if="slotProps.option.isBlack" class="rule-card card-black"></div>
                 <div v-if="slotProps.option.isRed" class="rule-card card-red"></div>
-                {{ localizedDescription(slotProps.option) }}
+                {{ ruleLabel(slotProps.option) }}
               </div>
 
             </template>
