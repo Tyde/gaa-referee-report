@@ -76,6 +76,7 @@ export const editReportFR = {
         addNewTeam: 'Ajouter une nouvelle équipe',
         addNewAmalgamation: 'Ajouter une nouvelle fusion',
         matchedAlias: 'aussi appelé "{alias}"',
+        matchingAmalgamation: '{count} amalgamation(s) correspondante(s)',
         alreadyInSelection: 'Déjà dans la sélection',
         newTeamName: 'Nom de la nouvelle équipe',
         newAmalgamationTitle: 'Créer une nouvelle fusion',

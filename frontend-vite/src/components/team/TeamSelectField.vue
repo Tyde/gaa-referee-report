@@ -58,6 +58,15 @@ const props = defineProps({
     required: false
   },
   /**
+   * Show amalgamations nested under their member teams instead of as
+   * flat top-level entries. Requires show_amalgamations.
+   */
+  nest_amalgamations: {
+    type: Boolean,
+    default: true,
+    required: false
+  },
+  /**
    * Show squads (this does not include amalgamations).
    * Will be overriden by the hide_squad_checkbox" value, if it is shown
    */
@@ -82,7 +91,47 @@ const newSquadSelectedTeam = ref<Team | undefined>(undefined)
 const isLoading = ref(false)
 const hide_squads = ref<boolean | undefined>(false)
 
-const expandedTeam = ref<Team | undefined>(undefined)
+const expandedTeamIds = ref(new Set<number>())
+const collapsedTeamIds = ref(new Set<number>())
+
+interface TeamSelectResult extends TeamSearchResult {
+  /**
+   * Amalgamations of this team matching the current search term
+   * (all of its amalgamations when the search term is empty).
+   */
+  matchingAmalgamations: TeamSearchResult[],
+  /**
+   * True when the team itself does not match the search term and it only
+   * appears in the list because one of its amalgamations matches.
+   */
+  matchedOnlyViaAmalgamation: boolean
+}
+
+function isMultiMemberAmalgamation(team: Team): boolean {
+  return !!team.isAmalgamation && !!team.amalgamationTeams && team.amalgamationTeams.length > 1
+}
+
+const nestAmalgamations = computed(() => props.nest_amalgamations && props.show_amalgamations)
+
+const amalgamationsByBaseTeamId = computed(() => {
+  const map = new Map<number, Team[]>()
+  if (!nestAmalgamations.value) {
+    return map
+  }
+  for (const team of store.publicStore.teams) {
+    if (isMultiMemberAmalgamation(team)) {
+      for (const member of team.amalgamationTeams!) {
+        const list = map.get(member.id) ?? []
+        list.push(team)
+        map.set(member.id, list)
+      }
+    }
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => a.name.localeCompare(b.name))
+  }
+  return map
+})
 
 /*
 watch(() => props.show_hide_squad_box, (value, oldValue, onCleanup) => {
@@ -137,7 +186,15 @@ function classForTeam(team: Team): string {
   return thisTeamInExludedList(team) ? "already-selected-item" : "p-listbox-item"
 }
 
-const filtered_list = computed<TeamSearchResult[]>(() => {
+const nestedSearchResults = computed(() => {
+  const map = new Map<number, TeamSearchResult[]>()
+  for (const [baseTeamId, amalgamations] of amalgamationsByBaseTeamId.value) {
+    map.set(baseTeamId, searchTeams(amalgamations, searchTerm.value))
+  }
+  return map
+})
+
+const filtered_list = computed<TeamSelectResult[]>(() => {
   let preparedlist = store.publicStore.teams.toSorted((a, b) => {
     return a.name.localeCompare(b.name)
   })
@@ -154,10 +211,10 @@ const filtered_list = computed<TeamSearchResult[]>(() => {
       return value.isAmalgamation
     })
   }
-  if (!props.show_amalgamations) {
-    preparedlist = preparedlist.filter(value => {
-      return !(value.isAmalgamation && value.amalgamationTeams && value.amalgamationTeams.length > 1)
-    })
+  if (nestAmalgamations.value) {
+    preparedlist = preparedlist.filter(value => !isMultiMemberAmalgamation(value))
+  } else if (!props.show_amalgamations) {
+    preparedlist = preparedlist.filter(value => !isMultiMemberAmalgamation(value))
   }
 
   if (props.forcefully_hidden_teams) {
@@ -175,8 +232,63 @@ const filtered_list = computed<TeamSearchResult[]>(() => {
       }) == -1
     })
   }
-  return searchTeams(preparedlist, searchTerm.value)
+
+  const results = new Map<number, TeamSelectResult>()
+  for (const result of searchTeams(preparedlist, searchTerm.value)) {
+    results.set(result.team.id, {
+      ...result,
+      matchingAmalgamations: nestAmalgamations.value
+          ? nestedSearchResults.value.get(result.team.id) ?? []
+          : [],
+      matchedOnlyViaAmalgamation: false
+    })
+  }
+
+  // Surface base teams that do not match themselves but have a matching amalgamation
+  if (nestAmalgamations.value && searchTerm.value.length > 0) {
+    for (const [baseTeamId, nested] of nestedSearchResults.value) {
+      if (nested.length === 0 || results.has(baseTeamId)) {
+        continue
+      }
+      const baseTeam = preparedlist.find(t => t.id === baseTeamId)
+      if (baseTeam) {
+        results.set(baseTeamId, {
+          team: baseTeam,
+          score: nested[0].score,
+          matchingAmalgamations: nested,
+          matchedOnlyViaAmalgamation: true
+        })
+      }
+    }
+  }
+
+  return [...results.values()]
+      .sort((a, b) => b.score - a.score || a.team.name.localeCompare(b.team.name))
 })
+
+
+function isRowExpanded(result: TeamSelectResult): boolean {
+  if (result.matchedOnlyViaAmalgamation && searchTerm.value.length > 0) {
+    return !collapsedTeamIds.value.has(result.team.id)
+  }
+  return expandedTeamIds.value.has(result.team.id)
+}
+
+function setRowExpanded(result: TeamSelectResult, expanded: boolean) {
+  const expandedSet = new Set(expandedTeamIds.value)
+  const collapsedSet = new Set(collapsedTeamIds.value)
+  expandedSet.delete(result.team.id)
+  collapsedSet.delete(result.team.id)
+  if (result.matchedOnlyViaAmalgamation && searchTerm.value.length > 0) {
+    if (!expanded) {
+      collapsedSet.add(result.team.id)
+    }
+  } else if (expanded) {
+    expandedSet.add(result.team.id)
+  }
+  expandedTeamIds.value = expandedSet
+  collapsedTeamIds.value = collapsedSet
+}
 
 
 function unselect_team(team: Team) {
@@ -194,7 +306,7 @@ function onSquadSuccessful(teams: Team[]) {
         isLoading.value = false
         showSelect.value = true
         newSquadSelectedTeam.value = undefined
-        expandedTeam.value = undefined
+        expandedTeamIds.value = new Set()
         for (const team of teams) {
           emit("team_selected", team)
         }
@@ -205,7 +317,7 @@ function onSquadSuccessful(teams: Team[]) {
 function onSquadCancel() {
   showSelect.value = true
   newSquadSelectedTeam.value = undefined
-  expandedTeam.value = undefined
+  expandedTeamIds.value = new Set()
 }
 
 
@@ -295,52 +407,91 @@ function onSquadCancel() {
             <div class="flex flex-col" v-else>
               <div class="flex flex-row justify-between items-center">
                 <div>{{ srt.team.name }}</div>
-                <div class="flex flex-row justify-end">
+                <div class="flex flex-row justify-end items-center">
                   <p v-if="thisTeamInExludedList(srt.team)" class="already-selected-subtitle">
                     {{ $t('teamSelect.alreadyInSelection') }} <i
                       v-if="thisTeamInExludedList(srt.team) && props.allow_unselect"
                       class="pi pi-times hover:cursor-pointer mr-2"
                       @click.stop="emit('team_unselected', srt.team)"/>
                   </p>
-                  <Button v-if="expandedTeam != srt.team" unstyled
-                          class="hidden group-hover:block touch:block "
-                          pt:root="touch:border touch:rounded aspect-square"
-                          @click.stop="expandedTeam = srt.team">
-                    <vue-feather type="chevron-down" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
-                  </Button>
-                  <Button v-if="expandedTeam == srt.team"
-                          unstyled
-                          pt:root="touch:border touch:rounded aspect-square"
-                          @click.stop="expandedTeam = undefined">
-                    <vue-feather type="chevron-up" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
-                  </Button>
+                  <template v-if="srt.matchingAmalgamations.length === 0">
+                    <Button v-if="!isRowExpanded(srt)" unstyled
+                            class="hidden group-hover:block touch:block "
+                            pt:root="touch:border touch:rounded aspect-square"
+                            @click.stop="setRowExpanded(srt, true)">
+                      <vue-feather type="chevron-down" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
+                    </Button>
+                    <Button v-if="isRowExpanded(srt)"
+                            unstyled
+                            pt:root="touch:border touch:rounded aspect-square"
+                            @click.stop="setRowExpanded(srt, false)">
+                      <vue-feather type="chevron-up" class="h-4 m-1 touch:h-6 leading-none"></vue-feather>
+                    </Button>
+                  </template>
                 </div>
               </div>
               <div v-if="srt.matchedAlias" class="matched-alias-subtitle">
                 {{ $t('teamSelect.matchedAlias', {alias: srt.matchedAlias}) }}
               </div>
-              <transition
-                  enter-active-class="transition-all duration-500 ease-in-out"
-                  enter-from-class="max-h-0 opacity-0"
-                  enter-to-class="max-h-10 opacity-100"
-                  leave-active-class="transition-all duration-500 ease-in-out"
-                  leave-from-class="max-h-10 opacity-100"
-                  leave-to-class="max-h-0 opacity-0"
+              <div v-else-if="srt.matchedOnlyViaAmalgamation" class="matched-alias-subtitle">
+                {{ $t('teamSelect.matchingAmalgamation', {count: srt.matchingAmalgamations.length}) }}
+              </div>
+              <div
+                  v-if="srt.matchingAmalgamations.length > 0"
+                  class="amalgamation-toggle-row"
+                  @click.stop="setRowExpanded(srt, !isRowExpanded(srt))"
               >
-                <div v-if="expandedTeam == srt.team" class="w-full flex flex-row justify-between mt-2">
-                  <div class="grow"></div>
-                  <div>
-                    <Button
-                        unstyled
-                        pt:root="bg-primary-600 p-2 rounded-lg hover:bg-primary-500 m-1"
-                        pt:label="text-primary-contrast"
-                        @click.stop="createSquad(srt.team)"
+                <vue-feather
+                    :type="isRowExpanded(srt) ? 'chevron-down' : 'chevron-right'"
+                    class="h-4 w-4"
+                ></vue-feather>
+                <span>{{ srt.matchingAmalgamations.length }} Amalgamations</span>
+              </div>
+              <!-- grid 0fr/1fr trick: animates the real content height, so
+                   collapsing short lists does not wait through empty space -->
+              <div
+                  class="grid transition-all duration-300 ease-in-out"
+                  :class="isRowExpanded(srt)
+                      ? 'grid-rows-[1fr] opacity-100'
+                      : 'grid-rows-[0fr] opacity-0'"
+              >
+                <div class="overflow-hidden pt-2 w-full flex flex-col">
+                  <ul v-if="srt.matchingAmalgamations.length > 0" class="amalgamation-sublist">
+                    <li
+                        v-for="sub in srt.matchingAmalgamations"
+                        :key="sub.team.id"
+                        :class="classForTeam(sub.team)"
+                        @click.stop="on_team_click(sub.team)"
                     >
-                      Create Squad
-                    </Button>
+                      <div class="flex flex-row justify-between items-center">
+                        <div>{{ sub.team.name }}</div>
+                        <p v-if="thisTeamInExludedList(sub.team)" class="already-selected-subtitle">
+                          {{ $t('teamSelect.alreadyInSelection') }}
+                        </p>
+                      </div>
+                      <div v-if="sub.matchedAlias" class="matched-alias-subtitle">
+                        {{ $t('teamSelect.matchedAlias', {alias: sub.matchedAlias}) }}
+                      </div>
+                      <p v-if="sub.team.amalgamationTeams" class="amalgamation_subtitle">
+                        {{ sub.team.amalgamationTeams.map(value => value.name).join(" - ") }}
+                      </p>
+                    </li>
+                  </ul>
+                  <div class="w-full flex flex-row justify-between">
+                    <div class="grow"></div>
+                    <div>
+                      <Button
+                          unstyled
+                          pt:root="bg-primary-600 p-2 rounded-lg hover:bg-primary-500 m-1"
+                          pt:label="text-primary-contrast"
+                          @click.stop="createSquad(srt.team)"
+                      >
+                        Create Squad
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </transition>
+              </div>
 
             </div>
           </li>
@@ -384,7 +535,8 @@ function onSquadCancel() {
 }
 
 .listbox li {
-  @apply pt-3 pb-3 pl-2 pr-2;
+  /* pr-6 keeps row content clear of the container's overlay scrollbar */
+  @apply pt-3 pb-3 pl-2 pr-6;
   @apply hover:bg-surface-600 hover:cursor-pointer;
 }
 
@@ -406,6 +558,28 @@ function onSquadCancel() {
   margin-top: 4px;
   margin-bottom: 0;
   @apply mr-2;
+}
+
+.amalgamation-toggle-row {
+  @apply flex flex-row items-center;
+  @apply mt-1 pt-1 pb-1 pl-2 pr-2 rounded;
+  @apply bg-surface-500 hover:bg-surface-400;
+  @apply text-sm;
+  @apply cursor-pointer select-none;
+}
+
+.amalgamation-sublist {
+  @apply border border-surface-400 rounded;
+  @apply overflow-y-auto max-h-48;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.amalgamation-sublist li {
+  @apply pt-2 pb-2 pl-2 pr-6;
+  @apply hover:bg-surface-600 hover:cursor-pointer;
+  @apply border-b border-surface-400 last:border-b-0;
 }
 
 .matched-alias-subtitle {

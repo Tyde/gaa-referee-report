@@ -77,6 +77,7 @@ export const editReportDE = {
         addNewTeam: 'Neuen Verein hinzufügen',
         addNewAmalgamation: 'Neue Spielgemeinschaft hinzufügen',
         matchedAlias: 'auch bekannt als "{alias}"',
+        matchingAmalgamation: '{count} passende Amalgamation(en)',
         alreadyInSelection: 'Bereits ausgewählt',
         newTeamName: 'Name des neuen Vereins',
         newAmalgamationTitle: 'Neue Spielgemeinschaft erstellen',
