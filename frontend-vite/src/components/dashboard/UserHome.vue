@@ -20,7 +20,7 @@ const submittedReports = computed(() => {
     <h1>Loading...</h1>
     <!-- Spinner -->
     <div class="flex justify-center">
-      <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-surface-900 dark:border-surface-50"></div>
     </div>
 
 
@@ -38,10 +38,6 @@ const submittedReports = computed(() => {
 
 <style scoped>
 h1 {
-  @apply text-2xl;
-  @apply font-bold;
-  @apply text-gray-900;
-  @apply text-center;
-  @apply m-2;
+  @apply text-left;
 }
 </style>

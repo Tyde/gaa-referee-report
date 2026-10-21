@@ -154,7 +154,7 @@ export async function updatePitchPropertyOnServer(pitchProperty:PitchProperty):P
 }
 
 export async function createPitchPropertyOnServer(pitchProperty:PitchProperty):Promise<PitchPropertyWithTypeDEO> {
-    let data = PitchPropertyWithTypeDEO.omit({id:true}).parse(pitchProperty)
+    const data = PitchPropertyWithTypeDEO.omit({id:true}).parse(pitchProperty)
     return makePostRequest(`api/pitch_property/new`, data)
         .then(data => parseAndHandleDEO(data, PitchPropertyWithTypeDEO))
 }

@@ -56,6 +56,7 @@ function newGameReport() {
       points: 0,
       injuries : [],
       disciplinaryActions : [],
+      substitutions : [],
     },
     teamBReport : {
       team: undefined,
@@ -63,6 +64,7 @@ function newGameReport() {
       points: 0,
       injuries : [],
       disciplinaryActions : [],
+      substitutions : [],
     },
     umpirePresentOnTime: true,
     umpireNotes: "",
@@ -87,9 +89,9 @@ onBeforeMount(()=> {
   if(store.gameReports.length==0){
     newGameReport()
   } else {
-    let queryIdSplit = location.href.split("#")[1]?.split("/")[1]
+    const queryIdSplit = location.href.split("#")[1]?.split("/")[1]
     if(queryIdSplit) {
-      let queryId = parseInt(queryIdSplit)
+      const queryId = parseInt(queryIdSplit)
       store.gameReports.forEach((report, index) => {
         if(report.id == queryId) {
           store.selectedGameReportIndex = index
@@ -132,7 +134,7 @@ async function deleteReport() {
 }
 
 const gameReportsListIndices = computed(() => {
-  let indices = []
+  const indices = []
   for(let i = 0; i < sortedGameReports.value.length; i++) {
     indices.push(store.gameReports.indexOf(sortedGameReports.value[i]))
   }
@@ -176,7 +178,7 @@ watch(() => store.selectedGameReport, () => {
             class="text-yellow-200 p-1"
             v-else-if="!checkGameReportSuggestion(store.gameReports[slotProps.option])"/>
         <vue-feather
-            class="text-green-600 p-1"
+            class="text-green-700 dark:text-green-400 p-1"
             type="check-circle"
             v-else />
         <!--
@@ -227,12 +229,12 @@ watch(() => store.selectedGameReport, () => {
 
 <style scoped>
 .gamelist:deep(.p-button) {
-  @apply border-gray-200 border-[1px];
+  @apply border-surface-200 dark:border-surface-600 border-[1px];
   @apply md:border-[1px];
 }
 .gamelist:deep(.p-button:not(:last-child)) {
   border-right: 1px solid;
-  @apply border-gray-200;
+  @apply border-surface-200 dark:border-surface-600;
 
   @apply md:w-fit w-full;
 

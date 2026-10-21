@@ -49,7 +49,6 @@ fun Application.configureRouting() {
         post<Api.Login> {
             try {
                 val login = call.receive<LoginDEO>()
-                println(login)
                 val user = login.validate()
                 if (user.isSuccess) {
                     val publicKey = JWTUtil.publicKey
@@ -80,12 +79,16 @@ fun Application.configureRouting() {
         }
 
 
-        authenticate("auth-session", "auth-jwt") {
+        authenticate("auth-session", "auth-jwt", "auth-api-token") {
             refereeApiRouting()
         }
 
-        authenticate("admin-session") {
+        authenticate("admin-session", "auth-api-token") {
             adminApiRouting()
+        }
+
+        authenticate("admin-session") {
+            adminTokenManagementRouting()
         }
 
         authenticate("ccc-session") {

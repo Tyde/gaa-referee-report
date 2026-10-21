@@ -2,7 +2,7 @@
 
 import type {RegionDEO} from "@/types/tournament_types";
 
-let region = defineModel<RegionDEO>();
+const region = defineModel<RegionDEO>();
 
 </script>
 

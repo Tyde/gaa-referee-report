@@ -25,7 +25,7 @@ const localVisible = computed({
 
 function storeGameType() {
 
-  let gtDB = uploadNewGameType(newGameType.value)
+  const gtDB = uploadNewGameType(newGameType.value)
       .then((gt) => {
         store.addNewGameType(gt)
         if(store.selectedGameReport) {
@@ -72,7 +72,7 @@ const proposedExistingAlternatives = computed(() => {
         <ul>
           <li
               v-for="gameType in proposedExistingAlternatives"
-              class="p-4 hover:bg-gray-200 cursor-pointer"
+              class="p-4 hover:bg-surface-200 dark:hover:bg-surface-700 cursor-pointer"
           >
             {{ gameType.name }}
           </li>

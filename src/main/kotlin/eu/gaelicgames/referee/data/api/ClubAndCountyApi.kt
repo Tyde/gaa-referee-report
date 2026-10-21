@@ -4,6 +4,7 @@ import eu.gaelicgames.referee.data.GameCodes
 import eu.gaelicgames.referee.data.GameReports
 import eu.gaelicgames.referee.data.GameType
 import eu.gaelicgames.referee.data.GameTypes
+import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import java.time.LocalDate
 import java.time.LocalTime
@@ -11,7 +12,14 @@ import java.time.format.DateTimeFormatter
 
 
 suspend fun ClubAndCountyApi.Companion.get():ClubAndCountyApi {
-    return lockedTransaction {
+    // Try to get from cache first
+    val cachedResult = CacheUtil.getCachedClubAndCountyApi()
+    if (cachedResult.isSuccess) {
+        return cachedResult.getOrThrow()
+    }
+    
+    // If not in cache or cache failed, query the database
+    val result = lockedTransaction {
         val gameTypes = findAllFinalGameTypeIds()
         val query = """
             SELECT 
@@ -42,7 +50,7 @@ suspend fun ClubAndCountyApi.Companion.get():ClubAndCountyApi {
                 JOIN tournaments tou ON tou.id = tr.tournament
                 JOIN gamecodes gc ON gc.id = tr.code
                 JOIN users u ON u.id = tr.referee
-            WHERE gt.name LIKE '% Final'
+            WHERE gt.name LIKE '% Final' OR tou.is_league = true
         """
         exec(query) {
             val resultList = mutableListOf<Pair<LocalDate,ClubAndCountyResultDEO>>()
@@ -104,6 +112,11 @@ suspend fun ClubAndCountyApi.Companion.get():ClubAndCountyApi {
 
         }?: ClubAndCountyApi(mapOf(), listOf())
     }
+    
+    // Cache the result
+    CacheUtil.cacheClubAndCountyApi(result)
+    
+    return result
 }
 
 

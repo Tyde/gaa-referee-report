@@ -62,7 +62,7 @@ function createSplitTeams() {
   isLoading.value = true
 
 
-  let promises = splitTeamDrafts.value?.map((draft) => {
+  const promises = splitTeamDrafts.value?.map((draft) => {
     return createAmalgamationOnServer(
         props.baseTeam.name + " "+ draft.suffix,
         [props.baseTeam]
@@ -70,13 +70,13 @@ function createSplitTeams() {
       store.newError(err)
     })
   }) ?? []
-  let singlePromise =  Promise.all(promises)
+  const singlePromise =  Promise.all(promises)
   singlePromise.catch((err) => {
     store.newError(err)
   }).then((teams) => {
-    let allTeamsDefined = teams?.every(it => it !== undefined)
+    const allTeamsDefined = teams?.every(it => it !== undefined)
     if(allTeamsDefined) {
-      let allTeams = teams as Team[]
+      const allTeams = teams as Team[]
       emit('on_new_team_split', allTeams)
     } else {
       store.newError("SAt least one of the teams could not be created.")

@@ -2,13 +2,17 @@ package eu.gaelicgames.referee.plugins.routing
 
 import eu.gaelicgames.referee.data.ApiError
 import eu.gaelicgames.referee.data.ApiErrorOptions
+import eu.gaelicgames.referee.data.Rule
 import eu.gaelicgames.referee.data.User
+import eu.gaelicgames.referee.data.UserPrincipal
 import eu.gaelicgames.referee.data.api.*
 import eu.gaelicgames.referee.plugins.receiveAndHandleDEO
 import eu.gaelicgames.referee.resources.Api
 import eu.gaelicgames.referee.util.lockedTransaction
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.resources.*
+import io.ktor.server.resources.get
 import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -99,6 +103,28 @@ fun Route.adminApiRouting() {
         }
     }
 
+    post<Api.Rule.NewVersion> {
+        receiveAndHandleDEO<NewRuleVersionDEO> { newRuleVersionDEO ->
+            newRuleVersionDEO.createNewVersion().map { RuleDEO.fromRule(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    get<Api.Rule.History> { history ->
+        val h = RuleDEO.getHistoryForRule(history.id)
+        call.respond(h.getOrElse {
+            ApiError(ApiErrorOptions.NOT_FOUND, it.message ?: "Rule history not found")
+        })
+    }
+
+    get<Api.Rule.Version> { version ->
+        lockedTransaction {
+            Rule.findById(version.id)?.let { call.respond(RuleDEO.fromRule(it)) }
+                ?: call.respond(ApiError(ApiErrorOptions.NOT_FOUND, "Rule version not found"))
+        }
+    }
+
     get<Api.User.All> {
         val users = lockedTransaction {
             User.all().map { RefereeWithRoleDEO.fromUser(it) }
@@ -140,9 +166,10 @@ fun Route.adminApiRouting() {
     }
 
     post<Api.Team.Update> {
-        receiveAndHandleDEO<TeamDEO> { teamDEO ->
-            teamDEO.updateInDatabase().map {
-                TeamDEO.fromTeam(it)
+        receiveAndHandleDEO<UpdateTeamDEO> { teamDEO ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            teamDEO.updateInDatabase(recordedBy).map {
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
@@ -151,10 +178,52 @@ fun Route.adminApiRouting() {
 
     post<Api.Team.Merge> {
         receiveAndHandleDEO<MergeTeamsDEO> { mergeTeamsDEO ->
-            mergeTeamsDEO.updateInDatabase().map {
-                TeamDEO.fromTeam(it)
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            mergeTeamsDEO.updateInDatabase(recordedBy).map {
+                lockedTransaction { TeamDEO.fromTeam(it) }
             }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    get<Api.Team.History> { history ->
+        val events = TeamDEO.historyForTeam(history.id)
+        call.respond(events)
+    }
+
+    get<Api.Team.Games> { games ->
+        TeamGamesDEO.forTeam(games.teamId, games.includeAmalgamatedTeams).fold(
+            onSuccess = { call.respond(it) },
+            onFailure = {
+                call.respond(ApiError(ApiErrorOptions.NOT_FOUND, it.message ?: "Team not found"))
+            }
+        )
+    }
+
+    post<Api.Team.Alias.New> {
+        receiveAndHandleDEO<NewTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.createInDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Team.Alias.Update> {
+        receiveAndHandleDEO<UpdateTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.updateInDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.Team.Alias.Delete> {
+        receiveAndHandleDEO<DeleteTeamAliasDEO> { deo ->
+            val recordedBy = call.principal<UserPrincipal>()?.user
+            deo.deleteFromDatabase(recordedBy).getOrElse {
+                ApiError(ApiErrorOptions.DELETE_FAILED, it.message ?: "Unknown error")
             }
         }
     }
@@ -184,6 +253,22 @@ fun Route.adminApiRouting() {
             gameTypeDEO.updateInDatabase().map {
                 GameTypeDEO.fromGameType(it)
             }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.GameLength.New> {
+        receiveAndHandleDEO<GameLengthOptionDEO> { deo ->
+            deo.createInDatabase().map { GameLengthOptionDEO.fromGameLengthOption(it) }.getOrElse {
+                ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
+            }
+        }
+    }
+
+    post<Api.GameLength.Update> {
+        receiveAndHandleDEO<GameLengthOptionDEO> { deo ->
+            deo.updateInDatabase().map { GameLengthOptionDEO.fromGameLengthOption(it) }.getOrElse {
                 ApiError(ApiErrorOptions.INSERTION_FAILED, it.message ?: "Unknown error")
             }
         }

@@ -14,7 +14,7 @@ export async function makePostRequest(url: string, data: any) {
 }
 
 //export async function parseAndHandleDEO<T>(jsonData: any, deo: ZodType<T>): Promise<T> {
-export async function parseAndHandleDEO<T extends z.ZodTypeAny>(jsonData: any, deo: T, getApiErrorOnFail: boolean = false): Promise<z.infer<T>> {
+export async function parseAndHandleDEO<T extends z.ZodTypeAny>(jsonData: any, deo: T, getApiErrorOnFail = false): Promise<z.infer<T>> {
     const parseResult = deo.safeParse(jsonData)
     if (parseResult.success) {
         return parseResult.data

@@ -5,6 +5,8 @@ import eu.gaelicgames.referee.util.CacheUtil
 import eu.gaelicgames.referee.util.lockedTransaction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.statements.StatementType
 import java.time.LocalDate
 
@@ -412,6 +414,9 @@ suspend fun DeleteCompleteTournamentDEO.delete(): Result<Long> {
             tournamentReports.forEach { tr ->
                 tr.deleteComplete()
             }
+            TournamentTeamPreSelections.deleteWhere {
+                TournamentTeamPreSelections.tournament eq tournament.id
+            }
             tournament.delete()
             Result.success(tournamentID)
         } else {
@@ -434,6 +439,18 @@ suspend fun MergeTournamentDEO.updateInDatabase(): Result<Tournament> {
             val mergeFromReports = TournamentReport.find { TournamentReports.tournament eq mergeFrom.id }
             mergeFromReports.forEach {
                 it.tournament = mergeTo
+            }
+            // Reassign team preselections to the target tournament, dropping any
+            // that would duplicate a preselection already present on the target.
+            val mergeToTeamIds = TournamentTeamPreSelections.selectAll()
+                .where { TournamentTeamPreSelections.tournament eq mergeTo.id }
+                .map { it[TournamentTeamPreSelections.team].value }
+            TournamentTeamPreSelections.deleteWhere {
+                TournamentTeamPreSelections.tournament eq mergeFrom.id and
+                        (TournamentTeamPreSelections.team inList mergeToTeamIds)
+            }
+            TournamentTeamPreSelections.update({ TournamentTeamPreSelections.tournament eq mergeFrom.id }) {
+                it[tournament] = mergeTo.id
             }
             mergeFrom.delete()
 

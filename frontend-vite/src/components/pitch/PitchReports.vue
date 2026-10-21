@@ -72,7 +72,7 @@ const pitchReportIndices = computed(() => {
         <Button class="p-button-success" @click="newPitch"><i class="pi pi-plus"></i></Button>
       </template>
     </Toolbar>
-    <div v-else class="flex flex-row justify-center mt-2 p-4 bg-gray-300 ">
+    <div v-else class="flex flex-row justify-center mt-2 p-4 bg-surface-200 dark:bg-surface-700 ">
       <div class="text-center" v-if="store.pitchReports.length===0">
         <p class="text-lg">{{ $t('pitchReport.noPitchReports') }}:</p>
         <Button class="p-button-success" @click="newPitch"><i class="pi pi-plus"></i></Button>

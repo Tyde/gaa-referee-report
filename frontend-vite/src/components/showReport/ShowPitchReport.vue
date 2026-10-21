@@ -3,9 +3,9 @@
 import type {Pitch} from "@/types/pitch_types";
 import {onMounted} from "vue";
 
-let props = defineProps<{
+const props = defineProps<{
   pitchReport: Pitch,
-  showRefereeName?: Boolean
+  showRefereeName?: boolean
 }>()
 
 
@@ -78,7 +78,7 @@ let props = defineProps<{
 <style scoped>
 .pitch-report-option {
   @apply p-2 m-2;
-  @apply border-2 border-gray-200 rounded-md;
+  @apply border-2 border-surface-200 dark:border-surface-600 rounded-md;
 }
 
 h5 {

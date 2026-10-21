@@ -31,6 +31,7 @@ suspend fun GameReportDEO.Companion.fromGameReport(report: GameReport): GameRepo
             report.startTime,
             report.gameType?.id?.value,
             report.extraTime?.id?.value,
+            report.gameLength?.id?.value,
             report.umpirePresentOnTime,
             report.umpireNotes,
             report.generalNotes
@@ -52,6 +53,7 @@ suspend fun GameReportDEO.Companion.wrapRow(row: ResultRow): GameReportDEO {
         row[GameReports.startTime],
         row[GameReports.gameType]?.value,
         row[GameReports.extraTime]?.value,
+        row[GameReports.gameLength]?.value,
         row[GameReports.umpirePresentOnTime],
         row[GameReports.umpireNotes],
         row[GameReports.generalNotes]
@@ -79,7 +81,8 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
         grUpdate.teamAGoals != null &&
         grUpdate.teamBGoals != null &&
         grUpdate.teamAPoints != null &&
-        grUpdate.teamBPoints != null
+        grUpdate.teamBPoints != null &&
+        grUpdate.gameLength != null
     ) {
 
         CacheUtil.deleteCachedReport(grUpdate.report)
@@ -93,6 +96,9 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
             }
             val extraTime = grUpdate.extraTime?.let {
                 ExtraTimeOption.findById(it)
+            }
+            val gameLengthOption = grUpdate.gameLength?.let {
+                GameLengthOption.findById(it)
             }
             if (report != null && teamA != null && teamB != null) {
                 val tournamentID = report.tournament.id.value
@@ -115,6 +121,11 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
                     extraTime?.let {
                         this.extraTime = it
                     }
+                    if (gameLengthOption == null) {
+                        throw IllegalArgumentException("Game length option must be set")
+                    } else {
+                        this.gameLength = gameLengthOption
+                    }
                     grUpdate.umpirePresentOnTime?.let {
                         this.umpirePresentOnTime = it
                     }
@@ -132,7 +143,7 @@ suspend fun GameReportDEO.createInDatabase(): Result<GameReport> {
                 Result.failure(
                     IllegalArgumentException(
                         "Trying to insert a game report with either an invalid " +
-                                "Team A ${grUpdate.teamA} B ${grUpdate.teamB} or invalid report ${grUpdate.report}"
+                                "Team A ${grUpdate.teamA} B ${grUpdate.teamB} or invalid report ${grUpdate.report} or invalid game length ${grUpdate.gameLength}"
                     )
                 )
             }
@@ -166,6 +177,9 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
                             originalGameReport.teamAInjuries().map {
                                 it.team = team
                             }
+                            originalGameReport.teamASubstitutions().map {
+                                it.team = team
+                            }
                         }
                         originalGameReport.teamA = team
                     }
@@ -177,6 +191,9 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
                                 it.team = team
                             }
                             originalGameReport.teamBInjuries().map {
+                                it.team = team
+                            }
+                            originalGameReport.teamBSubstitutions().map {
                                 it.team = team
                             }
                         }
@@ -201,6 +218,11 @@ suspend fun GameReportDEO.updateInDatabase(): Result<GameReport> {
                 grUpdate.extraTime?.let { extraTime ->
                     ExtraTimeOption.findById(extraTime)?.let { eto ->
                         originalGameReport.extraTime = eto
+                    }
+                }
+                grUpdate.gameLength?.let { glId ->
+                    GameLengthOption.findById(glId)?.let { gl ->
+                        originalGameReport.gameLength = gl
                     }
                 }
                 grUpdate.gameType?.let { gameType ->
@@ -265,6 +287,9 @@ suspend fun DeleteGameReportDEO.deleteFromDatabase(): Result<Boolean> {
                 Injury.find { Injuries.game eq originalGameReport.id }.forEach {
                     it.delete()
                 }
+                Substitution.find { Substitutions.game eq originalGameReport.id }.forEach {
+                    it.delete()
+                }
                 originalGameReport.delete()
                 Result.success(true)
             } else {
@@ -298,7 +323,11 @@ suspend fun GameReportClassesDEO.Companion.load(): GameReportClassesDEO {
             val gts = GameType.all().map {
                 GameTypeDEO.fromGameType(it)
             }
-            val dbgrc = GameReportClassesDEO(etos, gts)
+            val gls = GameLengthOptions.selectAll().orderBy(GameLengthOptions.minutes to SortOrder.ASC)
+                .map {
+                GameLengthOptionDEO.fromGameLengthOption(GameLengthOption.wrapRow(it))
+            }
+            val dbgrc = GameReportClassesDEO(etos, gts, gls)
             runBlocking { dbgrc.setCache() }
             dbgrc
         }
@@ -310,6 +339,55 @@ fun ExtraTimeOptionDEO.Companion.fromExtraTimeOption(extraTimeOption: ExtraTimeO
     return ExtraTimeOptionDEO(
         extraTimeOption.id.value,
         extraTimeOption.name
+    )
+}
+
+fun GameLengthOptionDEO.Companion.fromGameLengthOption(option: GameLengthOption): GameLengthOptionDEO {
+    return GameLengthOptionDEO(
+        option.id.value,
+        option.name,
+        option.minutes
+    )
+}
+
+@Suppress("unused")
+suspend fun GameLengthOptionDEO.createInDatabase(): Result<GameLengthOption> {
+    GameReportClassesDEO.deleteCache()
+
+    if (this.id == -1L && this.name.isNotBlank()) {
+        return Result.success(lockedTransaction {
+            GameLengthOption.new {
+                this.name = this@createInDatabase.name
+                this.minutes = this@createInDatabase.minutes
+            }
+        })
+    }
+    return Result.failure(
+        IllegalArgumentException("GameLengthOption name/minutes invalid or already has an id")
+    )
+}
+
+@Suppress("unused")
+suspend fun GameLengthOptionDEO.updateInDatabase(): Result<GameLengthOption> {
+    GameReportClassesDEO.deleteCache()
+
+    val update = this
+    if (update.id != null) {
+        return lockedTransaction {
+            val opt = GameLengthOption.findById(update.id)
+            if (opt != null) {
+                opt.name = update.name
+                opt.minutes = update.minutes
+                Result.success(opt)
+            } else {
+                Result.failure(
+                    IllegalArgumentException("GameLengthOption not found")
+                )
+            }
+        }
+    }
+    return Result.failure(
+        IllegalArgumentException("GameLengthOption id not found")
     )
 }
 
@@ -770,6 +848,177 @@ suspend fun DeleteInjuryDEO.deleteFromDatabase(): Result<Boolean> {
 }
 
 
+suspend fun SubstitutionDEO.Companion.fromSubstitution(substitution: Substitution): SubstitutionDEO {
+    return lockedTransaction {
+        SubstitutionDEO(
+            substitution.id.value,
+            substitution.team.id.value,
+            substitution.playerOnFirstName,
+            substitution.playerOnLastName,
+            substitution.playerOnNumber,
+            substitution.playerOffFirstName,
+            substitution.playerOffLastName,
+            substitution.playerOffNumber,
+            substitution.minute,
+            substitution.game.id.value
+        )
+    }
+}
+
+suspend fun SubstitutionDEO.Companion.wrapRow(row: ResultRow): SubstitutionDEO {
+    return lockedTransaction {
+        SubstitutionDEO(
+            row[Substitutions.id].value,
+            row[Substitutions.team].value,
+            row[Substitutions.playerOnFirstName],
+            row[Substitutions.playerOnLastName],
+            row[Substitutions.playerOnNumber],
+            row[Substitutions.playerOffFirstName],
+            row[Substitutions.playerOffLastName],
+            row[Substitutions.playerOffNumber],
+            row[Substitutions.minute],
+            row[Substitutions.game].value
+        )
+    }
+}
+
+suspend fun SubstitutionDEO.getRefereeId(): Long? {
+    return lockedTransaction {
+        // For updates resolve ownership from the persisted row so a client cannot
+        // pass a game they own together with a substitution id they do not own.
+        val persisted = this@getRefereeId.id?.let { Substitution.findById(it) }
+        if (persisted != null) {
+            persisted.game.report.referee.id.value
+        } else {
+            TournamentReports.leftJoin(GameReports)
+                .selectAll()
+                .where { GameReports.id eq this@getRefereeId.game }
+                .firstOrNull()
+                ?.let {
+                    it[TournamentReports.referee].value
+                }
+        }
+    }
+}
+
+suspend fun SubstitutionDEO.createInDatabase(): Result<Substitution> {
+    val substitutionUpdate = this
+    if (substitutionUpdate.team != null &&
+        substitutionUpdate.playerOnFirstName != null &&
+        substitutionUpdate.playerOnLastName != null &&
+        substitutionUpdate.playerOnNumber != null &&
+        substitutionUpdate.playerOffFirstName != null &&
+        substitutionUpdate.playerOffLastName != null &&
+        substitutionUpdate.playerOffNumber != null &&
+        substitutionUpdate.minute != null &&
+        substitutionUpdate.game != null
+    ) {
+        return lockedTransaction {
+            val team = Team.findById(substitutionUpdate.team)
+            val game = GameReport.findById(substitutionUpdate.game)
+            if (team != null && game != null) {
+                clearCacheForGameReport(game)
+
+                Result.success(Substitution.new {
+                    this.team = team
+                    this.playerOnFirstName = substitutionUpdate.playerOnFirstName
+                    this.playerOnLastName = substitutionUpdate.playerOnLastName
+                    this.playerOnNumber = substitutionUpdate.playerOnNumber
+                    this.playerOffFirstName = substitutionUpdate.playerOffFirstName
+                    this.playerOffLastName = substitutionUpdate.playerOffLastName
+                    this.playerOffNumber = substitutionUpdate.playerOffNumber
+                    this.minute = substitutionUpdate.minute
+                    this.game = game
+                })
+            } else {
+                Result.failure(
+                    IllegalArgumentException(
+                        "Trying to insert a substitution with either an invalid " +
+                                "Team $team or invalid game $game"
+                    )
+                )
+            }
+        }
+    } else {
+        return Result.failure(
+            IllegalArgumentException(
+                "Trying to insert a substitution with missing fields"
+            )
+        )
+    }
+}
+
+suspend fun SubstitutionDEO.updateInDatabase(): Result<Substitution> {
+    val substitutionUpdate = this
+    if (substitutionUpdate.id != null) {
+        return lockedTransaction {
+            val substitution = Substitution.findById(substitutionUpdate.id)
+            if (substitution != null) {
+                val game = substitution.game
+                clearCacheForGameReport(game)
+
+                substitutionUpdate.playerOnFirstName?.let { substitution.playerOnFirstName = it }
+                substitutionUpdate.playerOnLastName?.let { substitution.playerOnLastName = it }
+                substitutionUpdate.playerOnNumber?.let { substitution.playerOnNumber = it }
+                substitutionUpdate.playerOffFirstName?.let { substitution.playerOffFirstName = it }
+                substitutionUpdate.playerOffLastName?.let { substitution.playerOffLastName = it }
+                substitutionUpdate.playerOffNumber?.let { substitution.playerOffNumber = it }
+                substitutionUpdate.minute?.let { substitution.minute = it }
+                // team and game are intentionally immutable on update: a substitution
+                // stays with its game report, and follows team changes via
+                // GameReport.updateInDatabase()'s team reassignment.
+                Result.success(substitution)
+            } else {
+                Result.failure(
+                    IllegalArgumentException(
+                        "Trying to update a substitution with invalid id ${substitutionUpdate.id}"
+                    )
+                )
+            }
+        }
+    } else {
+        return Result.failure(
+            IllegalArgumentException(
+                "Trying to update a substitution with missing id"
+            )
+        )
+    }
+}
+
+suspend fun DeleteSubstitutionDEO.deleteChecked(user: User): Result<Boolean> {
+    val deleteId = this.id
+    return lockedTransaction {
+        Substitution.findById(deleteId)?.let {
+            if (it.game.report.referee.id == user.id) {
+                deleteFromDatabase()
+            } else {
+                Result.failure(IllegalArgumentException("No rights - User is not the referee of this game"))
+            }
+        } ?: Result.failure(IllegalArgumentException("Substitution does not exist"))
+    }
+}
+
+suspend fun DeleteSubstitutionDEO.deleteFromDatabase(): Result<Boolean> {
+    val deleteId = this.id
+    return lockedTransaction {
+        val substitution = Substitution.findById(deleteId)
+        if (substitution != null) {
+            val game = substitution.game
+            clearCacheForGameReport(game)
+
+            substitution.delete()
+            Result.success(true)
+        } else {
+            Result.failure(
+                IllegalArgumentException(
+                    "Trying to delete a substitution with invalid id ${this.id}"
+                )
+            )
+        }
+    }
+}
+
+
 suspend fun GameTypeDEO.Companion.fromGameType(gameType: GameType): GameTypeDEO {
     return lockedTransaction {
         GameTypeDEO(
@@ -827,7 +1076,8 @@ suspend fun CompleteGameReportDEO.Companion.fromGameReport(gameReport: GameRepor
                 DisciplinaryActionDEO.fromDisciplinaryAction(
                     it
                 )
-            })
+            },
+            substitutions = gameReport.substitutions.map { SubstitutionDEO.fromSubstitution(it) })
     }
 }
 
@@ -843,7 +1093,10 @@ suspend fun CompleteGameReportDEO.Companion.wrapRow(row: ResultRow): CompleteGam
         disciplinaryActions = DisciplinaryActions.selectAll()
             .where { DisciplinaryActions.game eq grDEO.id }.map {
                 DisciplinaryActionDEO.wrapRow(it)
-            }
+            },
+        substitutions = Substitutions.selectAll().where { Substitutions.game eq grDEO.id }.map {
+            SubstitutionDEO.wrapRow(it)
+        }
     )
 
 
@@ -932,7 +1185,6 @@ suspend fun PublicGameReportDEO.Companion.fromGameReport(gameReport: GameReport)
 
     }
 }
-
 
 
 

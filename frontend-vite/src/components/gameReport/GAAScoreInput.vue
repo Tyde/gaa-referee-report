@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
-import {computed, onMounted, ref, watch} from "vue";
-import {useFocus, watchIgnorable} from "@vueuse/core";
+import {computed, nextTick, onMounted, ref, watch} from "vue";
+import {useFocus} from "@vueuse/core";
 
 const points = defineModel<number>('points')
 const goals = defineModel<number>('goals')
@@ -47,11 +47,25 @@ function formatInput() {
 const inputTarget = ref()
 const {focused} = useFocus(inputTarget)
 
-watch(focused, (value) => {
-  if (!value) {
+watch(focused, async isFocused => {
+  if (isFocused) {
+    // only select on focus when the score is still 0-0
+    if (goals.value === 0 && points.value === 0) {
+      // wait until Vue has flushed the dom/update the input’s value…
+      await nextTick()
+      selectInput()
+    }
+  }
+  else {
     formatInput()
   }
 })
+
+function selectInput() {
+  if (inputTarget.value) {
+    inputTarget.value.select()
+  }
+}
 
 watch(
     [points, goals],
@@ -77,7 +91,7 @@ const isIOS = computed(() => /iPad|iPhone|iPod/.test(navigator.userAgent) && !wi
 
 <template>
   <div>
-  Score:
+    <span @click="selectInput">Score: </span>
     <input
         v-if="!isIOS"
         type="text"
@@ -86,9 +100,9 @@ const isIOS = computed(() => /iPad|iPhone|iPod/.test(navigator.userAgent) && !wi
         :value="inputValue"
         @input="validateInput"
         ref="inputTarget"
-        class="p-2 w-16 rounded border border-gray-600"
+        class="p-2 w-16 rounded border border-surface-400 dark:border-surface-500"
     />
-    <div v-else class="flex flex-row justify-start align-center rounded border border-gray-600 bg-white">
+    <div v-else class="flex flex-row justify-start align-center rounded border border-surface-400 dark:border-surface-500 bg-white dark:bg-surface-800">
       <!-- Awful hack for iOS as it does not have a keyboard with a minus sign -->
       <input
         type="number"

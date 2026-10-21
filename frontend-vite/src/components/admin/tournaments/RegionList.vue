@@ -2,9 +2,9 @@
 import {useAdminStore} from "@/utils/admin_store";
 import {computed} from "vue";
 
-let store = useAdminStore();
+const store = useAdminStore();
 
-let regions = computed(() => {
+const regions = computed(() => {
   store.publicStore.regions
 })
 </script>

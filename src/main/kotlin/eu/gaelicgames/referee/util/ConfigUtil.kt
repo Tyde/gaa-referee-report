@@ -26,7 +26,8 @@ object GGERefereeConfig {
     var postgresUser : String
     var postgresPassword : String
 
-    var claudeAccessToken : String
+    var openRouterApiKey : String
+    var openRouterModel : String
     object mailjet : PropertyGroup() {
         val public by stringType
         val secret by stringType
@@ -57,8 +58,9 @@ object GGERefereeConfig {
         val password by stringType
     }
 
-    object claude : PropertyGroup() {
-        val accessToken by stringType
+    object openrouter : PropertyGroup() {
+        val apiKey by stringType
+        val model by stringType
     }
 
     init {
@@ -84,7 +86,8 @@ object GGERefereeConfig {
         postgresUser = config[postgres.user]
         postgresPassword = config[postgres.password]
 
-        claudeAccessToken = config[claude.accessToken]
+        openRouterApiKey = config[openrouter.apiKey]
+        openRouterModel = config[openrouter.model]
 
 
     }

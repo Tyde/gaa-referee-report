@@ -74,4 +74,8 @@ fun Route.publicApiRouting() {
         val response = ClubAndCountyApi.get()
         call.respond(response)
     }
+
+    get<Api.Stats> {
+        call.respond(StatsDEO.load())
+    }
 }

@@ -42,7 +42,7 @@ function updatePassword() {
     return
   }
 
-  let updateDAO = UpdateRefereePasswordDAO.parse({
+  const updateDAO = UpdateRefereePasswordDAO.parse({
     id: store.me.id,
     oldPassword: passwordChange.value.oldPassword,
     newPassword: passwordChange.value.newPassword
@@ -142,12 +142,12 @@ const changePasswordDisabled = computed(() => {
 h2 {
   @apply text-2xl;
   @apply font-bold;
-  @apply text-gray-900;
+  @apply text-surface-900 dark:text-surface-50;
   @apply text-center;
   @apply m-2;
 }
 .profile-input {
-  @apply border-2 border-gray-300;
+  @apply border-2 border-surface-300 dark:border-surface-600;
   @apply rounded-lg;
   @apply w-56;
   @apply shadow;

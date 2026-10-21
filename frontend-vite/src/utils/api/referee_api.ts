@@ -30,7 +30,7 @@ export async function updateUserRole(update: SetRefereeRoleDEO) {
 }
 
 export async function updateMeUser(changedValues: UpdateRefereeDAO) {
-    let val = UpdateRefereeDAO.parse(changedValues)
+    const val = UpdateRefereeDAO.parse(changedValues)
     return makePostRequest("/api/user/update_me", val)
         .then(data => parseAndHandleDEO(data, Referee))
 }
