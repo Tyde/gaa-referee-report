@@ -175,7 +175,7 @@ function convertToAmalgamation() {
                   <div
                       v-for="team in existingSquadListForWarning"
                       :key="team.id"
-                      class="bg-gray-300 rounded-xl m-1 p-2 text-sm"
+                      class="bg-surface-200 dark:bg-surface-700 rounded-xl m-1 p-2 text-sm"
                       @click="switchModeAsSquadAlreadyExists(team)"
                   >{{ team.name }}</div>
               </div>
@@ -229,7 +229,7 @@ function convertToAmalgamation() {
                     v-for="team in convertToAmalgamationTeamList"
                     :key="team.id"
                     @click="convertToAmalgamationTeamList = convertToAmalgamationTeamList.filter((it:Team) => it.id !== team.id)"
-                    class="bg-gray-300 rounded-xl m-1 p-2 text-sm hover:cursor-pointer flex flex-row items-center"
+                    class="bg-surface-200 dark:bg-surface-700 rounded-xl m-1 p-2 text-sm hover:cursor-pointer flex flex-row items-center"
                 >
                   <vue-feather type="x" class="mr-2 w-4"/>
                   {{team.name}}

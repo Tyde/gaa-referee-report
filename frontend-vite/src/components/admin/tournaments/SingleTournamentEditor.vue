@@ -281,7 +281,7 @@ function mergeTournaments() {
 <style scoped>
 .single-tournament-row {
   @apply rounded-lg;
-  @apply bg-surface-600;
+  @apply bg-surface-100 dark:bg-surface-600;
   @apply p-2;
   @apply m-2;
   @apply flex;

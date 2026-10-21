@@ -100,9 +100,9 @@ const isIOS = computed(() => /iPad|iPhone|iPod/.test(navigator.userAgent) && !wi
         :value="inputValue"
         @input="validateInput"
         ref="inputTarget"
-        class="p-2 w-16 rounded border border-gray-600"
+        class="p-2 w-16 rounded border border-surface-400 dark:border-surface-500"
     />
-    <div v-else class="flex flex-row justify-start align-center rounded border border-gray-600 bg-white">
+    <div v-else class="flex flex-row justify-start align-center rounded border border-surface-400 dark:border-surface-500 bg-white dark:bg-surface-800">
       <!-- Awful hack for iOS as it does not have a keyboard with a minus sign -->
       <input
         type="number"

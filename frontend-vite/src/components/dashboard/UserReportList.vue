@@ -141,7 +141,7 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
       </FloatLabel>
     </div>
     <div v-for="report in transformedReports" key="report.id">
-      <div class="bg-surface-700 rounded-lg p-4 m-2">
+      <div class="bg-white dark:bg-surface-700 rounded-lg p-4 m-2">
         <div class="flex flex-row justify-between">
           <div class="flex flex-col grow">
             <div class="flex flex-row justify-between mb-2">
@@ -176,26 +176,26 @@ function askDeleteReport(report: CompactTournamentReportDEO) {
           <div class="flex flex-col ml-4">
             <Button label="Edit"
                     unstyled
-                    pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                    pt:root="bg-surface-100 dark:bg-surface-600 p-1 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-500 w-24 m-1"
                     pt:label="text-primary"
                     @click="() => editReport(report)"></Button>
             <Button
                 :label="report.isSubmitted ? 'View' : 'Preview'"
                 unstyled
-                pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                pt:root="bg-surface-100 dark:bg-surface-600 p-1 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-500 w-24 m-1"
                 pt:label="text-primary"
                 @click="() => showReport(report)"/>
             <Button
                 v-if="!report.isSubmitted"
                 label="Delete"
                 unstyled
-                pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                pt:root="bg-surface-100 dark:bg-surface-600 p-1 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-500 w-24 m-1"
                 pt:label="text-primary"
                 @click="askDeleteReport(report)"/>
             <Button
                 label="Share"
                 unstyled
-                pt:root="bg-surface-600 p-1 rounded-lg hover:bg-surface-500 w-24 m-1"
+                pt:root="bg-surface-100 dark:bg-surface-600 p-1 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-500 w-24 m-1"
                 pt:label="text-primary"
                 @click="() => reportToShare = report"/>
           </div>

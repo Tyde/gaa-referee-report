@@ -31,7 +31,7 @@ async function submit(teams: Team[]) {
 
 <template>
   <h1>Setup Tournament</h1>
-  <hr class="h-px my-8 bg-surface-600 border-0 mx-32">
+  <hr class="h-px my-8 bg-surface-100 dark:bg-surface-600 border-0 mx-32">
   <template v-if="!isLoading">
     <TournamentSelector
       v-if="tournament === undefined"
@@ -54,6 +54,6 @@ async function submit(teams: Team[]) {
 
 <style scoped>
 .tournament-info-bubble {
-  @apply text-2xl font-bold bg-surface-600 rounded-lg shadow py-4 text-center mx-auto text-primary-200 w-auto
+  @apply text-2xl font-bold bg-surface-100 dark:bg-surface-600 rounded-lg shadow py-4 text-center mx-auto text-app-heading w-auto
 }
 </style>

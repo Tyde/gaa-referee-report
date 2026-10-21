@@ -380,12 +380,12 @@ function onSquadCancel() {
 
 .listbox {
   @apply m-2;
-  @apply border border-surface-400 rounded;
+  @apply border border-surface-200 dark:border-surface-300 dark:border-surface-400 rounded;
 }
 
 .listbox li {
   @apply pt-3 pb-3 pl-2 pr-2;
-  @apply hover:bg-surface-600 hover:cursor-pointer;
+  @apply hover:bg-surface-100 dark:hover:bg-surface-600 hover:cursor-pointer;
 }
 
 .team-selector-box {
@@ -398,7 +398,7 @@ function onSquadCancel() {
 }
 
 .squad_item {
-  @apply bg-surface-500
+  @apply bg-surface-200 dark:bg-surface-500
 }
 
 .amalgamation_subtitle {
@@ -420,16 +420,22 @@ function onSquadCancel() {
 .teamselect-add-option {
   font-style: italic;
   font-weight: bold;
-  color: darkcyan !important;
+  color: #0f6f6f !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .teamselect-add-option {
+    color: #45c4c4 !important;
+  }
 }
 
 .already-selected-item {
   margin: 0;
   padding: .75rem 1rem;
   border: 0 none;
-  @apply text-gray-600;
+  @apply text-surface-700 dark:text-surface-300;
   transition: none;
   border-radius: 0;
-  @apply bg-gray-200
+  @apply bg-surface-200 dark:bg-surface-700
 }
 </style>

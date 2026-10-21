@@ -166,7 +166,7 @@ function on_team_selected(team: Team) {
 </script>
 
 <template>
-  <div class="w-fill shadow-xl p-4 bg-surface-700 border-surface-500 rounded-xl">
+  <div class="w-fill shadow-xl p-4 bg-white dark:bg-surface-700 border-surface-200 dark:border-surface-300 dark:border-surface-500 rounded-xl">
     <h3 class="text-lg font-semibold mb-4">{{ $t('teamSelect.newAmalgamationTitle') }}</h3>
     
     <!-- Step 1: Enter name -->
@@ -180,7 +180,7 @@ function on_team_selected(team: Team) {
           placeholder="e.g., Darmstadt / Frankfurt"
           @keyup.enter="goToSuggestStep"
         />
-        <p class="text-sm text-gray-400 mt-2">Use "/" to separate team names for smart suggestions</p>
+        <p class="text-sm text-surface-600 dark:text-surface-400 mt-2">Use "/" to separate team names for smart suggestions</p>
       </div>
       <div class="flex gap-2 justify-end">
         <Button class="p-button-secondary p-button-rounded" @click="cancel">{{ $t('general.cancel') }}</Button>
@@ -190,8 +190,8 @@ function on_team_selected(team: Team) {
     
     <!-- Step 2: Suggestions -->
     <div v-else-if="step === 'suggest'" class="space-y-4">
-      <div class="bg-surface-600 p-3 rounded-lg">
-        <span class="text-gray-400">Amalgamation:</span>
+      <div class="bg-surface-100 dark:bg-surface-600 p-3 rounded-lg">
+        <span class="text-surface-600 dark:text-surface-400">Amalgamation:</span>
         <span class="font-semibold ml-2">{{ amalgamation_name }}</span>
       </div>
       
@@ -202,14 +202,14 @@ function on_team_selected(team: Team) {
             v-for="s in suggestedTeams" 
             :key="s.part"
             class="p-3 rounded-lg"
-            :class="s.matches.length > 0 ? 'bg-surface-600' : 'bg-surface-800'"
+            :class="s.matches.length > 0 ? 'bg-surface-100 dark:bg-surface-600' : 'bg-surface-100 dark:bg-surface-800'"
           >
             <div class="font-medium mb-2">{{ s.part }}</div>
             <div v-if="s.matches.length === 0" class="text-sm text-red-400">
               No match found
             </div>
             <div v-else-if="s.matches.length === 1" class="flex items-center justify-between">
-              <span class="text-sm text-gray-300">
+              <span class="text-sm text-surface-600 dark:text-surface-400">
                 {{ s.matches[0].team.name }}
                 <span v-if="s.matches[0].match !== 'exact'" class="text-yellow-400">({{ s.matches[0].match }} match)</span>
               </span>
@@ -223,9 +223,9 @@ function on_team_selected(team: Team) {
               <div 
                 v-for="m in s.matches" 
                 :key="m.team.id"
-                class="flex items-center justify-between py-1 px-2 rounded hover:bg-surface-500"
+                class="flex items-center justify-between py-1 px-2 rounded hover:bg-surface-200 dark:hover:bg-surface-500"
               >
-                <span class="text-sm text-gray-300">
+                <span class="text-sm text-surface-600 dark:text-surface-400">
                   {{ m.team.name }}
                   <span v-if="m.match !== 'exact'" class="text-yellow-400">({{ m.match }} match)</span>
                 </span>
@@ -252,7 +252,7 @@ function on_team_selected(team: Team) {
       <div class="flex gap-2 justify-between">
         <Button class="p-button-secondary p-button-rounded" @click="step = 'name'; selected_teams = []">Back</Button>
         <div class="flex gap-2">
-          <Button class="p-button-outlined p-button-rounded" @click="goToManual">
+          <Button class="p-button-outlined p-button-rounded text-surface-700 dark:text-surface-300" @click="goToManual">
             Manual Selection
           </Button>
           <Button 
@@ -269,7 +269,7 @@ function on_team_selected(team: Team) {
     
     <!-- Step 3: Manual selection (fallback) -->
     <div v-else-if="step === 'manual'" class="space-y-4">
-      <div class="bg-surface-600 p-3 rounded-lg">
+      <div class="bg-surface-100 dark:bg-surface-600 p-3 rounded-lg">
         <label for="amalgamation_name_manual" class="block mb-2">{{ $t('teamSelect.newAmalgamationName') }}</label>
         <InputText id="amalgamation_name_manual" v-model="amalgamation_name" class="w-full" />
       </div>
@@ -278,7 +278,7 @@ function on_team_selected(team: Team) {
         <li 
           v-for="team in selected_teams"
           :key="team.id"
-          class="p-2 m-2 h-min rounded-2xl bg-surface-600 hover:bg-surface-500 hover:cursor-pointer inline-block"
+          class="p-2 m-2 h-min rounded-2xl bg-surface-100 dark:bg-surface-600 hover:bg-surface-200 dark:hover:bg-surface-500 hover:cursor-pointer inline-block"
           @click="selected_teams = selected_teams.filter(t => t.id !== team.id)"
         >
           {{ team.name }}

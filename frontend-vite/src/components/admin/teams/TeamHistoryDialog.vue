@@ -91,11 +91,11 @@ function formatRecordedAt(iso: string): string {
       <div v-else-if="events.length === 0" class="m-2">
         No history recorded for this team.
       </div>
-      <ol v-else class="m-2 border-l border-surface-300">
+      <ol v-else class="m-2 border-l border-surface-200 dark:border-surface-300">
         <li v-for="(event, index) in [...events].reverse()" :key="index" class="relative ml-4 pb-4">
           <span class="absolute -left-[10px] top-1 h-4 w-4 rounded-full bg-primary"></span>
           <div class="text-sm font-semibold">{{ eventDescription(event) }}</div>
-          <div class="text-xs text-surface-500">
+          <div class="text-xs text-surface-600 dark:text-surface-400">
             {{ formatDate(event.changeDate) }}
             <template v-if="event.changeDate !== event.recordedAt.slice(0, 10)">
               · recorded {{ formatRecordedAt(event.recordedAt) }}

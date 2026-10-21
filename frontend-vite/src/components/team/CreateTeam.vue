@@ -94,7 +94,7 @@ watchDebounced(new_team_name,() => {
 </script>
 
 <template>
-  <div class="w-fill shadow-xl p-2 bg-surface-700 border-surface-500 rounded-xl flex-col text-center mb-4">
+  <div class="w-fill shadow-xl p-2 bg-white dark:bg-surface-700 border-surface-200 dark:border-surface-300 dark:border-surface-500 rounded-xl flex-col text-center mb-4">
     <label for="new_team_name">{{ $t('teamSelect.newTeamName') }}</label><br>
     <InputText id="new_team_name" :disabled="is_loading" v-model="new_team_name"/>
     <br>

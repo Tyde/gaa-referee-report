@@ -134,7 +134,7 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
     <div
         v-for="tournament in tournamentsPaginated"
         :key="tournament.id"
-        class="mb-8 bg-surface-700 rounded-lg p-4"
+        class="mb-8 bg-white dark:bg-surface-700 rounded-lg p-4"
     >
       <div class="flex flex-row">
         <div class="grow">
@@ -231,8 +231,15 @@ function shareSingleReport(report: CompactTournamentReportDEO) {
 
 <style scoped>
 .report-list-table {
-  --p-datatable-header-cell-background: var(--p-surface-700);
-  --p-datatable-row-background: var(--p-surface-600);
+  --p-datatable-header-cell-background: var(--p-surface-100);
+  --p-datatable-row-background: var(--p-surface-50);
+}
+
+@media (prefers-color-scheme: dark) {
+  .report-list-table {
+    --p-datatable-header-cell-background: var(--p-surface-700);
+    --p-datatable-row-background: var(--p-surface-600);
+  }
 }
 
 

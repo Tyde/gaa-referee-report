@@ -66,7 +66,7 @@ function submit() {
       <li
           v-for="team in selectedTeams"
           :key="team.id"
-          class="bg-surface-600 rounded-lg p-2 m-2 cursor-pointer"
+          class="bg-surface-100 dark:bg-surface-600 rounded-lg p-2 m-2 cursor-pointer"
           @click="teamUnselected(team)"
       >
         {{team.name}}

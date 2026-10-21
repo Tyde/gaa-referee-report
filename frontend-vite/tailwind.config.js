@@ -8,7 +8,13 @@ module.exports = {
       'show_report.html'
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        app: {
+          heading: 'var(--app-heading)',
+        },
+      },
+    },
   },
   variants: {
     extend: {

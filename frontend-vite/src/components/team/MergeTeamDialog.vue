@@ -90,8 +90,8 @@ const excludeTeamList = computed(() => {
     <div class="flex flex-col">
       <div>
         Merge
-        <span v-if="teamsToMerge.length == 0"  class="inline-block w-16  bg-surface-500 rounded-xl  border-dashed border-[1px] border-black">&nbsp;</span>
-        <span v-else class="inline-block bg-surface-500 rounded-lg p-1">
+        <span v-if="teamsToMerge.length == 0"  class="inline-block w-16  bg-surface-200 dark:bg-surface-500 rounded-xl  border-dashed border-[1px] border-black">&nbsp;</span>
+        <span v-else class="inline-block bg-surface-200 dark:bg-surface-500 rounded-lg p-1">
           {{teamsToMerge.map(team => team.name).join(", ")}}
         </span>
         into team <b>{{selectedTeam.name}}</b>

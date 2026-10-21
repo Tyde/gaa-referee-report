@@ -120,10 +120,10 @@ onMounted(() => {
   >
     <div
         v-for="substitution in selectedSubstitutionArray"
-        class="flex flex-wrap items-end gap-4 border-b border-gray-300 py-3"
+        class="flex flex-wrap items-end gap-4 border-b border-surface-300 dark:border-surface-600 py-3"
     >
       <div class="flex flex-col gap-1">
-        <label class="text-sm text-gray-500">{{ $t('gameReport.substitution.minute') }}</label>
+        <label class="text-sm text-surface-600 dark:text-surface-400">{{ $t('gameReport.substitution.minute') }}</label>
         <InputNumber
             v-model="substitution.minute"
             class="w-20"
@@ -156,7 +156,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="pb-2 text-2xl text-gray-400">&rarr;</div>
+      <div class="pb-2 text-2xl text-surface-500 dark:text-surface-400">&rarr;</div>
 
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-red-700">{{ $t('gameReport.substitution.playerOff') }}</label>

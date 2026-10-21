@@ -10,12 +10,36 @@
     @tailwind utilities;
 }
 
+/*
+ * App-level colour tokens. PrimeVue only gives us component tokens; these cover
+ * the bits of chrome the app draws itself. Light is the default, the dark values
+ * follow the same `prefers-color-scheme` query PrimeVue's `system` dark mode
+ * selector uses, so all three layers (PrimeVue, Tailwind, hand-written CSS)
+ * switch together.
+ *
+ * Surface roles, as used across the app:
+ *   white         raised card          surface-800  page background (dark mode)
+ *   surface-50    nav band, panels     surface-900  main container (dark mode)
+ *   surface-100   main container       surface-950  header band (dark mode)
+ *   surface-200   page background
+ */
+:root {
+    --app-heading: #1d3432;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --app-heading: #b4e3ed;
+    }
+}
+
 html {
     font-size: 15px;
 }
 
 body {
-    @apply bg-surface-800;
+    @apply bg-surface-200 dark:bg-surface-800;
+    @apply text-surface-900 dark:text-surface-50;
     @apply print:bg-white;
 }
 
@@ -43,7 +67,7 @@ h2 {
 }
 
 h3 {
-    @apply text-lg font-bold text-primary-100 text-center mt-2 mb-2 print:text-black;
+    @apply text-lg font-bold text-app-heading text-center mt-2 mb-2 print:text-black;
 }
 
 h4 {
@@ -53,7 +77,7 @@ h4 {
 .referee-container {
     @apply w-full;
     @apply xl:w-[1000px];
-    @apply bg-surface-900;
+    @apply bg-surface-100 dark:bg-surface-900;
     @apply mt-2;
     @apply rounded-t-xl;
     @apply pb-4;
@@ -62,7 +86,29 @@ h4 {
 }
 
 .referee-container > .header {
-    @apply flex flex-row justify-center flex-wrap md:flex-nowrap  bg-surface-950 rounded-t-xl;
+    @apply flex flex-row justify-center flex-wrap md:flex-nowrap bg-surface-200 dark:bg-surface-950 rounded-t-xl;
+}
+
+/*
+ * Printing must not inherit the screen theme: `dark:` utilities keep the pale
+ * dark-mode text colours even when the paper is white, so reset what the report
+ * frames inherit. Brand-coloured elements set their own colours and are kept.
+ */
+@media print {
+    html,
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    .referee-container {
+        background-color: #fff !important;
+        box-shadow: none !important;
+    }
+
+    .referee-container > .header {
+        background-color: #fff !important;
+    }
 }
 
 .hurling-game {

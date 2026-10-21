@@ -345,7 +345,7 @@ function formatHistoryDate(iso: string | null | undefined): string {
 <style scoped>
 .rule-text-card {
   @apply p-2 m-1;
-  @apply bg-surface-600;
+  @apply bg-surface-100 dark:bg-surface-600;
   @apply rounded;
   @apply w-full;
 }
@@ -360,7 +360,7 @@ function formatHistoryDate(iso: string | null | undefined): string {
   @apply hover:cursor-pointer;
 }
 .loading {
-  @apply bg-surface-500;
+  @apply bg-surface-200 dark:bg-surface-500;
 }
 .disabled-tag {
   @apply bg-red-800;
@@ -384,19 +384,19 @@ function formatHistoryDate(iso: string | null | undefined): string {
   @apply m-1;
 }
 .duplicate-warning {
-  @apply text-yellow-300;
+  @apply text-yellow-700 dark:text-yellow-300;
   @apply font-bold;
 }
 .history-entry {
-  @apply border-b border-surface-400;
+  @apply border-b border-surface-200 dark:border-surface-300 dark:border-surface-400;
   @apply py-1;
 }
 .history-entry.changed p:first-of-type {
-  @apply text-yellow-300;
+  @apply text-yellow-700 dark:text-yellow-300;
 }
 .history-date {
   @apply text-sm;
-  @apply text-surface-300;
+  @apply text-surface-600 dark:text-surface-300;
 }
 .active-tag {
   @apply bg-emerald-600;
@@ -407,7 +407,7 @@ function formatHistoryDate(iso: string | null | undefined): string {
   @apply border border-emerald-300;
 }
 .history-entry-active {
-  @apply bg-surface-500;
+  @apply bg-surface-200 dark:bg-surface-500;
   @apply border border-emerald-500;
   @apply rounded;
   @apply px-2;

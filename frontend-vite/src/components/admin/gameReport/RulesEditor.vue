@@ -75,7 +75,7 @@ onMounted(() => {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel v-for="code in store.publicStore.codes" :key="code.id" :value="code.id" class="bg-surface-700">
+        <TabPanel v-for="code in store.publicStore.codes" :key="code.id" :value="code.id" class="bg-white dark:bg-surface-700">
           <div class="flex flex-col">
             <template v-if="rulesWithoutNumberForCode(code).length > 0">
               <div class="m-2 border-yellow-400 rounded border-2 p-2">

@@ -102,7 +102,7 @@ function saveEdit() {
               v-for="team in teamEditCopy.amalgamationTeams"
               :key="team.id"
               @click="teamEditCopy.amalgamationTeams = teamEditCopy.amalgamationTeams?.filter((it:Team) => it.id !== team.id)"
-              class="bg-gray-300 rounded-xl m-1 p-2 text-sm hover:cursor-pointer"
+              class="bg-surface-200 dark:bg-surface-700 rounded-xl m-1 p-2 text-sm hover:cursor-pointer"
           >
             <vue-feather type="x" class="mr-2"/>
                 {{team.name}}

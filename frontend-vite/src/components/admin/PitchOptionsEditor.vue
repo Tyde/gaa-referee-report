@@ -9,7 +9,7 @@ const store = useAdminStore()
 
 <template>
   <h2>Pitch options</h2>
-  <hr class="h-px my-8 bg-surface-600 border-0 mx-32">
+  <hr class="h-px my-8 bg-surface-100 dark:bg-surface-600 border-0 mx-32">
 
   <div class="flex flex-wrap flex-row">
     <div>

@@ -29,10 +29,10 @@ defineProps<{
 
 <style scoped>
 .stat-card {
-    @apply flex flex-col items-center p-4 rounded-lg bg-surface-700 border border-surface-600 min-w-32;
+    @apply flex flex-col items-center p-4 rounded-lg bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 min-w-32;
 }
 .stat-label {
-    @apply text-sm text-surface-400 text-center;
+    @apply text-sm text-surface-600 dark:text-surface-400 text-center;
 }
 .stat-value {
     @apply text-2xl font-bold mt-1;

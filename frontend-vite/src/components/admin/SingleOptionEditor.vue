@@ -88,7 +88,7 @@ async function storeOption(option:PitchProperty) {
 <template>
   <div>
 
-      <div class="flex flex-col m-2 shadow-xl bg-surface-900">
+      <div class="flex flex-col m-2 shadow-xl bg-surface-50 dark:bg-surface-900">
         <div v-for="option in options" class="group option-label">
           <template v-if="option === editingOption">
 
@@ -114,7 +114,7 @@ async function storeOption(option:PitchProperty) {
             </div>
           </template>
         </div>
-        <div class="flex flex-row justify-center m-2 rounded w-96 bg-surface-500">
+        <div class="flex flex-row justify-center m-2 rounded w-96 bg-surface-200 dark:bg-surface-500">
           <Button @click="newOption" class="p-button-sm p-button-primary m-1">Add new</Button>
         </div>
       </div>
@@ -129,8 +129,8 @@ async function storeOption(option:PitchProperty) {
   @apply m-2;
   @apply w-96;
   @apply rounded;
-  @apply bg-surface-700;
-  @apply hover:bg-surface-600;
+  @apply bg-white dark:bg-surface-700;
+  @apply hover:bg-surface-100 dark:hover:bg-surface-600;
   @apply flex flex-row justify-between items-center;
 }
 

@@ -32,7 +32,7 @@ onMounted(async () => {
                 <img src="./assets/logo.png" alt="Logo" class="w-12 h-12 m-2 cursor-pointer" @click="router.push('/')">
                 <div class="grow font-bold text-xl">GGE Referee Report System</div>
                 <div class="mr-2">
-                    <a href="/public" class="text-blue-400 hover:underline">Public Reports</a>
+                    <a href="/public" class="text-blue-700 dark:text-blue-400 hover:underline">Public Reports</a>
                 </div>
             </div>
 
@@ -48,7 +48,7 @@ onMounted(async () => {
                 <div v-else-if="stats" class="flex flex-col gap-6">
                     <!-- Team Tournament Attendance -->
                     <Panel header="Team Tournament Attendance">
-                        <p class="text-sm text-surface-400 mb-3">Teams ranked by number of tournaments attended (from submitted reports)</p>
+                        <p class="text-sm text-surface-700 dark:text-surface-300 dark:text-surface-400 mb-3">Teams ranked by number of tournaments attended (from submitted reports)</p>
                         <TeamTournamentCountsTable :data="stats.teamTournamentCounts" />
                     </Panel>
 
@@ -71,7 +71,7 @@ onMounted(async () => {
 
                     <!-- ELO Ratings -->
                     <Panel header="Team ELO Ratings">
-                        <p class="text-sm text-surface-400 mb-3">ELO ratings calculated from all submitted game results (starting rating: 1000)</p>
+                        <p class="text-sm text-surface-700 dark:text-surface-300 dark:text-surface-400 mb-3">ELO ratings calculated from all submitted game results (starting rating: 1000)</p>
                         <EloTable :data="stats.teamElos" />
                     </Panel>
                 </div>

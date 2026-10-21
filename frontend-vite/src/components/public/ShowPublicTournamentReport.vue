@@ -134,7 +134,7 @@ const selectedTeam = ref<Team>()
     <div
         v-for="game in gameReportsByTime"
         key="game.gameReport.id"
-        class="rounded-lg bg-gray-200 p-2 m-2 shadow-lg"
+        class="rounded-lg bg-surface-200 dark:bg-surface-700 p-2 m-2 shadow-lg"
         :class="gameCodeColor(translateCodeIdToGameCode(game.code))"
     >
       <h3>{{ game.gameReport.startTime.toLocaleString(DateTime.TIME_24_SIMPLE) }} - {{ translateCodeIdToGameCode(game.code)?.name}}</h3>

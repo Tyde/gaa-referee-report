@@ -248,18 +248,18 @@ onMounted(() => {
 
 }
 .disciplinary-action-table thead {
-  @apply bg-surface-600;
+  @apply bg-surface-100 dark:bg-surface-600;
 }
 .disciplinary-action-table th {
   @apply text-left;
   @apply p-2;
   @apply font-bold;
-  @apply border-surface-400 border;
+  @apply border-surface-200 dark:border-surface-300 dark:border-surface-400 border;
 
 }
 .disciplinary-action-table td {
   @apply p-2;
-  @apply border-surface-400 border;
+  @apply border-surface-200 dark:border-surface-300 dark:border-surface-400 border;
 
 }
 </style>

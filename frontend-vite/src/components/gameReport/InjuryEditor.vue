@@ -152,7 +152,7 @@ onMounted(() => {
           </Button>
         </div>
       </div>
-      <div class="flex-grow h-px bg-gray-300 m-4"></div>
+      <div class="flex-grow h-px bg-surface-300 dark:bg-surface-600 m-4"></div>
     </div>
     <template #footer>
 

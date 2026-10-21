@@ -178,7 +178,7 @@ watch(() => store.selectedGameReport, () => {
             class="text-yellow-200 p-1"
             v-else-if="!checkGameReportSuggestion(store.gameReports[slotProps.option])"/>
         <vue-feather
-            class="text-green-600 p-1"
+            class="text-green-700 dark:text-green-400 p-1"
             type="check-circle"
             v-else />
         <!--
@@ -229,12 +229,12 @@ watch(() => store.selectedGameReport, () => {
 
 <style scoped>
 .gamelist:deep(.p-button) {
-  @apply border-gray-200 border-[1px];
+  @apply border-surface-200 dark:border-surface-600 border-[1px];
   @apply md:border-[1px];
 }
 .gamelist:deep(.p-button:not(:last-child)) {
   border-right: 1px solid;
-  @apply border-gray-200;
+  @apply border-surface-200 dark:border-surface-600;
 
   @apply md:w-fit w-full;
 

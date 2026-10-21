@@ -105,7 +105,7 @@ onMounted(() => {
           </li>
           <li
               v-if="showingRecentTournaments && found_tournaments.length >0"
-              class="italic bg-surface-800 hover:!bg-surface-800 text-center !cursor-default"
+              class="italic bg-surface-100 dark:bg-surface-800 hover:!bg-surface-100 dark:hover:!bg-surface-800 text-center !cursor-default"
           >
             {{ $t('tournament.recent') }}
           </li>
@@ -118,8 +118,8 @@ onMounted(() => {
               @click="select_tournament(tournament)"
           >
             <div>
-              <TrophyIcon v-if="!tournament.isLeague" class="h-4 w-4 mr-1 text-gray-500" />
-              <ListBulletIcon v-else class="h-4 w-4 mr-1 text-gray-500" />
+              <TrophyIcon v-if="!tournament.isLeague" class="h-4 w-4 mr-1 text-surface-500 dark:text-surface-400" />
+              <ListBulletIcon v-else class="h-4 w-4 mr-1 text-surface-500 dark:text-surface-400" />
             </div>
 
             <div>
@@ -163,8 +163,8 @@ onMounted(() => {
 
 <style scoped>
 .tournament-list {
-  @apply bg-surface-700 rounded-lg p-4 m-2;
-  @apply border border-surface-600;
+  @apply bg-white dark:bg-surface-700 rounded-lg p-4 m-2;
+  @apply border border-surface-200 dark:border-surface-600;
   @apply w-full;
 
 }
@@ -177,7 +177,7 @@ onMounted(() => {
   @apply m-1;
   @apply p-2;
   @apply rounded-sm;
-  @apply hover:bg-surface-600;
+  @apply hover:bg-surface-100 dark:hover:bg-surface-600;
   @apply cursor-pointer;
 }
 

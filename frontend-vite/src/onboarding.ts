@@ -30,7 +30,9 @@ const app = createApp(App);
 app.use(pinia)
 app.use(PrimeVue, {
     theme: {
-        preset: RefReportColorPreset
+        preset: RefReportColorPreset,
+        // follow the OS setting; Tailwind's dark: variant uses the same media query
+        darkModeSelector: "system"
     }
 });
 app.use(Vue3Mq);

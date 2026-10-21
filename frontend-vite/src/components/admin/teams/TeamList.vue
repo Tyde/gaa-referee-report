@@ -171,7 +171,7 @@ const orderedTeamsList = computed(() => {
                 <Button text label="Merge with..." @click="() => startMergeTeam(data)"/>
               </div>
               <div class="col-span-2 flex flex-row">
-                <div class="bg-surface-500 rounded-xl m-1 p-2 text-sm" v-for="team in data.amalgamationTeams" :key="team.id">
+                <div class="bg-surface-200 dark:bg-surface-500 rounded-xl m-1 p-2 text-sm" v-for="team in data.amalgamationTeams" :key="team.id">
                   <span>{{ team.name }}</span>
                 </div>
               </div>

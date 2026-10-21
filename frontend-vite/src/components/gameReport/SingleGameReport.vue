@@ -288,7 +288,7 @@ onMounted(() => {
 <style>
 .single-team-report {
   @apply p-4 col-span-2 lg:col-span-1 flex;
-  @apply flex-col border border-surface-500 m-2 bg-surface-600;
+  @apply flex-col border border-surface-200 dark:border-surface-300 dark:border-surface-500 m-2 bg-surface-100 dark:bg-surface-600;
   @apply rounded-lg md:border-0;
 
 }

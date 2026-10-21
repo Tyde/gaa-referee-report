@@ -142,8 +142,8 @@ const dateTimeRange = computed(() => {
 .single-tournament-row {
   @apply flex flex-col;
   @apply p-4 m-2;
-  @apply rounded-lg bg-surface-700 border border-surface-600;
-  @apply hover:bg-surface-600;
+  @apply rounded-lg bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600;
+  @apply hover:bg-surface-100 dark:hover:bg-surface-600;
   @apply cursor-pointer;
 }
 

@@ -194,7 +194,7 @@ function newSuccessMessage(message: string) {
                 :class="{
                   'text-red-600 font-bold': data.revoked,
                   'text-yellow-600 font-bold': !data.revoked && isExpired(data),
-                  'text-green-600 font-bold': !data.revoked && !isExpired(data)
+                  'text-green-700 dark:text-green-400 font-bold': !data.revoked && !isExpired(data)
                 }"
             >{{ statusLabel(data) }}</span>
           </template>

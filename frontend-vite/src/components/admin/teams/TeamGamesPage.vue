@@ -78,7 +78,7 @@ watch(includeAmalgamatedTeams, loadGames);
   <div class="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <Button text icon="pi pi-arrow-left" label="Back to teams" @click="router.push({path: '/teams'})"/>
-      <div class="flex items-center gap-5 text-sm text-surface-600 dark:text-surface-300">
+      <div class="flex items-center gap-5 text-sm text-surface-700 dark:text-surface-300">
         <span>{{ gameCount }} {{ gameCount === 1 ? 'game' : 'games' }}</span>
         <span>{{ tournamentCount }} {{ tournamentCount === 1 ? 'tournament' : 'tournaments' }}</span>
       </div>
@@ -87,7 +87,7 @@ watch(includeAmalgamatedTeams, loadGames);
     <div class="flex flex-col gap-3 rounded-lg bg-surface-100 p-4 dark:bg-surface-800">
       <div>
         <h1 class="text-2xl font-bold">Games for {{ selectedTeam?.name ?? 'team' }}</h1>
-        <p v-if="selectedTeam" class="text-sm text-surface-600 dark:text-surface-300">
+        <p v-if="selectedTeam" class="text-sm text-surface-700 dark:text-surface-300">
           Submitted games and tournaments where this team played.
         </p>
       </div>
@@ -115,7 +115,7 @@ watch(includeAmalgamatedTeams, loadGames);
         <header class="flex flex-wrap items-center justify-between gap-3 bg-surface-100 p-4 dark:bg-surface-800">
           <div>
             <h2 class="text-xl font-semibold">{{ group.tournament.name }}</h2>
-            <p class="text-sm text-surface-600 dark:text-surface-300">
+            <p class="text-sm text-surface-700 dark:text-surface-300">
               {{ formatTournamentDates(group.tournament) }} · {{ group.tournament.location }}
             </p>
           </div>
@@ -124,7 +124,7 @@ watch(includeAmalgamatedTeams, loadGames);
 
         <div class="divide-y divide-surface-200 dark:divide-surface-700">
           <article v-for="game in group.games" :key="game.gameId" class="grid gap-3 p-4 md:grid-cols-[minmax(9rem,auto)_minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center">
-            <div class="text-sm text-surface-600 dark:text-surface-300">
+            <div class="text-sm text-surface-700 dark:text-surface-300">
               <div v-if="formatGameStartTime(game.startTime)">{{ formatGameStartTime(game.startTime) }}</div>
               <div v-else>No start time recorded</div>
               <div>{{ game.codeName }}<span v-if="game.gameTypeName"> · {{ game.gameTypeName }}</span></div>
@@ -144,7 +144,7 @@ watch(includeAmalgamatedTeams, loadGames);
 
             <div class="flex flex-col items-start gap-1 md:items-end">
               <Tag :value="playedAsOutcome(game)" :severity="playedAsOutcome(game) === 'W' ? 'success' : playedAsOutcome(game) === 'L' ? 'danger' : 'secondary'"/>
-              <span class="text-sm text-surface-600 dark:text-surface-300">Referee: {{ game.refereeName }}</span>
+              <span class="text-sm text-surface-700 dark:text-surface-300">Referee: {{ game.refereeName }}</span>
             </div>
           </article>
         </div>

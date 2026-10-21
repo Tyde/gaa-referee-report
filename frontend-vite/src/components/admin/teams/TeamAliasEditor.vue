@@ -61,7 +61,7 @@ async function removeAlias(id: number) {
       <span
           v-for="alias in team.aliases ?? []"
           :key="alias.id"
-          class="bg-surface-500 rounded-xl px-2 py-1 text-sm flex flex-row items-center gap-1"
+          class="bg-surface-200 dark:bg-surface-500 rounded-xl px-2 py-1 text-sm flex flex-row items-center gap-1"
       >
         <span>{{ alias.alias }}</span>
         <Button

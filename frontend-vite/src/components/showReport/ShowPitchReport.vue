@@ -78,7 +78,7 @@ const props = defineProps<{
 <style scoped>
 .pitch-report-option {
   @apply p-2 m-2;
-  @apply border-2 border-gray-200 rounded-md;
+  @apply border-2 border-surface-200 dark:border-surface-600 rounded-md;
 }
 
 h5 {

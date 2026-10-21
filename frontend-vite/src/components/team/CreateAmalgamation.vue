@@ -82,7 +82,7 @@ function unselectTeam(team: Team) {
 </script>
 
 <template>
-  <div class="w-fill shadow-xl p-2 bg-surface-700 border-surface-500 rounded-xl">
+  <div class="w-fill shadow-xl p-2 bg-white dark:bg-surface-700 border-surface-200 dark:border-surface-300 dark:border-surface-500 rounded-xl">
     <h3>{{ $t('teamSelect.newAmalgamationTitle') }}</h3>
     <div class="w-fill">
       <div class="mt-2 text-center">
@@ -94,7 +94,7 @@ function unselectTeam(team: Team) {
       </div>
       <ul class="flex flex-row flex-wrap justify-center list-none w-full min-h-[4rem]">
         <li v-for="team in selected_teams"
-            class="p-2 m-2 h-min rounded-2xl bg-surface-600 hover:bg-surface-500 hover:cursor-pointer inline-block"
+            class="p-2 m-2 h-min rounded-2xl bg-surface-100 dark:bg-surface-600 hover:bg-surface-200 dark:hover:bg-surface-500 hover:cursor-pointer inline-block"
             @click="unselectTeam(team)"
         >
           {{ team.name }}
